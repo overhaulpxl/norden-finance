@@ -1,0 +1,224 @@
+'use client';
+
+import { useState } from 'react';
+import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder } from '../types';
+import Sidebar from './Sidebar';
+import OverviewLayout from './OverviewLayout';
+import BalanceCards from './BalanceCards';
+import SavingGoals from './SavingGoals';
+import DebtList from './DebtList';
+import Wishlist from './Wishlist';
+import TransactionTable from './TransactionTable';
+import MonthlyRecap from './MonthlyRecap';
+import ExpenseChart from './ExpenseChart';
+import QuickInputModal from './QuickInputModal';
+import PaylaterList from './PaylaterList';
+import Integrations from './Integrations';
+import SettingsPage from './SettingsPage';
+import HelpPage from './HelpPage';
+import AutomationCenter from './AutomationCenter';
+import FinancialTimeline from './FinancialTimeline';
+import { Menu } from 'lucide-react';
+
+interface AppLayoutProps {
+  user: {
+    id: string;
+    email: string;
+    plan: 'trial' | 'pro';
+    fullName?: string;
+    trialEndsAt?: string | null;
+    role?: string;
+  };
+  transactions: Transaction[];
+  balances: Balance[];
+  savingGoals: SavingGoal[];
+  debts: Debt[];
+  wishlist: WishlistItem[];
+  paylaters: Paylater[];
+  budgets: Budget[];
+  subscriptions: AppSubscription[];
+  emergencyFundPlan: EmergencyFundPlan | null;
+  templates: TransactionTemplate[];
+  recurringTransactions: RecurringTransaction[];
+  reminders: Reminder[];
+  dataError?: string | null;
+}
+
+export default function AppLayout({ 
+  user,
+  transactions, 
+  balances, 
+  savingGoals, 
+  debts, 
+  wishlist, 
+  paylaters,
+  budgets,
+  subscriptions,
+  emergencyFundPlan,
+  templates,
+  recurringTransactions,
+  reminders,
+  dataError
+}: AppLayoutProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations'>('overview');
+  const [showModal, setShowModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSidebarOpen(false);
+  };
+
+  return (
+    <div className="flex min-h-screen bg-[#FAF9F5]" style={{ backgroundImage: 'radial-gradient(#d1d1d1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-950/40 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out
+        lg:translate-x-0
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} />
+      </div>
+      
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 min-w-0">
+        <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4">
+          {/* Mobile hamburger */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden rounded-none border-[2px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_#000] transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <Menu className="w-5 h-5 text-slate-800" />
+            </button>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black">
+              {activeTab === 'goals' ? 'Goals & Debts' : 
+               activeTab === 'automation' ? 'Automation' :
+               activeTab === 'reports' ? 'Data Dashboard' : 
+               activeTab === 'overview' ? 'Home' : 
+               activeTab}
+            </h2>
+          </div>
+
+          {/* Mobile new transaction button */}
+          <button 
+            onClick={() => setShowModal(true)}
+            className="lg:hidden brutal-btn px-3 py-2 text-xs"
+          >
+            + New
+          </button>
+        </header>
+
+        {dataError && (
+          <div className="mb-6 border-[3px] border-black bg-[#ffccd5] p-4 text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] rounded-none">
+            {dataError}
+          </div>
+        )}
+
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {activeTab === 'overview' && (
+            <OverviewLayout 
+              user={user}
+              transactions={transactions} 
+              balances={balances} 
+              debts={debts} 
+              wishlist={wishlist} 
+              savingGoals={savingGoals}
+              budgets={budgets}
+              subscriptions={subscriptions}
+              emergencyFundPlan={emergencyFundPlan}
+            />
+          )}
+
+          {activeTab === 'wallet' && (
+            <BalanceCards balances={balances} />
+          )}
+
+          {activeTab === 'goals' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <Wishlist items={wishlist} />
+                <SavingGoals goals={savingGoals} />
+              </div>
+              <div className="space-y-6">
+                <PaylaterList paylaters={paylaters} />
+                <DebtList debts={debts} />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'history' && (
+            <div className="space-y-6">
+              <div className="brutal-card p-4 sm:p-6 bg-white">
+                <TransactionTable transactions={transactions} />
+              </div>
+              <FinancialTimeline transactions={transactions} />
+            </div>
+          )}
+
+          {activeTab === 'automation' && (
+            <AutomationCenter
+              templates={templates}
+              recurringTransactions={recurringTransactions}
+              reminders={reminders}
+            />
+          )}
+
+          {activeTab === 'reports' && (
+            <div className="space-y-6">
+              <div className="brutal-card bg-white p-4 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-950">Exports & Reports</h3>
+                    <p className="text-sm text-slate-500">Download data transaksi dan laporan bulanan.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <a href="/api/export?format=csv" className="brutal-btn-light min-h-11 text-sm">CSV</a>
+                    <a href="/api/export?format=json" className="brutal-btn-light min-h-11 text-sm">JSON</a>
+                    <a href="/api/export?format=pdf" className="brutal-btn min-h-11 text-sm">PDF Report</a>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <MonthlyRecap transactions={transactions} />
+                <ExpenseChart transactions={transactions} />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsPage 
+              user={user}
+              stats={{
+                transactionCount: transactions.length,
+                walletCount: balances.length,
+                balanceTotal: balances.reduce((a, b) => a + b.currentBalance, 0),
+              }}
+            />
+          )}
+
+          {activeTab === 'help' && (
+            <div className="brutal-card p-4 sm:p-6 bg-white">
+              <HelpPage />
+            </div>
+          )}
+
+          {activeTab === 'integrations' && (
+            <div className="brutal-card p-4 sm:p-6 bg-white">
+              <Integrations />
+            </div>
+          )}
+        </div>
+      </main>
+
+      {showModal && <QuickInputModal onClose={() => setShowModal(false)} />}
+    </div>
+  );
+}
