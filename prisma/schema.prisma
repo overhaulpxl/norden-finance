@@ -71,7 +71,7 @@ model BillingSubscription {
 model Plan {
   id          String   @id @default(cuid())
   name        String
-  price       Int
+  price       Float
   billingType String // monthly, yearly
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -83,7 +83,7 @@ model PaymentRequest {
   userId        String // Firebase UID
   plan          PlanType      @default(pro)
   billingType   String // monthly, yearly
-  amount        Int
+  amount        Float
   paymentMethod String // bni, bca, qris
   proofPath     String // Firebase Storage path
   status        PaymentStatus @default(pending)
@@ -100,7 +100,7 @@ model Balance {
   userId         String // Firebase UID
   name           String // BNI, BCA, DANA, GoPay, Cash, etc.
   type           String        @default("bank") // bank, ewallet, cash
-  currentBalance Int           @default(0)
+  currentBalance Float         @default(0)
   archivedAt     DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -132,7 +132,7 @@ model Transaction {
   walletId        String?
   transferToWalletId String?
   type            TransactionType
-  amount          Int
+  amount          Float
   note            String?
   rawInput        String?
   tags            String[]        @default([])
@@ -161,7 +161,7 @@ model TransactionTemplate {
   userId       String // Firebase UID
   name         String
   type         TransactionType @default(keluar)
-  amount       Int
+  amount       Float
   categoryName String
   walletName   String
   note         String?
@@ -183,7 +183,7 @@ model RecurringTransaction {
   userId       String // Firebase UID
   name         String
   type         TransactionType @default(keluar)
-  amount       Int
+  amount       Float
   categoryName String
   walletName   String
   note         String?
@@ -205,7 +205,7 @@ model Budget {
   id           String   @id @default(cuid())
   userId       String // Firebase UID
   categoryId   String
-  monthlyLimit Int
+  monthlyLimit Float
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -219,8 +219,8 @@ model SavingGoal {
   id            String    @id @default(cuid())
   userId        String // Firebase UID
   title         String
-  targetAmount  Int
-  currentAmount Int       @default(0)
+  targetAmount  Float
+  currentAmount Float     @default(0)
   deadline      DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -232,7 +232,7 @@ model WishlistItem {
   id         String    @id @default(cuid())
   userId     String // Firebase UID
   name       String
-  amount     Int
+  amount     Float
   url        String?
   status     String    @default("locked") // locked, ready, bought
   unlockDate DateTime?
@@ -247,7 +247,7 @@ model Debt {
   userId       String // Firebase UID
   type         String   @default("hutang") // hutang (payable), piutang (receivable)
   person       String
-  amount       Int
+  amount       Float
   isSettled    Boolean  @default(false)
   tenorMonths  Int?
   monthsPaid   Int      @default(0)
@@ -264,8 +264,8 @@ model Paylater {
   userId            String // Firebase UID
   itemName          String
   platform          String
-  totalAmount       Int
-  installmentAmount Int
+  totalAmount       Float
+  installmentAmount Float
   tenorMonths       Int
   monthsPaid        Int       @default(0)
   isSettled         Boolean   @default(false)
@@ -280,7 +280,7 @@ model AppSubscription {
   id         String   @id @default(cuid())
   userId     String // Firebase UID
   name       String
-  amount     Int
+  amount     Float
   billingDay Int // 1-31
   method     String
   isActive   Boolean  @default(true)
@@ -293,7 +293,7 @@ model AppSubscription {
 model EmergencyFundPlan {
   id             String   @id @default(cuid())
   userId         String   @unique // Firebase UID
-  monthlyExpense Int
+  monthlyExpense Float
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
