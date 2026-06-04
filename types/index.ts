@@ -199,8 +199,19 @@ export interface Reminder {
   channel: string;
   dueAt: Date | string | null;
   completedAt: Date | string | null;
+  emailSentAt: Date | string | null;
+  emailLastError: string | null;
+  emailAttemptCount: number;
   createdAt: Date | string;
   updatedAt: Date | string;
+}
+
+export interface Achievement {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  unlockedAt: Date | string;
 }
 
 // ==========================================

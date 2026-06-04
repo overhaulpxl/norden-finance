@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal } from '../types';
+import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal, Achievement } from '../types';
 import { formatRupiah } from '../lib/format';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale } from 'lucide-react';
 import MonthlyRecap from './MonthlyRecap';
@@ -22,6 +22,7 @@ interface OverviewProps {
   budgets: Budget[];
   subscriptions: AppSubscription[];
   emergencyFundPlan: EmergencyFundPlan | null;
+  achievements: Achievement[];
   user: {
     id: string;
     email: string;
@@ -71,6 +72,7 @@ export default function OverviewLayout({
   subscriptions,
   emergencyFundPlan,
   savingGoals,
+  achievements,
   user,
 }: OverviewProps) {
   const totalBalance = balances.reduce((acc, curr) => acc + curr.currentBalance, 0);
@@ -226,7 +228,7 @@ export default function OverviewLayout({
       case 'emergency-fund':
         return <EmergencyFundTracker key={id} transactions={transactions} balances={balances} emergencyFundPlan={emergencyFundPlan} />;
       case 'momentum-center':
-        return <MomentumCenter key={id} transactions={transactions} balances={balances} budgets={budgets} subscriptions={subscriptions} savingGoals={savingGoals} emergencyFundPlan={emergencyFundPlan} trialEndsAt={user.trialEndsAt} />;
+        return <MomentumCenter key={id} transactions={transactions} balances={balances} budgets={budgets} subscriptions={subscriptions} savingGoals={savingGoals} emergencyFundPlan={emergencyFundPlan} achievements={achievements} trialEndsAt={user.trialEndsAt} />;
       default:
         return null;
     }

@@ -1,24 +1,26 @@
-type Bucket = {
-  count: number;
-  resetAt: number;
-};
+import { prisma } from './prisma';
 
-const buckets = new Map<string, Bucket>();
+export async function assertRateLimit(key: string, limit: number, windowMs: number) {
+  const resetAt = new Date(Date.now() + windowMs);
+  const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+    INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "updatedAt")
+    VALUES (${key}, 1, ${resetAt}, NOW())
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE
+        WHEN "RateLimitBucket"."resetAt" <= NOW() THEN 1
+        ELSE "RateLimitBucket"."count" + 1
+      END,
+      "resetAt" = CASE
+        WHEN "RateLimitBucket"."resetAt" <= NOW() THEN ${resetAt}
+        ELSE "RateLimitBucket"."resetAt"
+      END,
+      "updatedAt" = NOW()
+    RETURNING "count"
+  `;
 
-export function assertRateLimit(key: string, limit: number, windowMs: number) {
-  const now = Date.now();
-  const bucket = buckets.get(key);
-
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return;
-  }
-
-  if (bucket.count >= limit) {
+  if ((rows[0]?.count || 0) > limit) {
     throw new Error('Terlalu banyak request. Coba lagi nanti.');
   }
-
-  bucket.count += 1;
 }
 
 export function rateLimitKey(request: Request, scope: string) {

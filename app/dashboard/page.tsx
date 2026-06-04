@@ -30,6 +30,7 @@ export default async function DashboardPage() {
       templates: [],
       recurringTransactions: [],
       reminders: [],
+      achievements: [],
       profile: {
         role: 'user',
         plan: 'trial',
@@ -69,6 +70,7 @@ export default async function DashboardPage() {
       templates={data.templates}
       recurringTransactions={data.recurringTransactions}
       reminders={data.reminders}
+      achievements={data.achievements}
       dataError={data.dataError}
     />
   );

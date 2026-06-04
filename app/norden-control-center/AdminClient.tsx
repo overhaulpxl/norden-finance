@@ -18,8 +18,6 @@ import {
   updateFeedbackStatus,
   updatePaymentSettings
 } from '../actions/admin';
-import { storage } from '../../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface RequestItem {
   id: string;
@@ -328,11 +326,17 @@ export default function AdminClient({
     setSuccess('');
 
     try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storageRef = ref(storage, `qris/merchant_${Date.now()}_${safeName}`);
-      const uploadResult = await uploadBytes(storageRef, file, { contentType: file.type });
-      const url = await getDownloadURL(uploadResult.ref);
-      setQrisImage(url);
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadResponse = await fetch('/api/upload/qris', {
+        method: 'POST',
+        body: formData,
+      });
+      const uploadData = await uploadResponse.json();
+      if (!uploadResponse.ok || !uploadData.imageUrl) {
+        throw new Error(uploadData.error || 'Gagal mengunggah QRIS.');
+      }
+      setQrisImage(uploadData.imageUrl);
       setSuccess('Gambar QRIS berhasil diunggah ke Firebase Storage! Klik Simpan untuk memperbarui pengaturan.');
     } catch (err: any) {
       console.error(err);

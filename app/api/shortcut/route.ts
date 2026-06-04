@@ -21,7 +21,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
-    assertRateLimit(rateLimitKey(request, 'api-shortcut'), 30, 60_000);
+    await assertRateLimit(rateLimitKey(request, 'api-shortcut'), 30, 60_000);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Invalid request origin';
     return NextResponse.json({ success: false, error: message }, { status: 403 });

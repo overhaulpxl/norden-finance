@@ -330,6 +330,15 @@ export default function AutomationCenter({
                   <div className="min-w-0">
                     <p className="truncate text-xs font-black uppercase tracking-wider text-black">{reminder.title}</p>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-500">{reminder.body}</p>
+                    {reminder.channel === 'email' && (
+                      <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-neutral-500">
+                        {reminder.emailSentAt
+                          ? `Email sent ${new Date(reminder.emailSentAt).toLocaleDateString('id-ID')}`
+                          : reminder.emailLastError
+                            ? `Email failed (${reminder.emailAttemptCount}/3)`
+                            : 'Email queued'}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 gap-1">
                     <button type="button" onClick={() => runAction(`reminder:complete:${reminder.id}`, () => completeReminder(reminder.id), 'Reminder updated.')} className="border border-black bg-[#bbf7d0] p-1" title="Complete"><Check className="h-3.5 w-3.5 stroke-[3px]" /></button>

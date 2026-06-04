@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { BellRing, CalendarCheck2, CheckCircle2, Flame, Trophy } from 'lucide-react';
-import { AppSubscription, Balance, Budget, EmergencyFundPlan, SavingGoal, Transaction } from '../types';
+import { Achievement, AppSubscription, Balance, Budget, EmergencyFundPlan, SavingGoal, Transaction } from '../types';
 import { formatRupiah } from '../lib/format';
 
 function dayKey(date: Date) {
@@ -74,6 +74,7 @@ export default function MomentumCenter({
   subscriptions,
   savingGoals,
   emergencyFundPlan,
+  achievements: persistedAchievements,
   trialEndsAt,
 }: {
   transactions: Transaction[];
@@ -82,6 +83,7 @@ export default function MomentumCenter({
   subscriptions: AppSubscription[];
   savingGoals: SavingGoal[];
   emergencyFundPlan: EmergencyFundPlan | null;
+  achievements: Achievement[];
   trialEndsAt?: string | null;
 }) {
   const [referenceDate] = useState(() => new Date());
@@ -93,20 +95,21 @@ export default function MomentumCenter({
   const todayKey = dayKey(referenceDate);
   const hasTransactionToday = transactions.some((transaction) => dayKey(new Date(transaction.transactionDate)) === todayKey);
   const daysSinceActivity = streaks.lastActivity ? Math.max(0, daysBetween(referenceDate, streaks.lastActivity)) : null;
+  const persistedTitles = new Set(persistedAchievements.map((achievement) => achievement.title));
 
   const achievements = [
-    { label: '7 hari streak', complete: streaks.best >= 7, detail: `${Math.min(streaks.best, 7)}/7 hari` },
-    { label: '30 hari streak', complete: streaks.best >= 30, detail: `${Math.min(streaks.best, 30)}/30 hari` },
-    { label: '100 transaksi pertama', complete: transactions.length >= 100, detail: `${Math.min(transactions.length, 100)}/100 transaksi` },
-    { label: 'Saldo Rp1.000.000', complete: totalBalance >= 1_000_000, detail: formatRupiah(Math.min(totalBalance, 1_000_000)) },
+    { label: '7 hari streak', complete: persistedTitles.has('7 Day Streak') || streaks.best >= 7, detail: `${Math.min(streaks.best, 7)}/7 hari` },
+    { label: '30 hari streak', complete: persistedTitles.has('30 Day Streak') || streaks.best >= 30, detail: `${Math.min(streaks.best, 30)}/30 hari` },
+    { label: '100 transaksi pertama', complete: persistedTitles.has('100 Transactions') || transactions.length >= 100, detail: `${Math.min(transactions.length, 100)}/100 transaksi` },
+    { label: 'Saldo Rp1.000.000', complete: persistedTitles.has('Million Balance') || totalBalance >= 1_000_000, detail: formatRupiah(Math.min(totalBalance, 1_000_000)) },
     {
       label: 'Target tabungan tercapai',
-      complete: savingGoals.some((goal) => goal.currentAmount >= goal.targetAmount),
+      complete: persistedTitles.has('Saving Goal Reached') || savingGoals.some((goal) => goal.currentAmount >= goal.targetAmount),
       detail: savingGoals.length ? `${savingGoals.filter((goal) => goal.currentAmount >= goal.targetAmount).length}/${savingGoals.length} goal` : 'Belum ada goal',
     },
     {
       label: 'Dana darurat 3 bulan',
-      complete: emergencyMonths >= 3,
+      complete: persistedTitles.has('Emergency Fund 3 Months') || emergencyMonths >= 3,
       detail: monthlyExpense > 0 ? `${emergencyMonths.toFixed(1)}/3 bulan` : 'Isi target dulu',
     },
   ];

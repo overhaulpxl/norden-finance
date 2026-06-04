@@ -5,6 +5,8 @@ import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertValidDate } from '../../lib/validators';
+import { getAdminAuth } from '../../lib/firebaseAdmin';
+import { sendEmail } from '../../lib/email';
 
 const CHANNELS = new Set(['in_app', 'email']);
 
@@ -85,4 +87,66 @@ export async function deleteReminder(id: string) {
     const message = error instanceof Error ? error.message : 'Gagal menghapus pengingat';
     return { success: false, error: message };
   }
+}
+
+export async function processDueEmailReminders(limit = 50) {
+  const now = new Date();
+  const dueReminders = await prisma.reminder.findMany({
+    where: {
+      channel: 'email',
+      completedAt: null,
+      emailSentAt: null,
+      emailAttemptCount: { lt: 3 },
+      OR: [
+        { dueAt: null },
+        { dueAt: { lte: now } },
+      ],
+    },
+    orderBy: [
+      { dueAt: 'asc' },
+      { createdAt: 'asc' },
+    ],
+    take: Math.min(Math.max(limit, 1), 100),
+  });
+
+  let sentCount = 0;
+  let failedCount = 0;
+
+  for (const reminder of dueReminders) {
+    try {
+      const firebaseUser = await getAdminAuth().getUser(reminder.userId);
+      if (!firebaseUser.email) {
+        throw new Error('User email is not available from Firebase Auth');
+      }
+
+      await sendEmail({
+        to: firebaseUser.email,
+        subject: `Norden reminder: ${reminder.title}`,
+        text: `${reminder.body}\n\nThis reminder was sent by Norden Finance.`,
+      });
+
+      await prisma.reminder.update({
+        where: { id: reminder.id },
+        data: {
+          emailSentAt: now,
+          emailLastError: null,
+          emailAttemptCount: { increment: 1 },
+        },
+      });
+      await createAuditLog(reminder.userId, 'SEND_REMINDER_EMAIL', 'reminder', reminder.id);
+      sentCount += 1;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Email reminder delivery failed';
+      await prisma.reminder.update({
+        where: { id: reminder.id },
+        data: {
+          emailLastError: message.slice(0, 500),
+          emailAttemptCount: { increment: 1 },
+        },
+      });
+      failedCount += 1;
+    }
+  }
+
+  return { success: true, scannedCount: dueReminders.length, sentCount, failedCount };
 }

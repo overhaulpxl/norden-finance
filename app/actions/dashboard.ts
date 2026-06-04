@@ -2,6 +2,7 @@
 
 import { getCurrentUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
+import { syncAchievements } from '../../lib/achievements';
 
 export async function getDashboardData() {
   const user = await getCurrentUser();
@@ -110,6 +111,7 @@ export async function getDashboardData() {
         take: 50,
       }),
     ]);
+    const achievements = await syncAchievements(prisma, userId);
 
     return {
       transactions,
@@ -125,6 +127,7 @@ export async function getDashboardData() {
       templates,
       recurringTransactions,
       reminders,
+      achievements,
       profile: {
         role: profile.role,
         plan: profile.plan,
@@ -150,6 +153,7 @@ export async function getDashboardData() {
       templates: [],
       recurringTransactions: [],
       reminders: [],
+      achievements: [],
       profile: {
         role: profile.role,
         plan: profile.plan,

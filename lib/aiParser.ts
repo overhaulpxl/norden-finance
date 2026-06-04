@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ParseResult, TransactionType } from '../types';
 import { parseTransaction as fallbackParse } from './parser';
 
-export async function parseTransactionWithAI(input: string, userId: string): Promise<ParseResult> {
+export async function parseTransactionWithAI(input: string): Promise<ParseResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   
   // Use fallback if API key is not configured or input is too simple

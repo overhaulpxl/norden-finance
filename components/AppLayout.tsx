@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder } from '../types';
+import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement } from '../types';
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BalanceCards from './BalanceCards';
@@ -41,6 +41,7 @@ interface AppLayoutProps {
   templates: TransactionTemplate[];
   recurringTransactions: RecurringTransaction[];
   reminders: Reminder[];
+  achievements: Achievement[];
   dataError?: string | null;
 }
 
@@ -58,6 +59,7 @@ export default function AppLayout({
   templates,
   recurringTransactions,
   reminders,
+  achievements,
   dataError
 }: AppLayoutProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations'>('overview');
@@ -134,6 +136,7 @@ export default function AppLayout({
               budgets={budgets}
               subscriptions={subscriptions}
               emergencyFundPlan={emergencyFundPlan}
+              achievements={achievements}
             />
           )}
 

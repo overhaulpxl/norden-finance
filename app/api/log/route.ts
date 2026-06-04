@@ -14,7 +14,7 @@ function getError(result: ProcessResult): string {
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    assertRateLimit(rateLimitKey(req, 'api-log'), 30, 60_000);
+    await assertRateLimit(rateLimitKey(req, 'api-log'), 30, 60_000);
     const { input } = await req.json().catch(() => ({ input: '' }));
     
     if (typeof input !== 'string' || !input.trim()) {

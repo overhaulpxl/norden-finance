@@ -2,7 +2,6 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { parseTransaction } from '../../lib/parser';
 import { parseTransactionWithAI } from '../../lib/aiParser';
 import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
@@ -140,7 +139,7 @@ export async function processUserInput(userId: string, input: string) {
   if (input.length > 500) return { success: false, error: 'Input terlalu panjang' };
 
   try {
-    const result = await parseTransactionWithAI(input, userId);
+    const result = await parseTransactionWithAI(input);
     assertPositiveAmount(result.amount);
     let transactionId: string | undefined;
     let walletName: string | undefined;

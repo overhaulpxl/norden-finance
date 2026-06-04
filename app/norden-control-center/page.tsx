@@ -4,6 +4,7 @@ import AdminClient from './AdminClient';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
+const ADMIN_PAGE_LIMIT = 200;
 
 export default async function AdminPage() {
   let userAndProfile;
@@ -24,6 +25,7 @@ export default async function AdminPage() {
   // ========================================
   const paymentRequests = await prisma.paymentRequest.findMany({
     orderBy: { createdAt: 'desc' },
+    take: ADMIN_PAGE_LIMIT,
   });
 
   // ========================================
@@ -31,13 +33,15 @@ export default async function AdminPage() {
   // ========================================
   const feedbacks = await prisma.feedback.findMany({
     orderBy: { createdAt: 'desc' },
+    take: ADMIN_PAGE_LIMIT,
   });
 
   // ========================================
   // 3. All User Profiles
   // ========================================
-  const allUsers = await prisma.profile.findMany({
+  const listedUsers = await prisma.profile.findMany({
     orderBy: { createdAt: 'desc' },
+    take: ADMIN_PAGE_LIMIT,
   });
 
   // ========================================
@@ -51,22 +55,41 @@ export default async function AdminPage() {
   // ========================================
   // 5. Platform Statistics
   // ========================================
-  const totalTransactions = await prisma.transaction.count({
-    where: { deletedAt: null },
-  });
-
-  const totalBalances = await prisma.balance.count();
-  const totalBudgets = await prisma.budget.count();
-  const totalSavingGoals = await prisma.savingGoal.count();
-  const totalDebts = await prisma.debt.count();
-  const totalPaylaters = await prisma.paylater.count();
-  const totalSubscriptions = await prisma.appSubscription.count();
-
-  // Revenue from approved payments
-  const approvedPayments = await prisma.paymentRequest.findMany({
-    where: { status: 'approved' },
-  });
-  const totalRevenue = approvedPayments.reduce((sum, p) => sum + p.amount, 0);
+  const [
+    totalUsers,
+    proUsers,
+    trialUsers,
+    adminUsers,
+    totalTransactions,
+    totalBalances,
+    totalBudgets,
+    totalSavingGoals,
+    totalDebts,
+    totalPaylaters,
+    totalSubscriptions,
+    approvedPaymentStats,
+    pendingPayments,
+    rejectedPayments,
+  ] = await Promise.all([
+    prisma.profile.count(),
+    prisma.profile.count({ where: { plan: 'pro' } }),
+    prisma.profile.count({ where: { plan: 'trial' } }),
+    prisma.profile.count({ where: { role: 'admin' } }),
+    prisma.transaction.count({ where: { deletedAt: null } }),
+    prisma.balance.count(),
+    prisma.budget.count(),
+    prisma.savingGoal.count(),
+    prisma.debt.count(),
+    prisma.paylater.count(),
+    prisma.appSubscription.count(),
+    prisma.paymentRequest.aggregate({
+      where: { status: 'approved' },
+      _sum: { amount: true },
+      _count: true,
+    }),
+    prisma.paymentRequest.count({ where: { status: 'pending' } }),
+    prisma.paymentRequest.count({ where: { status: 'rejected' } }),
+  ]);
 
   // Users registered per day (last 30 days)
   const thirtyDaysAgo = new Date();
@@ -75,6 +98,7 @@ export default async function AdminPage() {
     where: { createdAt: { gte: thirtyDaysAgo } },
     orderBy: { createdAt: 'asc' },
     select: { createdAt: true },
+    take: 1000,
   });
 
   // Group by date
@@ -88,7 +112,16 @@ export default async function AdminPage() {
   // ========================================
   // Serialize everything
   // ========================================
-  const profilesMap = new Map(allUsers.map(p => [p.userId, p]));
+  const referencedProfileIds = Array.from(new Set([
+    ...listedUsers.map((user) => user.userId),
+    ...paymentRequests.map((request) => request.userId),
+    ...feedbacks.map((feedback) => feedback.userId),
+    ...auditLogs.flatMap((log) => log.userId ? [log.userId] : []),
+  ]));
+  const referencedProfiles = await prisma.profile.findMany({
+    where: { userId: { in: referencedProfileIds } },
+  });
+  const profilesMap = new Map(referencedProfiles.map(p => [p.userId, p]));
 
   const serializedRequests = paymentRequests.map(req => {
     const userProfile = profilesMap.get(req.userId);
@@ -108,7 +141,7 @@ export default async function AdminPage() {
     };
   });
 
-  const serializedUsers = allUsers.map(u => ({
+  const serializedUsers = listedUsers.map(u => ({
     id: u.id,
     userId: u.userId,
     fullName: u.fullName || 'Tanpa Nama',
@@ -140,10 +173,10 @@ export default async function AdminPage() {
   }));
 
   const platformStats = {
-    totalUsers: allUsers.length,
-    proUsers: allUsers.filter(u => u.plan === 'pro').length,
-    trialUsers: allUsers.filter(u => u.plan === 'trial').length,
-    adminUsers: allUsers.filter(u => u.role === 'admin').length,
+    totalUsers,
+    proUsers,
+    trialUsers,
+    adminUsers,
     totalTransactions,
     totalBalances,
     totalBudgets,
@@ -151,10 +184,10 @@ export default async function AdminPage() {
     totalDebts,
     totalPaylaters,
     totalSubscriptions,
-    totalRevenue,
-    pendingPayments: paymentRequests.filter(r => r.status === 'pending').length,
-    approvedPayments: approvedPayments.length,
-    rejectedPayments: paymentRequests.filter(r => r.status === 'rejected').length,
+    totalRevenue: approvedPaymentStats._sum.amount || 0,
+    pendingPayments,
+    approvedPayments: approvedPaymentStats._count,
+    rejectedPayments,
     userGrowth,
   };
 

@@ -15,6 +15,7 @@ type AdminAuthLike = {
   verifyIdToken: (idToken: string) => Promise<DecodedToken & { uid: string }>;
   createSessionCookie: (idToken: string, options: { expiresIn: number }) => Promise<string>;
   verifySessionCookie: (sessionCookie: string, checkRevoked?: boolean) => Promise<DecodedToken & { uid: string }>;
+  getUser: (uid: string) => Promise<{ uid: string; email?: string }>;
 };
 
 function requiredEnv(name: string): string {
@@ -99,6 +100,10 @@ export function getAdminAuth(): AdminAuthLike {
       }
       return withUid(decoded);
     },
+    getUser: async (uid: string) => ({
+      uid,
+      email: uid.includes('@') ? uid : undefined,
+    }),
   };
 }
 

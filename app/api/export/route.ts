@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../lib/auth';
 import { prisma } from '../../../lib/prisma';
 
+const EXPORT_ROW_LIMIT = 5000;
+
 function csvEscape(value: unknown): string {
   const text = String(value ?? '');
   if (/[",\n\r]/.test(text)) {
@@ -69,6 +71,7 @@ export async function GET(request: Request) {
     where: { userId: user.uid, deletedAt: null },
     include: { category: true, wallet: true, transferToWallet: true },
     orderBy: { transactionDate: 'desc' },
+    take: EXPORT_ROW_LIMIT,
   });
   const balances = await prisma.balance.findMany({
     where: { userId: user.uid, archivedAt: null },
@@ -95,6 +98,7 @@ export async function GET(request: Request) {
   if (format === 'json') {
     return NextResponse.json({
       generatedAt: new Date().toISOString(),
+      rowLimit: EXPORT_ROW_LIMIT,
       balances: balances.map((balance) => ({
         id: balance.id,
         name: balance.name,

@@ -6,8 +6,6 @@ import { useState, useRef } from 'react';
 import { ArrowLeft, Check, Upload, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { submitPaymentRequest } from '../actions/payments';
-import { storage } from '../../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface UpgradeClientProps {
   profile: {
@@ -92,10 +90,17 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
     setUploading(true);
 
     try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storageRef = ref(storage, `payment-proofs/${profile.userId}/${Date.now()}_${safeName}`);
-      const uploadResult = await uploadBytes(storageRef, file, { contentType: file.type });
-      const proofPathValue = await getDownloadURL(uploadResult.ref);
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadResponse = await fetch('/api/upload/payment-proof', {
+        method: 'POST',
+        body: formData,
+      });
+      const uploadData = await uploadResponse.json();
+      if (!uploadResponse.ok || !uploadData.proofPath) {
+        throw new Error(uploadData.error || 'Gagal mengunggah bukti pembayaran.');
+      }
+      const proofPathValue = uploadData.proofPath as string;
 
       // 3. Submit Payment Request
       const amount = selectedPlan === 'monthly' ? 19000 : 149000;

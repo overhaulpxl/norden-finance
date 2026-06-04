@@ -13,7 +13,7 @@ import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
 export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
-    assertRateLimit(rateLimitKey(request, 'auth-register'), 10, 60_000);
+    await assertRateLimit(rateLimitKey(request, 'auth-register'), 10, 60_000);
     const { idToken, fullName, createSession = true } = await request.json();
 
     if (!idToken) {

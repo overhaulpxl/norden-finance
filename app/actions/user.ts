@@ -74,6 +74,8 @@ export async function deleteUserAccountData() {
       await tx.transactionTemplate.deleteMany({ where: { userId } });
       await tx.recurringTransaction.deleteMany({ where: { userId } });
       await tx.reminder.deleteMany({ where: { userId } });
+      await tx.streak.deleteMany({ where: { userId } });
+      await tx.achievement.deleteMany({ where: { userId } });
       await tx.paymentRequest.deleteMany({ where: { userId } });
       await tx.billingSubscription.deleteMany({ where: { userId } });
       await tx.feedback.deleteMany({ where: { userId } });

@@ -35,7 +35,10 @@ function validatePaymentInput(data: {
     !data.proofPath ||
     data.proofPath.length > 2048 ||
     data.proofPath.startsWith('data:') ||
-    !/^https:\/\/firebasestorage\.googleapis\.com\/|^https:\/\/storage\.googleapis\.com\//.test(data.proofPath)
+    (
+      !/^https:\/\/firebasestorage\.googleapis\.com\/|^https:\/\/storage\.googleapis\.com\//.test(data.proofPath) &&
+      !(process.env.NODE_ENV !== 'production' && data.proofPath.startsWith('/api/mock-file?'))
+    )
   ) {
     throw new Error('Bukti pembayaran tidak valid');
   }

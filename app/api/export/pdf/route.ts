@@ -3,12 +3,10 @@ import { getCurrentUser } from '../../../../lib/auth';
 import { prisma } from '../../../../lib/prisma';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
-
-// jsPDF + autoTable for server-side PDF generation
-// @ts-ignore - jspdf types are not fully compatible in server context
 import { jsPDF } from 'jspdf';
-// @ts-ignore
-import autoTable from 'jspdf-autotable';
+import autoTable, { type CellHookData } from 'jspdf-autotable';
+
+const PDF_ROW_LIMIT = 1000;
 
 export async function GET(req: Request) {
   try {
@@ -52,6 +50,7 @@ export async function GET(req: Request) {
         wallet: true,
       },
       orderBy: { transactionDate: 'desc' },
+      take: PDF_ROW_LIMIT,
     });
 
     const income = transactions.filter(t => t.type === 'masuk').reduce((sum, t) => sum + t.amount, 0);
@@ -199,8 +198,7 @@ export async function GET(req: Request) {
         alternateRowStyles: {
           fillColor: [249, 250, 251],
         },
-        didParseCell: function (data: any) {
-          // Color the amount column
+        didParseCell: function (data: CellHookData) {
           if (data.section === 'body' && data.column.index === 4) {
             const text = String(data.cell.raw);
             if (text.startsWith('+')) {

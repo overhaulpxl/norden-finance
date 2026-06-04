@@ -309,12 +309,16 @@ model Reminder {
   channel     String    @default("in_app")
   dueAt       DateTime?
   completedAt DateTime?
+  emailSentAt DateTime?
+  emailLastError String?
+  emailAttemptCount Int   @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([userId])
   @@index([userId, completedAt])
   @@index([dueAt])
+  @@index([channel, dueAt, emailSentAt])
 }
 
 model AuditLog {
@@ -366,4 +370,13 @@ model Achievement {
 
   @@unique([userId, title])
   @@index([userId])
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
 }

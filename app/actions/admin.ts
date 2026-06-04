@@ -372,7 +372,10 @@ export async function updatePaymentSettings(data: {
       if (
         !data.qris_image ||
         data.qris_image.startsWith('data:') ||
-        !/^https:\/\/firebasestorage\.googleapis\.com\/|^https:\/\/storage\.googleapis\.com\//.test(data.qris_image)
+        (
+          !/^https:\/\/firebasestorage\.googleapis\.com\/|^https:\/\/storage\.googleapis\.com\//.test(data.qris_image) &&
+          !(process.env.NODE_ENV !== 'production' && data.qris_image.startsWith('/api/mock-file?'))
+        )
       ) {
         throw new Error('Gambar QRIS aktif harus berupa URL Firebase Storage');
       }

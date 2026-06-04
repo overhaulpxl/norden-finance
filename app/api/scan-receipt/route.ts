@@ -6,7 +6,7 @@ import { assertRateLimit, rateLimitKey } from '../../../lib/rateLimit';
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    assertRateLimit(rateLimitKey(req, 'scan-receipt'), 10, 60_000);
+    await assertRateLimit(rateLimitKey(req, 'scan-receipt'), 10, 60_000);
     const formData = await req.formData();
     const file = formData.get('image') as File | null;
     
