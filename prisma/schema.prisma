@@ -47,6 +47,7 @@ model Profile {
   role                UserRole @default(user)
   plan                PlanType @default(trial)
   onboardingCompleted Boolean  @default(false)
+  shortcutTokenVersion Int      @default(1)
   trialStartedAt      DateTime @default(now())
   trialEndsAt         DateTime
   createdAt           DateTime @default(now())

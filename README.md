@@ -5,7 +5,11 @@
 <h1 align="center">Norden Finance</h1>
 
 <p align="center">
-  <strong>Premium personal finance tracker SaaS — powered by AI, built with Next.js & Neo-Brutalist design.</strong>
+  <strong>Track your money. Find your direction.</strong>
+</p>
+
+<p align="center">
+  <a href="https://nordenfinance.vercel.app">https://nordenfinance.vercel.app</a>
 </p>
 
 <p align="center">
@@ -222,6 +226,30 @@ my-app/
 └── scripts/              # Admin utility scripts
 ```
 
+## 📖 Brand Story
+
+**Norden** (meaning *North* in Germanic languages) represents the ultimate financial compass. In a sea of boring financial spreadsheets and generic tracking apps, Norden Finance stands out. It is built to help individuals chart a course toward financial freedom, navigating budgets, debts, and savings with confidence. 
+
+Powered by a striking Neo-Brutalist design language, Norden turns transaction logging from a chore into a highly engaging, visual, and gamified routine.
+
+---
+
+## 🏗️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | Next.js 16 (App Router, Server Components, Server Actions) |
+| **Language** | TypeScript 5 |
+| **UI** | React 19 + TailwindCSS 4 |
+| **Database** | PostgreSQL + Prisma ORM 5 |
+| **Auth** | Firebase Authentication + Firebase Admin SDK |
+| **Storage** | Firebase Storage (receipt uploads, payment proofs) |
+| **AI** | Google Gemini AI (natural language parsing, OCR) |
+| **Charts** | Recharts 3 |
+| **PDF** | jsPDF + jsPDF-AutoTable |
+| **Icons** | Lucide React |
+| **Design** | Neo-Brutalist UI System |
+
 ---
 
 ## 🚀 Getting Started
@@ -246,38 +274,90 @@ npm install
 # 3. Set up environment variables
 cp .env.example .env.local
 # Fill in your DATABASE_URL, Firebase config, and GEMINI_API_KEY
+```
 
-# 4. Run database migrations
+### 🗄️ Database Migrations
+
+This project uses Prisma Migrations to manage schema changes:
+
+```bash
+# Local Development: Evolve schema and apply changes to shadow DB
+npx prisma migrate dev
+
+# Production: Apply migrations to live database (non-interactive, safe)
 npx prisma migrate deploy
-npx prisma generate
 
-# 5. Start development server
-npm run dev
+# Generate Prisma Client types after updates
+npx prisma generate
 ```
 
 ### Environment Variables
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/norden"
+Configure these variables in your `.env.local` file:
 
-# Firebase
+```env
+# Database Connections
+DATABASE_URL=
+POSTGRES_URL=
+PRISMA_DATABASE_URL=
+
+# Firebase Client (Public Config)
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
 
-# Firebase Admin
-FIREBASE_SERVICE_ACCOUNT_KEY=
+# Firebase Admin SDK (Server-Only Credentials)
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY=
 
-# AI
+# Google Gemini AI Key
 GEMINI_API_KEY=
 
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Email Delivery (Resend Integration)
+RESEND_API_KEY=
+EMAIL_FROM=
+
+# Application Config
+NEXT_PUBLIC_APP_URL=
+CRON_SECRET=
+SHORTCUT_TOKEN_SECRET=
 ```
+
+---
+
+## ⚡ Mobile Shortcuts & NFC Stickers
+
+Norden Finance supports logging transactions directly from mobile OS automation engines (Apple Shortcuts on iOS, HTTP Shortcuts on Android) and NFC stickers:
+
+1. **Endpoint format**: `/api/shortcut?token=<your-private-token>`
+2. **Method**: `POST`
+3. **Payload**: JSON format containing `{ "text": "your transaction text here" }` (e.g. `kopi 15k gopay`).
+4. **Action**: The endpoint parses the input using Gemini AI and records the transaction in your active wallet instantly, without requiring you to open a browser.
+
+---
+
+## 🛡️ Security & Authentication
+
+- **Token Security**: Shortcut tokens are cryptographically signed using HMAC-SHA256 based on the user's Firebase UID and a server-side secret (`SHORTCUT_TOKEN_SECRET` / `CRON_SECRET`).
+- **Token Rotation**: If a device is lost or a token is compromised, users can click **Reset Token** on the Integrations page. This increments the database token version, immediately invalidating the old endpoint.
+- **Origin Protection**: The endpoint restricts non-token calls to the same origin (`assertSameOrigin`), blocking CSRF and unauthorized cross-site requests.
+- **Rate Limiting**: Request limits are enforced per-token and per-IP to mitigate denial-of-service and brute-force scanner attacks.
+
+---
+
+## ☁️ Vercel Deployment Notes
+
+This project is fully ready for deployment on **Vercel** (Free/Hobby tier):
+1. Connect your GitHub repository to Vercel.
+2. Add the environment variables specified in the `Environment Variables` section above.
+3. During build, Vercel will trigger the `postinstall` script to run `prisma generate`.
+4. Deploy the live database schema from your local terminal using `npx prisma migrate deploy` before testing.
+5. Refer to `DEPLOYMENT_GUIDE.md` for a comprehensive step-by-step setup walkthrough.
 
 ---
 

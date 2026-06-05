@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { processInput } from '../../actions';
+import { processUserInput } from '../../actions/transactions';
 import { assertSameOrigin } from '../../../lib/requestSecurity';
 import { assertRateLimit, rateLimitKey } from '../../../lib/rateLimit';
+import { assertShortcutWriteAccess, validateShortcutToken } from '../../../lib/shortcutToken';
 
-type ProcessResult = Awaited<ReturnType<typeof processInput>>;
+type ProcessResult = Awaited<ReturnType<typeof processInput>> | Awaited<ReturnType<typeof processUserInput>>;
 
 function getError(result: ProcessResult): string {
   return 'error' in result && typeof result.error === 'string'
@@ -19,12 +21,29 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  try {
-    assertSameOrigin(request);
-    await assertRateLimit(rateLimitKey(request, 'api-shortcut'), 30, 60_000);
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Invalid request origin';
-    return NextResponse.json({ success: false, error: message }, { status: 403 });
+  const token = new URL(request.url).searchParams.get('token');
+  let tokenUserId: string | null = null;
+
+  if (token) {
+    tokenUserId = await validateShortcutToken(token);
+    if (!tokenUserId) {
+      return NextResponse.json({ success: false, error: 'Token shortcut tidak valid.' }, { status: 401 });
+    }
+
+    try {
+      await assertRateLimit(rateLimitKey(request, `api-shortcut-token:${tokenUserId}`), 30, 60_000);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Terlalu banyak request.';
+      return NextResponse.json({ success: false, error: message }, { status: 429 });
+    }
+  } else {
+    try {
+      assertSameOrigin(request);
+      await assertRateLimit(rateLimitKey(request, 'api-shortcut'), 30, 60_000);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Invalid request origin';
+      return NextResponse.json({ success: false, error: message }, { status: 403 });
+    }
   }
 
   const { text } = await request.json().catch(() => ({ text: '' }));
@@ -38,7 +57,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await processInput(text);
+    const result = tokenUserId
+      ? await (async () => {
+          await assertShortcutWriteAccess(tokenUserId);
+          return processUserInput(tokenUserId, text);
+        })()
+      : await processInput(text);
     
     if (result.success) {
       return NextResponse.json({
@@ -51,6 +75,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: getError(result) }, { status: 400 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: tokenUserId ? 403 : 500 }
+    );
   }
 }

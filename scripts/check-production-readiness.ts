@@ -26,6 +26,11 @@ if (cronSecret && cronSecret.length < 32) {
   weak.push('CRON_SECRET must be at least 32 characters.');
 }
 
+const shortcutSecret = process.env.SHORTCUT_TOKEN_SECRET || process.env.CRON_SECRET || '';
+if (shortcutSecret && shortcutSecret.length < 32) {
+  weak.push('SHORTCUT_TOKEN_SECRET or CRON_SECRET must be at least 32 characters for shortcut tokens.');
+}
+
 const emailFrom = process.env.EMAIL_FROM || '';
 if (emailFrom && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailFrom)) {
   weak.push('EMAIL_FROM must be a valid email address.');

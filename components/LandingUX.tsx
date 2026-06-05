@@ -20,7 +20,7 @@ export default function LandingUX({ user, profile }: LandingUXProps) {
 
     const resetScrollPosition = () => {
       const hash = window.location.hash;
-      const allowedHashes = ['#features', '#pricing', '#testimonials', '#about'];
+      const allowedHashes = ['#home', '#philosophy', '#features', '#pricing', '#testimonials'];
       
       if (hash && allowedHashes.includes(hash)) {
         const element = document.querySelector(hash);

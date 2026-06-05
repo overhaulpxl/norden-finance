@@ -1,13 +1,15 @@
 import { getCurrentUser } from '../lib/auth';
 import { prisma } from '../lib/prisma';
 import Link from 'next/link';
-import { ArrowRight, Check, MessageSquare, Wallet, ShieldAlert, Star, Home, Target, History, FileText, Zap, Settings, Camera, PiggyBank, CreditCard, Receipt, CalendarCheck, Flame, Trophy, Bell, LayoutTemplate, Search, Download, BarChart3, Shield } from 'lucide-react';
+import { Check, MessageSquare, Wallet, ShieldAlert, Home, Target, History, FileText, Zap, Settings, Camera, PiggyBank, CreditCard, Receipt, CalendarCheck, Flame, Trophy, Bell, LayoutTemplate, Search, Download, BarChart3, Shield } from 'lucide-react';
 import { Caveat } from 'next/font/google';
 import ChatSandbox from '../components/ChatSandbox';
 import BackToTop from '../components/BackToTop';
 import InteractiveTilt from '../components/InteractiveTilt';
 import LandingUX from '../components/LandingUX';
 import BrandLogo from '../components/BrandLogo';
+import LandingHeader from '../components/LandingHeader';
+import TestimonialsCarousel, { PublicTestimonial } from '../components/TestimonialsCarousel';
 import { getPricingPlans, getTrialDays } from '../lib/data/loaders';
 import { formatCurrency } from '../lib/format';
 
@@ -17,29 +19,9 @@ const caveat = Caveat({
   display: 'swap',
 });
 
-const fallbackTestimonials = [
-  {
-    id: 'fallback-rian',
-    name: 'Rian Adiputra',
-    label: 'Freelance UI/UX Designer',
-    rating: 5,
-    message: 'Dulu paling malas mencatat pengeluaran karena aplikasinya ribet dan dipenuhi iklan. Di Norden, saya tinggal ketik cepat, laporannya langsung rapi otomatis!',
-  },
-  {
-    id: 'fallback-kevin',
-    name: 'Kevin Sanjaya',
-    label: 'Middleman / MM Gaming',
-    rating: 5,
-    message: 'Pencatatan kas titipan (escrow) untuk transaksi rekber game sangat krusial bagi MM. Norden memisahkan kas pribadi dan dana escrow saya dengan transparan.',
-  },
-  {
-    id: 'fallback-cynthia',
-    name: 'Cynthia Dewi',
-    label: 'Owner Cynthia.Store',
-    rating: 5,
-    message: 'Saya bisa melihat total saldo DANA, GoPay, dan rekening bank BCA dalam satu layar tanpa perlu repot login m-banking satu-satu setiap sore.',
-  },
-];
+function isPublicSafeFeedback(message: string) {
+  return !/(whatsapp|chat\s+wa|via\s+wa|\bwa\b|crypto|saham|investasi)/i.test(message);
+}
 
 // ==========================================
 // Custom SVG Graphics & Icons
@@ -90,49 +72,6 @@ function WalletSVG({ className = '' }: { className?: string }) {
   );
 }
 
-// Custom Target Audience SVGs
-
-function FreelancerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-10 h-10 stroke-black fill-none stroke-[2.5px] shrink-0" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="4" width="18" height="12" rx="1" fill="#FFE066" />
-      <line x1="2" y1="20" x2="22" y2="20" />
-      <path d="M7 16 L17 16" />
-      <path d="M12 8 L12 12" />
-    </svg>
-  );
-}
-
-function MiddlemanIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-10 h-10 stroke-black fill-none stroke-[2.5px] shrink-0" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="8" cy="12" r="5" fill="#4B6DFE" />
-      <circle cx="16" cy="12" r="5" fill="#FFE066" opacity="0.9" />
-      <path d="M12 8 L12 16" strokeDasharray="2 2" />
-    </svg>
-  );
-}
-
-function SmallSellerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-10 h-10 stroke-black fill-none stroke-[2.5px] shrink-0" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="8" width="16" height="12" rx="1" fill="#2ECC71" />
-      <path d="M2 8h20" />
-      <path d="M6 4h12" />
-      <path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  );
-}
-
-function PersonalFinanceIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-10 h-10 stroke-black fill-none stroke-[2.5px] shrink-0" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="8" r="5" fill="#4B6DFE" />
-      <path d="M3 20c0-3.3 2.7-6 6-6h6c3.3 0 6 2.7 6 6" fill="#FFE066" />
-    </svg>
-  );
-}
-
 // Torn Paper SVG Divider
 function TornPaperDivider({ fillClass = 'fill-white', className = '' }: { fillClass?: string; className?: string }) {
   const pathD = "M0,24 L1440,24 L1440,10 L1422,13 L1405,9 L1384,14 L1363,11 L1342,15 L1323,10 L1302,13 L1285,8 L1263,12 L1241,9 L1222,14 L1204,10 L1185,13 L1161,8 L1143,11 L1125,15 L1102,9 L1083,13 L1061,10 L1043,14 L1021,8 L1004,12 L982,10 L965,13 L942,9 L924,14 L903,11 L882,15 L863,10 L842,13 L821,9 L802,12 L781,10 L764,14 L742,9 L725,13 L703,11 L682,15 L663,10 L644,12 L621,9 L603,14 L584,10 L562,13 L541,8 L524,12 L503,9 L482,14 L461,11 L442,15 L423,10 L402,13 L381,8 L364,12 L343,9 L322,14 L304,10 L281,13 L263,8 L242,11 L223,15 L204,9 L183,13 L162,10 L144,14 L121,8 L103,12 L84,9 L62,14 L41,10 L22,13 L0,8 Z";
@@ -178,13 +117,11 @@ export default async function LandingPage() {
   const reviewedFeedbacks = await prisma.feedback.findMany({
     where: {
       status: 'reviewed',
-      rating: { gte: 4 },
     },
     orderBy: [
       { rating: 'desc' },
       { createdAt: 'desc' },
     ],
-    take: 6,
   });
   const feedbackProfiles = reviewedFeedbacks.length > 0
     ? await prisma.profile.findMany({
@@ -193,15 +130,14 @@ export default async function LandingPage() {
       })
     : [];
   const feedbackProfileMap = new Map(feedbackProfiles.map((feedbackProfile) => [feedbackProfile.userId, feedbackProfile.fullName]));
-  const publicTestimonials = reviewedFeedbacks.length > 0
-    ? reviewedFeedbacks.map((feedback) => ({
-        id: feedback.id,
-        name: feedbackProfileMap.get(feedback.userId) || 'Pengguna Norden',
-        label: 'Pengguna Norden Finance',
-        rating: feedback.rating,
-        message: feedback.message,
-      }))
-    : fallbackTestimonials;
+  const publicTestimonials: PublicTestimonial[] = reviewedFeedbacks
+    .filter((feedback) => isPublicSafeFeedback(feedback.message))
+    .map((feedback) => ({
+      name: feedbackProfileMap.get(feedback.userId) || 'Pengguna Norden',
+      label: 'Pengguna Beta',
+      rating: Math.max(1, Math.min(5, feedback.rating)),
+      message: feedback.message,
+    }));
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] font-sans antialiased relative">
@@ -296,8 +232,11 @@ export default async function LandingPage() {
         section#features.nav-highlight {
           animation: section-flash-white 1.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        section#about.nav-highlight {
+        section#home.nav-highlight {
           animation: section-flash-beige 1.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        section#philosophy.nav-highlight {
+          animation: section-flash-white 1.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
         section#testimonials.nav-highlight {
           animation: section-flash-white 1.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -369,46 +308,16 @@ export default async function LandingPage() {
       <div className="relative z-10">
         
         {/* Header - Floating Card Layout */}
-        <header className="sticky top-4 z-50 px-6 max-w-7xl mx-auto pointer-events-none select-none">
-          <div className="bg-white/95 backdrop-blur-md border-[3px] border-black px-6 py-3.5 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between rounded-none pointer-events-auto">
-            <div className="flex items-center gap-3">
-              <BrandLogo variant="horizontal" priority className="h-11 w-auto hover-wiggle" />
-            </div>
-
-            <nav className="hidden md:flex items-center gap-10 font-black text-xs text-black uppercase tracking-wider">
-              <a href="#features" className="nav-link-custom py-1 transition-all">Fitur</a>
-              <a href="#about" className="nav-link-custom py-1 transition-all">Solusi</a>
-              <a href="#testimonials" className="nav-link-custom py-1 transition-all">Testimoni</a>
-              <a href="#pricing" className="nav-link-custom py-1 transition-all">Pricing</a>
-            </nav>
-
-            <div className="flex items-center gap-4">
-              {user ? (
-                <Link href="/dashboard" className="bg-black text-white border-[3px] border-black font-black uppercase text-xs tracking-wider px-5 py-2.5 shadow-[3px_3px_0px_0px_#FFE066] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#FFE066] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all rounded-none flex items-center gap-2">
-                  Dashboard <ArrowRight className="w-4 h-4 stroke-[3px]" />
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login" className="font-black text-xs text-black uppercase tracking-wider hover:underline decoration-[3px] underline-offset-4 px-3 py-2 transition-all">
-                    Login
-                  </Link>
-                  <Link href="/register" className="bg-black text-white border-[3px] border-black font-black uppercase text-xs tracking-wider px-5 py-2.5 shadow-[3px_3px_0px_0px_#FFE066] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#FFE066] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all rounded-none">
-                    Coba Gratis
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </header>
+        <LandingHeader isLoggedIn={Boolean(user)} />
 
         {/* Hero Section */}
-        <section className="pt-20 pb-16 max-w-7xl mx-auto px-6 flex flex-col items-center text-center relative">
+        <section id="home" className="pt-20 pb-16 max-w-7xl mx-auto px-6 flex flex-col items-center text-center relative scroll-mt-32">
           <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-black max-w-4xl leading-[1.05] mb-6 uppercase select-none reveal">
             Monitor Finansial <br />
             Tanpa Usaha.
           </h1>
           <p className="text-xs sm:text-sm font-bold text-neutral-500 max-w-2xl leading-relaxed mb-8 uppercase tracking-wide select-none reveal">
-            Dashboard finansial Norden yang terintegrasi asisten AI untuk mempermudah pencatatan <br className="hidden sm:inline" />
+            Dashboard finansial Norden untuk mempercepat pencatatan <br className="hidden sm:inline" />
             pemasukan, pengeluaran, transfer, dan anggaran bulanan Anda.
           </p>
 
@@ -537,20 +446,82 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* Philosophy Section */}
+        <section id="philosophy" className="py-24 bg-white relative scroll-mt-32 border-y-[3px] border-black">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.045)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.045)_1px,transparent_1px)] bg-[size:42px_42px] pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-6 relative">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+              <div className="reveal">
+                <p className="inline-flex bg-[#FFE066] border-[3px] border-black px-4 py-2 font-black text-[10px] uppercase tracking-[0.24em] shadow-[3px_3px_0px_0px_#000] mb-6">
+                  Brand Philosophy
+                </p>
+                <h2 className="text-4xl sm:text-6xl font-black tracking-tight text-black uppercase leading-[0.95] mb-6">
+                  Kenapa Norden?
+                </h2>
+                <div className="space-y-4 text-sm sm:text-base font-bold leading-relaxed text-neutral-700 max-w-2xl">
+                  <p>Norden Finance dibangun dari satu ide sederhana: arah.</p>
+                  <p>Banyak orang tahu uangnya habis, tapi tidak selalu tahu habis ke mana atau ke mana arah finansialnya berjalan.</p>
+                  <p>Nama Norden terinspirasi dari konsep utara, arah utama yang dipakai orang untuk menemukan jalan. Dalam keuangan pribadi, itu berarti kejelasan, kontrol, dan tahu ke mana uang bergerak.</p>
+                  <p>Norden membantu kamu mencatat transaksi, memahami arus kas, mengelola dompet, dan membangun kebiasaan finansial yang lebih sehat.</p>
+                </div>
+
+                <div className="mt-8 bg-black text-[#FFE066] border-[3px] border-black px-5 py-4 shadow-[5px_5px_0px_0px_#FFE066] font-black uppercase tracking-widest text-xs sm:text-sm inline-block">
+                  Track your money. Find your direction.
+                </div>
+              </div>
+
+              <div className="reveal">
+                <div className="bg-[#FFE066] border-[3px] border-black shadow-[8px_8px_0px_0px_#000] p-5 sm:p-7">
+                  <div className="bg-white border-[3px] border-black p-8 sm:p-10 flex items-center justify-center min-h-[260px]">
+                    <BrandLogo variant="icon" className="w-44 sm:w-56 h-auto" />
+                  </div>
+                  <div className="mt-6 bg-white border-[3px] border-black p-5 sm:p-6">
+                    <h3 className="text-2xl font-black uppercase tracking-tight text-black mb-4">Makna Logo</h3>
+                    <div className="space-y-3 text-sm font-bold leading-relaxed text-neutral-700">
+                      <p>Logo Norden menggabungkan huruf N dengan panah naik.</p>
+                      <p>N mewakili Norden.</p>
+                      <p>Panah naik mewakili progres, pertumbuhan, dan arah finansial yang lebih baik.</p>
+                      <p>Kotak kuning membuat logo mudah dikenali.</p>
+                      <p>Border hitam memberi kesan tegas, stabil, dan percaya diri.</p>
+                    </div>
+                    <p className="mt-5 border-t-[2px] border-black pt-4 text-xs font-black uppercase tracking-widest text-black">
+                      Track your money. Find your direction.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Neo-Brutalist Marquee Ticker Banner (High Engagement element to attract interest) */}
         <div className="bg-[#FFE066] border-t-[3.5px] border-b-[3.5px] border-black py-4 select-none overflow-hidden relative z-20 shadow-[0_4px_0_0_#000]">
           <div className="whitespace-nowrap flex items-center gap-16 font-black text-xs sm:text-sm uppercase tracking-widest text-black animate-marquee">
             <span>🚀 MONITOR SALDO REAL-TIME</span>
-            <span>💬 CATAT CEPAT DENGAN ASISTEN AI</span>
+            <span>💬 CATAT TRANSAKSI LEBIH CEPAT</span>
             <span>🔒 DATA TERENKRIPSI DAN AMAN</span>
             <span>🎯 ANGGARAN BULANAN TERKENDALI</span>
-            <span>⚡ COBA GRATIS SEKARANG!</span>
+            <span>⚡ COBA GRATIS SEKARANG</span>
+            <span>📊 PAHAMI ARUS KAS HARIAN</span>
+            <span>📄 LAPORAN BULANAN OTOMATIS</span>
+            <span>🔮 PREDIKSI CASHFLOW CERDAS</span>
+            <span>🎯 TARGET TABUNGAN LEBIH TERARAH</span>
+            <span>💳 KONTROL PAYLATER & CICILAN</span>
+            <span>🔁 PANTAU LANGGANAN RUTIN</span>
+            <span>🔥 BANGUN KEBIASAAN FINANSIAL</span>
             {/* Loop duplication */}
             <span>🚀 MONITOR SALDO REAL-TIME</span>
-            <span>💬 CATAT CEPAT DENGAN ASISTEN AI</span>
+            <span>💬 CATAT TRANSAKSI LEBIH CEPAT</span>
             <span>🔒 DATA TERENKRIPSI DAN AMAN</span>
             <span>🎯 ANGGARAN BULANAN TERKENDALI</span>
-            <span>⚡ COBA GRATIS SEKARANG!</span>
+            <span>⚡ COBA GRATIS SEKARANG</span>
+            <span>📊 PAHAMI ARUS KAS HARIAN</span>
+            <span>📄 LAPORAN BULANAN OTOMATIS</span>
+            <span>🔮 PREDIKSI CASHFLOW CERDAS</span>
+            <span>🎯 TARGET TABUNGAN LEBIH TERARAH</span>
+            <span>💳 KONTROL PAYLATER & CICILAN</span>
+            <span>🔁 PANTAU LANGGANAN RUTIN</span>
+            <span>🔥 BANGUN KEBIASAAN FINANSIAL</span>
           </div>
         </div>
 
@@ -567,9 +538,9 @@ export default async function LandingPage() {
               
               {/* Feature 1: AI Smart Input */}
               <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 relative reveal">
-                <div className="absolute -top-5 left-6 bg-[#4B6DFE] text-white border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none">💬 Gemini AI</div>
+                <div className="absolute -top-5 left-6 bg-[#4B6DFE] text-white border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none">💬 Norden AI</div>
                 <h3 className="text-xl font-black text-black uppercase tracking-wide pt-2 flex items-center gap-2"><MessageSquare className="w-5 h-5 stroke-[2.5px]" /> Smart Input</h3>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Ketik transaksi seperti chat biasa. AI Gemini mendeteksi nominal, kategori, dompet, dan tanggal secara otomatis.</p>
+                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Ketik transaksi seperti chat biasa. Norden AI mendeteksi nominal, kategori, dompet, dan tanggal secara otomatis.</p>
                 <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 mt-4 font-bold text-[10px] sm:text-xs space-y-1.5">
                   <p className="font-black border-b-[1.5px] border-black pb-1 uppercase tracking-wide">Contoh:</p>
                   <p className="flex justify-between"><span className="text-neutral-500">Pengeluaran:</span> <code className="bg-neutral-100 px-1 border border-black">&quot;kopi 35rb cash&quot;</code></p>
@@ -581,7 +552,7 @@ export default async function LandingPage() {
               <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 relative reveal">
                 <div className="absolute -top-5 left-6 bg-[#4B6DFE] text-white border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none">📷 AI OCR</div>
                 <h3 className="text-xl font-black text-black uppercase tracking-wide pt-2 flex items-center gap-2"><Camera className="w-5 h-5 stroke-[2.5px]" /> Receipt Scanner</h3>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Foto struk belanja, AI Gemini membaca total belanja, nama toko, daftar item, dan tanggal pembelian secara otomatis.</p>
+                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Foto struk belanja, Norden AI membaca total belanja, nama toko, daftar item, dan tanggal pembelian secara otomatis.</p>
                 <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 mt-4 font-bold text-[10px] sm:text-xs space-y-1">
                   <p className="font-black border-b-[1.5px] border-black pb-1 uppercase tracking-wide">Didukung:</p>
                   <p>📸 Kamera langsung atau upload galeri</p>
@@ -634,99 +605,87 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Torn paper edge from Features (white) to Target Users / Solusi (beige) */}
+        {/* Torn paper edge from Features (white) to Next-Gen Features (beige) */}
         <TornPaperDivider fillClass="fill-[#FAF9F5]" className="bg-white" />
 
-        {/* Target Users / Solusi Section */}
-        <section id="about" className="py-24 bg-[#FAF9F5] relative">
+        {/* Next-Gen Features Section */}
+        <section className="py-24 bg-[#FAF9F5] relative">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center max-w-3xl mx-auto mb-20 reveal">
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">Solusi Finansial Untuk Anda</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start mb-16">
+              <div className="reveal">
+                <p className="inline-flex bg-[#FFE066] border-[3px] border-black px-4 py-2 font-black text-[10px] uppercase tracking-[0.24em] shadow-[3px_3px_0px_0px_#000] mb-6">
+                  Smart Finance System
+                </p>
+                <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase leading-[1.02] mb-6">
+                  Fitur Cerdas untuk Arah Finansial yang Lebih Jelas
+                </h2>
+                <div className="space-y-4 text-sm sm:text-base font-bold leading-relaxed text-neutral-700 max-w-2xl">
+                  <p>Norden membantu kamu memahami pola uang, memprediksi cashflow, menjaga budget, dan membangun kebiasaan finansial yang lebih sehat.</p>
+                  <p>Norden bukan cuma mencatat pengeluaran.</p>
+                  <p>Norden membantu kamu melihat pola uang, menjaga budget, memantau saldo, dan memahami arah finansialmu dengan lebih jelas.</p>
+                </div>
+              </div>
+
+              <div className="reveal bg-white border-[3px] border-black p-6 sm:p-8 shadow-[7px_7px_0px_0px_#000]">
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="border-[2.5px] border-black bg-[#FFE066] p-4">
+                    <p className="text-3xl font-black text-black">10</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-black">Fitur lanjutan</p>
+                  </div>
+                  <div className="border-[2.5px] border-black bg-[#2ECC71] p-4">
+                    <p className="text-3xl font-black text-black">0</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-black">Distraksi</p>
+                  </div>
+                </div>
+                <p className="mt-5 text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed">
+                  Fokusnya tetap ke uang: saldo, budget, kebiasaan, tagihan, dan arah finansial yang bisa dipahami dengan cepat.
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              
-              {/* Box 1: Freelancers */}
-              <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-5 reveal">
-                <FreelancerIcon />
-                <div>
-                  <h4 className="font-black text-black text-lg uppercase mb-1">Freelancers</h4>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed">
-                    Kelola pencatatan komisi, tagihan klien, serta pengeluaran operasional proyek pribadi secara terpisah dari keuangan rumah tangga Anda.
-                  </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                { icon: <BarChart3 className="w-5 h-5 stroke-[2.5px]" />, badge: 'SMART', title: 'Prediksi Cashflow', desc: 'Lihat perkiraan saldo ke depan berdasarkan pengeluaran rutin, subscription, paylater, dan kebiasaan belanja harian.', color: 'bg-[#FFE066]' },
+                { icon: <ShieldAlert className="w-5 h-5 stroke-[2.5px]" />, badge: 'SMART', title: 'Prediksi Budget', desc: 'Norden membantu memperkirakan apakah budget kategori tertentu berisiko habis sebelum akhir bulan.', color: 'bg-[#4B6DFE] text-white' },
+                { icon: <FileText className="w-5 h-5 stroke-[2.5px]" />, badge: 'NEW', title: 'Monthly Wrapped', desc: 'Rangkuman bulanan yang menampilkan kategori terbesar, wallet teraktif, streak, dan pencapaian finansialmu.', color: 'bg-[#2ECC71]' },
+                { icon: <Download className="w-5 h-5 stroke-[2.5px]" />, badge: 'NEW', title: 'Share Card', desc: 'Buat kartu visual untuk membagikan progress tabungan, streak, atau pencapaian finansial ke media sosial.', color: 'bg-[#FF6B6B]' },
+                { icon: <Target className="w-5 h-5 stroke-[2.5px]" />, badge: 'SMART', title: 'Proyeksi Target Tabungan', desc: 'Lihat estimasi kapan target tabunganmu tercapai berdasarkan kebiasaan menabung saat ini.', color: 'bg-[#C084FC]' },
+                { icon: <Search className="w-5 h-5 stroke-[2.5px]" />, badge: 'SMART', title: 'Analisis Kebiasaan', desc: 'Temukan pola pengeluaran seperti kategori paling sering, hari paling boros, atau pengeluaran yang mulai naik.', color: 'bg-[#FFE066]' },
+                { icon: <PiggyBank className="w-5 h-5 stroke-[2.5px]" />, badge: 'PRO', title: 'Dana Darurat', desc: 'Hitung target dana darurat 3, 6, dan 12 bulan berdasarkan pengeluaran bulananmu.', color: 'bg-[#2ECC71]' },
+                { icon: <Flame className="w-5 h-5 stroke-[2.5px]" />, badge: 'NEW', title: 'Misi Finansial Harian', desc: 'Bangun kebiasaan finansial lewat tantangan kecil seperti no-spend day, cek budget, atau tambah tabungan.', color: 'bg-[#F97316]' },
+                { icon: <CalendarCheck className="w-5 h-5 stroke-[2.5px]" />, badge: 'SMART', title: 'Deteksi Langganan Boros', desc: 'Pantau langganan rutin dan temukan biaya bulanan yang mungkin sudah tidak terlalu dibutuhkan.', color: 'bg-[#4B6DFE] text-white' },
+                { icon: <History className="w-5 h-5 stroke-[2.5px]" />, badge: 'SMART', title: 'Financial Journey', desc: 'Lihat perkembangan saldo, cashflow, dan milestone finansialmu dari waktu ke waktu.', color: 'bg-[#FFE066]' },
+              ].map((feature) => (
+                <div key={feature.title} className="brutal-card bg-white border-[3px] border-black p-6 min-h-[230px] shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 reveal">
+                  <div className="flex items-start justify-between gap-4 mb-5">
+                    <div className={`${feature.color} border-[2.5px] border-black p-3 shadow-[2px_2px_0px_0px_#000]`}>
+                      {feature.icon}
+                    </div>
+                    <span className="bg-black text-[#FFE066] border-[2px] border-black px-2.5 py-1 text-[9px] font-black uppercase tracking-widest">
+                      {feature.badge}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black text-black uppercase tracking-wide mb-3">{feature.title}</h3>
+                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">{feature.desc}</p>
                 </div>
-              </div>
-
-              {/* Box 2: Middleman / MM */}
-              <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-5 reveal">
-                <MiddlemanIcon />
-                <div>
-                  <h4 className="font-black text-black text-lg uppercase mb-1">Middleman/MM</h4>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed">
-                    Lacak dana titipan (escrow), pencatatan komisi broker, serta mutasi keluar masuk rekening perantara dengan presisi absolut.
-                  </p>
-                </div>
-              </div>
-
-              {/* Box 3: Small Sellers */}
-              <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-5 reveal">
-                <SmallSellerIcon />
-                <div>
-                  <h4 className="font-black text-black text-lg uppercase mb-1">Small Sellers</h4>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed">
-                    Pantau cashflow harian toko, dagangan, atau bisnis kecil Anda tanpa perlu konfigurasi POS kasir yang rumit dan mahal.
-                  </p>
-                </div>
-              </div>
-
-              {/* Box 4: Personal Finance */}
-              <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-5 reveal">
-                <PersonalFinanceIcon />
-                <div>
-                  <h4 className="font-black text-black text-lg uppercase mb-1">Personal Finance</h4>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed">
-                    Pilihan tepat bagi Anda yang lelah menggunakan aplikasi pencatat keuangan lambat yang dipenuhi iklan dan visual grafik yang rumit.
-                  </p>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Torn paper edge from Target Users (beige) to Testimonials (white) */}
+        {/* Torn paper edge from Next-Gen Features (beige) to Testimonials (white) */}
         <TornPaperDivider fillClass="fill-white" className="bg-[#FAF9F5]" />
 
         {/* Testimonials Section (Builds user interest and conversion intent) */}
         <section id="testimonials" className="py-24 bg-white relative">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center max-w-3xl mx-auto mb-20 reveal">
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">Apa Kata Mereka?</h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-500 uppercase tracking-wider">Testimoni nyata dari pengguna setia Norden Finance.</p>
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">Kesan Pengguna Awal</h2>
+              <p className="text-xs sm:text-sm font-bold text-neutral-500 uppercase tracking-wider">Beberapa pengguna awal memakai Norden untuk mencatat transaksi harian, memantau saldo, dan melihat pola pengeluaran dengan lebih jelas.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {publicTestimonials.slice(0, 3).map((testimonial) => (
-                <div key={testimonial.id} className="brutal-card p-6 bg-white border-[3px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between reveal">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 stroke-black stroke-[2px] star-spin-hover ${i < testimonial.rating ? 'fill-current' : 'fill-white text-neutral-250'}`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed mb-6">
-                      &quot;{testimonial.message}&quot;
-                    </p>
-                  </div>
-                  <div className="border-t-[2px] border-black pt-4">
-                    <p className="font-black text-xs text-black uppercase">{testimonial.name}</p>
-                    <p className="text-[10px] font-bold text-neutral-500 uppercase">{testimonial.label}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="reveal">
+              <TestimonialsCarousel testimonials={publicTestimonials} />
             </div>
           </div>
         </section>
@@ -873,8 +832,8 @@ export default async function LandingPage() {
             <div>
               <h5 className="font-black text-black mb-4">Norden</h5>
               <ul className="space-y-2.5 text-neutral-500">
+                <li><a href="#philosophy" className="hover:text-black">Philosophy</a></li>
                 <li><a href="#features" className="hover:text-black">Fitur</a></li>
-                <li><a href="#about" className="hover:text-black">Solusi</a></li>
                 <li><a href="#testimonials" className="hover:text-black">Testimoni</a></li>
                 <li><a href="#pricing" className="hover:text-black">Pricing</a></li>
                 <li><Link href="/login" className="hover:text-black">Login</Link></li>

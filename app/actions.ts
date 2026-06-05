@@ -292,3 +292,9 @@ export async function deleteUserAccountData() {
 export async function submitFeedback(data: { rating: number; message: string }) {
   return userActions.submitFeedback(data);
 }
+export async function getShortcutEndpoint() {
+  return userActions.getShortcutEndpoint();
+}
+export async function regenerateShortcutToken() {
+  return userActions.regenerateShortcutToken();
+}

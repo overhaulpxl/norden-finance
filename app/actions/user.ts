@@ -4,6 +4,7 @@ import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { buildShortcutEndpoint, getShortcutEndpointForUser, signShortcutToken } from '../../lib/shortcutToken';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -129,6 +130,35 @@ export async function submitFeedback(data: {
     return { success: true, data: { id: feedback.id } };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal mengirimkan ulasan';
+    return { success: false, error: message };
+  }
+}
+
+export async function getShortcutEndpoint() {
+  try {
+    const { user } = await requireUser(false);
+    const endpoint = await getShortcutEndpointForUser(user.uid);
+
+    return { success: true, endpoint };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal membuat endpoint shortcut';
+    return { success: false, error: message };
+  }
+}
+
+export async function regenerateShortcutToken() {
+  try {
+    const { user } = await requireUser(false);
+    const profile = await prisma.profile.update({
+      where: { userId: user.uid },
+      data: { shortcutTokenVersion: { increment: 1 } },
+      select: { shortcutTokenVersion: true },
+    });
+    const token = signShortcutToken(user.uid, profile.shortcutTokenVersion);
+
+    return { success: true, endpoint: buildShortcutEndpoint(token) };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal reset token shortcut';
     return { success: false, error: message };
   }
 }
