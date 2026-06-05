@@ -64,6 +64,10 @@ function normalizeAuthError(error: unknown): { code: string; message: string; st
       errorCode = 'RESEND_NOT_CONFIGURED';
       message = 'Layanan email belum dikonfigurasi. Silakan hubungi support.';
       status = 503;
+    } else if (searchTarget.includes('onboarding@resend.dev') || searchTarget.includes('restricted') || searchTarget.includes('testing') || searchTarget.includes('validation')) {
+      errorCode = 'TESTING_RESTRICTION';
+      message = 'Email verifikasi tidak dapat dikirim ke email ini karena batasan akun pengirim uji coba. Hubungi administrator atau gunakan Firebase Auth default.';
+      status = 403;
     }
   } else if (typeof error === 'string') {
     const searchTarget = error.toLowerCase();
@@ -79,6 +83,10 @@ function normalizeAuthError(error: unknown): { code: string; message: string; st
       errorCode = 'RESEND_NOT_CONFIGURED';
       message = 'Layanan email belum dikonfigurasi. Silakan hubungi support.';
       status = 503;
+    } else if (searchTarget.includes('onboarding@resend.dev') || searchTarget.includes('restricted') || searchTarget.includes('testing') || searchTarget.includes('validation')) {
+      errorCode = 'TESTING_RESTRICTION';
+      message = 'Email verifikasi tidak dapat dikirim ke email ini karena batasan akun pengirim uji coba. Hubungi administrator atau gunakan Firebase Auth default.';
+      status = 403;
     }
   }
 
@@ -130,6 +138,26 @@ export async function POST(request: NextRequest) {
           message: 'Please wait before requesting another verification email.'
         },
         { status: 429 }
+      );
+    }
+
+    const provider = process.env.EMAIL_VERIFICATION_PROVIDER || 'firebase';
+    const emailFrom = process.env.EMAIL_FROM || '';
+
+    let activeProvider = provider;
+    if (provider === 'resend' && emailFrom.includes('onboarding@resend.dev')) {
+      console.warn('Resend testing sender detected. Falling back to Firebase verification.');
+      activeProvider = 'firebase';
+    }
+
+    if (activeProvider === 'firebase') {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: 'USE_CLIENT_VERIFICATION',
+          message: 'Layanan email verifikasi dikonfigurasi melalui Firebase client.'
+        },
+        { status: 400 }
       );
     }
 

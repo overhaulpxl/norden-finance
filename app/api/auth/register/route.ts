@@ -66,16 +66,27 @@ export async function POST(request: NextRequest) {
     }
 
     let verificationEmailStatus: unknown = null;
-    if (decodedToken.email && decodedToken.email_verified === false) {
-      try {
-        verificationEmailStatus = await sendVerificationEmail({
-          email: decodedToken.email,
-          userName: fullName || existingProfile?.fullName || null,
-        });
-      } catch (emailError) {
-        const message = emailError instanceof Error ? emailError.message : 'Verification email failed';
-        console.warn('Verification email failed:', message);
-        verificationEmailStatus = { error: message };
+    const provider = process.env.EMAIL_VERIFICATION_PROVIDER || 'firebase';
+    const emailFrom = process.env.EMAIL_FROM || '';
+
+    let activeProvider = provider;
+    if (provider === 'resend' && emailFrom.includes('onboarding@resend.dev')) {
+      console.warn('Resend testing sender detected. Falling back to Firebase verification.');
+      activeProvider = 'firebase';
+    }
+
+    if (activeProvider === 'resend') {
+      if (decodedToken.email && decodedToken.email_verified === false) {
+        try {
+          verificationEmailStatus = await sendVerificationEmail({
+            email: decodedToken.email,
+            userName: fullName || existingProfile?.fullName || null,
+          });
+        } catch (emailError) {
+          const message = emailError instanceof Error ? emailError.message : 'Verification email failed';
+          console.warn('Verification email failed:', message);
+          verificationEmailStatus = { error: message };
+        }
       }
     }
 
@@ -83,6 +94,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       requiresEmailVerification: !shouldCreateSession,
+      emailVerificationProvider: activeProvider,
       verificationEmailStatus,
     });
 
