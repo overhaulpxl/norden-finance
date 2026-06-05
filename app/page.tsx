@@ -567,9 +567,9 @@ export default async function LandingPage() {
               
               {/* Feature 1: AI Smart Input */}
               <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 relative reveal">
-                <div className="absolute -top-5 left-6 bg-[#4B6DFE] text-white border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none">💬 Gemini AI</div>
+                <div className="absolute -top-5 left-6 bg-[#4B6DFE] text-white border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none">💬 Norden AI</div>
                 <h3 className="text-xl font-black text-black uppercase tracking-wide pt-2 flex items-center gap-2"><MessageSquare className="w-5 h-5 stroke-[2.5px]" /> Smart Input</h3>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Ketik transaksi seperti chat biasa. AI Gemini mendeteksi nominal, kategori, dompet, dan tanggal secara otomatis.</p>
+                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Ketik transaksi seperti chat biasa. AI Norden mendeteksi nominal, kategori, dompet, dan tanggal secara otomatis.</p>
                 <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 mt-4 font-bold text-[10px] sm:text-xs space-y-1.5">
                   <p className="font-black border-b-[1.5px] border-black pb-1 uppercase tracking-wide">Contoh:</p>
                   <p className="flex justify-between"><span className="text-neutral-500">Pengeluaran:</span> <code className="bg-neutral-100 px-1 border border-black">&quot;kopi 35rb cash&quot;</code></p>
@@ -581,7 +581,7 @@ export default async function LandingPage() {
               <div className="brutal-card p-8 bg-white border-[3px] border-black rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 relative reveal">
                 <div className="absolute -top-5 left-6 bg-[#4B6DFE] text-white border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none">📷 AI OCR</div>
                 <h3 className="text-xl font-black text-black uppercase tracking-wide pt-2 flex items-center gap-2"><Camera className="w-5 h-5 stroke-[2.5px]" /> Receipt Scanner</h3>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Foto struk belanja, AI Gemini membaca total belanja, nama toko, daftar item, dan tanggal pembelian secara otomatis.</p>
+                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed font-bold mt-3">Foto struk belanja, AI Norden membaca total belanja, nama toko, daftar item, dan tanggal pembelian secara otomatis.</p>
                 <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 mt-4 font-bold text-[10px] sm:text-xs space-y-1">
                   <p className="font-black border-b-[1.5px] border-black pb-1 uppercase tracking-wide">Didukung:</p>
                   <p>📸 Kamera langsung atau upload galeri</p>
