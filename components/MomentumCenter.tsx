@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BellRing, CalendarCheck2, CheckCircle2, Flame, Trophy } from 'lucide-react';
 import { Achievement, AppSubscription, Balance, Budget, EmergencyFundPlan, SavingGoal, Transaction } from '../types';
 import { formatRupiah } from '../lib/format';
@@ -86,7 +86,46 @@ export default function MomentumCenter({
   achievements: Achievement[];
   trialEndsAt?: string | null;
 }) {
-  const [referenceDate] = useState(() => new Date());
+  const [mounted, setMounted] = useState(false);
+  const [referenceDate, setReferenceDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const timer = setTimeout(() => {
+      if (!active) return;
+      setMounted(true);
+      setReferenceDate(new Date());
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  if (!mounted || !referenceDate) {
+    return (
+      <section className="brutal-card bg-white p-6 select-none animate-pulse">
+        <div className="mb-6 flex items-start justify-between gap-4 border-b-[3px] border-black pb-4">
+          <div>
+            <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black">
+              <Flame className="h-5 w-5 stroke-[3px]" />
+              Momentum Center
+            </h3>
+            <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500">
+              Streak, achievement, dan pengingat pintar.
+            </p>
+          </div>
+        </div>
+        <div className="mb-5 grid grid-cols-2 gap-3">
+          <div className="h-20 border-[2px] border-black bg-neutral-100"></div>
+          <div className="h-20 border-[2px] border-black bg-neutral-100"></div>
+        </div>
+        <div className="mb-5 h-40 border-[2px] border-black bg-neutral-100"></div>
+        <div className="h-40 border-[2px] border-black bg-neutral-100"></div>
+      </section>
+    );
+  }
+
   const streaks = calculateStreaks(transactions, referenceDate);
   const totalBalance = balances.reduce((sum, balance) => sum + balance.currentBalance, 0);
   const monthlyExpense = emergencyFundPlan?.monthlyExpense || 0;
@@ -145,8 +184,8 @@ export default function MomentumCenter({
           const date = new Date(transaction.transactionDate);
           return transaction.type === 'keluar' &&
             transaction.category?.name.toLowerCase() === budget.category?.name.toLowerCase() &&
-            date.getMonth() === new Date().getMonth() &&
-            date.getFullYear() === new Date().getFullYear();
+            date.getMonth() === referenceDate.getMonth() &&
+            date.getFullYear() === referenceDate.getFullYear();
         })
         .reduce((sum, transaction) => sum + transaction.amount, 0);
       const ratio = budget.monthlyLimit > 0 ? spent / budget.monthlyLimit : 0;

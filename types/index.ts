@@ -290,6 +290,7 @@ export interface ParseResult {
   category?: string;
   amount: number;
   method: string;
+  transferToMethod?: string | null;
   note?: string;
   tags?: string[];
   rawInput: string;
