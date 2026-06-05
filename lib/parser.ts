@@ -25,19 +25,52 @@ export function parseAmount(input: string): number {
 }
 
 export function parseMethod(input: string): string {
-  const words = input.toLowerCase().split(/\s+/);
-  for (const word of words) {
-    if (METHOD_ALIASES[word]) {
-      return METHOD_ALIASES[word];
+  const lowerInput = input.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+  const aliases = Object.keys(METHOD_ALIASES).sort((a, b) => b.length - a.length);
+  let bestMatch: { method: string; index: number; length: number } | null = null;
+
+  for (const alias of aliases) {
+    const normalizedAlias = alias.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const index = ` ${lowerInput} `.indexOf(` ${normalizedAlias} `);
+    if (index >= 0) {
+      if (!bestMatch || index < bestMatch.index || (index === bestMatch.index && normalizedAlias.length > bestMatch.length)) {
+        bestMatch = { method: METHOD_ALIASES[alias], index, length: normalizedAlias.length };
+      }
     }
   }
-  return DEFAULT_METHOD;
+
+  return bestMatch?.method || DEFAULT_METHOD;
+}
+
+function parseTransferToMethod(input: string, fromMethod: string): string | null {
+  const lowerInput = input.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+  const aliases = Object.keys(METHOD_ALIASES).sort((a, b) => b.length - a.length);
+  const matches: Array<{ method: string; index: number; length: number }> = [];
+
+  for (const alias of aliases) {
+    const normalizedAlias = alias.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const index = ` ${lowerInput} `.indexOf(` ${normalizedAlias} `);
+    if (index >= 0) {
+      const method = METHOD_ALIASES[alias];
+      if (!matches.some((match) => match.method === method)) {
+        matches.push({ method, index, length: normalizedAlias.length });
+      }
+    }
+  }
+
+  return matches
+    .sort((a, b) => a.index - b.index || b.length - a.length)
+    .find((match) => match.method !== fromMethod)?.method || null;
 }
 
 export function parseType(input: string, isBalanceUpdate: boolean): TransactionType {
   if (isBalanceUpdate) return 'masuk';
 
   const lowerInput = input.toLowerCase();
+
+  if (/\b(tf|transfer)\b/.test(lowerInput) && /\b(ke|to)\b/.test(lowerInput)) {
+    return 'transfer';
+  }
   
   for (const word of TYPE_KEYWORDS.masuk) {
     if (lowerInput.includes(word)) return 'masuk';
@@ -125,6 +158,7 @@ export function parseTransaction(input: string): ParseResult {
   const type = parseType(input, false);
   const category = parseCategory(input, type);
   const transactionDate = parseDate(input);
+  const transferToMethod = type === 'transfer' ? parseTransferToMethod(input, method) : null;
   
   // Extract hashtags
   const tagPattern = /#[\w]+/g;
@@ -154,6 +188,7 @@ export function parseTransaction(input: string): ParseResult {
     category,
     amount,
     method,
+    transferToMethod,
     note: note || '-',
     tags,
     rawInput: input,

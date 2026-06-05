@@ -7,7 +7,16 @@ import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import type { TransactionType } from '../../types';
 import { assertNonEmpty, assertPositiveInt, assertValidDate } from '../../lib/validators';
-import { Prisma } from '@prisma/client';
+import { Prisma, type Balance } from '@prisma/client';
+import {
+  detectKnownWalletAliasesFromInput,
+  detectWalletsFromInput,
+  normalizeWalletName,
+  resolveTransferWalletsFromInput,
+  resolveWalletForTransaction,
+  stripWalletAliasesFromText,
+  validateWalletMatch,
+} from '../../lib/smart-input/parser';
 
 /**
  * Find or create a category by name for a user.
@@ -84,6 +93,27 @@ function walletDelta(type: TransactionType, amount: number) {
   return type === 'masuk' ? amount : -amount;
 }
 
+function revalidateDashboard() {
+  try {
+    revalidatePath('/dashboard');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '';
+    if (!message.includes('static generation store missing')) {
+      throw error;
+    }
+  }
+}
+
+function assertNoMissingExplicitWallet(input: string, wallets: Balance[]) {
+  const existingMatches = detectWalletsFromInput(input, wallets);
+  const existingCanonicals = new Set(existingMatches.map((match) => normalizeWalletName(match.wallet.name)));
+  const missing = detectKnownWalletAliasesFromInput(input).find((match) => !existingCanonicals.has(match.canonical));
+
+  if (missing) {
+    throw new Error(`Wallet ${missing.displayName} belum ditemukan. Pilih wallet untuk transaksi ini.`);
+  }
+}
+
 async function updateStreak(userId: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -139,25 +169,40 @@ export async function processUserInput(userId: string, input: string) {
   if (input.length > 500) return { success: false, error: 'Input terlalu panjang' };
 
   try {
-    const result = await parseTransactionWithAI(input);
+    const [result, wallets] = await Promise.all([
+      parseTransactionWithAI(input),
+      prisma.balance.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
     assertPositiveAmount(result.amount);
+    assertNoMissingExplicitWallet(input, wallets);
+
     let transactionId: string | undefined;
     let walletName: string | undefined;
+    let transferToWalletName: string | undefined;
 
     if (result.isBalanceUpdate) {
       // Balance update (e.g., "saldo bni 150k")
-      walletName = result.method.toUpperCase();
+      const walletMatch = resolveWalletForTransaction({
+        input,
+        parsedWalletName: result.method,
+        wallets,
+      });
 
-      const ewallets = ['DANA', 'GOPAY', 'OVO', 'SHOPEEPAY', 'LINKAJA'];
-      const cashNames = ['CASH', 'TUNAI'];
-      let type = 'bank';
-      if (ewallets.includes(walletName)) type = 'ewallet';
-      if (cashNames.includes(walletName)) type = 'cash';
+      if (!walletMatch) {
+        throw new Error('Dompet belum tersedia. Tambahkan wallet terlebih dahulu.');
+      }
 
-      const wallet = await prisma.balance.upsert({
-        where: { userId_name: { userId, name: walletName } },
-        update: { currentBalance: result.amount },
-        create: { userId, name: walletName, type, currentBalance: result.amount },
+      walletName = walletMatch.wallet.name;
+
+      const wallet = await prisma.balance.update({
+        where: { id: walletMatch.wallet.id },
+        data: {
+          currentBalance: result.amount,
+          archivedAt: null,
+        },
       });
 
       await createAuditLog(userId, 'UPDATE_BALANCE', 'balance', wallet.id);
@@ -165,50 +210,117 @@ export async function processUserInput(userId: string, input: string) {
       // Transaction (e.g., "ayam geprek 18k cash")
       const txType = result.type || 'keluar';
       const categoryName = result.category || 'Lain-lain';
-      const walletName = result.method;
       const txDate = result.transactionDate ? new Date(result.transactionDate) : new Date();
+      const cleanedNote = stripWalletAliasesFromText(result.note, wallets);
+      result.note = cleanedNote;
 
-      const [categoryId, walletId] = await Promise.all([
-        resolveCategory(userId, categoryName, txType as TransactionType),
-        resolveWallet(userId, walletName),
-      ]);
+      if (txType === 'transfer') {
+        const explicitTransferWallets = resolveTransferWalletsFromInput(input, wallets);
+        const fromWalletMatch = explicitTransferWallets?.from || resolveWalletForTransaction({
+          input,
+          parsedWalletName: result.method,
+          wallets,
+        });
+        const toWalletMatch = explicitTransferWallets?.to || validateWalletMatch(result.transferToMethod, wallets);
 
-      const newTx = await prisma.$transaction(async (tx) => {
-        const created = await tx.transaction.create({
-          data: {
-            userId,
-            categoryId,
-            walletId,
-            type: txType as TransactionType,
-            amount: result.amount,
-            note: result.note || null,
-            rawInput: result.rawInput,
-            tags: normalizeTags(result.tags),
-            transactionDate: txDate,
-          },
+        if (!fromWalletMatch) {
+          throw new Error('Dompet asal belum ditemukan. Pilih wallet untuk transaksi ini.');
+        }
+        if (!toWalletMatch) {
+          throw new Error('Dompet tujuan belum ditemukan. Pilih wallet untuk transaksi ini.');
+        }
+        if (fromWalletMatch.wallet.id === toWalletMatch.wallet.id) {
+          throw new Error('Dompet asal dan tujuan tidak boleh sama.');
+        }
+
+        const categoryId = await resolveCategory(userId, 'Transfer', 'transfer');
+        const newTx = await prisma.$transaction(async (tx) => {
+          const created = await tx.transaction.create({
+            data: {
+              userId,
+              categoryId,
+              walletId: fromWalletMatch.wallet.id,
+              transferToWalletId: toWalletMatch.wallet.id,
+              type: 'transfer',
+              amount: result.amount,
+              note: cleanedNote && cleanedNote !== '-'
+                ? cleanedNote
+                : `Transfer ke ${toWalletMatch.wallet.name}`,
+              rawInput: result.rawInput,
+              tags: normalizeTags(result.tags),
+              transactionDate: txDate,
+            },
+          });
+
+          await tx.balance.update({
+            where: { id: fromWalletMatch.wallet.id },
+            data: { currentBalance: { decrement: result.amount }, archivedAt: null },
+          });
+          await tx.balance.update({
+            where: { id: toWalletMatch.wallet.id },
+            data: { currentBalance: { increment: result.amount }, archivedAt: null },
+          });
+
+          return created;
         });
 
-        const amountChange = txType === 'masuk' ? result.amount : -result.amount;
-        await tx.balance.update({
-          where: { id: walletId },
-          data: { currentBalance: { increment: amountChange } },
+        walletName = fromWalletMatch.wallet.name;
+        transferToWalletName = toWalletMatch.wallet.name;
+        transactionId = newTx.id;
+        await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
+        await updateStreak(userId);
+      } else {
+        const walletMatch = resolveWalletForTransaction({
+          input,
+          parsedWalletName: result.method,
+          wallets,
         });
 
-        return created;
-      });
-      transactionId = newTx.id;
+        if (!walletMatch) {
+          throw new Error('Dompet belum tersedia. Tambahkan wallet terlebih dahulu.');
+        }
 
-      await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
-      await updateStreak(userId);
+        const categoryId = await resolveCategory(userId, categoryName, txType as TransactionType);
+
+        const newTx = await prisma.$transaction(async (tx) => {
+          const created = await tx.transaction.create({
+            data: {
+              userId,
+              categoryId,
+              walletId: walletMatch.wallet.id,
+              type: txType as TransactionType,
+              amount: result.amount,
+              note: cleanedNote && cleanedNote !== '-' ? cleanedNote : null,
+              rawInput: result.rawInput,
+              tags: normalizeTags(result.tags),
+              transactionDate: txDate,
+            },
+          });
+
+          const amountChange = txType === 'masuk' ? result.amount : -result.amount;
+          await tx.balance.update({
+            where: { id: walletMatch.wallet.id },
+            data: { currentBalance: { increment: amountChange }, archivedAt: null },
+          });
+
+          return created;
+        });
+        transactionId = newTx.id;
+        walletName = walletMatch.wallet.name;
+
+        await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
+        await updateStreak(userId);
+      }
     }
 
-    revalidatePath('/dashboard');
+    revalidateDashboard();
     return {
       success: true,
       result,
       transactionId,
       action: result.isBalanceUpdate ? 'balance_update' : 'transaction',
       walletName,
+      transferToWalletName,
     };
   } catch (error: unknown) {
     console.error('Error processing user input:', error);

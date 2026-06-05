@@ -20,19 +20,23 @@ Input: "${input}"
 Aturan:
 1. isBalanceUpdate: true jika input mengindikasikan update saldo (misal "saldo bca 100k"). Jika true, type, category tidak penting.
 2. amount: angka nominal (misal 10k -> 10000, 1.5jt -> 1500000). Harus positif.
-3. method: dompet (misal bca, cash, dana, gopay). Default "cash" jika tidak jelas.
-4. type: "masuk" (pemasukan), "keluar" (pengeluaran), atau "transfer". Default "keluar".
-5. category: nama kategori (misal Makanan, Transport, Gaji, Belanja). Default "Lain-lain".
-6. note: deskripsi barang atau transaksi (misal "makan soto", "gaji bulanan"). Bersihkan nominal/dompet dari teks ini.
-7. tags: array kata yang diawali hashtag (misal ["#makan"]).
-8. transactionDate: string format ISO 8601. Jika input mengandung kata "kemarin", kurangi 1 hari dari sekarang. Jika tidak ada keterangan waktu, gunakan current time.
+3. method: dompet sumber (misal bca, cash, dana, gopay). Jika tidak jelas, gunakan "unknown". Jangan default ke cash jika teks menyebut wallet lain.
+4. transferToMethod: dompet tujuan untuk transfer (misal dana pada "transfer bni ke dana 50k"). Jika bukan transfer, null.
+5. type: "masuk" (pemasukan), "keluar" (pengeluaran), atau "transfer". Default "keluar".
+6. category: nama kategori (misal Makanan, Transport, Gaji, Belanja). Default "Lain-lain".
+7. note: deskripsi barang atau transaksi (misal "makan soto", "gaji bulanan"). Bersihkan nominal/dompet dari teks ini.
+8. tags: array kata yang diawali hashtag (misal ["#makan"]).
+9. transactionDate: string format ISO 8601. Jika input mengandung kata "kemarin", kurangi 1 hari dari sekarang. Jika tidak ada keterangan waktu, gunakan current time.
 TIDAK BOLEH ADA MARKDOWN SEPERTI \`\`\`json.
 
 Contoh Output (Pengeluaran):
-{"isBalanceUpdate":false,"amount":15000,"method":"cash","type":"keluar","category":"Makanan","note":"makan soto","tags":[],"transactionDate":"2023-10-25T12:00:00Z"}
+{"isBalanceUpdate":false,"amount":15000,"method":"gopay","transferToMethod":null,"type":"keluar","category":"Makanan","note":"makan soto","tags":[],"transactionDate":"2023-10-25T12:00:00Z"}
+
+Contoh Output (Transfer):
+{"isBalanceUpdate":false,"amount":50000,"method":"bni","transferToMethod":"dana","type":"transfer","category":"Transfer","note":"transfer","tags":[],"transactionDate":"2023-10-25T12:00:00Z"}
 
 Contoh Output (Saldo):
-{"isBalanceUpdate":true,"amount":500000,"method":"bca","type":"masuk","category":"","note":"","tags":[],"transactionDate":"2023-10-25T12:00:00Z"}`;
+{"isBalanceUpdate":true,"amount":500000,"method":"bca","transferToMethod":null,"type":"masuk","category":"","note":"","tags":[],"transactionDate":"2023-10-25T12:00:00Z"}`;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().trim();
@@ -44,7 +48,8 @@ Contoh Output (Saldo):
       return {
         isBalanceUpdate: true,
         amount: Number(data.amount) || 0,
-        method: String(data.method || 'cash').toLowerCase(),
+        method: String(data.method || 'unknown').toLowerCase(),
+        transferToMethod: data.transferToMethod ? String(data.transferToMethod).toLowerCase() : null,
         rawInput: input
       };
     }
@@ -54,7 +59,8 @@ Contoh Output (Saldo):
       type: (data.type as TransactionType) || 'keluar',
       category: String(data.category || 'Lain-lain'),
       amount: Number(data.amount) || 0,
-      method: String(data.method || 'cash').toLowerCase(),
+      method: String(data.method || 'unknown').toLowerCase(),
+      transferToMethod: data.transferToMethod ? String(data.transferToMethod).toLowerCase() : null,
       note: String(data.note || '-'),
       tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
       rawInput: input,
