@@ -1,37 +1,64 @@
 'use client';
 
-import { useState } from 'react';
-import { WishlistItem } from '../types';
+import { useMemo, useState } from 'react';
+import { Balance, WishlistItem } from '../types';
 import { formatRupiah } from '../lib/format';
 import { addWishlistItem, deleteWishlistItem, markWishlistBought } from '../app/actions';
 import { Loader2, Trash2, ExternalLink, Clock } from 'lucide-react';
+import WalletSelect, { getActiveWallets } from './WalletSelect';
 
-export default function Wishlist({ items }: { items: WishlistItem[] }) {
+export default function Wishlist({ items, balances = [] }: { items: WishlistItem[]; balances?: Balance[] }) {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [url, setUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('cash');
+  const [selectedMethod, setSelectedMethod] = useState('');
+  const [success, setSuccess] = useState<string | null>(null);
+  const activeWallets = useMemo(() => getActiveWallets(balances), [balances]);
+  const currentSelectedMethod = activeWallets.some((wallet) => wallet.name === selectedMethod)
+    ? selectedMethod
+    : activeWallets[0]?.name || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !amount) return;
     setLoading(true);
+    setSuccess(null);
     const numericAmount = parseInt(amount.replace(/\D/g, ''), 10);
     
-    await addWishlistItem(name, numericAmount, url);
-    setName('');
-    setAmount('');
-    setUrl('');
-    setShowForm(false);
+    const res = await addWishlistItem(name, numericAmount, url);
+    if (res.success) {
+      setName('');
+      setAmount('');
+      setUrl('');
+      setShowForm(false);
+      setSuccess('Wishlist berhasil ditambahkan!');
+      setTimeout(() => setSuccess(null), 5000);
+    }
     setLoading(false);
   };
 
   const handleBuy = async (id: string) => {
     setLoading(true);
-    await markWishlistBought(id, selectedMethod);
+    setSuccess(null);
+    const res = await markWishlistBought(id, currentSelectedMethod);
+    if (res.success) {
+      setSuccess('Wishlist berhasil dibeli dan transaksi dicatat!');
+      setTimeout(() => setSuccess(null), 5000);
+    }
     setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Hapus wishlist ini?')) {
+      setSuccess(null);
+      const res = await deleteWishlistItem(id);
+      if (res.success) {
+        setSuccess('Wishlist berhasil dihapus!');
+        setTimeout(() => setSuccess(null), 5000);
+      }
+    }
   };
 
   const now = new Date();
@@ -44,6 +71,12 @@ export default function Wishlist({ items }: { items: WishlistItem[] }) {
           {showForm ? 'Cancel' : '+ New Item'}
         </button>
       </div>
+
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 border-[3px] border-black bg-white p-4 space-y-4 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -58,7 +91,19 @@ export default function Wishlist({ items }: { items: WishlistItem[] }) {
       )}
 
       {items.length === 0 ? (
-        <div className="text-neutral-400 font-bold text-sm py-8 text-center bg-white border-[3px] border-black border-dashed rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider">No items in wishlist.</div>
+        <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
+          <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+            <span className="text-lg font-black text-black">🛍️</span>
+          </div>
+          <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada barang di wishlist</p>
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Gunakan wishlist sebagai masa cooldown 3 hari untuk mencegah belanja impulsif.</p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+          >
+            + Tambah Wishlist
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
           {items.map(item => {
@@ -96,21 +141,16 @@ export default function Wishlist({ items }: { items: WishlistItem[] }) {
                   <div className="mt-3 pt-3 border-t-[2px] border-black flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <span className="text-xs font-black text-emerald-800 uppercase tracking-widest">Boleh dibeli! 🎉</span>
                     <div className="flex items-center gap-2">
-                      <select 
-                        value={selectedMethod} 
-                        onChange={e => setSelectedMethod(e.target.value)} 
+                      <WalletSelect
+                        wallets={balances}
+                        value={currentSelectedMethod} 
+                        onChange={setSelectedMethod}
                         className="brutal-input px-2 py-1.5 text-xs w-28 font-black uppercase"
-                      >
-                        <option value="cash">CASH</option>
-                        <option value="bca">BCA</option>
-                        <option value="bni">BNI</option>
-                        <option value="dana">DANA</option>
-                        <option value="gopay">GoPay</option>
-                        <option value="ovo">OVO</option>
-                      </select>
+                        required
+                      />
                       <button 
                         onClick={() => handleBuy(item.id)}
-                        disabled={loading}
+                        disabled={loading || !currentSelectedMethod}
                         className="brutal-btn px-4 py-1.5 text-xs font-black uppercase cursor-pointer"
                       >
                         {loading ? '...' : 'Beli'}
@@ -120,7 +160,7 @@ export default function Wishlist({ items }: { items: WishlistItem[] }) {
                 )}
                 
                 <button 
-                  onClick={() => deleteWishlistItem(item.id)}
+                  onClick={() => handleDelete(item.id)}
                   className="absolute right-4 bottom-4 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />

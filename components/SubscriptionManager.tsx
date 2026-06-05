@@ -1,23 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { AppSubscription } from '../types';
+import { AppSubscription, Balance } from '../types';
 import { addSubscription, toggleSubscriptionActive, deleteSubscription } from '../app/actions';
 import { formatRupiah } from '../lib/format';
 import { Trash2, Calendar, CheckSquare, Square } from 'lucide-react';
+import WalletSelect from './WalletSelect';
 
 interface SubscriptionManagerProps {
   subscriptions: AppSubscription[];
+  balances?: Balance[];
   isPro: boolean;
 }
 
-export default function SubscriptionManager({ subscriptions }: SubscriptionManagerProps) {
+export default function SubscriptionManager({ subscriptions, balances = [] }: SubscriptionManagerProps) {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [billingDay, setBillingDay] = useState('');
   const [method, setMethod] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const activeSubscriptions = subscriptions.filter(s => s.isActive);
   const totalCost = activeSubscriptions.reduce((sum, s) => sum + s.amount, 0);
@@ -44,6 +47,7 @@ export default function SubscriptionManager({ subscriptions }: SubscriptionManag
   async function handleAddSubscription(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     if (!name.trim() || !amount || !billingDay || !method.trim()) {
       setError('Harap isi semua kolom');
@@ -70,18 +74,26 @@ export default function SubscriptionManager({ subscriptions }: SubscriptionManag
       setBillingDay('');
       setMethod('');
       setShowForm(false);
+      setSuccess('Langganan berhasil ditambahkan!');
+      setTimeout(() => setSuccess(null), 5000);
     } else {
       setError(res.error || 'Gagal menyimpan');
     }
   }
 
   async function handleToggle(id: string) {
+    setSuccess(null);
     await toggleSubscriptionActive(id);
+    setSuccess('Status langganan berhasil diperbarui!');
+    setTimeout(() => setSuccess(null), 5000);
   }
 
   async function handleDelete(id: string) {
+    setSuccess(null);
     if (confirm('Hapus langganan ini?')) {
       await deleteSubscription(id);
+      setSuccess('Langganan berhasil dihapus!');
+      setTimeout(() => setSuccess(null), 5000);
     }
   }
 
@@ -92,12 +104,21 @@ export default function SubscriptionManager({ subscriptions }: SubscriptionManag
           📅 Layanan Langganan
         </h3>
         <button 
-          onClick={() => setShowForm(!showForm)} 
+          onClick={() => {
+            setShowForm(!showForm);
+            setError(null);
+          }} 
           className="brutal-btn-light text-xs px-4 py-2 cursor-pointer"
         >
           {showForm ? 'Batal' : 'Tambah'}
         </button>
       </div>
+
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
 
       {/* Summary Box */}
       <div className="p-4 bg-white border-[3px] border-black rounded-none mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -141,19 +162,13 @@ export default function SubscriptionManager({ subscriptions }: SubscriptionManag
             </div>
             <div>
               <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Dompet Pembayaran</label>
-              <select 
+              <WalletSelect
+                wallets={balances}
                 value={method} 
-                onChange={e => setMethod(e.target.value)}
+                onChange={setMethod}
                 className="w-full brutal-input p-2 text-xs font-black uppercase"
-              >
-                <option value="">Pilih Wallet</option>
-                <option value="dana">DANA</option>
-                <option value="gopay">GoPay</option>
-                <option value="ovo">OVO</option>
-                <option value="bca">BCA</option>
-                <option value="bni">BNI</option>
-                <option value="cash">Cash</option>
-              </select>
+                required
+              />
             </div>
           </div>
           <button type="submit" className="w-full brutal-btn py-2 text-xs font-black uppercase tracking-wider cursor-pointer">
@@ -163,8 +178,21 @@ export default function SubscriptionManager({ subscriptions }: SubscriptionManag
       )}
 
       {subscriptions.length === 0 ? (
-        <div className="border-[3px] border-black border-dashed p-6 text-center text-neutral-400 font-bold text-xs rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider bg-white">
-          Belum ada layanan langganan yang dicatat.
+        <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
+          <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+            <span className="text-lg font-black text-black">📅</span>
+          </div>
+          <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada layanan langganan</p>
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Catat layanan langganan rutin bulanan Anda (Netflix, Spotify, Cloud, dll) di sini.</p>
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setError(null);
+            }}
+            className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+          >
+            + Tambah Langganan Baru
+          </button>
         </div>
       ) : (
         <div className="space-y-4">

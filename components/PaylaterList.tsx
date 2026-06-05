@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Paylater } from '../types';
+import { useMemo, useState } from 'react';
+import { Balance, Paylater } from '../types';
 import { formatRupiah } from '../lib/format';
 import { addPaylater, payPaylaterInstallment, deletePaylater } from '../app/actions';
 import { Plus, Trash2, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
+import WalletSelect, { getActiveWallets } from './WalletSelect';
 
-export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
+export default function PaylaterList({ paylaters, balances = [] }: { paylaters: Paylater[]; balances?: Balance[] }) {
   const [showAdd, setShowAdd] = useState(false);
   const [itemName, setItemName] = useState('');
   const [platform, setPlatform] = useState('');
@@ -17,6 +18,11 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
   const [payingId, setPayingId] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const activeWallets = useMemo(() => getActiveWallets(balances), [balances]);
+  const currentPayMethod = activeWallets.some((wallet) => wallet.name === payMethod)
+    ? payMethod
+    : activeWallets[0]?.name || '';
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,25 +32,48 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
     if (!itemName || !platform || !amount || !tenor) return;
     
     setLoading(true);
-    await addPaylater(itemName, platform, amount, tenor);
-    setShowAdd(false);
-    setItemName('');
-    setPlatform('');
-    setTotalAmount('');
-    setTenorMonths('');
+    setSuccess(null);
+    const res = await addPaylater(itemName, platform, amount, tenor);
+    if (res.success) {
+      setShowAdd(false);
+      setItemName('');
+      setPlatform('');
+      setTotalAmount('');
+      setTenorMonths('');
+      setSuccess('Cicilan paylater berhasil ditambahkan!');
+      setTimeout(() => setSuccess(null), 5000);
+    }
     setLoading(false);
   };
 
   const handlePay = async (id: string) => {
-    if (!payMethod.trim()) {
+    if (!currentPayMethod.trim()) {
       alert('Masukkan dompet/metode pembayaran');
       return;
     }
     setLoading(true);
-    await payPaylaterInstallment(id, payMethod);
-    setPayingId(null);
-    setPayMethod('');
+    setSuccess(null);
+    const res = await payPaylaterInstallment(id, currentPayMethod);
+    if (res.success) {
+      setPayingId(null);
+      setPayMethod('');
+      setSuccess('Pembayaran cicilan berhasil dicatat!');
+      setTimeout(() => setSuccess(null), 5000);
+    } else {
+      alert(res.error || 'Gagal membayar cicilan');
+    }
     setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Hapus cicilan paylater ini?')) {
+      setSuccess(null);
+      const res = await deletePaylater(id);
+      if (res.success) {
+        setSuccess('Cicilan paylater berhasil dihapus!');
+        setTimeout(() => setSuccess(null), 5000);
+      }
+    }
   };
 
   const activePaylaters = paylaters.filter(p => !p.isSettled);
@@ -55,12 +84,21 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
         <h2 className="text-lg font-black text-black uppercase tracking-wider">Paylater & Cicilan</h2>
         <button 
-          onClick={() => setShowAdd(!showAdd)}
+          onClick={() => {
+            setShowAdd(!showAdd);
+            setSuccess(null);
+          }}
           className="brutal-btn-light text-xs px-4 py-2 flex items-center gap-2 cursor-pointer"
         >
           {showAdd ? 'Batal' : <><Plus className="w-4 h-4" /> Tambah Cicilan</>}
         </button>
       </div>
+
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
 
       {showAdd && (
         <form onSubmit={handleAdd} className="mb-6 border-[3px] border-black bg-white p-4 space-y-4 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
@@ -88,7 +126,24 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
         </form>
       )}
 
-      {activePaylaters.length > 0 && (
+      {activePaylaters.length === 0 && settledPaylaters.length === 0 && !showAdd ? (
+        <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
+          <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+            <span className="text-lg font-black text-black">💳</span>
+          </div>
+          <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada catatan paylater</p>
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Lacak cicilan belanja paylater Anda (e.g. Shopee Paylater) di sini agar keuangan tetap stabil.</p>
+          <button
+            onClick={() => {
+              setShowAdd(true);
+              setSuccess(null);
+            }}
+            className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+          >
+            + Tambah Cicilan Baru
+          </button>
+        </div>
+      ) : activePaylaters.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {activePaylaters.map(p => {
             const progress = (p.monthsPaid / p.tenorMonths) * 100;
@@ -100,7 +155,7 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
                     <p className="text-[10px] font-black text-black border-[2px] border-black bg-white px-2 py-0.5 rounded-none inline-block mt-1 uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">{p.platform}</p>
                   </div>
                   <button 
-                    onClick={() => deletePaylater(p.id)} 
+                    onClick={() => handleDelete(p.id)} 
                     className="text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -129,15 +184,14 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
 
                 {payingId === p.id ? (
                   <div className="flex gap-2 items-center mt-4">
-                    <input 
-                      type="text" 
-                      value={payMethod} 
-                      onChange={e => setPayMethod(e.target.value)} 
-                      placeholder="Dompet (e.g. bca)" 
+                    <WalletSelect
+                      wallets={balances}
+                      value={currentPayMethod} 
+                      onChange={setPayMethod}
                       className="flex-1 brutal-input px-3 py-2 text-xs uppercase font-black" 
-                      autoFocus
+                      required
                     />
-                    <button onClick={() => handlePay(p.id)} disabled={loading} className="brutal-btn px-4 py-2 text-xs cursor-pointer">Bayar</button>
+                    <button onClick={() => handlePay(p.id)} disabled={loading || !currentPayMethod} className="brutal-btn px-4 py-2 text-xs cursor-pointer">Bayar</button>
                     <button onClick={() => setPayingId(null)} className="brutal-btn-light px-4 py-2 text-xs cursor-pointer">Batal</button>
                   </div>
                 ) : (
@@ -149,7 +203,7 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
             );
           })}
         </div>
-      )}
+      ) : null}
 
       {settledPaylaters.length > 0 && (
         <div className="mt-8 pt-6 border-t-[3px] border-black">
@@ -163,7 +217,7 @@ export default function PaylaterList({ paylaters }: { paylaters: Paylater[] }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="text-emerald-700 w-5 h-5" />
-                  <button onClick={() => deletePaylater(p.id)} className="text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => handleDelete(p.id)} className="text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}

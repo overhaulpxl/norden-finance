@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles } from 'lucide-react';
+import { formatCurrency } from '../lib/format';
 
 interface Message {
   id: string;
@@ -90,7 +91,7 @@ export default function ChatSandbox() {
       rawAmount = parseInt(numMatch[1].replace(/\./g, ''), 10);
     }
     if (rawAmount) {
-      amount = 'Rp ' + rawAmount.toLocaleString('id-ID');
+      amount = formatCurrency(rawAmount);
     }
 
     // Parse Wallet

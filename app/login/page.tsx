@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginAction, loginWithGoogleAction } from '../authActions';
 import Link from 'next/link';
-import { Activity } from 'lucide-react';
+import BrandLogo from '../../components/BrandLogo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -23,6 +23,9 @@ export default function LoginPage() {
     setLoading(false);
     if (result.success) {
       router.push('/dashboard');
+    } else if ('requiresEmailVerification' in result && result.requiresEmailVerification) {
+      const targetEmail = 'email' in result && result.email ? result.email : email;
+      router.push(`/verify-email?email=${encodeURIComponent(targetEmail)}`);
     } else {
       setError(result.error || 'Terjadi kesalahan');
     }
@@ -57,11 +60,8 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="bg-[#FFE066] border-[2.5px] border-black p-2.5 rounded-none shadow-[3px_3px_0px_0px_#000]">
-            <Activity className="w-6 h-6 text-black stroke-[3px]" />
-          </div>
-          <h1 className="text-2xl font-black text-black tracking-widest uppercase">Norden</h1>
+        <div className="flex justify-center mb-8">
+          <BrandLogo variant="horizontal" priority className="h-16 w-auto" />
         </div>
 
         {/* Card */}

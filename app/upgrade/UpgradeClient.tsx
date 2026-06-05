@@ -6,6 +6,8 @@ import { useState, useRef } from 'react';
 import { ArrowLeft, Check, Upload, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { submitPaymentRequest } from '../actions/payments';
+import { MVP_FEATURES } from '../../lib/constants';
+import { formatCurrency } from '../../lib/format';
 
 interface UpgradeClientProps {
   profile: {
@@ -24,7 +26,20 @@ interface UpgradeClientProps {
     qris_image: string;
     qris_active: string;
   };
+  pricingPlans: {
+    monthly: PricingPlanView | null;
+    yearly: PricingPlanView | null;
+  };
   initialPlan?: 'monthly' | 'yearly';
+}
+
+interface PricingPlanView {
+  id: string;
+  name: string;
+  price: number;
+  billingType: string | null;
+  durationDays?: number | null;
+  isActive: boolean;
 }
 
 interface PaymentRequestView {
@@ -39,7 +54,7 @@ interface PaymentRequestView {
   createdAt: string;
 }
 
-export default function UpgradeClient({ profile, initialRequests, paymentSettings, initialPlan }: UpgradeClientProps) {
+export default function UpgradeClient({ profile, initialRequests, paymentSettings, pricingPlans, initialPlan }: UpgradeClientProps) {
   const availableMethods: Array<'qris' | 'bca' | 'bni'> = [];
   if (paymentSettings.qris_active !== 'false') availableMethods.push('qris');
   if (paymentSettings.bca_active !== 'false') availableMethods.push('bca');
@@ -56,6 +71,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isPro = profile.plan === 'pro';
+  const hasSelectedPlan = Boolean(pricingPlans[selectedPlan]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -103,7 +119,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
       const proofPathValue = uploadData.proofPath as string;
 
       // 3. Submit Payment Request
-      const amount = selectedPlan === 'monthly' ? 19000 : 149000;
+      const selectedPricing = pricingPlans[selectedPlan];
+      if (!selectedPricing) {
+        throw new Error('Paket harga sedang tidak tersedia.');
+      }
+      const amount = selectedPricing.price;
       const res = await submitPaymentRequest({
         billingType: selectedPlan,
         amount,
@@ -142,13 +162,14 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
   };
 
   const planFeatures = [
-    'Semua fitur Pro tanpa batas',
-    'AI Smart Input & Receipt Scanner',
-    'Unlimited Transaksi & Dompet',
-    'Budget & Kategori Custom',
-    'Integrasi Mobile Shortcuts & NFC',
-    'Prioritas Bantuan Pelanggan',
+    ...MVP_FEATURES,
+    'Prioritas bantuan pelanggan',
   ];
+  const monthlyPrice = pricingPlans.monthly?.price ?? null;
+  const yearlyPrice = pricingPlans.yearly?.price ?? null;
+  const yearlySavingsPercent = monthlyPrice && yearlyPrice
+    ? Math.max(0, Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100))
+    : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 select-none">
@@ -178,38 +199,48 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
 
             <div className="space-y-4">
               {/* Monthly Plan */}
-              <button
-                onClick={() => setSelectedPlan('monthly')}
-                className={`w-full p-4 border-[3px] border-black rounded-none text-left transition-all ${
+              {pricingPlans.monthly ? (
+                <button
+                  onClick={() => setSelectedPlan('monthly')}
+                  className={`w-full p-4 border-[3px] border-black rounded-none text-left transition-all ${
                   selectedPlan === 'monthly' 
                     ? 'bg-[#fef08a] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
                     : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-black text-black uppercase text-sm">PRO Bulanan</h4>
-                  {selectedPlan === 'monthly' && <span className="bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Dipilih</span>}
-                </div>
-                <p className="text-2xl font-black text-black tracking-wide">Rp 19.000 <span className="text-xs font-bold text-neutral-600">/ bulan</span></p>
-                <p className="text-[10px] font-bold text-neutral-600 mt-2 uppercase tracking-wide">Cocok untuk mencoba kenyamanan pencatatan AI.</p>
-              </button>
+                  }`}
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-black text-black uppercase text-sm">{pricingPlans.monthly.name}</h4>
+                    {selectedPlan === 'monthly' && <span className="bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Dipilih</span>}
+                  </div>
+                  <p className="text-2xl font-black text-black tracking-wide">{formatCurrency(pricingPlans.monthly.price)} <span className="text-xs font-bold text-neutral-600">/ bulan</span></p>
+                  <p className="text-[10px] font-bold text-neutral-600 mt-2 uppercase tracking-wide">Cocok untuk mencoba kenyamanan pencatatan AI.</p>
+                </button>
+              ) : (
+                <div className="p-4 border-[3px] border-dashed border-black text-xs font-black uppercase text-neutral-500">Paket bulanan sedang dinonaktifkan.</div>
+              )}
 
               {/* Yearly Plan */}
-              <button
-                onClick={() => setSelectedPlan('yearly')}
-                className={`w-full p-4 border-[3px] border-black rounded-none text-left transition-all ${
+              {pricingPlans.yearly ? (
+                <button
+                  onClick={() => setSelectedPlan('yearly')}
+                  className={`w-full p-4 border-[3px] border-black rounded-none text-left transition-all ${
                   selectedPlan === 'yearly' 
                     ? 'bg-[#bbf7d0] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
                     : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-black text-black uppercase text-sm">PRO Tahunan</h4>
-                  <span className="bg-black text-yellow-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Hemat 35%</span>
-                </div>
-                <p className="text-2xl font-black text-black tracking-wide">Rp 149.000 <span className="text-xs font-bold text-neutral-600">/ tahun</span></p>
-                <p className="text-[10px] font-bold text-neutral-600 mt-2 uppercase tracking-wide">Pilihan terbaik untuk disiplin keuangan jangka panjang.</p>
-              </button>
+                  }`}
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-black text-black uppercase text-sm">{pricingPlans.yearly.name}</h4>
+                    {yearlySavingsPercent !== null && yearlySavingsPercent > 0 && (
+                      <span className="bg-black text-yellow-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Hemat {yearlySavingsPercent}%</span>
+                    )}
+                  </div>
+                  <p className="text-2xl font-black text-black tracking-wide">{formatCurrency(pricingPlans.yearly.price)} <span className="text-xs font-bold text-neutral-600">/ tahun</span></p>
+                  <p className="text-[10px] font-bold text-neutral-600 mt-2 uppercase tracking-wide">Pilihan terbaik untuk disiplin keuangan jangka panjang.</p>
+                </button>
+              ) : (
+                <div className="p-4 border-[3px] border-dashed border-black text-xs font-black uppercase text-neutral-500">Paket tahunan sedang dinonaktifkan.</div>
+              )}
             </div>
 
             {/* Plan Features */}
@@ -296,41 +327,14 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                       <span className="text-[9px] font-black text-black tracking-widest mt-2 uppercase">SCAN QRIS MERCHANT</span>
                     </div>
                   ) : (
-                    <div className="bg-white p-3 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
-                      <svg width="140" height="140" viewBox="0 0 100 100" className="stroke-black">
-                        <rect width="100" height="100" fill="white" />
-                        {/* Outer Position Squares */}
-                        <rect x="5" y="5" width="25" height="25" fill="black" />
-                        <rect x="10" y="10" width="15" height="15" fill="white" />
-                        <rect x="13" y="13" width="9" height="9" fill="black" />
-
-                        <rect x="70" y="5" width="25" height="25" fill="black" />
-                        <rect x="75" y="10" width="15" height="15" fill="white" />
-                        <rect x="78" y="13" width="9" height="9" fill="black" />
-
-                        <rect x="5" y="70" width="25" height="25" fill="black" />
-                        <rect x="10" y="75" width="15" height="15" fill="white" />
-                        <rect x="13" y="78" width="9" height="9" fill="black" />
-
-                        {/* Random Mock QR blocks */}
-                        <rect x="40" y="10" width="10" height="15" fill="black" />
-                        <rect x="55" y="5" width="5" height="20" fill="black" />
-                        <rect x="35" y="35" width="20" height="10" fill="black" />
-                        <rect x="65" y="35" width="15" height="15" fill="black" />
-                        <rect x="10" y="45" width="15" height="15" fill="black" />
-                        <rect x="45" y="55" width="20" height="25" fill="black" />
-                        <rect x="75" y="75" width="20" height="10" fill="black" />
-                        <rect x="75" y="60" width="10" height="10" fill="black" />
-                      </svg>
-                      <span className="text-[9px] font-black text-black tracking-widest mt-2 uppercase">NORDEN QRIS</span>
-                    </div>
+                    <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide">QRIS belum dikonfigurasi admin.</p>
                   )}
                 </div>
               )}
               <div className="border-t-[1px] border-black mt-4 pt-3">
                 <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Total Pembayaran</p>
                 <p className="text-base font-black text-black tracking-wide mt-0.5">
-                  Rp {selectedPlan === 'monthly' ? '19.000' : '149.000'}
+                  {hasSelectedPlan ? formatCurrency(pricingPlans[selectedPlan]!.price) : 'Paket tidak tersedia'}
                 </p>
               </div>
             </div>
@@ -362,7 +366,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
 
               <button
                 type="submit"
-                disabled={uploading || isPro}
+                disabled={uploading || isPro || !hasSelectedPlan}
                 className="w-full py-3 brutal-btn font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {uploading ? (
@@ -371,8 +375,10 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   </>
                 ) : isPro ? (
                   'SUDAH AKTIF PRO'
+                ) : !hasSelectedPlan ? (
+                  'PAKET TIDAK TERSEDIA'
                 ) : !paymentConfigured ? (
-                  'PEMBAYARAN BELUM AKTIF'
+                  'PEMBAYARAN TIDAK TERSEDIA'
                 ) : (
                   'KIRIM BUKTI PEMBAYARAN'
                 )}
@@ -416,7 +422,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                       PRO {req.billingType === 'monthly' ? 'Bulanan' : 'Tahunan'}
                     </td>
                     <td className="p-3 border-r-[2px] border-black text-black">{req.paymentMethod}</td>
-                    <td className="p-3 border-r-[2px] border-black text-black">Rp {req.amount.toLocaleString('id-ID')}</td>
+                    <td className="p-3 border-r-[2px] border-black text-black">{formatCurrency(req.amount)}</td>
                     <td className="p-3 border-r-[2px] border-black">
                       <span className={`px-2 py-0.5 text-[10px] font-black border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
                         req.status === 'approved' ? 'bg-[#bbf7d0] text-black' :

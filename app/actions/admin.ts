@@ -5,11 +5,47 @@ import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { PaymentStatus, PlanType, UserRole } from '@prisma/client';
+import { getAdminAuth } from '../../lib/firebaseAdmin';
+import { getPricingPlans } from '../../lib/data/loaders';
+import { DEFAULT_MONTHLY_PRICE, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../../lib/constants';
+import { sendEmail } from '../../lib/email';
+import { getPaymentApprovedEmailHtml, getPaymentRejectedEmailHtml } from '../../lib/email/templates/paymentEmails';
 
-const PLAN_PRICES: Record<string, number> = {
-  monthly: 19000,
-  yearly: 149000,
-};
+async function sendPaymentStatusEmail({
+  userId,
+  type,
+  adminNote,
+}: {
+  userId: string;
+  type: 'approved' | 'rejected';
+  adminNote?: string | null;
+}) {
+  try {
+    const [firebaseUser, profile] = await Promise.all([
+      getAdminAuth().getUser(userId),
+      prisma.profile.findUnique({ where: { userId }, select: { fullName: true } }),
+    ]);
+
+    if (!firebaseUser.email) {
+      console.warn('Payment email skipped: user email is missing.');
+      return;
+    }
+
+    await sendEmail({
+      to: firebaseUser.email,
+      subject: type === 'approved' ? 'Norden Pro is now active' : 'Norden Pro payment needs review',
+      html: type === 'approved'
+        ? getPaymentApprovedEmailHtml({ userName: profile?.fullName || null })
+        : getPaymentRejectedEmailHtml({ userName: profile?.fullName || null, adminNote }),
+      text: type === 'approved'
+        ? 'Your payment has been approved. Your Norden Pro subscription is now active.'
+        : 'Your payment proof could not be verified. Please upload a new proof or contact support.',
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Payment email failed';
+    console.warn('Payment email failed:', message);
+  }
+}
 
 export async function getPendingPaymentRequests() {
   try {
@@ -68,7 +104,13 @@ export async function approvePaymentRequest(requestId: string) {
 
     if (!request) throw new Error('Permintaan pembayaran tidak ditemukan');
     if (request.status !== PaymentStatus.pending) throw new Error('Permintaan ini sudah diproses');
-    if (request.amount !== PLAN_PRICES[request.billingType]) {
+    const pricingPlans = await getPricingPlans();
+    const selectedPlan = request.billingType === 'monthly'
+      ? pricingPlans.monthly
+      : request.billingType === 'yearly'
+        ? pricingPlans.yearly
+        : null;
+    if (!selectedPlan || request.amount !== selectedPlan.price) {
       throw new Error('Nominal pembayaran tidak sesuai paket');
     }
 
@@ -122,6 +164,7 @@ export async function approvePaymentRequest(requestId: string) {
 
     const callerUser = await requireUser(true);
     await createAuditLog(callerUser.user.uid, 'APPROVE_PAYMENT', 'paymentRequest', requestId);
+    await sendPaymentStatusEmail({ userId: request.userId, type: 'approved' });
     
     revalidatePath('/norden-control-center');
     revalidatePath('/dashboard');
@@ -157,8 +200,20 @@ export async function rejectPaymentRequest(requestId: string, adminNote: string)
       });
     });
 
+    const rejectedRequest = await prisma.paymentRequest.findUnique({
+      where: { id: requestId },
+      select: { userId: true, adminNote: true },
+    });
+
     const callerUser = await requireUser(true);
     await createAuditLog(callerUser.user.uid, 'REJECT_PAYMENT', 'paymentRequest', requestId);
+    if (rejectedRequest) {
+      await sendPaymentStatusEmail({
+        userId: rejectedRequest.userId,
+        type: 'rejected',
+        adminNote: rejectedRequest.adminNote,
+      });
+    }
     revalidatePath('/norden-control-center');
     return { success: true };
   } catch (error: unknown) {
@@ -299,6 +354,72 @@ export async function updateUserRoleManually(targetUserId: string, newRole: User
   }
 }
 
+export async function deleteUserAccountByAdmin(targetUserId: string) {
+  try {
+    const { user, profile } = await requireUser(true);
+
+    if (profile.role !== 'admin') {
+      throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
+    }
+
+    if (targetUserId === user.uid) {
+      throw new Error('Anda tidak dapat menghapus akun admin yang sedang digunakan.');
+    }
+
+    const targetProfile = await prisma.profile.findUnique({
+      where: { userId: targetUserId },
+      select: { id: true, fullName: true, role: true },
+    });
+
+    if (!targetProfile) {
+      throw new Error('Profil pengguna tidak ditemukan.');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.transaction.deleteMany({ where: { userId: targetUserId } });
+      await tx.budget.deleteMany({ where: { userId: targetUserId } });
+      await tx.category.deleteMany({ where: { userId: targetUserId } });
+      await tx.balance.deleteMany({ where: { userId: targetUserId } });
+
+      await tx.savingGoal.deleteMany({ where: { userId: targetUserId } });
+      await tx.wishlistItem.deleteMany({ where: { userId: targetUserId } });
+      await tx.debt.deleteMany({ where: { userId: targetUserId } });
+      await tx.paylater.deleteMany({ where: { userId: targetUserId } });
+      await tx.appSubscription.deleteMany({ where: { userId: targetUserId } });
+      await tx.emergencyFundPlan.deleteMany({ where: { userId: targetUserId } });
+      await tx.transactionTemplate.deleteMany({ where: { userId: targetUserId } });
+      await tx.recurringTransaction.deleteMany({ where: { userId: targetUserId } });
+      await tx.reminder.deleteMany({ where: { userId: targetUserId } });
+      await tx.streak.deleteMany({ where: { userId: targetUserId } });
+      await tx.achievement.deleteMany({ where: { userId: targetUserId } });
+      await tx.notification.deleteMany({ where: { userId: targetUserId } });
+      await tx.paymentRequest.deleteMany({ where: { userId: targetUserId } });
+      await tx.billingSubscription.deleteMany({ where: { userId: targetUserId } });
+      await tx.feedback.deleteMany({ where: { userId: targetUserId } });
+      await tx.auditLog.deleteMany({ where: { userId: targetUserId } });
+      await tx.profile.delete({ where: { userId: targetUserId } });
+    });
+
+    try {
+      const adminAuth = getAdminAuth();
+      if (adminAuth.deleteUser) {
+        await adminAuth.deleteUser(targetUserId);
+      }
+    } catch (authError) {
+      console.warn('Firebase Auth user deletion skipped or failed:', authError);
+    }
+
+    await createAuditLog(user.uid, `ADMIN_DELETE_USER_${targetProfile.role.toUpperCase()}`, 'profile', targetUserId);
+    revalidatePath('/norden-control-center');
+    revalidatePath('/dashboard');
+
+    return { success: true, deletedName: targetProfile.fullName || 'Tanpa Nama' };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal menghapus akun pengguna';
+    return { success: false, error: message };
+  }
+}
+
 export async function updateFeedbackStatus(feedbackId: string, newStatus: string) {
   try {
     const { profile } = await requireUser(true);
@@ -395,6 +516,145 @@ export async function updatePaymentSettings(data: {
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal memperbarui pengaturan pembayaran';
+    return { success: false, error: message };
+  }
+}
+
+export async function updatePricingSettings(data: {
+  trial_days: number;
+  monthly_price: number;
+  yearly_price: number;
+  trial_active: boolean;
+  monthly_active: boolean;
+  yearly_active: boolean;
+}) {
+  try {
+    const { profile } = await requireUser(true);
+
+    if (profile.role !== 'admin') {
+      throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
+    }
+
+    const trialDays = Math.round(Number(data.trial_days || DEFAULT_TRIAL_DAYS));
+    const monthlyPrice = Math.round(Number(data.monthly_price || DEFAULT_MONTHLY_PRICE));
+    const yearlyPrice = Math.round(Number(data.yearly_price || DEFAULT_YEARLY_PRICE));
+
+    if (!Number.isFinite(trialDays) || trialDays < 1 || trialDays > 365) {
+      throw new Error('Durasi trial harus antara 1 sampai 365 hari.');
+    }
+    if (!Number.isFinite(monthlyPrice) || monthlyPrice < 0) {
+      throw new Error('Harga bulanan tidak valid.');
+    }
+    if (!Number.isFinite(yearlyPrice) || yearlyPrice < 0) {
+      throw new Error('Harga tahunan tidak valid.');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.setting.upsert({
+          where: { key: 'trial_days' },
+          update: { value: String(trialDays) },
+          create: { key: 'trial_days', value: String(trialDays) },
+        }),
+        tx.setting.upsert({
+          where: { key: 'monthly_price' },
+          update: { value: String(monthlyPrice) },
+          create: { key: 'monthly_price', value: String(monthlyPrice) },
+        }),
+        tx.setting.upsert({
+          where: { key: 'yearly_price' },
+          update: { value: String(yearlyPrice) },
+          create: { key: 'yearly_price', value: String(yearlyPrice) },
+        }),
+      ]);
+
+      const trialPlan = await tx.plan.findFirst({ where: { type: 'trial' } });
+      if (trialPlan) {
+        await tx.plan.update({
+          where: { id: trialPlan.id },
+          data: {
+            name: 'Trial Plan',
+            price: 0,
+            type: 'trial',
+            billingType: null,
+            durationDays: trialDays,
+            isActive: data.trial_active,
+          },
+        });
+      } else {
+        await tx.plan.create({
+          data: {
+            id: 'default-trial-plan',
+            name: 'Trial Plan',
+            price: 0,
+            type: 'trial',
+            billingType: null,
+            durationDays: trialDays,
+            isActive: data.trial_active,
+          },
+        });
+      }
+
+      const monthlyPlan = await tx.plan.findFirst({ where: { type: 'pro', billingType: 'monthly' } });
+      if (monthlyPlan) {
+        await tx.plan.update({
+          where: { id: monthlyPlan.id },
+          data: {
+            name: 'Pro Monthly',
+            price: monthlyPrice,
+            type: 'pro',
+            billingType: 'monthly',
+            durationDays: null,
+            isActive: data.monthly_active,
+          },
+        });
+      } else {
+        await tx.plan.create({
+          data: {
+            id: 'default-pro-monthly',
+            name: 'Pro Monthly',
+            price: monthlyPrice,
+            type: 'pro',
+            billingType: 'monthly',
+            isActive: data.monthly_active,
+          },
+        });
+      }
+
+      const yearlyPlan = await tx.plan.findFirst({ where: { type: 'pro', billingType: 'yearly' } });
+      if (yearlyPlan) {
+        await tx.plan.update({
+          where: { id: yearlyPlan.id },
+          data: {
+            name: 'Pro Yearly',
+            price: yearlyPrice,
+            type: 'pro',
+            billingType: 'yearly',
+            durationDays: null,
+            isActive: data.yearly_active,
+          },
+        });
+      } else {
+        await tx.plan.create({
+          data: {
+            id: 'default-pro-yearly',
+            name: 'Pro Yearly',
+            price: yearlyPrice,
+            type: 'pro',
+            billingType: 'yearly',
+            isActive: data.yearly_active,
+          },
+        });
+      }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/upgrade');
+    revalidatePath('/dashboard');
+    revalidatePath('/norden-control-center');
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal memperbarui pengaturan harga';
     return { success: false, error: message };
   }
 }

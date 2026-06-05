@@ -122,6 +122,13 @@ export async function processDueEmailReminders(limit = 50) {
       await sendEmail({
         to: firebaseUser.email,
         subject: `Norden reminder: ${reminder.title}`,
+        html: `<p>${reminder.body.replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[char] || char)}</p><p>This reminder was sent by Norden Finance.</p>`,
         text: `${reminder.body}\n\nThis reminder was sent by Norden Finance.`,
       });
 

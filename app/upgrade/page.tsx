@@ -2,6 +2,7 @@ import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import UpgradeClient from './UpgradeClient';
 import { redirect } from 'next/navigation';
+import { getPaymentSettings, getPricingPlans } from '../../lib/data/loaders';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,24 +39,10 @@ export default async function UpgradePage({
     updatedAt: req.updatedAt.toISOString(),
   }));
 
-  // Get current payment settings
-  const settings = await prisma.setting.findMany();
-  const settingsMap = new Map(settings.map(s => [s.key, s.value]));
-  const bcaNumber = settingsMap.get('bca_number') || '';
-  const bcaHolder = settingsMap.get('bca_holder') || '';
-  const bniNumber = settingsMap.get('bni_number') || '';
-  const bniHolder = settingsMap.get('bni_holder') || '';
-  const qrisImage = settingsMap.get('qris_image') || '';
-  const paymentSettings = {
-    bca_number: bcaNumber,
-    bca_holder: bcaHolder,
-    bca_active: bcaNumber && bcaHolder ? settingsMap.get('bca_active') || 'true' : 'false',
-    bni_number: bniNumber,
-    bni_holder: bniHolder,
-    bni_active: bniNumber && bniHolder ? settingsMap.get('bni_active') || 'true' : 'false',
-    qris_image: qrisImage,
-    qris_active: qrisImage ? settingsMap.get('qris_active') || 'true' : 'false',
-  };
+  const [paymentSettings, pricingPlans] = await Promise.all([
+    getPaymentSettings(),
+    getPricingPlans(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#f3f4f6] p-4 sm:p-6 lg:p-8">
@@ -63,6 +50,7 @@ export default async function UpgradePage({
         profile={profile} 
         initialRequests={serializedRequests} 
         paymentSettings={paymentSettings}
+        pricingPlans={pricingPlans}
         initialPlan={initialPlan}
       />
     </div>

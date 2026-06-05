@@ -5,29 +5,39 @@ import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { PaymentStatus, PlanType } from '@prisma/client';
+import { getPaymentSettings, getPricingPlans } from '../../lib/data/loaders';
 
-const PLAN_PRICES: Record<string, number> = {
-  monthly: 19000,
-  yearly: 149000,
-};
-
-const PAYMENT_METHODS = new Set(['bca', 'bni', 'qris']);
-
-function validatePaymentInput(data: {
+async function validatePaymentInput(data: {
   billingType: string;
   amount: number;
   paymentMethod: string;
   proofPath: string;
 }, userId: string) {
-  if (!Object.hasOwn(PLAN_PRICES, data.billingType)) {
+  const [pricingPlans, paymentSettings] = await Promise.all([
+    getPricingPlans(),
+    getPaymentSettings(),
+  ]);
+  const selectedPlan = data.billingType === 'monthly'
+    ? pricingPlans.monthly
+    : data.billingType === 'yearly'
+      ? pricingPlans.yearly
+      : null;
+
+  if (!selectedPlan) {
     throw new Error('Paket pembayaran tidak valid');
   }
 
-  if (data.amount !== PLAN_PRICES[data.billingType]) {
+  if (data.amount !== selectedPlan.price) {
     throw new Error('Nominal pembayaran tidak sesuai paket');
   }
 
-  if (!PAYMENT_METHODS.has(data.paymentMethod)) {
+  const activeMethods = new Set([
+    paymentSettings.bca_active !== 'false' ? 'bca' : null,
+    paymentSettings.bni_active !== 'false' ? 'bni' : null,
+    paymentSettings.qris_active !== 'false' ? 'qris' : null,
+  ].filter(Boolean));
+
+  if (!activeMethods.has(data.paymentMethod)) {
     throw new Error('Metode pembayaran tidak valid');
   }
 
@@ -59,7 +69,7 @@ export async function submitPaymentRequest(data: {
   try {
     const { user } = await requireUser(false); // Can request upgrade even if trial ended
     const userId = user.uid;
-    validatePaymentInput(data, userId);
+    await validatePaymentInput(data, userId);
 
     const existingPending = await prisma.paymentRequest.findFirst({
       where: { userId, status: PaymentStatus.pending },

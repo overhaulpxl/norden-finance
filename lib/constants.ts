@@ -34,3 +34,52 @@ export const CATEGORY_KEYWORDS: Record<string, string[]> = {
 export const DEFAULT_METHOD = 'unknown';
 export const DEFAULT_CATEGORY = 'lain-lain';
 export const DEFAULT_TYPE = 'keluar'; // Default is expense unless stated otherwise
+
+export const DEFAULT_TRIAL_DAYS = 14;
+export const DEFAULT_MONTHLY_PRICE = 19000;
+export const DEFAULT_YEARLY_PRICE = 149000;
+export const MIN_EMERGENCY_MONTHLY_EXPENSE = 100000;
+
+export const DEFAULT_PRICING = {
+  trial: {
+    name: 'Trial Plan',
+    type: 'trial',
+    price: 0,
+    durationDays: DEFAULT_TRIAL_DAYS,
+    isActive: true,
+  },
+  monthly: {
+    name: 'Pro Monthly',
+    type: 'pro',
+    billingType: 'monthly',
+    price: DEFAULT_MONTHLY_PRICE,
+    isActive: true,
+  },
+  yearly: {
+    name: 'Pro Yearly',
+    type: 'pro',
+    billingType: 'yearly',
+    price: DEFAULT_YEARLY_PRICE,
+    isActive: true,
+  },
+} as const;
+
+export const MVP_FEATURES = [
+  'Unlimited transaksi',
+  'Unlimited dompet',
+  'Budget per kategori',
+  'Subscription manager',
+  'Saving goals & debt tracker',
+  'Paylater tracker',
+  'Financial health score',
+  'No-spend calendar',
+  'Norden AI Parser',
+  'Norden AI Receipt Scanner',
+  'Norden AI Insights',
+  'PDF Monthly Report',
+  'Export CSV & JSON',
+  'Monthly Wrapped',
+  'Share Card Generator',
+  'Budget Forecast',
+  'Cashflow Forecast',
+];

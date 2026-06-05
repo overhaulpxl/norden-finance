@@ -7,7 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "check:production": "tsx scripts/check-production-readiness.ts",
+    "check:bundle": "tsx scripts/check-bundle-budget.ts",
+    "check:release": "npm run lint && npx tsc --noEmit && npx prisma validate && npm audit --omit=dev && npm run build && npm run check:bundle && npm run check:production",
+    "deploy:storage-rules": "npx firebase-tools deploy --only storage",
+    "seed:defaults": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

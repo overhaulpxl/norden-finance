@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/icon.svg" alt="Norden Finance" width="64" height="64" />
+  <img src="public/brand/norden-icon.svg" alt="Norden Finance" width="64" height="64" />
 </p>
 
 <h1 align="center">Norden Finance</h1>

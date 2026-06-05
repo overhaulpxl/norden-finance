@@ -19,6 +19,9 @@ import HelpPage from './HelpPage';
 import AutomationCenter from './AutomationCenter';
 import FinancialTimeline from './FinancialTimeline';
 import { Menu } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
+import WelcomeToast from './WelcomeToast';
+import NextGenIntelligence from './NextGenIntelligence';
 
 interface AppLayoutProps {
   user: {
@@ -42,6 +45,11 @@ interface AppLayoutProps {
   recurringTransactions: RecurringTransaction[];
   reminders: Reminder[];
   achievements: Achievement[];
+  trialDays: number;
+  pricingPlans: {
+    monthly: { price: number; name: string } | null;
+    yearly: { price: number; name: string } | null;
+  };
   dataError?: string | null;
 }
 
@@ -60,6 +68,8 @@ export default function AppLayout({
   recurringTransactions,
   reminders,
   achievements,
+  trialDays,
+  pricingPlans,
   dataError
 }: AppLayoutProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations'>('overview');
@@ -71,8 +81,21 @@ export default function AppLayout({
     setSidebarOpen(false);
   };
 
+  const levelInfo = (() => {
+    const txCount = transactions.length;
+    const budgetCount = budgets.length;
+    const goalCount = savingGoals.length;
+    if (txCount >= 100 && goalCount >= 1) return { level: 5, name: 'Financial Navigator', color: 'bg-[#c084fc]' }; // purple
+    if (txCount >= 50 && budgetCount >= 2) return { level: 4, name: 'Budget Master', color: 'bg-[#4ade80]' }; // green
+    if (txCount >= 20 && (budgetCount >= 1 || goalCount >= 1)) return { level: 3, name: 'Smart Planner', color: 'bg-[#facc15]' }; // yellow
+    if (txCount >= 5) return { level: 2, name: 'Consistent Tracker', color: 'bg-[#60a5fa]' }; // blue
+    return { level: 1, name: 'Beginner Saver', color: 'bg-[#a3a3a3]' }; // gray
+  })();
+
   return (
     <div className="flex min-h-screen bg-[#FAF9F5]" style={{ backgroundImage: 'radial-gradient(#d1d1d1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
+      <WelcomeToast userId={user.id} fullName={user.fullName} />
+      
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
@@ -87,11 +110,11 @@ export default function AppLayout({
         lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} />
+        <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
       </div>
       
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 min-w-0">
-        <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4">
+        <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4 select-none">
           {/* Mobile hamburger */}
           <div className="flex items-center gap-3">
             <button 
@@ -109,13 +132,29 @@ export default function AppLayout({
             </h2>
           </div>
 
-          {/* Mobile new transaction button */}
-          <button 
-            onClick={() => setShowModal(true)}
-            className="lg:hidden brutal-btn px-3 py-2 text-xs"
-          >
-            + New
-          </button>
+          {/* Header Actions */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Level and PRO badge (Desktop only) */}
+            <div className="hidden sm:flex items-center gap-2">
+              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color}`}>
+                Lvl {levelInfo.level}: {levelInfo.name}
+              </span>
+              {user.plan === 'pro' && (
+                <span className="bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
+                  👑 PRO
+                </span>
+              )}
+            </div>
+
+            <NotificationCenter />
+
+            <button 
+              onClick={() => setShowModal(true)}
+              className="brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+            >
+              + New
+            </button>
+          </div>
         </header>
 
         {dataError && (
@@ -147,11 +186,11 @@ export default function AppLayout({
           {activeTab === 'goals' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-6">
-                <Wishlist items={wishlist} />
-                <SavingGoals goals={savingGoals} />
+                <Wishlist items={wishlist} balances={balances} />
+                <SavingGoals goals={savingGoals} transactions={transactions} />
               </div>
               <div className="space-y-6">
-                <PaylaterList paylaters={paylaters} />
+                <PaylaterList paylaters={paylaters} balances={balances} />
                 <DebtList debts={debts} />
               </div>
             </div>
@@ -160,7 +199,7 @@ export default function AppLayout({
           {activeTab === 'history' && (
             <div className="space-y-6">
               <div className="brutal-card p-4 sm:p-6 bg-white">
-                <TransactionTable transactions={transactions} />
+                <TransactionTable transactions={transactions} balances={balances} />
               </div>
               <FinancialTimeline transactions={transactions} />
             </div>
@@ -171,11 +210,22 @@ export default function AppLayout({
               templates={templates}
               recurringTransactions={recurringTransactions}
               reminders={reminders}
+              balances={balances}
             />
           )}
 
           {activeTab === 'reports' && (
             <div className="space-y-6">
+              <NextGenIntelligence
+                transactions={transactions}
+                balances={balances}
+                budgets={budgets}
+                subscriptions={subscriptions}
+                savingGoals={savingGoals}
+                debts={debts}
+                paylaters={paylaters}
+                achievements={achievements}
+              />
               <div className="brutal-card bg-white p-4 sm:p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -199,6 +249,8 @@ export default function AppLayout({
           {activeTab === 'settings' && (
             <SettingsPage 
               user={user}
+              trialDays={trialDays}
+              pricingPlans={pricingPlans}
               stats={{
                 transactionCount: transactions.length,
                 walletCount: balances.length,
@@ -221,7 +273,7 @@ export default function AppLayout({
         </div>
       </main>
 
-      {showModal && <QuickInputModal onClose={() => setShowModal(false)} />}
+      {showModal && <QuickInputModal balances={balances} onClose={() => setShowModal(false)} />}
     </div>
   );
 }

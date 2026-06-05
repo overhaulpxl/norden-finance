@@ -12,6 +12,7 @@ import BudgetManager from './BudgetManager';
 import SubscriptionManager from './SubscriptionManager';
 import EmergencyFundTracker from './EmergencyFundTracker';
 import MomentumCenter from './MomentumCenter';
+import { addCustomNotification } from '../app/actions/notifications';
 
 interface OverviewProps {
   transactions: Transaction[];
@@ -98,12 +99,26 @@ export default function OverviewLayout({
 
   // Layout customization state
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [topWidgets, setTopWidgets] = useState<typeof DEFAULT_TOP_WIDGETS>(() =>
     readStoredWidgets(`norden_top_widgets_${user.id}`, DEFAULT_TOP_WIDGETS)
   );
   const [columnWidgets, setColumnWidgets] = useState<typeof DEFAULT_WIDGETS>(() =>
     readStoredWidgets(`norden_column_widgets_${user.id}`, DEFAULT_WIDGETS)
   );
+
+  const handleToggleCustomize = () => {
+    if (isCustomizing) {
+      setSuccess('Tata letak dashboard berhasil disimpan!');
+      addCustomNotification(
+        'Tata letak disimpan',
+        'Anda berhasil menyesuaikan susunan widget dashboard Norden Finance Anda.',
+        'LAYOUT_UPDATE'
+      );
+      setTimeout(() => setSuccess(null), 5000);
+    }
+    setIsCustomizing(!isCustomizing);
+  };
 
   const handleToggleTopWidget = (id: string) => {
     const updated = topWidgets.map(w => w.id === id ? { ...w, visible: !w.visible } : w);
@@ -164,6 +179,13 @@ export default function OverviewLayout({
       localStorage.removeItem(`norden_top_widgets_${user.id}`);
       localStorage.removeItem(`norden_column_widgets_${user.id}`);
     }
+    setSuccess('Tata letak dashboard dikembalikan ke default!');
+    addCustomNotification(
+      'Tata letak direset',
+      'Susunan widget dashboard telah dikembalikan ke pengaturan awal pabrik.',
+      'LAYOUT_RESET'
+    );
+    setTimeout(() => setSuccess(null), 5000);
   };
 
   const renderColumnWidget = (id: string) => {
@@ -224,7 +246,7 @@ export default function OverviewLayout({
       case 'budget-manager':
         return <BudgetManager key={id} budgets={budgets} transactions={transactions} isPro={isPro} />;
       case 'subscription-manager':
-        return <SubscriptionManager key={id} subscriptions={subscriptions} isPro={isPro} />;
+        return <SubscriptionManager key={id} subscriptions={subscriptions} balances={balances} isPro={isPro} />;
       case 'emergency-fund':
         return <EmergencyFundTracker key={id} transactions={transactions} balances={balances} emergencyFundPlan={emergencyFundPlan} />;
       case 'momentum-center':
@@ -239,12 +261,18 @@ export default function OverviewLayout({
       {/* Layout Customize Action Bar */}
       <div className="flex justify-end">
         <button 
-          onClick={() => setIsCustomizing(!isCustomizing)}
+          onClick={handleToggleCustomize}
           className="brutal-btn flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider bg-[#FFE066] text-black border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
         >
           {isCustomizing ? '💾 SELESAI & SIMPAN' : '⚙️ SESUAIKAN LAYOUT'}
         </button>
       </div>
+
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
 
       {isCustomizing && (
         <div className="brutal-card p-6 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">

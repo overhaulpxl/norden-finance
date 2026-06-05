@@ -17,6 +17,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -46,6 +47,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
   async function handleAddBudget(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     if (!category.trim() || !limit) {
       setError('Harap isi semua kolom');
@@ -63,14 +65,19 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
       setCategory('');
       setLimit('');
       setShowForm(false);
+      setSuccess('Budget bulanan berhasil ditambahkan!');
+      setTimeout(() => setSuccess(null), 5000);
     } else {
       setError(res.error || 'Gagal menambahkan budget');
     }
   }
 
   async function handleDeleteBudget(id: string) {
+    setSuccess(null);
     if (confirm('Apakah Anda yakin ingin menghapus budget ini?')) {
       await deleteBudget(id);
+      setSuccess('Budget bulanan berhasil dihapus!');
+      setTimeout(() => setSuccess(null), 5000);
     }
   }
 
@@ -81,12 +88,21 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
           🎯 Budget Kategori
         </h3>
         <button 
-          onClick={() => setShowForm(!showForm)} 
+          onClick={() => {
+            setShowForm(!showForm);
+            setError(null);
+          }} 
           className="brutal-btn-light text-xs px-4 py-2 cursor-pointer"
         >
           {showForm ? 'Batal' : 'Atur Budget'}
         </button>
       </div>
+
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
 
       <>
         {showForm && (
@@ -128,8 +144,21 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
         )}
 
         {budgetsWithSpending.length === 0 ? (
-          <div className="border-[3px] border-black border-dashed p-6 text-center text-neutral-400 font-bold text-xs rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider bg-white">
-            Belum ada budget bulanan yang diatur.
+          <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
+            <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+              <span className="text-lg font-black text-black">📊</span>
+            </div>
+            <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada budget bulanan</p>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Atur budget per kategori untuk membatasi pengeluaran Anda tiap bulan.</p>
+            <button
+              onClick={() => {
+                setShowForm(true);
+                setError(null);
+              }}
+              className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+            >
+              + Atur Budget Baru
+            </button>
           </div>
         ) : (
           <div className="space-y-4">

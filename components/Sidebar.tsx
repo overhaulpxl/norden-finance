@@ -1,9 +1,10 @@
 'use client';
 
-import { Activity, Home, Wallet, Target, History, Plus, FileText, Settings, HelpCircle, LogOut, Zap, Shield, Repeat2 } from 'lucide-react';
+import { Home, Wallet, Target, History, Plus, FileText, Settings, HelpCircle, LogOut, Zap, Shield, Repeat2 } from 'lucide-react';
 import React, { useTransition } from 'react';
 import { logoutAction } from '../app/authActions';
 import Link from 'next/link';
+import BrandLogo from './BrandLogo';
 
 interface SidebarProps {
   activeTab: string;
@@ -16,11 +17,16 @@ interface SidebarProps {
     trialEndsAt?: string | null;
     role?: string;
   };
+  levelInfo: {
+    level: number;
+    name: string;
+    color: string;
+  };
 }
 
 type SidebarTab = 'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations';
 
-export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, user }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, user, levelInfo }: SidebarProps) {
   const [isPending, startTransition] = useTransition();
   const [now] = React.useState(() => Date.now());
 
@@ -63,11 +69,8 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
   return (
     <aside className="w-64 bg-[#FAF9F5] text-black border-r-[3px] border-black h-screen fixed left-0 top-0 flex flex-col pt-6 pb-6 z-10 select-none">
       {/* Logo */}
-      <div className="px-6 flex items-center gap-3 mb-8">
-        <div className="bg-[#FFE066] p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] rounded-none">
-          <Activity className="w-5 h-5 text-black stroke-[2.5px]" />
-        </div>
-        <h1 className="text-xl font-black uppercase tracking-wider text-black">Norden</h1>
+      <div className="px-6 mb-8">
+        <BrandLogo variant="horizontal" priority className="h-12 w-auto" />
       </div>
 
       {/* CTA Button */}
@@ -159,8 +162,11 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-black truncate leading-tight uppercase tracking-wider">{user.fullName || 'User'}</p>
-              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-black inline-block mt-1 leading-none bg-[#FFE066] text-black`}>
-                {user.plan === 'pro' ? 'Pro' : 'Trial'}
+              <p className="text-[8px] font-bold text-neutral-500 uppercase tracking-wide truncate mt-0.5">Lvl {levelInfo.level}: {levelInfo.name}</p>
+              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-black inline-block mt-1 leading-none ${
+                user.plan === 'pro' ? 'bg-[#FFE066] text-black' : 'bg-neutral-200 text-neutral-600'
+              }`}>
+                {user.plan === 'pro' ? 'PRO 👑' : 'TRIAL ⚡'}
               </span>
             </div>
           </div>

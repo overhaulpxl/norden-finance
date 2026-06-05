@@ -1,17 +1,45 @@
 import { getCurrentUser } from '../lib/auth';
 import { prisma } from '../lib/prisma';
 import Link from 'next/link';
-import { ArrowRight, Check, Activity, MessageSquare, Wallet, ShieldAlert, Star, Home, Target, History, FileText, Zap, Settings, Camera, PiggyBank, CreditCard, Receipt, CalendarCheck, Flame, Trophy, Bell, LayoutTemplate, Search, Download, BarChart3, Shield } from 'lucide-react';
+import { ArrowRight, Check, MessageSquare, Wallet, ShieldAlert, Star, Home, Target, History, FileText, Zap, Settings, Camera, PiggyBank, CreditCard, Receipt, CalendarCheck, Flame, Trophy, Bell, LayoutTemplate, Search, Download, BarChart3, Shield } from 'lucide-react';
 import { Caveat } from 'next/font/google';
 import ChatSandbox from '../components/ChatSandbox';
 import BackToTop from '../components/BackToTop';
 import InteractiveTilt from '../components/InteractiveTilt';
+import LandingUX from '../components/LandingUX';
+import BrandLogo from '../components/BrandLogo';
+import { getPricingPlans, getTrialDays } from '../lib/data/loaders';
+import { formatCurrency } from '../lib/format';
 
 const caveat = Caveat({
   subsets: ['latin'],
   weight: ['700'],
   display: 'swap',
 });
+
+const fallbackTestimonials = [
+  {
+    id: 'fallback-rian',
+    name: 'Rian Adiputra',
+    label: 'Freelance UI/UX Designer',
+    rating: 5,
+    message: 'Dulu paling malas mencatat pengeluaran karena aplikasinya ribet dan dipenuhi iklan. Di Norden, saya tinggal ketik cepat, laporannya langsung rapi otomatis!',
+  },
+  {
+    id: 'fallback-kevin',
+    name: 'Kevin Sanjaya',
+    label: 'Middleman / MM Gaming',
+    rating: 5,
+    message: 'Pencatatan kas titipan (escrow) untuk transaksi rekber game sangat krusial bagi MM. Norden memisahkan kas pribadi dan dana escrow saya dengan transparan.',
+  },
+  {
+    id: 'fallback-cynthia',
+    name: 'Cynthia Dewi',
+    label: 'Owner Cynthia.Store',
+    rating: 5,
+    message: 'Saya bisa melihat total saldo DANA, GoPay, dan rekening bank BCA dalam satu layar tanpa perlu repot login m-banking satu-satu setiap sore.',
+  },
+];
 
 // ==========================================
 // Custom SVG Graphics & Icons
@@ -126,6 +154,15 @@ function TornPaperDivider({ fillClass = 'fill-white', className = '' }: { fillCl
 
 export default async function LandingPage() {
   const user = await getCurrentUser();
+  const [trialDays, pricingPlans] = await Promise.all([
+    getTrialDays(),
+    getPricingPlans(),
+  ]);
+  const monthlyPrice = pricingPlans.monthly?.price ?? null;
+  const yearlyPrice = pricingPlans.yearly?.price ?? null;
+  const yearlySavingsPercent = monthlyPrice && yearlyPrice
+    ? Math.max(0, Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100))
+    : null;
   let profile = null;
   if (user) {
     profile = await prisma.profile.findUnique({
@@ -138,8 +175,37 @@ export default async function LandingPage() {
     });
   }
 
+  const reviewedFeedbacks = await prisma.feedback.findMany({
+    where: {
+      status: 'reviewed',
+      rating: { gte: 4 },
+    },
+    orderBy: [
+      { rating: 'desc' },
+      { createdAt: 'desc' },
+    ],
+    take: 6,
+  });
+  const feedbackProfiles = reviewedFeedbacks.length > 0
+    ? await prisma.profile.findMany({
+        where: { userId: { in: reviewedFeedbacks.map((feedback) => feedback.userId) } },
+        select: { userId: true, fullName: true },
+      })
+    : [];
+  const feedbackProfileMap = new Map(feedbackProfiles.map((feedbackProfile) => [feedbackProfile.userId, feedbackProfile.fullName]));
+  const publicTestimonials = reviewedFeedbacks.length > 0
+    ? reviewedFeedbacks.map((feedback) => ({
+        id: feedback.id,
+        name: feedbackProfileMap.get(feedback.userId) || 'Pengguna Norden',
+        label: 'Pengguna Norden Finance',
+        rating: feedback.rating,
+        message: feedback.message,
+      }))
+    : fallbackTestimonials;
+
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] font-sans antialiased relative">
+      <LandingUX user={user} profile={profile} />
       
       {/* Custom styles for animations, active effects, grids, and marquee */}
       <style>{`
@@ -306,10 +372,7 @@ export default async function LandingPage() {
         <header className="sticky top-4 z-50 px-6 max-w-7xl mx-auto pointer-events-none select-none">
           <div className="bg-white/95 backdrop-blur-md border-[3px] border-black px-6 py-3.5 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between rounded-none pointer-events-auto">
             <div className="flex items-center gap-3">
-              <div className="bg-[#FFE066] p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] rounded-none hover-wiggle cursor-pointer">
-                <Activity className="w-5 h-5 text-black stroke-[2.5px] animate-heartbeat" />
-              </div>
-              <span className="text-xl font-black tracking-widest text-black uppercase">Norden</span>
+              <BrandLogo variant="horizontal" priority className="h-11 w-auto hover-wiggle" />
             </div>
 
             <nav className="hidden md:flex items-center gap-10 font-black text-xs text-black uppercase tracking-wider">
@@ -643,61 +706,27 @@ export default async function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              
-              {/* Testimonial 1 */}
-              <div className="brutal-card p-6 bg-white border-[3px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between reveal">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-current stroke-black stroke-[2px] star-spin-hover" />
-                    ))}
+              {publicTestimonials.slice(0, 3).map((testimonial) => (
+                <div key={testimonial.id} className="brutal-card p-6 bg-white border-[3px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between reveal">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 stroke-black stroke-[2px] star-spin-hover ${i < testimonial.rating ? 'fill-current' : 'fill-white text-neutral-250'}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed mb-6">
+                      &quot;{testimonial.message}&quot;
+                    </p>
                   </div>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed mb-6">
-                    &quot;Dulu paling malas mencatat pengeluaran karena aplikasinya ribet dan dipenuhi iklan. Di Norden, saya tinggal ketik cepat, laporannya langsung rapi otomatis!&quot;
-                  </p>
-                </div>
-                <div className="border-t-[2px] border-black pt-4">
-                  <p className="font-black text-xs text-black uppercase">Rian Adiputra</p>
-                  <p className="text-[10px] font-bold text-neutral-500 uppercase">Freelance UI/UX Designer</p>
-                </div>
-              </div>
-
-              {/* Testimonial 2 */}
-              <div className="brutal-card p-6 bg-white border-[3px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between reveal">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-current stroke-black stroke-[2px] star-spin-hover" />
-                    ))}
+                  <div className="border-t-[2px] border-black pt-4">
+                    <p className="font-black text-xs text-black uppercase">{testimonial.name}</p>
+                    <p className="text-[10px] font-bold text-neutral-500 uppercase">{testimonial.label}</p>
                   </div>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed mb-6">
-                    &quot;Pencatatan kas titipan (escrow) untuk transaksi rekber game sangat krusial bagi MM. Norden memisahkan kas pribadi dan dana escrow saya dengan transparan.&quot;
-                  </p>
                 </div>
-                <div className="border-t-[2px] border-black pt-4">
-                  <p className="font-black text-xs text-black uppercase">Kevin Sanjaya</p>
-                  <p className="text-[10px] font-bold text-neutral-500 uppercase">Middleman / MM Gaming</p>
-                </div>
-              </div>
-
-              {/* Testimonial 3 */}
-              <div className="brutal-card p-6 bg-white border-[3px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between reveal">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-current stroke-black stroke-[2px] star-spin-hover" />
-                    ))}
-                  </div>
-                  <p className="text-xs sm:text-sm text-neutral-600 font-bold leading-relaxed mb-6">
-                    &quot;Saya bisa melihat total saldo DANA, GoPay, dan rekening bank BCA dalam satu layar tanpa perlu repot login m-banking satu-satu setiap sore.&quot;
-                  </p>
-                </div>
-                <div className="border-t-[2px] border-black pt-4">
-                  <p className="font-black text-xs text-black uppercase">Cynthia Dewi</p>
-                  <p className="text-[10px] font-bold text-neutral-500 uppercase">Owner Cynthia.Store</p>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
         </section>
@@ -719,7 +748,7 @@ export default async function LandingPage() {
                 <div>
                   <h3 className="font-black text-xl text-black uppercase tracking-wider mb-2 text-center">⚡ TRIAL PLAN</h3>
                   <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">Rp 0</div>
-                  <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">14 Hari Gratis Akses Penuh</p>
+                  <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">{trialDays} Hari Gratis Akses Penuh</p>
                   
                   <ul className="space-y-2 font-bold text-[10px] text-neutral-800 pt-5 border-t-[2.5px] border-black text-left uppercase">
                     <li className="flex items-center gap-2">✓ UNLIMITED TRANSAKSI</li>
@@ -727,18 +756,23 @@ export default async function LandingPage() {
                     <li className="flex items-center gap-2">✓ BUDGET PER KATEGORI</li>
                     <li className="flex items-center gap-2">✓ SUBSCRIPTION MANAGER</li>
                     <li className="flex items-center gap-2">✓ SAVING GOALS & DEBT TRACKER</li>
+                    <li className="flex items-center gap-2">✓ PAYLATER TRACKER</li>
                     <li className="flex items-center gap-2">✓ FINANCIAL HEALTH SCORE</li>
                     <li className="flex items-center gap-2">✓ NO SPEND CALENDAR</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI PARSER</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI RECEIPT SCANNER</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI INSIGHTS</li>
-                    <li className="flex items-center gap-2">✓ INTEGRASI WHATSAPP BOT</li>
-                    <li className="flex items-center gap-2">✓ EXPORT CSV & LAPORAN</li>
+                    <li className="flex items-center gap-2">✓ PDF MONTHLY REPORT</li>
+                    <li className="flex items-center gap-2">✓ EXPORT CSV & JSON</li>
+                    <li className="flex items-center gap-2">✓ MONTHLY WRAPPED</li>
+                    <li className="flex items-center gap-2">✓ SHARE CARD GENERATOR</li>
+                    <li className="flex items-center gap-2">✓ BUDGET FORECAST</li>
+                    <li className="flex items-center gap-2">✓ CASHFLOW FORECAST</li>
                   </ul>
                 </div>
 
                 <Link href={user ? "/dashboard" : "/register"} className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
-                  Mulai Trial 14 Hari
+                  Mulai Trial {trialDays} Hari
                 </Link>
               </div>
 
@@ -746,8 +780,14 @@ export default async function LandingPage() {
               <div className="brutal-card bg-white p-8 flex flex-col justify-between border-[3px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] pricing-card-hover min-h-[440px] reveal">
                 <div>
                   <h3 className="font-black text-xl text-black uppercase tracking-wider mb-2 text-center">👑 PRO PLAN</h3>
-                  <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">Rp 19k<span className="text-xs sm:text-sm font-bold text-neutral-500">/bln</span></div>
-                  <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">Atau Rp 149k / tahun (Hemat 35%)</p>
+                  <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">
+                    {monthlyPrice !== null ? formatCurrency(monthlyPrice) : 'Tidak tersedia'}<span className="text-xs sm:text-sm font-bold text-neutral-500">/bulan</span>
+                  </div>
+                  <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">
+                    {yearlyPrice
+                      ? `Atau ${formatCurrency(yearlyPrice)} / tahun${yearlySavingsPercent ? ` (Hemat ${yearlySavingsPercent}%)` : ''}`
+                      : 'Paket tahunan sedang dinonaktifkan'}
+                  </p>
                   
                   <ul className="space-y-2 font-bold text-[10px] text-neutral-800 pt-5 border-t-[2.5px] border-black text-left uppercase">
                     <li className="flex items-center gap-2">✓ UNLIMITED TRANSAKSI</li>
@@ -755,13 +795,18 @@ export default async function LandingPage() {
                     <li className="flex items-center gap-2">✓ BUDGET PER KATEGORI</li>
                     <li className="flex items-center gap-2">✓ SUBSCRIPTION MANAGER</li>
                     <li className="flex items-center gap-2">✓ SAVING GOALS & DEBT TRACKER</li>
+                    <li className="flex items-center gap-2">✓ PAYLATER TRACKER</li>
                     <li className="flex items-center gap-2">✓ FINANCIAL HEALTH SCORE</li>
                     <li className="flex items-center gap-2">✓ NO SPEND CALENDAR</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI PARSER</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI RECEIPT SCANNER</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI INSIGHTS</li>
-                    <li className="flex items-center gap-2">✓ INTEGRASI WHATSAPP BOT</li>
-                    <li className="flex items-center gap-2">✓ EXPORT CSV & LAPORAN</li>
+                    <li className="flex items-center gap-2">✓ PDF MONTHLY REPORT</li>
+                    <li className="flex items-center gap-2">✓ EXPORT CSV & JSON</li>
+                    <li className="flex items-center gap-2">✓ MONTHLY WRAPPED</li>
+                    <li className="flex items-center gap-2">✓ SHARE CARD GENERATOR</li>
+                    <li className="flex items-center gap-2">✓ BUDGET FORECAST</li>
+                    <li className="flex items-center gap-2">✓ CASHFLOW FORECAST</li>
                   </ul>
                 </div>
 
@@ -772,15 +817,20 @@ export default async function LandingPage() {
 
               {/* Pro Yearly Card */}
               <div className="brutal-card bg-white p-8 flex flex-col justify-between border-[3px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] pricing-card-hover min-h-[440px] relative reveal">
-                {/* Floating "Hemat 35%" Badge */}
-                <div className="absolute -top-5 right-6 bg-[#2ECC71] text-black border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none z-10">
-                  🎉 HEMAT 35%
-                </div>
+                {yearlySavingsPercent !== null && yearlySavingsPercent > 0 && (
+                  <div className="absolute -top-5 right-6 bg-[#2ECC71] text-black border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none z-10">
+                    HEMAT {yearlySavingsPercent}%
+                  </div>
+                )}
                 
                 <div>
                   <h3 className="font-black text-xl text-black uppercase tracking-wider mb-2 text-center">👑 PRO TAHUNAN</h3>
-                  <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">Rp 149k<span className="text-xs sm:text-sm font-bold text-neutral-500">/thn</span></div>
-                  <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">Lebih hemat 35% dibandingkan bulanan</p>
+                  <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">
+                    {yearlyPrice !== null ? formatCurrency(yearlyPrice) : 'Tidak tersedia'}<span className="text-xs sm:text-sm font-bold text-neutral-500">/tahun</span>
+                  </div>
+                  <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">
+                    {yearlySavingsPercent ? `Lebih hemat ${yearlySavingsPercent}% dibandingkan bulanan` : 'Paket tahunan mengikuti konfigurasi admin'}
+                  </p>
                   
                   <ul className="space-y-2 font-bold text-[10px] text-neutral-800 pt-5 border-t-[2.5px] border-black text-left uppercase">
                     <li className="flex items-center gap-2">✓ UNLIMITED TRANSAKSI</li>
@@ -788,13 +838,18 @@ export default async function LandingPage() {
                     <li className="flex items-center gap-2">✓ BUDGET PER KATEGORI</li>
                     <li className="flex items-center gap-2">✓ SUBSCRIPTION MANAGER</li>
                     <li className="flex items-center gap-2">✓ SAVING GOALS & DEBT TRACKER</li>
+                    <li className="flex items-center gap-2">✓ PAYLATER TRACKER</li>
                     <li className="flex items-center gap-2">✓ FINANCIAL HEALTH SCORE</li>
                     <li className="flex items-center gap-2">✓ NO SPEND CALENDAR</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI PARSER</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI RECEIPT SCANNER</li>
                     <li className="flex items-center gap-2">✓ NORDEN AI INSIGHTS</li>
-                    <li className="flex items-center gap-2">✓ INTEGRASI WHATSAPP BOT</li>
-                    <li className="flex items-center gap-2">✓ EXPORT CSV & LAPORAN</li>
+                    <li className="flex items-center gap-2">✓ PDF MONTHLY REPORT</li>
+                    <li className="flex items-center gap-2">✓ EXPORT CSV & JSON</li>
+                    <li className="flex items-center gap-2">✓ MONTHLY WRAPPED</li>
+                    <li className="flex items-center gap-2">✓ SHARE CARD GENERATOR</li>
+                    <li className="flex items-center gap-2">✓ BUDGET FORECAST</li>
+                    <li className="flex items-center gap-2">✓ CASHFLOW FORECAST</li>
                   </ul>
                 </div>
 
@@ -812,7 +867,7 @@ export default async function LandingPage() {
 
         {/* Footer */}
         <footer className="bg-[#FAF9F5] pt-16 pb-12 relative px-6 select-none">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 text-left font-bold text-xs uppercase tracking-wide">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-left font-bold text-xs uppercase tracking-wide">
             
             {/* Col 1 */}
             <div>
@@ -836,18 +891,41 @@ export default async function LandingPage() {
             </div>
 
             {/* Col 3 */}
+            <div>
+              <h5 className="font-black text-black mb-4">Contact Us</h5>
+              <ul className="space-y-2.5 text-neutral-500">
+                <li>
+                  <a 
+                    href="https://wa.me/6287882924651?text=Halo%20Norden%20Finance,%20saya%20tertarik%20untuk%20bertanya%20lebih%20lanjut%20mengenai%20layanan%20Norden." 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="hover:text-black flex items-center gap-2.5 group normal-case font-bold"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-neutral-500 group-hover:text-[#25D366] transition-colors shrink-0" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.464L0 24zm6.59-4.846c1.6.95 3.197 1.451 4.854 1.452 5.564 0 10.093-4.52 10.097-10.081.002-2.695-1.047-5.227-2.951-7.133C16.84 1.485 14.316.435 11.637.435c-5.568 0-10.099 4.522-10.103 10.084-.002 1.936.493 3.824 1.435 5.484L1.87 20.39l4.777-1.236zm12.333-7.247c-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"/>
+                    </svg>
+                    <span className="group-hover:underline">+62 878-8292-4651</span>
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="https://instagram.com/norden.finance" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="hover:text-black flex items-center gap-2.5 group normal-case font-bold"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current text-neutral-500 group-hover:text-[#E1306C] transition-colors shrink-0" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051C.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                    </svg>
+                    <span className="group-hover:underline">@norden.finance</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 4 */}
             <div className="flex flex-col justify-between items-start md:items-end">
-              <div className="flex items-center gap-3">
-                <div className="bg-[#FFE066] p-1.5 border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_#000] rounded-none">
-                  <Activity className="w-4 h-4 text-black stroke-[2.5px]" />
-                </div>
-                <span className="font-black text-sm uppercase tracking-widest text-black">Norden</span>
-              </div>
-              <div className="mt-8 md:mt-0">
-                <div className="inline-flex items-center gap-1.5 bg-white border-[2px] border-black px-2.5 py-1 text-[9px] font-black text-black cursor-pointer hover:bg-neutral-100">
-                  Language <span className="text-[7px]">▼</span>
-                </div>
-              </div>
+              <BrandLogo variant="horizontal" className="h-10 w-auto" />
             </div>
 
           </div>

@@ -16,21 +16,26 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
   const [interest, setInterest] = useState('');
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'active' | 'settled'>('active');
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!person.trim() || !amount) return;
     setLoading(true);
+    setError(null);
+    setSuccess(null);
     const numericAmount = parseInt(amount.replace(/\D/g, ''), 10);
     const numericTenor = parseInt(tenor.replace(/\D/g, ''), 10);
     const numericInterest = parseFloat(interest);
 
     if (!numericAmount) {
+      setError('Nominal tidak valid');
       setLoading(false);
       return;
     }
     
-    await addDebt({
+    const res = await addDebt({
       type: formType,
       person,
       amount: numericAmount,
@@ -39,21 +44,39 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
       interestRate: !isNaN(numericInterest) ? numericInterest : undefined
     });
     
-    setPerson('');
-    setAmount('');
-    setNote('');
-    setTenor('');
-    setInterest('');
-    setShowForm(false);
+    if (res.success) {
+      setPerson('');
+      setAmount('');
+      setNote('');
+      setTenor('');
+      setInterest('');
+      setShowForm(false);
+      setSuccess('Catatan berhasil ditambahkan!');
+      setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menyimpan');
+    }
     setLoading(false);
   };
 
   const handleSettle = async (id: string) => {
-    await toggleDebtSettled(id);
+    setSuccess(null);
+    const res = await toggleDebtSettled(id);
+    if (res.success) {
+      setSuccess('Status utang/piutang berhasil diperbarui!');
+      setTimeout(() => setSuccess(null), 5000);
+    }
   };
 
   const handleDelete = async (id: string) => {
-    await deleteDebt(id);
+    if (confirm('Apakah Anda yakin ingin menghapus catatan ini?')) {
+      setSuccess(null);
+      const res = await deleteDebt(id);
+      if (res.success) {
+        setSuccess('Catatan berhasil dihapus!');
+        setTimeout(() => setSuccess(null), 5000);
+      }
+    }
   };
 
   const filteredDebts = debts.filter(d => {
@@ -69,10 +92,28 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
     <div className="brutal-card p-6 bg-white select-none">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
         <h3 className="text-lg font-black text-black uppercase tracking-wider">Utang & Piutang</h3>
-        <button onClick={() => setShowForm(!showForm)} className="brutal-btn-light text-xs px-4 py-2 cursor-pointer">
+        <button 
+          onClick={() => {
+            setShowForm(!showForm);
+            setError(null);
+          }} 
+          className="brutal-btn-light text-xs px-4 py-2 cursor-pointer"
+        >
           {showForm ? 'Cancel' : '+ New Debt'}
         </button>
       </div>
+
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
+
+      {error && (
+        <div className="p-3 border-[2px] border-black bg-[#fecaca] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 mb-8 bg-white border-[3px] border-black rounded-none p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <div>
@@ -115,7 +156,22 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
       </div>
 
       {filteredDebts.length === 0 ? (
-        <div className="text-neutral-400 font-bold text-sm py-8 text-center bg-white border-[3px] border-black border-dashed rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider">No debts found.</div>
+        <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
+          <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+            <span className="text-lg font-black text-black">🤝</span>
+          </div>
+          <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada catatan utang/piutang</p>
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Catat utang atau piutang agar pembayaran atau penagihan Anda tetap terjadwal.</p>
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setError(null);
+            }}
+            className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+          >
+            + Catat Baru
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
           {filteredDebts.map(d => (

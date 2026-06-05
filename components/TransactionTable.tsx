@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Transaction } from '../types';
+import { Balance, Transaction } from '../types';
 import { formatRupiah, formatTanggal, formatMethodName } from '../lib/format';
 import { Search, Trash2, Edit2, Check, X, Download, ArrowDownRight, ArrowUpRight, ArrowRightLeft } from 'lucide-react';
 import { updateTransaction, deleteTransaction } from '../app/actions';
+import WalletSelect from './WalletSelect';
 
-export default function TransactionTable({ transactions }: { transactions: Transaction[] }) {
+export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -20,6 +21,8 @@ export default function TransactionTable({ transactions }: { transactions: Trans
   const [editMethod, setEditMethod] = useState('');
   const [editTags, setEditTags] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const months = Array.from(new Set(transactions.map(t => {
     const d = new Date(t.transactionDate);
@@ -84,21 +87,53 @@ export default function TransactionTable({ transactions }: { transactions: Trans
   const handleEditSave = async (id: string) => {
     const amount = parseInt(editAmount.replace(/\D/g, ''), 10);
     if (!amount) return;
+    if (!editMethod.trim()) {
+      setError('Pilih wallet terlebih dahulu');
+      return;
+    }
     
+    setError(null);
+    setSuccess(null);
     const tags = editTags.split(/\s+/).map(tag => tag.replace(/^#/, '').trim()).filter(Boolean);
-    await updateTransaction(id, { amount, note: editNote, wallet: editMethod, tags });
-    setEditingId(null);
+    const res = await updateTransaction(id, { amount, note: editNote, wallet: editMethod, tags });
+    if (res.success) {
+      setEditingId(null);
+      setSuccess('Transaksi berhasil diperbarui!');
+      setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal memperbarui transaksi');
+    }
   };
 
   const handleDelete = async (id: string) => {
-    await deleteTransaction(id);
-    setDeletingId(null);
+    setError(null);
+    setSuccess(null);
+    const res = await deleteTransaction(id);
+    if (res.success) {
+      setDeletingId(null);
+      setSuccess('Transaksi berhasil dihapus!');
+      setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menghapus transaksi');
+    }
   };
 
   const selectClass = "bg-white border-[3px] border-black text-black font-black text-xs rounded-none px-3 py-2 outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider appearance-none cursor-pointer";
 
   return (
     <div className="select-none">
+      {success && (
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {success}
+        </div>
+      )}
+
+      {error && (
+        <div className="p-3 border-[2px] border-black bg-[#fecaca] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          {error}
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black stroke-[3px]" />
@@ -184,11 +219,12 @@ export default function TransactionTable({ transactions }: { transactions: Trans
                         className="bg-white border-[2px] border-black rounded-none px-2.5 py-1 text-xs text-black outline-none font-bold uppercase"
                         placeholder="Catatan..."
                       />
-                      <input 
-                        type="text" 
+                      <WalletSelect
+                        wallets={balances}
                         value={editMethod}
-                        onChange={e => setEditMethod(e.target.value)}
+                        onChange={setEditMethod}
                         className="w-20 bg-white border-[2px] border-black rounded-none px-2.5 py-1 text-xs text-black outline-none uppercase font-black"
+                        required
                       />
                       <input 
                         type="text" 

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../lib/auth';
 import { prisma } from '../../../lib/prisma';
+import { getMonthlyReportData } from '../../../lib/data/loaders';
+import { generateMonthlyReportPdf } from '../../../lib/pdf/monthlyReport';
 
 const EXPORT_ROW_LIMIT = 5000;
 
@@ -12,48 +14,7 @@ function csvEscape(value: unknown): string {
   return text;
 }
 
-function pdfText(value: string) {
-  return value
-    .replace(/[^\x20-\x7E]/g, ' ')
-    .replace(/\\/g, '\\\\')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)');
-}
 
-function buildSimplePdf(lines: string[]) {
-  const content = [
-    'BT',
-    '/F1 18 Tf',
-    '72 760 Td',
-    `(Norden Finance Monthly Report) Tj`,
-    '/F1 10 Tf',
-    '0 -28 Td',
-    ...lines.flatMap((line) => [`(${pdfText(line).slice(0, 95)}) Tj`, '0 -16 Td']),
-    'ET',
-  ].join('\n');
-
-  const objects = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-    `<< /Length ${Buffer.byteLength(content, 'utf8')} >>\nstream\n${content}\nendstream`,
-  ];
-
-  let pdf = '%PDF-1.4\n';
-  const offsets = [0];
-  for (let index = 0; index < objects.length; index += 1) {
-    offsets.push(Buffer.byteLength(pdf, 'utf8'));
-    pdf += `${index + 1} 0 obj\n${objects[index]}\nendobj\n`;
-  }
-  const xrefOffset = Buffer.byteLength(pdf, 'utf8');
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  for (let index = 1; index < offsets.length; index += 1) {
-    pdf += `${String(offsets[index]).padStart(10, '0')} 00000 n \n`;
-  }
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-  return pdf;
-}
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -112,49 +73,16 @@ export async function GET(request: Request) {
 
   if (format === 'pdf') {
     const now = new Date();
-    const month = now.getMonth();
-    const year = now.getFullYear();
-    const monthlyTransactions = transactions.filter((tx) => {
-      const date = tx.transactionDate;
-      return date.getMonth() === month && date.getFullYear() === year;
-    });
-    const income = monthlyTransactions
-      .filter((tx) => tx.type === 'masuk')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const expense = monthlyTransactions
-      .filter((tx) => tx.type === 'keluar')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const transfer = monthlyTransactions
-      .filter((tx) => tx.type === 'transfer')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const topCategory = Object.entries(
-      monthlyTransactions
-        .filter((tx) => tx.type === 'keluar')
-        .reduce<Record<string, number>>((acc, tx) => {
-          const name = tx.category?.name || 'Lain-lain';
-          acc[name] = (acc[name] || 0) + tx.amount;
-          return acc;
-        }, {})
-    ).sort((a, b) => b[1] - a[1])[0];
+    const reportData = await getMonthlyReportData(user.uid, now.getMonth() + 1, now.getFullYear());
+    const pdfBuffer = generateMonthlyReportPdf(reportData);
 
-    const lines = [
-      `Generated: ${now.toISOString()}`,
-      `Transactions this month: ${monthlyTransactions.length}`,
-      `Income: Rp ${income.toLocaleString('id-ID')}`,
-      `Expense: Rp ${expense.toLocaleString('id-ID')}`,
-      `Transfer volume: Rp ${transfer.toLocaleString('id-ID')}`,
-      `Cashflow: Rp ${(income - expense).toLocaleString('id-ID')}`,
-      `Active wallet balance: Rp ${totalBalance.toLocaleString('id-ID')}`,
-      `Largest expense category: ${topCategory ? `${topCategory[0]} - Rp ${topCategory[1].toLocaleString('id-ID')}` : 'None'}`,
-      '',
-      'Recent transactions:',
-      ...payload.slice(0, 20).map((row) => `${row.date.slice(0, 10)} | ${row.type} | Rp ${row.amount.toLocaleString('id-ID')} | ${row.category || '-'} | ${row.note || '-'}`),
-    ];
+    const fileName = `Norden_Report_${reportData.year}_${reportData.month}.pdf`;
 
-    return new NextResponse(buildSimplePdf(lines), {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="norden-report-${new Date().toISOString().slice(0, 10)}.pdf"`,
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
       },
     });
   }

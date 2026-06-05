@@ -4,20 +4,25 @@
 
 import { useState, useRef } from 'react';
 import { 
-  ArrowLeft, Check, X, Shield, Eye, Loader2, MessageSquare, 
+  ArrowLeft, Check, X, Eye, Loader2, MessageSquare, 
   Users, CreditCard, Search, Activity, Heart, Wallet, Target,
   DollarSign, TrendingUp, HelpCircle, Star, Calendar, RefreshCw,
-  Upload, Sliders
+  Upload, Sliders, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
+import BrandLogo from '../../components/BrandLogo';
 import { 
   approvePaymentRequest, 
   rejectPaymentRequest, 
   updateUserPlanManually, 
   updateUserRoleManually,
+  deleteUserAccountByAdmin,
   updateFeedbackStatus,
-  updatePaymentSettings
+  updatePaymentSettings,
+  updatePricingSettings
 } from '../actions/admin';
+import { DEFAULT_MONTHLY_PRICE, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../../lib/constants';
+import { formatCurrency } from '../../lib/format';
 
 interface RequestItem {
   id: string;
@@ -94,6 +99,21 @@ interface PaymentSettings {
   qris_active: string;
 }
 
+interface PricingPlanView {
+  id: string;
+  name: string;
+  price: number;
+  billingType: string | null;
+  durationDays: number | null;
+  isActive: boolean;
+}
+
+interface PricingPlans {
+  trial: PricingPlanView | null;
+  monthly: PricingPlanView | null;
+  yearly: PricingPlanView | null;
+}
+
 interface AdminClientProps {
   initialRequests: RequestItem[];
   initialUsers: UserProfileItem[];
@@ -101,6 +121,7 @@ interface AdminClientProps {
   initialFeedbacks: FeedbackItem[];
   platformStats: PlatformStats;
   initialPaymentSettings: PaymentSettings;
+  initialPricingPlans: PricingPlans;
   currentAdminId: string;
 }
 
@@ -111,6 +132,7 @@ export default function AdminClient({
   initialFeedbacks,
   platformStats,
   initialPaymentSettings,
+  initialPricingPlans,
   currentAdminId 
 }: AdminClientProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'payments' | 'users' | 'logs' | 'feedbacks' | 'settings'>('overview');
@@ -130,6 +152,12 @@ export default function AdminClient({
   const [bniActive, setBniActive] = useState(initialPaymentSettings.bni_active === 'true');
   const [qrisImage, setQrisImage] = useState(initialPaymentSettings.qris_image);
   const [qrisActive, setQrisActive] = useState(initialPaymentSettings.qris_active === 'true');
+  const [trialDays, setTrialDays] = useState(String(initialPricingPlans.trial?.durationDays || DEFAULT_TRIAL_DAYS));
+  const [monthlyPrice, setMonthlyPrice] = useState(String(initialPricingPlans.monthly?.price || DEFAULT_MONTHLY_PRICE));
+  const [yearlyPrice, setYearlyPrice] = useState(String(initialPricingPlans.yearly?.price || DEFAULT_YEARLY_PRICE));
+  const [trialPlanActive, setTrialPlanActive] = useState(Boolean(initialPricingPlans.trial));
+  const [monthlyPlanActive, setMonthlyPlanActive] = useState(Boolean(initialPricingPlans.monthly));
+  const [yearlyPlanActive, setYearlyPlanActive] = useState(Boolean(initialPricingPlans.yearly));
   
   const [updatingSettings, setUpdatingSettings] = useState(false);
   const qrisFileInputRef = useRef<HTMLInputElement>(null);
@@ -145,12 +173,19 @@ export default function AdminClient({
   const [selectedPlan, setSelectedPlan] = useState<'trial' | 'pro'>('pro');
   const [durationOption, setDurationOption] = useState<'30' | '90' | '365' | 'custom'>('30');
   const [customDays, setCustomDays] = useState('30');
+  const [deleteModalUser, setDeleteModalUser] = useState<UserProfileItem | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   // Local Counts
   const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const pricingPreview = {
+    trialDays: Number.parseInt(trialDays, 10) || DEFAULT_TRIAL_DAYS,
+    monthlyPrice: Number(monthlyPrice) || DEFAULT_MONTHLY_PRICE,
+    yearlyPrice: Number(yearlyPrice) || DEFAULT_YEARLY_PRICE,
+  };
 
   const handleApprove = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menyetujui pembayaran ini?')) return;
@@ -287,6 +322,45 @@ export default function AdminClient({
     }
   };
 
+  const openDeleteModal = (targetUser: UserProfileItem) => {
+    setDeleteModalUser(targetUser);
+    setDeleteConfirmText('');
+    setError('');
+    setSuccess('');
+  };
+
+  const handleDeleteUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteModalUser) return;
+    if (deleteConfirmText !== 'DELETE') {
+      setError('Ketik DELETE untuk mengonfirmasi penghapusan akun.');
+      return;
+    }
+
+    setLoadingId(deleteModalUser.userId);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await deleteUserAccountByAdmin(deleteModalUser.userId);
+      if (res.success) {
+        setUsers(prev => prev.filter(u => u.userId !== deleteModalUser.userId));
+        setRequests(prev => prev.filter(r => r.userId !== deleteModalUser.userId));
+        setFeedbacks(prev => prev.filter(f => f.userId !== deleteModalUser.userId));
+        setAuditLogs(prev => prev.filter(log => log.userId !== deleteModalUser.userId));
+        setSuccess(`Akun "${res.deletedName || deleteModalUser.fullName}" dan seluruh data aplikasinya berhasil dihapus.`);
+        setDeleteModalUser(null);
+        setDeleteConfirmText('');
+      } else {
+        setError(res.error || 'Gagal menghapus akun pengguna.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan sistem.');
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const handleToggleFeedback = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'reviewed' ? 'open' : 'reviewed';
     setLoadingId(id);
@@ -376,6 +450,34 @@ export default function AdminClient({
     }
   };
 
+  const handleSavePricingSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatingSettings(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await updatePricingSettings({
+        trial_days: Number(trialDays),
+        monthly_price: Number(monthlyPrice),
+        yearly_price: Number(yearlyPrice),
+        trial_active: trialPlanActive,
+        monthly_active: monthlyPlanActive,
+        yearly_active: yearlyPlanActive,
+      });
+
+      if (res.success) {
+        setSuccess('Pengaturan harga berhasil diperbarui!');
+      } else {
+        setError(res.error || 'Gagal memperbarui pengaturan harga.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan sistem.');
+    } finally {
+      setUpdatingSettings(false);
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     u.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.userId.toLowerCase().includes(searchQuery.toLowerCase())
@@ -394,14 +496,14 @@ export default function AdminClient({
             <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Kembali ke Dasbor
           </Link>
           <h1 className="text-2xl font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <Shield className="w-6 h-6 stroke-[2.5px]" /> Panel Admin Norden
+            <BrandLogo variant="icon" className="h-9 w-9 shrink-0" /> Panel Admin Norden
           </h1>
         </div>
 
         {/* Global Statistics Cards */}
         <div className="flex flex-wrap gap-4">
           <div className="border-[2px] border-black p-3 bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-center min-w-[90px]">
-            <p className="text-lg font-black text-black">Rp {platformStats.totalRevenue.toLocaleString('id-ID')}</p>
+            <p className="text-lg font-black text-black">{formatCurrency(platformStats.totalRevenue)}</p>
             <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest mt-0.5">Total Revenue</p>
           </div>
           <div className="border-[2px] border-black p-3 bg-[#bbf7d0] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-center min-w-[90px]">
@@ -544,7 +646,7 @@ export default function AdminClient({
                 <div>
                   <div className="flex justify-between text-xs font-bold uppercase mb-1">
                     <span>Approved payments ({platformStats.approvedPayments})</span>
-                    <span>Rp {platformStats.totalRevenue.toLocaleString('id-ID')}</span>
+                    <span>{formatCurrency(platformStats.totalRevenue)}</span>
                   </div>
                   <div className="w-full h-3 border-[2px] border-black bg-neutral-100">
                     <div 
@@ -644,7 +746,7 @@ export default function AdminClient({
                       </td>
                       <td className="p-3 border-r-[2px] border-black">
                         <p className="font-black text-black">PRO {req.billingType}</p>
-                        <p className="text-[10px] text-neutral-500">Rp {req.amount.toLocaleString('id-ID')}</p>
+                        <p className="text-[10px] text-neutral-500">{formatCurrency(req.amount)}</p>
                       </td>
                       <td className="p-3 border-r-[2px] border-black text-black">{req.paymentMethod}</td>
                       <td className="p-3 border-r-[2px] border-black text-center">
@@ -765,7 +867,7 @@ export default function AdminClient({
                       </td>
 
                       <td className="p-3 text-center">
-                        <div className="flex justify-center gap-2">
+                        <div className="flex flex-wrap justify-center gap-2">
                           <button
                             onClick={() => openPlanModal(u.userId, u.fullName, u.plan)}
                             disabled={loadingId !== null}
@@ -782,6 +884,15 @@ export default function AdminClient({
                             title={isSelf ? 'Anda tidak bisa mendegradasi role Anda sendiri' : ''}
                           >
                             {u.role === 'admin' ? 'DEMOTE' : 'PROMOTE ADMIN'}
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(u)}
+                            disabled={loadingId !== null || isSelf}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-red-100 hover:bg-red-200 text-red-700 disabled:opacity-30 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                            title={isSelf ? 'Anda tidak bisa menghapus akun yang sedang digunakan' : 'Hapus akun dan seluruh data pengguna'}
+                          >
+                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3 stroke-[3px]" />}
+                            Hapus
                           </button>
                         </div>
                       </td>
@@ -899,9 +1010,98 @@ export default function AdminClient({
       {activeTab === 'settings' && (
         <div className="brutal-card p-6 bg-white space-y-6">
           <div>
-            <h3 className="text-base font-black text-black uppercase tracking-wider mb-2">Konfigurasi Metode Pembayaran</h3>
-            <p className="text-xs text-neutral-500 uppercase font-bold">Sesuaikan nomor rekening BCA, BNI, dan QRIS Norden Finance yang akan ditampilkan di halaman Upgrade Pro.</p>
+            <h3 className="text-base font-black text-black uppercase tracking-wider mb-2">Konfigurasi Produk & Pembayaran</h3>
+            <p className="text-xs text-neutral-500 uppercase font-bold">Sesuaikan harga paket, durasi trial, rekening BCA, BNI, dan QRIS Norden Finance.</p>
           </div>
+
+          <form onSubmit={handleSavePricingSettings} className="space-y-6 border-[3px] border-black bg-[#fef08a] p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex flex-col gap-2 border-b-[2px] border-black pb-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="font-black text-black uppercase text-sm">Pricing & Trial Defaults</h4>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-700">Fallback ini menjaga pricing tetap valid saat database belum lengkap.</p>
+              </div>
+              <div className="text-[10px] font-black uppercase tracking-wider text-black">
+                Preview: {formatCurrency(pricingPreview.monthlyPrice)} / bulan
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className={`border-[3px] border-black bg-white p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${trialPlanActive ? '' : 'opacity-60'}`}>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-black">Trial Plan</h5>
+                  <button
+                    type="button"
+                    onClick={() => setTrialPlanActive(!trialPlanActive)}
+                    className={`border-[2px] border-black px-2 py-0.5 text-[9px] font-black uppercase ${trialPlanActive ? 'bg-[#bbf7d0] text-black' : 'bg-red-100 text-red-700'}`}
+                  >
+                    {trialPlanActive ? 'Aktif' : 'Nonaktif'}
+                  </button>
+                </div>
+                <label className="text-[10px] font-black uppercase text-black">Durasi Trial</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={trialDays}
+                  onChange={(e) => setTrialDays(e.target.value)}
+                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold"
+                />
+                <p className="mt-2 text-[10px] font-bold uppercase text-neutral-600">{pricingPreview.trialDays} hari gratis akses penuh</p>
+              </div>
+
+              <div className={`border-[3px] border-black bg-white p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${monthlyPlanActive ? '' : 'opacity-60'}`}>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-black">Pro Monthly</h5>
+                  <button
+                    type="button"
+                    onClick={() => setMonthlyPlanActive(!monthlyPlanActive)}
+                    className={`border-[2px] border-black px-2 py-0.5 text-[9px] font-black uppercase ${monthlyPlanActive ? 'bg-[#bbf7d0] text-black' : 'bg-red-100 text-red-700'}`}
+                  >
+                    {monthlyPlanActive ? 'Aktif' : 'Nonaktif'}
+                  </button>
+                </div>
+                <label className="text-[10px] font-black uppercase text-black">Harga Bulanan</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={monthlyPrice}
+                  onChange={(e) => setMonthlyPrice(e.target.value)}
+                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold"
+                />
+                <p className="mt-2 text-[10px] font-bold uppercase text-neutral-600">{formatCurrency(pricingPreview.monthlyPrice)} / bulan</p>
+              </div>
+
+              <div className={`border-[3px] border-black bg-white p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${yearlyPlanActive ? '' : 'opacity-60'}`}>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-black">Pro Yearly</h5>
+                  <button
+                    type="button"
+                    onClick={() => setYearlyPlanActive(!yearlyPlanActive)}
+                    className={`border-[2px] border-black px-2 py-0.5 text-[9px] font-black uppercase ${yearlyPlanActive ? 'bg-[#bbf7d0] text-black' : 'bg-red-100 text-red-700'}`}
+                  >
+                    {yearlyPlanActive ? 'Aktif' : 'Nonaktif'}
+                  </button>
+                </div>
+                <label className="text-[10px] font-black uppercase text-black">Harga Tahunan</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={yearlyPrice}
+                  onChange={(e) => setYearlyPrice(e.target.value)}
+                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold"
+                />
+                <p className="mt-2 text-[10px] font-bold uppercase text-neutral-600">{formatCurrency(pricingPreview.yearlyPrice)} / tahun</p>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={updatingSettings}
+              className="w-full py-3 brutal-btn font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {updatingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : 'SIMPAN PENGATURAN HARGA'}
+            </button>
+          </form>
 
           <form onSubmit={handleSaveSettings} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1132,6 +1332,55 @@ export default function AdminClient({
                 className="w-full py-2.5 brutal-btn bg-red-100 text-red-700 font-black text-xs uppercase tracking-wider cursor-pointer"
               >
                 KONFIRMASI TOLAK
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Modal */}
+      {deleteModalUser && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-[3px] border-black p-6 rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] max-w-md w-full relative">
+            <button
+              onClick={() => { setDeleteModalUser(null); setDeleteConfirmText(''); }}
+              className="absolute top-3 right-3 p-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 rounded-none cursor-pointer"
+              disabled={loadingId === deleteModalUser.userId}
+            >
+              <X className="w-4 h-4 text-black stroke-[3px]" />
+            </button>
+            <h4 className="font-black text-black uppercase tracking-wider mb-2 flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-700 stroke-[2.5px]" /> Hapus Akun Pengguna
+            </h4>
+            <p className="text-xs font-bold text-neutral-600 leading-relaxed mb-4">
+              Aksi ini akan menghapus profil, transaksi, wallet, budget, saving goal, hutang, paylater, subscription, reminder, achievement, pembayaran, feedback, dan data aplikasi lain milik pengguna ini.
+            </p>
+
+            <div className="border-[2px] border-black bg-red-100 p-3 mb-4">
+              <p className="text-xs font-black uppercase tracking-wider text-black">{deleteModalUser.fullName}</p>
+              <p className="mt-1 break-all font-mono text-[10px] font-bold text-red-800">{deleteModalUser.userId}</p>
+            </div>
+
+            <form onSubmit={handleDeleteUserSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase text-black">Ketik DELETE untuk konfirmasi</label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-black text-xs uppercase"
+                  placeholder="DELETE"
+                  autoFocus
+                  disabled={loadingId === deleteModalUser.userId}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loadingId === deleteModalUser.userId || deleteConfirmText !== 'DELETE'}
+                className="w-full py-2.5 border-[3px] border-black bg-red-600 text-white font-black text-xs uppercase tracking-wider rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loadingId === deleteModalUser.userId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 stroke-[3px]" />}
+                Hapus Akun Permanen
               </button>
             </form>
           </div>

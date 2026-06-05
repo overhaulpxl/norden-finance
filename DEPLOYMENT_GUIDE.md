@@ -161,7 +161,6 @@ git push -u origin main
 | `FIREBASE_ADMIN_CLIENT_EMAIL` | *Dari Service Account JSON* | Email Client Firebase Admin |
 | `FIREBASE_ADMIN_PRIVATE_KEY` | *Dari Service Account JSON* | Key lengkap dengan tanda kutip & `\n` |
 | `GEMINI_API_KEY` | *Dari Langkah 3* | API Key Google Gemini |
-| `WHATSAPP_SECRET` | `blur-finance-secret` | Kunci enkripsi API Whatsapp |
 | `NEXT_PUBLIC_APP_URL` | `https://nama-app-anda.vercel.app` | URL domain Vercel Anda |
 
 5. Klik tombol **Deploy**. Vercel akan otomatis melakukan build proyek dan menyiapkan link live URL.

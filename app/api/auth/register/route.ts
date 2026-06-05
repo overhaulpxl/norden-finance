@@ -4,6 +4,8 @@ import { prisma } from '../../../../lib/prisma';
 import { SESSION_CONFIG } from '../../../../lib/auth';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
 import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
+import { getTrialDays } from '../../../../lib/data/loaders';
+import { sendVerificationEmail } from '../../../../lib/authEmail';
 
 /**
  * POST /api/auth/register
@@ -35,14 +37,15 @@ export async function POST(request: NextRequest) {
 
     if (!existingProfile) {
       const now = new Date();
-      const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days
+      const trialDays = await getTrialDays();
+      const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
 
       // Create Profile + BillingSubscription in a transaction
       await prisma.$transaction([
         prisma.profile.create({
           data: {
             userId,
-            fullName: fullName || 'User Norden',
+            fullName: fullName || null,
             role: 'user',
             plan: 'trial',
             onboardingCompleted: false,
@@ -62,10 +65,25 @@ export async function POST(request: NextRequest) {
       ]);
     }
 
+    let verificationEmailStatus: unknown = null;
+    if (decodedToken.email && decodedToken.email_verified === false) {
+      try {
+        verificationEmailStatus = await sendVerificationEmail({
+          email: decodedToken.email,
+          userName: fullName || existingProfile?.fullName || null,
+        });
+      } catch (emailError) {
+        const message = emailError instanceof Error ? emailError.message : 'Verification email failed';
+        console.warn('Verification email failed:', message);
+        verificationEmailStatus = { error: message };
+      }
+    }
+
     const shouldCreateSession = createSession && decodedToken.email_verified !== false;
     const response = NextResponse.json({
       success: true,
       requiresEmailVerification: !shouldCreateSession,
+      verificationEmailStatus,
     });
 
     if (shouldCreateSession) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 /* eslint-disable react/no-unescaped-entities */
-import { BookOpen, Sparkles, Wallet, Camera, Shield, Star, Loader2, Send } from 'lucide-react';
+import { BookOpen, Sparkles, Wallet, Camera, Shield, Star, Loader2, Send, Bell, Trophy, Calendar, EyeOff, LayoutGrid, LayoutTemplate, Repeat, Clock } from 'lucide-react';
 import { submitFeedback } from '../app/actions';
 
 export default function HelpPage() {
@@ -95,7 +95,7 @@ export default function HelpPage() {
             <h3 className="text-base font-black text-black uppercase tracking-wider">Mengenal Fitur Norden</h3>
           </div>
 
-          <div className="space-y-6 text-xs font-bold text-neutral-600 uppercase tracking-wide">
+          <div className="space-y-6 text-xs font-bold text-neutral-600 uppercase tracking-wide h-[520px] overflow-y-auto pr-2">
             <div className="flex gap-3">
               <div className="text-black mt-0.5"><Wallet className="w-4 h-4 stroke-[2.5px]" /></div>
               <div>
@@ -117,6 +117,70 @@ export default function HelpPage() {
               <div>
                 <strong className="text-black font-black">Goals & Debt Manager</strong>
                 <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Rencanakan target tabungan Anda dan catat hutang secara detail dengan opsi pembayaran otomatis dari dompet digital Anda.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 border-t-[2px] border-dashed border-black pt-4">
+              <div className="text-black mt-0.5"><Bell className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Notification Center & Smart Reminders</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Pusat notifikasi untuk mengingatkan Anda tentang budget hampir habis, jatuh tempo paylater/utang, langganan berakhir, hingga perolehan level baru.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="text-black mt-0.5"><Trophy className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Financial Level Ranks (Gamifikasi)</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Pantau tingkat kesehatan finansial Anda secara dinamis dari Lvl 1 ke Lvl 5 berdasarkan catatan transaksi harian dan lencana prestasi yang berhasil Anda raih.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="text-black mt-0.5"><Calendar className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">No-Spend Challenge Calendar</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Gunakan kalender interaktif untuk mencatat hari-hari bebas belanja demi membangun kebiasaan keuangan yang disiplin dan mengumpulkan streak kemenangan.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="text-black mt-0.5"><EyeOff className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Impulse Control Wishlist (3-Day Cooldown)</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Tahan keinginan belanja impulsif dengan memasukkan barang idaman ke wishlist. Anda harus menunggu masa tenang (*cooling period*) selama 3 hari sebelum tombol beli aktif.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="text-black mt-0.5"><LayoutGrid className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Dashboard Layout Customization</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Personalisasikan susunan widget di beranda Anda. Aktifkan mode kustomisasi, seret posisi prioritas, lalu simpan susunan terindah Anda.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 border-t-[2px] border-dashed border-black pt-4">
+              <div className="text-black mt-0.5"><LayoutTemplate className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Quick Transaction Templates</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Simpan detail transaksi yang sering diulang (seperti "Kopi Kantor" atau "Uang Jajan") sebagai template. Catat kembali secara instan hanya dengan sekali klik.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="text-black mt-0.5"><Repeat className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Recurring Rules (Auto-Pilot)</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Otomatisasikan pencatatan pengeluaran atau pemasukan rutin bulanan (seperti Wifi, Kontrakan, atau Gaji) pada tanggal tertentu setiap bulan tanpa input manual.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="text-black mt-0.5"><Clock className="w-4 h-4 stroke-[2.5px]" /></div>
+              <div>
+                <strong className="text-black font-black">Financial Task Reminders</strong>
+                <p className="text-neutral-500 lowercase first-letter:uppercase mt-0.5">Buat alarm pengingat kustom untuk kewajiban finansial masa depan (bayar cicilan, iuran sekolah, cicilan asuransi) agar tidak terlewat dan masuk ke Pusat Notifikasi Anda.</p>
               </div>
             </div>
           </div>

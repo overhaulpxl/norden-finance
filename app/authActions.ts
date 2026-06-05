@@ -13,7 +13,6 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
-  sendEmailVerification,
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
@@ -26,8 +25,12 @@ export async function loginAction(email: string, password: string) {
   try {
     const credential = await signInWithEmailAndPassword(auth, email, password);
     if (!credential.user.emailVerified) {
-      await signOut(auth);
-      return { success: false, error: 'Verifikasi email Anda sebelum masuk.' };
+      return {
+        success: false,
+        requiresEmailVerification: true,
+        email: credential.user.email || email,
+        error: 'Please verify your email before continuing.',
+      };
     }
     const idToken = await credential.user.getIdToken();
 
@@ -71,7 +74,6 @@ export async function registerAction(fullName: string, email: string, password: 
 
   try {
     const credential = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
-    await sendEmailVerification(credential.user);
     const idToken = await credential.user.getIdToken();
 
     // Register profile, but wait for email verification before creating a session.
@@ -86,8 +88,7 @@ export async function registerAction(fullName: string, email: string, password: 
       return { success: false, error: data.error || 'Gagal membuat akun' };
     }
 
-    await signOut(auth);
-    return { success: true, requiresEmailVerification: true };
+    return { success: true, requiresEmailVerification: true, email: credential.user.email || email.toLowerCase() };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Terjadi kesalahan saat pendaftaran';
     if (message.includes('auth/email-already-in-use')) {
@@ -134,7 +135,7 @@ export async function loginWithGoogleAction() {
     const provider = new GoogleAuthProvider();
     const credential = await signInWithPopup(auth, provider);
     const idToken = await credential.user.getIdToken();
-    const fullName = credential.user.displayName || 'User Norden';
+    const fullName = credential.user.displayName || null;
 
     // Send token to /api/auth/register to verify and create profile if not exists
     const res = await fetch('/api/auth/register', {

@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Send, Loader2, Camera, X, RotateCcw, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { processInput, addExplicitTransaction, addTransferTransaction, addRecurringTransaction, deleteTransaction } from '../app/actions';
+import { Balance } from '../types';
+import WalletSelect, { getActiveWallets } from './WalletSelect';
+import { formatCurrency } from '../lib/format';
 
 interface ChatMessage {
   id: string;
@@ -21,7 +24,7 @@ interface ReceiptScan {
   suggestedText: string;
 }
 
-export default function QuickInputModal({ onClose }: { onClose: () => void }) {
+export default function QuickInputModal({ balances, onClose }: { balances: Balance[]; onClose: () => void }) {
   const router = useRouter();
   const [mode, setMode] = useState<'quick' | 'manual'>('quick');
   
@@ -43,7 +46,7 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
   const [mType, setMType] = useState<'masuk' | 'keluar' | 'transfer'>('keluar');
   const [mAmount, setMAmount] = useState('');
   const [mCategory, setMCategory] = useState('');
-  const [mMethod, setMMethod] = useState('cash');
+  const [mMethod, setMMethod] = useState('');
   const [mToMethod, setMToMethod] = useState('');
   const [mNote, setMNote] = useState('');
   const [mTags, setMTags] = useState('');
@@ -54,6 +57,11 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [undoTxId, setUndoTxId] = useState<string | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeWallets = useMemo(() => getActiveWallets(balances), [balances]);
+  const currentMethod = activeWallets.some((wallet) => wallet.name === mMethod)
+    ? mMethod
+    : activeWallets[0]?.name || '';
+  const currentToMethod = activeWallets.some((wallet) => wallet.name === mToMethod) ? mToMethod : '';
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -113,7 +121,7 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
 
       if (res.success && isAcceptedReceipt) {
         router.refresh();
-        const formattedAmount = 'Rp ' + receiptScan.amount.toLocaleString('id-ID');
+        const formattedAmount = formatCurrency(receiptScan.amount);
         aiText = `Receipt saved for ${receiptScan.merchant || receiptScan.note || 'belanja'} sebesar ${formattedAmount}.`;
         if ('transactionId' in res && typeof res.transactionId === 'string') {
           txId = res.transactionId;
@@ -122,7 +130,7 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
       } else if (res.success && 'result' in res && res.result) {
         router.refresh();
         const amountVal = res.result.amount;
-        const formattedAmount = amountVal ? 'Rp ' + amountVal.toLocaleString('id-ID') : 'Rp 0';
+        const formattedAmount = formatCurrency(amountVal);
 
         if (res.action === 'balance_update') {
           aiText = `✅ Saldo ${res.walletName} berhasil diperbarui menjadi ${formattedAmount}.`;
@@ -238,7 +246,7 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
       setChatMessages(prev => [...prev, {
         id: Math.random().toString(),
         sender: 'ai',
-        text: `🔍 Struk berhasil dibaca! Kami mendeteksi nominal Rp ${data.amount.toLocaleString('id-ID')} untuk "${data.note}". Silakan kirim pesan di bawah untuk mencatatnya:`,
+        text: `🔍 Struk berhasil dibaca! Kami mendeteksi nominal ${formatCurrency(data.amount)} untuk "${data.note}". Silakan kirim pesan di bawah untuk mencatatnya:`,
       }]);
       setInput(suggestedText);
     } catch (error: unknown) {
@@ -264,7 +272,7 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
 
     let res;
     const amount = parseInt(mAmount.replace(/\D/g, ''), 10);
-    if (!amount || !mMethod || (mType === 'transfer' && !mToMethod) || (mType !== 'transfer' && !mCategory)) {
+    if (!amount || !currentMethod || (mType === 'transfer' && !currentToMethod) || (mType !== 'transfer' && !mCategory)) {
       setMessage({ type: 'error', text: 'Semua field wajib harus diisi' });
       setLoading(false);
       return;
@@ -272,14 +280,14 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
     const tagsArray = mTags.split(' ').map(t => t.replace('#', '').trim()).filter(Boolean);
     
     if (mType === 'transfer') {
-      res = await addTransferTransaction(amount, mMethod, mToMethod, mNote, tagsArray);
+      res = await addTransferTransaction(amount, currentMethod, currentToMethod, mNote, tagsArray);
     } else {
       if (isRecurring) {
         res = await addRecurringTransaction({
           type: mType,
           amount,
           category: mCategory,
-          method: mMethod,
+          method: currentMethod,
           note: mNote,
           tags: tagsArray
         });
@@ -288,7 +296,7 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
           type: mType,
           amount,
           category: mCategory,
-          method: mMethod,
+          method: currentMethod,
           note: mNote,
           tags: tagsArray
         });
@@ -498,14 +506,14 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">{mType === 'transfer' ? 'Dari Wallet' : 'Wallet'}</label>
-                    <input type="text" placeholder="e.g. bca, cash" value={mMethod} onChange={e => setMMethod(e.target.value)} className="brutal-input text-xs uppercase font-bold" required />
+                    <WalletSelect wallets={balances} value={currentMethod} onChange={setMMethod} className="brutal-input text-xs uppercase font-bold" required />
                   </div>
                 </div>
                 
                 {mType === 'transfer' ? (
                   <div>
                     <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Ke Wallet</label>
-                    <input type="text" placeholder="e.g. gopay" value={mToMethod} onChange={e => setMToMethod(e.target.value)} className="brutal-input text-xs uppercase font-bold" required />
+                    <WalletSelect wallets={balances} value={currentToMethod} onChange={setMToMethod} className="brutal-input text-xs uppercase font-bold" required />
                   </div>
                 ) : (
                   <div>
@@ -542,15 +550,15 @@ export default function QuickInputModal({ onClose }: { onClose: () => void }) {
 
           {/* Alert Message for Manual Form or Undos */}
           {message && (
-            <div className={`mt-4 flex items-center justify-between gap-3 text-xs font-black p-3 rounded-lg border uppercase tracking-wider ${
-              message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'
+            <div className={`mt-4 flex items-center justify-between gap-3 text-xs font-black p-3 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider animate-in fade-in duration-200 ${
+              message.type === 'success' ? 'bg-[#bbf7d0] text-black' : 'bg-[#fecaca] text-black'
             }`}>
               <span>{message.text}</span>
               {message.type === 'success' && undoTxId && (
                 <button
                   type="button"
                   onClick={handleUndo}
-                  className="inline-flex items-center gap-1.5 rounded-none border-[2px] border-black bg-white px-2.5 py-1 font-black text-emerald-800 transition-colors hover:bg-emerald-100 focus:outline-none cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-none border-[2px] border-black bg-white px-2.5 py-1 font-black text-black transition-colors hover:bg-neutral-150 focus:outline-none cursor-pointer"
                 >
                   <RotateCcw className="h-3.5 w-3.5 stroke-[2.5px]" />
                   Undo

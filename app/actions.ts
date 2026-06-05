@@ -256,6 +256,9 @@ export async function updateUserPlanManually(targetUserId: string, newPlan: Plan
 export async function updateUserRoleManually(targetUserId: string, newRole: UserRole) {
   return admin.updateUserRoleManually(targetUserId, newRole);
 }
+export async function deleteUserAccountByAdmin(targetUserId: string) {
+  return admin.deleteUserAccountByAdmin(targetUserId);
+}
 export async function updateFeedbackStatus(feedbackId: string, newStatus: string) {
   return admin.updateFeedbackStatus(feedbackId, newStatus);
 }

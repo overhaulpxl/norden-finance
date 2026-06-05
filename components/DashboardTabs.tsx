@@ -87,7 +87,7 @@ export default function DashboardTabs({ transactions, balances, savingGoals, deb
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-6">
               <Wishlist items={wishlist} />
-              <SavingGoals goals={savingGoals} />
+              <SavingGoals goals={savingGoals} transactions={transactions} />
             </div>
             <div className="space-y-6">
               <PaylaterList paylaters={paylaters} />

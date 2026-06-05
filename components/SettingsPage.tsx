@@ -4,6 +4,8 @@ import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, delete
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData } from '../app/actions';
 import Link from 'next/link';
+import { MVP_FEATURES } from '../lib/constants';
+import { formatCurrency } from '../lib/format';
 
 interface SettingsProps {
   user: {
@@ -18,9 +20,14 @@ interface SettingsProps {
     walletCount: number;
     balanceTotal: number;
   };
+  trialDays: number;
+  pricingPlans: {
+    monthly: { price: number; name: string } | null;
+    yearly: { price: number; name: string } | null;
+  };
 }
 
-export default function SettingsPage({ user, stats }: SettingsProps) {
+export default function SettingsPage({ user, stats, trialDays, pricingPlans }: SettingsProps) {
   const isPro = user.plan === 'pro';
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,6 +37,11 @@ export default function SettingsPage({ user, stats }: SettingsProps) {
   const [now] = useState(() => Date.now());
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deletePassword, setDeletePassword] = useState('');
+  const monthlyPrice = pricingPlans.monthly?.price ?? null;
+  const yearlyPrice = pricingPlans.yearly?.price ?? null;
+  const yearlySavingsPercent = monthlyPrice && yearlyPrice
+    ? Math.max(0, Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100))
+    : null;
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,24 +118,21 @@ export default function SettingsPage({ user, stats }: SettingsProps) {
     }
   };
 
-  const allFeatures = [
-    'Unlimited transaksi',
-    'Unlimited dompet',
-    'Budget per kategori',
-    'Subscription Manager',
-    'Saving Goals & Debt Tracker',
-    'Financial Health Score',
-    'No Spend Calendar',
-    'Norden AI Parser',
-    'Norden AI Receipt Scanner',
-    'Norden AI Insights',
-    'Export CSV & Laporan',
-  ];
+  const allFeatures = MVP_FEATURES;
 
   // Calculate trial days remaining
   const trialDaysLeft = user.trialEndsAt
     ? Math.max(0, Math.ceil((new Date(user.trialEndsAt).getTime() - now) / (1000 * 60 * 60 * 24)))
     : null;
+
+  const levelInfo = (() => {
+    const txCount = stats.transactionCount;
+    if (txCount >= 100) return { level: 5, name: 'Financial Navigator', color: 'bg-[#c084fc]' };
+    if (txCount >= 50) return { level: 4, name: 'Budget Master', color: 'bg-[#4ade80]' };
+    if (txCount >= 20) return { level: 3, name: 'Smart Planner', color: 'bg-[#facc15]' };
+    if (txCount >= 5) return { level: 2, name: 'Consistent Tracker', color: 'bg-[#60a5fa]' };
+    return { level: 1, name: 'Beginner Saver', color: 'bg-[#a3a3a3]' };
+  })();
 
   return (
     <div className="space-y-8 max-w-3xl select-none">
@@ -143,11 +152,16 @@ export default function SettingsPage({ user, stats }: SettingsProps) {
             <div>
               <p className="text-lg font-black text-black uppercase tracking-wider">{user.fullName || 'User'}</p>
               <p className="text-sm text-neutral-500 font-bold uppercase tracking-wider">{user.email}</p>
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] inline-block mt-1 ${
-                isPro ? 'bg-[#bbf7d0] text-black' : 'bg-[#fef08a] text-black'
-              }`}>
-                {isPro ? 'Pro Plan' : `Trial${trialDaysLeft !== null ? ` — ${trialDaysLeft} hari tersisa` : ''}`}
-              </span>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                  isPro ? 'bg-[#bbf7d0] text-black' : 'bg-[#fef08a] text-black'
+                }`}>
+                  {isPro ? 'Pro Plan 👑' : `Trial ⚡${trialDaysLeft !== null ? ` — ${trialDaysLeft} hari` : ''}`}
+                </span>
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color} text-black`}>
+                  Lvl {levelInfo.level}: {levelInfo.name}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -240,7 +254,7 @@ export default function SettingsPage({ user, stats }: SettingsProps) {
               <h4 className="text-base font-black text-black uppercase tracking-wider">Trial Plan</h4>
             </div>
             <p className="text-3xl font-black text-black mb-1 tracking-wider">Rp 0</p>
-            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">14 hari gratis akses penuh</p>
+            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">{trialDays} hari gratis akses penuh</p>
             <ul className="space-y-2">
               {allFeatures.slice(0, 6).map((f, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm font-bold text-black uppercase tracking-wider">
@@ -263,8 +277,14 @@ export default function SettingsPage({ user, stats }: SettingsProps) {
               <Crown className="w-5 h-5 text-black stroke-[3px]" />
               <h4 className="text-base font-black text-black uppercase tracking-wider">Pro Plan</h4>
             </div>
-            <p className="text-3xl font-black text-black mb-1 tracking-wider">Rp 19k</p>
-            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">atau Rp 149k / tahun (hemat 35%)</p>
+            <p className="text-3xl font-black text-black mb-1 tracking-wider">
+              {monthlyPrice !== null ? formatCurrency(monthlyPrice) : 'Tidak tersedia'}
+            </p>
+            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">
+              {yearlyPrice
+                ? `atau ${formatCurrency(yearlyPrice)} / tahun${yearlySavingsPercent ? ` (hemat ${yearlySavingsPercent}%)` : ''}`
+                : 'Paket tahunan sedang dinonaktifkan'}
+            </p>
             <ul className="space-y-2">
               {allFeatures.map((f, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm font-bold text-black uppercase tracking-wider">

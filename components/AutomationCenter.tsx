@@ -4,8 +4,9 @@ import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, CalendarClock, Check, Loader2, Play, Plus, Star, Trash2 } from 'lucide-react';
-import type { Reminder, RecurringTransaction, TransactionTemplate, TransactionType } from '../types';
+import type { Balance, Reminder, RecurringTransaction, TransactionTemplate, TransactionType } from '../types';
 import { formatRupiah } from '../lib/format';
+import WalletSelect, { getActiveWallets } from './WalletSelect';
 import {
   addRecurringRule,
   addReminder,
@@ -42,10 +43,12 @@ export default function AutomationCenter({
   templates,
   recurringTransactions,
   reminders,
+  balances = [],
 }: {
   templates: TransactionTemplate[];
   recurringTransactions: RecurringTransaction[];
   reminders: Reminder[];
+  balances?: Balance[];
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -55,7 +58,7 @@ export default function AutomationCenter({
   const [templateType, setTemplateType] = useState<TransactionType>('keluar');
   const [templateAmount, setTemplateAmount] = useState('');
   const [templateCategory, setTemplateCategory] = useState('');
-  const [templateWallet, setTemplateWallet] = useState('cash');
+  const [templateWallet, setTemplateWallet] = useState('');
   const [templateNote, setTemplateNote] = useState('');
   const [templateTags, setTemplateTags] = useState('');
   const [templateFavorite, setTemplateFavorite] = useState(false);
@@ -64,7 +67,7 @@ export default function AutomationCenter({
   const [recurringType, setRecurringType] = useState<TransactionType>('keluar');
   const [recurringAmount, setRecurringAmount] = useState('');
   const [recurringCategory, setRecurringCategory] = useState('');
-  const [recurringWallet, setRecurringWallet] = useState('cash');
+  const [recurringWallet, setRecurringWallet] = useState('');
   const [recurringDay, setRecurringDay] = useState(String(new Date().getDate()));
   const [recurringNote, setRecurringNote] = useState('');
   const [recurringTags, setRecurringTags] = useState('');
@@ -79,6 +82,13 @@ export default function AutomationCenter({
     [reminders]
   );
   const completedReminders = reminders.length - openReminders.length;
+  const activeWallets = useMemo(() => getActiveWallets(balances), [balances]);
+  const currentTemplateWallet = activeWallets.some((wallet) => wallet.name === templateWallet)
+    ? templateWallet
+    : activeWallets[0]?.name || '';
+  const currentRecurringWallet = activeWallets.some((wallet) => wallet.name === recurringWallet)
+    ? recurringWallet
+    : activeWallets[0]?.name || '';
 
   const runAction = async (key: string, action: () => Promise<ActionResult>, successText: string) => {
     setBusy(key);
@@ -95,13 +105,17 @@ export default function AutomationCenter({
 
   const handleTemplateSubmit = (event: FormEvent) => {
     event.preventDefault();
+    if (!currentTemplateWallet) {
+      setMessage({ type: 'error', text: 'Tambah wallet dulu sebelum membuat template.' });
+      return;
+    }
     runAction('template:create', async () => {
       const result = await upsertTransactionTemplate({
         name: templateName,
         type: templateType,
         amount: toNumber(templateAmount),
         categoryName: templateCategory,
-        walletName: templateWallet,
+        walletName: currentTemplateWallet,
         note: templateNote,
         tags: splitTags(templateTags),
         isFavorite: templateFavorite,
@@ -120,13 +134,17 @@ export default function AutomationCenter({
 
   const handleRecurringSubmit = (event: FormEvent) => {
     event.preventDefault();
+    if (!currentRecurringWallet) {
+      setMessage({ type: 'error', text: 'Tambah wallet dulu sebelum membuat recurring rule.' });
+      return;
+    }
     runAction('recurring:create', async () => {
       const result = await addRecurringRule({
         name: recurringName,
         type: recurringType,
         amount: toNumber(recurringAmount),
         categoryName: recurringCategory,
-        walletName: recurringWallet,
+        walletName: currentRecurringWallet,
         note: recurringNote,
         tags: splitTags(recurringTags),
         dayOfMonth: Number(recurringDay),
@@ -206,7 +224,7 @@ export default function AutomationCenter({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <input value={templateCategory} onChange={(event) => setTemplateCategory(event.target.value)} className={inputClass} placeholder="Category" required />
-              <input value={templateWallet} onChange={(event) => setTemplateWallet(event.target.value)} className={inputClass} placeholder="Wallet" required />
+              <WalletSelect wallets={balances} value={currentTemplateWallet} onChange={setTemplateWallet} className={selectClass} required />
             </div>
             <input value={templateNote} onChange={(event) => setTemplateNote(event.target.value)} className={inputClass} placeholder="Note" />
             <input value={templateTags} onChange={(event) => setTemplateTags(event.target.value)} className={inputClass} placeholder="#tags" />
@@ -261,7 +279,7 @@ export default function AutomationCenter({
             </div>
             <div className="grid grid-cols-3 gap-3">
               <input value={recurringCategory} onChange={(event) => setRecurringCategory(event.target.value)} className={inputClass} placeholder="Category" required />
-              <input value={recurringWallet} onChange={(event) => setRecurringWallet(event.target.value)} className={inputClass} placeholder="Wallet" required />
+              <WalletSelect wallets={balances} value={currentRecurringWallet} onChange={setRecurringWallet} className={selectClass} required />
               <input value={recurringDay} onChange={(event) => setRecurringDay(event.target.value)} className={inputClass} placeholder="Day" required />
             </div>
             <input value={recurringNote} onChange={(event) => setRecurringNote(event.target.value)} className={inputClass} placeholder="Note" />

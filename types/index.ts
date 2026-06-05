@@ -232,8 +232,10 @@ export interface BillingSubscription {
 export interface Plan {
   id: string;
   name: string;
+  type: string;
   price: number;
-  billingType: string; // monthly, yearly
+  billingType: string | null; // monthly, yearly
+  durationDays: number | null;
   isActive: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
