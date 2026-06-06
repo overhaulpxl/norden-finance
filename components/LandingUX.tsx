@@ -2,14 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-interface LandingUXProps {
-  user: { uid?: string } | null;
-  profile: { plan?: 'trial' | 'pro' } | null;
-}
-
-export default function LandingUX({ user, profile }: LandingUXProps) {
+export default function LandingUX() {
   const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
@@ -78,33 +73,15 @@ export default function LandingUX({ user, profile }: LandingUXProps) {
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Norden Finance</p>
           <p className="text-xs font-black text-black uppercase tracking-wide truncate">
-            {profile?.plan === 'pro' ? 'Akses Premium Aktif' : 'Mulai Atur Keuangan'}
+            Mulai Atur Keuangan
           </p>
         </div>
-        {user ? (
-          profile?.plan === 'pro' ? (
-            <Link
-              href="/dashboard"
-              className="bg-black text-white border-[2px] border-black px-4 py-2 font-black uppercase text-[10px] tracking-wider shadow-[2px_2px_0px_0px_#FFE066] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-1 shrink-0"
-            >
-              Dashboard <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          ) : (
-            <Link
-              href="/upgrade"
-              className="bg-[#FFE066] text-black border-[2px] border-black px-4 py-2 font-black uppercase text-[10px] tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-1 shrink-0"
-            >
-              Upgrade ke Pro <Sparkles className="w-3.5 h-3.5 fill-black text-black" />
-            </Link>
-          )
-        ) : (
-          <Link
-            href="/register"
-            className="bg-[#FFE066] text-black border-[2px] border-black px-4 py-2 font-black uppercase text-[10px] tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-1 shrink-0"
-            >
-            Coba Gratis <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        )}
+        <Link
+          href="/register"
+          className="bg-[#FFE066] text-black border-[2px] border-black px-4 py-2 font-black uppercase text-[10px] tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-1 shrink-0"
+        >
+          Coba Gratis <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </div>
   );

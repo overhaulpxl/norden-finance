@@ -1,5 +1,3 @@
-import { getCurrentUser } from '../lib/auth';
-import { prisma } from '../lib/prisma';
 import Link from 'next/link';
 import { Check, MessageSquare, Wallet, ShieldAlert, Home, Target, History, FileText, Zap, Settings, Camera, PiggyBank, CreditCard, Receipt, CalendarCheck, Flame, Trophy, Bell, LayoutTemplate, Search, Download, BarChart3, Shield } from 'lucide-react';
 import { Caveat } from 'next/font/google';
@@ -9,19 +7,22 @@ import InteractiveTilt from '../components/InteractiveTilt';
 import LandingUX from '../components/LandingUX';
 import BrandLogo from '../components/BrandLogo';
 import LandingHeader from '../components/LandingHeader';
-import TestimonialsCarousel, { PublicTestimonial } from '../components/TestimonialsCarousel';
-import { getPricingPlans, getTrialDays } from '../lib/data/loaders';
+import TestimonialsCarousel from '../components/TestimonialsCarousel';
+import {
+  FALLBACK_PUBLIC_TESTIMONIALS,
+  LANDING_MONTHLY_PRICE,
+  LANDING_TRIAL_DAYS,
+  LANDING_YEARLY_PRICE,
+} from '../lib/landingFallbacks';
 import { formatCurrency } from '../lib/format';
+
+export const dynamic = 'force-static';
 
 const caveat = Caveat({
   subsets: ['latin'],
   weight: ['700'],
   display: 'swap',
 });
-
-function isPublicSafeFeedback(message: string) {
-  return !/(whatsapp|chat\s+wa|via\s+wa|\bwa\b|crypto|saham|investasi)/i.test(message);
-}
 
 // ==========================================
 // Custom SVG Graphics & Icons
@@ -91,57 +92,15 @@ function TornPaperDivider({ fillClass = 'fill-white', className = '' }: { fillCl
   );
 }
 
-export default async function LandingPage() {
-  const user = await getCurrentUser();
-  const [trialDays, pricingPlans] = await Promise.all([
-    getTrialDays(),
-    getPricingPlans(),
-  ]);
-  const monthlyPrice = pricingPlans.monthly?.price ?? null;
-  const yearlyPrice = pricingPlans.yearly?.price ?? null;
-  const yearlySavingsPercent = monthlyPrice && yearlyPrice
-    ? Math.max(0, Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100))
-    : null;
-  let profile = null;
-  if (user) {
-    profile = await prisma.profile.findUnique({
-      where: { userId: user.uid },
-      select: {
-        fullName: true,
-        plan: true,
-        role: true,
-      }
-    });
-  }
-
-  const reviewedFeedbacks = await prisma.feedback.findMany({
-    where: {
-      status: 'reviewed',
-    },
-    orderBy: [
-      { rating: 'desc' },
-      { createdAt: 'desc' },
-    ],
-  });
-  const feedbackProfiles = reviewedFeedbacks.length > 0
-    ? await prisma.profile.findMany({
-        where: { userId: { in: reviewedFeedbacks.map((feedback) => feedback.userId) } },
-        select: { userId: true, fullName: true },
-      })
-    : [];
-  const feedbackProfileMap = new Map(feedbackProfiles.map((feedbackProfile) => [feedbackProfile.userId, feedbackProfile.fullName]));
-  const publicTestimonials: PublicTestimonial[] = reviewedFeedbacks
-    .filter((feedback) => isPublicSafeFeedback(feedback.message))
-    .map((feedback) => ({
-      name: feedbackProfileMap.get(feedback.userId) || 'Pengguna Norden',
-      label: 'Pengguna Beta',
-      rating: Math.max(1, Math.min(5, feedback.rating)),
-      message: feedback.message,
-    }));
+export default function LandingPage() {
+  const trialDays = LANDING_TRIAL_DAYS;
+  const monthlyPrice = LANDING_MONTHLY_PRICE;
+  const yearlyPrice = LANDING_YEARLY_PRICE;
+  const yearlySavingsPercent = Math.max(0, Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100));
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] font-sans antialiased relative">
-      <LandingUX user={user} profile={profile} />
+      <LandingUX />
       
       {/* Custom styles for animations, active effects, grids, and marquee */}
       <style>{`
@@ -308,7 +267,7 @@ export default async function LandingPage() {
       <div className="relative z-10">
         
         {/* Header - Floating Card Layout */}
-        <LandingHeader isLoggedIn={Boolean(user)} />
+        <LandingHeader />
 
         {/* Hero Section */}
         <section id="home" className="pt-20 pb-16 max-w-7xl mx-auto px-6 flex flex-col items-center text-center relative scroll-mt-32">
@@ -322,7 +281,7 @@ export default async function LandingPage() {
           </p>
 
           <div className="mb-16 reveal">
-            <Link href={user ? "/dashboard" : "/register"} className="inline-block bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm px-8 py-4 shadow-[5px_5px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0px_0px_#000] active:translate-x-[5px] active:translate-y-[5px] active:shadow-none transition-all rounded-none tracking-widest hover-flash">
+            <Link href="/register" className="inline-block bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm px-8 py-4 shadow-[5px_5px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0px_0px_#000] active:translate-x-[5px] active:translate-y-[5px] active:shadow-none transition-all rounded-none tracking-widest hover-flash">
               MULAI SEKARANG
             </Link>
           </div>
@@ -407,32 +366,23 @@ export default async function LandingPage() {
                     <div className="p-2 border-[2px] border-black rounded-none bg-white shadow-[2px_2px_0px_0px_#000] flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-none border-[1px] border-black bg-[#2ECC71] flex items-center justify-center text-black font-black text-[10px] shrink-0">
-                          {profile?.fullName?.charAt(0).toUpperCase() || (user?.email ? user.email.charAt(0).toUpperCase() : 'G')}
+                          G
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[9px] font-black text-black truncate leading-tight uppercase tracking-wider">
-                            {profile?.fullName || 'Guest User'}
+                            Guest User
                           </p>
                           <span className="text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-black inline-block mt-0.5 leading-none bg-[#FFE066] text-black">
-                            {profile?.plan === 'pro' ? 'Pro' : profile?.plan === 'trial' ? 'Trial' : 'Guest'}
+                            Guest
                           </span>
                         </div>
                       </div>
-                      {user ? (
-                        <Link
-                          href="/dashboard"
-                          className="w-full text-center border-[2px] border-black bg-black text-white hover:bg-neutral-800 text-[8px] font-black uppercase tracking-wider py-1.5 rounded-none block shadow-[1px_1px_0px_0px_#000]"
-                        >
-                          Buka Dashboard
-                        </Link>
-                      ) : (
-                        <Link
-                          href="/register"
-                          className="w-full text-center border-[2px] border-black bg-[#2ECC71] text-black text-[8px] font-black uppercase tracking-wider py-1.5 rounded-none block hover:bg-[#27ae60] transition-colors shadow-[2px_2px_0px_0px_#000]"
-                        >
-                          Coba Gratis
-                        </Link>
-                      )}
+                      <Link
+                        href="/register"
+                        className="w-full text-center border-[2px] border-black bg-[#2ECC71] text-black text-[8px] font-black uppercase tracking-wider py-1.5 rounded-none block hover:bg-[#27ae60] transition-colors shadow-[2px_2px_0px_0px_#000]"
+                      >
+                        Coba Gratis
+                      </Link>
                     </div>
                   </div>
 
@@ -685,7 +635,7 @@ export default async function LandingPage() {
             </div>
 
             <div className="reveal">
-              <TestimonialsCarousel testimonials={publicTestimonials} />
+              <TestimonialsCarousel testimonials={FALLBACK_PUBLIC_TESTIMONIALS} />
             </div>
           </div>
         </section>
@@ -730,7 +680,7 @@ export default async function LandingPage() {
                   </ul>
                 </div>
 
-                <Link href={user ? "/dashboard" : "/register"} className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
+                <Link href="/register" className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
                   Mulai Trial {trialDays} Hari
                 </Link>
               </div>
@@ -740,7 +690,7 @@ export default async function LandingPage() {
                 <div>
                   <h3 className="font-black text-xl text-black uppercase tracking-wider mb-2 text-center">👑 PRO PLAN</h3>
                   <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">
-                    {monthlyPrice !== null ? formatCurrency(monthlyPrice) : 'Tidak tersedia'}<span className="text-xs sm:text-sm font-bold text-neutral-500">/bulan</span>
+                    {formatCurrency(monthlyPrice)}<span className="text-xs sm:text-sm font-bold text-neutral-500">/bulan</span>
                   </div>
                   <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">
                     {yearlyPrice
@@ -769,14 +719,14 @@ export default async function LandingPage() {
                   </ul>
                 </div>
 
-                <Link href={user ? "/upgrade?plan=monthly" : "/register?plan=monthly"} className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
+                <Link href="/register?plan=monthly" className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
                   Upgrade Ke Pro
                 </Link>
               </div>
 
               {/* Pro Yearly Card */}
               <div className="brutal-card bg-white p-8 flex flex-col justify-between border-[3px] border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] pricing-card-hover min-h-[440px] relative reveal">
-                {yearlySavingsPercent !== null && yearlySavingsPercent > 0 && (
+                {yearlySavingsPercent > 0 && (
                   <div className="absolute -top-5 right-6 bg-[#2ECC71] text-black border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] rounded-none z-10">
                     HEMAT {yearlySavingsPercent}%
                   </div>
@@ -785,7 +735,7 @@ export default async function LandingPage() {
                 <div>
                   <h3 className="font-black text-xl text-black uppercase tracking-wider mb-2 text-center">👑 PRO TAHUNAN</h3>
                   <div className="text-4xl sm:text-5xl font-black text-black text-center my-3 uppercase tracking-tight">
-                    {yearlyPrice !== null ? formatCurrency(yearlyPrice) : 'Tidak tersedia'}<span className="text-xs sm:text-sm font-bold text-neutral-500">/tahun</span>
+                    {formatCurrency(yearlyPrice)}<span className="text-xs sm:text-sm font-bold text-neutral-500">/tahun</span>
                   </div>
                   <p className="text-[9px] font-black text-neutral-500 uppercase tracking-wider text-center mb-5">
                     {yearlySavingsPercent ? `Lebih hemat ${yearlySavingsPercent}% dibandingkan bulanan` : 'Paket tahunan mengikuti konfigurasi admin'}
@@ -812,7 +762,7 @@ export default async function LandingPage() {
                   </ul>
                 </div>
 
-                <Link href={user ? "/upgrade?plan=yearly" : "/register?plan=yearly"} className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
+                <Link href="/register?plan=yearly" className="block text-center bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs sm:text-sm py-4 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none mt-8 tracking-wider">
                   Upgrade Ke Pro
                 </Link>
               </div>

@@ -6,7 +6,7 @@ import { ArrowRight, Menu, X } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 type LandingHeaderProps = {
-  isLoggedIn: boolean;
+  isLoggedIn?: boolean;
 };
 
 const sectionLinks = [
@@ -16,7 +16,7 @@ const sectionLinks = [
   { href: '#pricing', label: 'Pricing' },
 ];
 
-export default function LandingHeader({ isLoggedIn }: LandingHeaderProps) {
+export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function handleSectionClick(event: MouseEvent<HTMLAnchorElement>, href: string) {

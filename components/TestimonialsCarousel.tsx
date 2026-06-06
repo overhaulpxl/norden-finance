@@ -2,16 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
-
-export type PublicTestimonial = {
-  name: string;
-  label: string;
-  rating: number;
-  message: string;
-};
+import type { PublicTestimonial } from '../lib/landingFallbacks';
 
 type TestimonialsCarouselProps = {
   testimonials: PublicTestimonial[];
+  testimonialsUrl?: string;
 };
 
 function getVisibleCount() {
@@ -53,11 +48,58 @@ function TestimonialCard({
   );
 }
 
-export default function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps) {
+function isPublicTestimonial(value: unknown): value is PublicTestimonial {
+  if (!value || typeof value !== 'object') return false;
+  const testimonial = value as Partial<PublicTestimonial>;
+  return (
+    typeof testimonial.name === 'string' &&
+    typeof testimonial.label === 'string' &&
+    typeof testimonial.message === 'string' &&
+    typeof testimonial.rating === 'number'
+  );
+}
+
+export default function TestimonialsCarousel({
+  testimonials,
+  testimonialsUrl = '/api/public/testimonials',
+}: TestimonialsCarouselProps) {
+  const [items, setItems] = useState(testimonials);
   const [visibleCount, setVisibleCount] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!testimonialsUrl) return;
+
+    const controller = new AbortController();
+
+    async function loadTestimonials() {
+      try {
+        const response = await fetch(testimonialsUrl, {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+
+        if (!response.ok) return;
+
+        const data: unknown = await response.json();
+        const nextTestimonials = Array.isArray((data as { testimonials?: unknown }).testimonials)
+          ? (data as { testimonials: unknown[] }).testimonials.filter(isPublicTestimonial)
+          : [];
+
+        if (nextTestimonials.length > 0) {
+          setItems(nextTestimonials);
+        }
+      } catch {
+        // Keep the static fallback testimonials on network or API failure.
+      }
+    }
+
+    loadTestimonials();
+    return () => controller.abort();
+  }, [testimonialsUrl]);
 
   useEffect(() => {
     const syncVisibleCount = () => setVisibleCount(getVisibleCount());
@@ -66,26 +108,26 @@ export default function TestimonialsCarousel({ testimonials }: TestimonialsCarou
     return () => window.removeEventListener('resize', syncVisibleCount);
   }, []);
 
-  const hasTestimonials = testimonials.length > 0;
-  const canNavigate = testimonials.length > visibleCount;
-  const canExpand = testimonials.length > visibleCount;
+  const hasTestimonials = items.length > 0;
+  const canNavigate = items.length > visibleCount;
+  const canExpand = items.length > visibleCount;
 
   const visibleTestimonials = useMemo(() => {
-    if (expanded || !canNavigate) return testimonials;
+    if (expanded || !canNavigate) return items;
     return Array.from({ length: visibleCount }, (_, offset) => {
-      const index = (currentIndex + offset) % testimonials.length;
-      return testimonials[index];
+      const index = (currentIndex + offset) % items.length;
+      return items[index];
     });
-  }, [canNavigate, currentIndex, expanded, testimonials, visibleCount]);
+  }, [canNavigate, currentIndex, expanded, items, visibleCount]);
 
   const goPrevious = () => {
     if (!canNavigate) return;
-    setCurrentIndex((index) => (index - 1 + testimonials.length) % testimonials.length);
+    setCurrentIndex((index) => (index - 1 + items.length) % items.length);
   };
 
   const goNext = () => {
     if (!canNavigate) return;
-    setCurrentIndex((index) => (index + 1) % testimonials.length);
+    setCurrentIndex((index) => (index + 1) % items.length);
   };
 
   const handleTouchEnd = (position: number) => {
