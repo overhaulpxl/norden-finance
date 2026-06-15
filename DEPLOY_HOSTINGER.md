@@ -5,6 +5,8 @@ This guide deploys Norden Finance to Hostinger Managed Node.js hosting for:
 - Domain: `nordenfinance.site`
 - Production URL: `https://nordenfinance.site`
 - App hosting: Hostinger Managed Node.js
+- Runtime: Node.js 22
+- Framework version target: Next.js 15
 - Database: existing external PostgreSQL database
 - Auth: Firebase Auth
 - Storage: Firebase Storage
@@ -34,7 +36,7 @@ Use these settings in Hostinger hPanel:
 | Install Command | `npm install` |
 | Build Command | `npm run build` |
 | Start Command | `npm run start` |
-| Node Version | `20` from `.nvmrc` |
+| Node Version | `22` from `.nvmrc` |
 
 If Hostinger does not provide a migration hook, run the migration command manually before production start:
 
@@ -85,7 +87,7 @@ Firebase Auth remains active. In Firebase Console, add this authorized domain:
 nordenfinance.site
 ```
 
-Keep the existing Vercel domain during migration until Hostinger has passed smoke tests:
+Keep the existing Vercel domain authorized during migration until Hostinger has passed smoke tests:
 
 ```text
 nordenfinance.vercel.app

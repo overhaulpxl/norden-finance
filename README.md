@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma" alt="Prisma" />
@@ -154,7 +154,7 @@ Built with a striking **Neo-Brutalist UI** design language — bold borders, sha
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | Next.js 16 (App Router, Server Components, Server Actions) |
+| **Framework** | Next.js 15 (App Router, Server Components, Server Actions) |
 | **Language** | TypeScript 5 |
 | **UI** | React 19 + TailwindCSS 4 |
 | **Database** | PostgreSQL + Prisma ORM 5 |
@@ -238,7 +238,7 @@ Powered by a striking Neo-Brutalist design language, Norden turns transaction lo
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | Next.js 16 (App Router, Server Components, Server Actions) |
+| **Framework** | Next.js 15 (App Router, Server Components, Server Actions) |
 | **Language** | TypeScript 5 |
 | **UI** | React 19 + TailwindCSS 4 |
 | **Database** | PostgreSQL + Prisma ORM 5 |
@@ -256,7 +256,7 @@ Powered by a striking Neo-Brutalist design language, Norden turns transaction lo
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22
 - PostgreSQL database
 - Firebase project (Auth + Storage)
 - Google Gemini API key
@@ -297,7 +297,7 @@ Configure these variables in your `.env.local` file:
 
 ```env
 # Database Connections
-DATABASE_URL=
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
 POSTGRES_URL=
 PRISMA_DATABASE_URL=
 
