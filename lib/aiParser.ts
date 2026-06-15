@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ParseResult, TransactionType } from '../types';
 import { parseTransaction as fallbackParse } from './parser';
 
@@ -11,6 +10,7 @@ export async function parseTransactionWithAI(input: string): Promise<ParseResult
   }
 
   try {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 

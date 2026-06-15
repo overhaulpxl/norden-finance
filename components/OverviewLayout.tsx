@@ -1,18 +1,57 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal, Achievement } from '../types';
 import { formatRupiah } from '../lib/format';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale } from 'lucide-react';
-import MonthlyRecap from './MonthlyRecap';
-import HealthScore from './HealthScore';
-import NoSpendCalendar from './NoSpendCalendar';
-import ExpenseChart from './ExpenseChart';
-import BudgetManager from './BudgetManager';
-import SubscriptionManager from './SubscriptionManager';
-import EmergencyFundTracker from './EmergencyFundTracker';
-import MomentumCenter from './MomentumCenter';
 import { addCustomNotification } from '../app/actions/notifications';
+
+function WidgetSkeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`brutal-card bg-white border-[3px] border-black p-6 ${className}`}>
+      <div className="h-4 w-36 bg-neutral-200 border-2 border-black animate-pulse" />
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        <div className="h-16 bg-neutral-100 border-2 border-neutral-200 animate-pulse" />
+        <div className="h-16 bg-neutral-100 border-2 border-neutral-200 animate-pulse" />
+        <div className="h-16 bg-neutral-100 border-2 border-neutral-200 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+const MonthlyRecap = dynamic(() => import('./MonthlyRecap'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
+const HealthScore = dynamic(() => import('./HealthScore'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton className="h-full min-h-[160px]" />,
+});
+const NoSpendCalendar = dynamic(() => import('./NoSpendCalendar'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
+const ExpenseChart = dynamic(() => import('./ExpenseChart'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
+const BudgetManager = dynamic(() => import('./BudgetManager'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
+const SubscriptionManager = dynamic(() => import('./SubscriptionManager'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
+const EmergencyFundTracker = dynamic(() => import('./EmergencyFundTracker'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
+const MomentumCenter = dynamic(() => import('./MomentumCenter'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
 
 interface OverviewProps {
   transactions: Transaction[];

@@ -1,27 +1,93 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement } from '../types';
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
-import BalanceCards from './BalanceCards';
-import SavingGoals from './SavingGoals';
-import DebtList from './DebtList';
-import Wishlist from './Wishlist';
-import TransactionTable from './TransactionTable';
-import MonthlyRecap from './MonthlyRecap';
-import ExpenseChart from './ExpenseChart';
-import QuickInputModal from './QuickInputModal';
-import PaylaterList from './PaylaterList';
-import Integrations from './Integrations';
-import SettingsPage from './SettingsPage';
-import HelpPage from './HelpPage';
-import AutomationCenter from './AutomationCenter';
-import FinancialTimeline from './FinancialTimeline';
 import { Menu } from 'lucide-react';
-import NotificationCenter from './NotificationCenter';
 import WelcomeToast from './WelcomeToast';
-import NextGenIntelligence from './NextGenIntelligence';
+
+function PanelSkeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`brutal-card bg-white border-[3px] border-black p-6 ${className}`}>
+      <div className="h-4 w-40 bg-neutral-200 border-2 border-black animate-pulse" />
+      <div className="mt-5 space-y-3">
+        <div className="h-3 w-full bg-neutral-100 border border-neutral-200 animate-pulse" />
+        <div className="h-3 w-5/6 bg-neutral-100 border border-neutral-200 animate-pulse" />
+        <div className="h-3 w-2/3 bg-neutral-100 border border-neutral-200 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+const BalanceCards = dynamic(() => import('./BalanceCards'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const SavingGoals = dynamic(() => import('./SavingGoals'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const DebtList = dynamic(() => import('./DebtList'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const Wishlist = dynamic(() => import('./Wishlist'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const TransactionTable = dynamic(() => import('./TransactionTable'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const MonthlyRecap = dynamic(() => import('./MonthlyRecap'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const ExpenseChart = dynamic(() => import('./ExpenseChart'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const QuickInputModal = dynamic(() => import('./QuickInputModal'), {
+  ssr: false,
+  loading: () => null,
+});
+const PaylaterList = dynamic(() => import('./PaylaterList'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const Integrations = dynamic(() => import('./Integrations'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const SettingsPage = dynamic(() => import('./SettingsPage'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const HelpPage = dynamic(() => import('./HelpPage'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const AutomationCenter = dynamic(() => import('./AutomationCenter'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const FinancialTimeline = dynamic(() => import('./FinancialTimeline'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const NotificationCenter = dynamic(() => import('./NotificationCenter'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-10 w-10 border-[2px] border-black bg-white shadow-[2px_2px_0px_0px_#000] animate-pulse" />
+  ),
+});
+const NextGenIntelligence = dynamic(() => import('./NextGenIntelligence'), {
+  ssr: false,
+  loading: () => <PanelSkeleton className="min-h-[320px]" />,
+});
 
 interface AppLayoutProps {
   user: {
@@ -72,6 +138,7 @@ export default function AppLayout({
   pricingPlans,
   dataError
 }: AppLayoutProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations'>('overview');
   const [showModal, setShowModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -273,7 +340,13 @@ export default function AppLayout({
         </div>
       </main>
 
-      {showModal && <QuickInputModal balances={balances} onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <QuickInputModal
+          balances={balances}
+          onClose={() => setShowModal(false)}
+          onSuccess={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }

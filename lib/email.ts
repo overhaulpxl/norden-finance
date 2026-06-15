@@ -7,9 +7,7 @@ type SendEmailInput = {
 
 export type SendEmailResult = { sent: true } | { skipped: true } | { error: string };
 
-export function getAppUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || 'https://nordenfinance.vercel.app').replace(/\/$/, '');
-}
+export { getPublicAppUrl as getAppUrl } from './appUrl';
 
 export async function sendEmail({ to, subject, html, text }: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;

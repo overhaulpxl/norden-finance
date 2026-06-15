@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { onAuthStateChanged } from 'firebase/auth';
 import { MailCheck, RefreshCw } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
+import { getPublicAppUrl } from '../../lib/appUrl';
 import { auth } from '../../lib/firebase';
 
 const COOLDOWN_SECONDS = 60;
@@ -62,7 +63,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
         if (!response.ok) {
           if (response.status === 400 && data.code === 'USE_CLIENT_VERIFICATION') {
             const { sendEmailVerification } = await import('firebase/auth');
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const appUrl = getPublicAppUrl(window.location.origin);
             await sendEmailVerification(user, {
               url: `${appUrl.replace(/\/$/, '')}/auth/verified`
             });
@@ -76,7 +77,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
         }
       } else {
         const { sendEmailVerification } = await import('firebase/auth');
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+        const appUrl = getPublicAppUrl(window.location.origin);
         await sendEmailVerification(user, {
           url: `${appUrl.replace(/\/$/, '')}/auth/verified`
         });
@@ -159,4 +160,3 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
     </div>
   );
 }
-

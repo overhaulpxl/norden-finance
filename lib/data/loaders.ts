@@ -22,6 +22,7 @@ const INDONESIAN_MONTHS = [
 
 const ADMIN_PAGE_LIMIT = 200;
 const EXPORT_ROW_LIMIT = 5000;
+const DASHBOARD_TRANSACTION_LIMIT = 50;
 
 export type PaymentSettings = Awaited<ReturnType<typeof getPaymentSettings>>;
 export type PricingPlans = Awaited<ReturnType<typeof getPricingPlans>>;
@@ -31,6 +32,48 @@ export type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 type Db = PrismaClient;
 
 type PricingSource = 'plan' | 'settings' | 'fallback';
+
+const balanceSelect = {
+  id: true,
+  userId: true,
+  name: true,
+  type: true,
+  currentBalance: true,
+  archivedAt: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+const categorySelect = {
+  id: true,
+  userId: true,
+  name: true,
+  type: true,
+  createdAt: true,
+} as const;
+
+const transactionListSelect = {
+  id: true,
+  userId: true,
+  categoryId: true,
+  walletId: true,
+  transferToWalletId: true,
+  type: true,
+  amount: true,
+  note: true,
+  rawInput: true,
+  tags: true,
+  receiptMerchant: true,
+  receiptItems: true,
+  receiptDate: true,
+  transactionDate: true,
+  deletedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  category: { select: categorySelect },
+  wallet: { select: balanceSelect },
+  transferToWallet: { select: balanceSelect },
+} as const;
 
 export interface PricingPlanView {
   id: string;
@@ -133,23 +176,24 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
   ] = await Promise.all([
     db.transaction.findMany({
       where: { userId, deletedAt: null },
-      include: { category: true, wallet: true, transferToWallet: true },
+      select: transactionListSelect,
       orderBy: { transactionDate: 'desc' },
-      take: 100,
+      take: DASHBOARD_TRANSACTION_LIMIT,
     }),
     db.balance.findMany({
       where: { userId },
+      select: balanceSelect,
       orderBy: [
         { archivedAt: 'asc' },
         { updatedAt: 'desc' },
       ],
     }),
-    db.category.findMany({ where: { userId }, orderBy: { name: 'asc' } }),
+    db.category.findMany({ where: { userId }, select: categorySelect, orderBy: { name: 'asc' } }),
     db.savingGoal.findMany({ where: { userId } }),
     db.debt.findMany({ where: { userId } }),
     db.wishlistItem.findMany({ where: { userId } }),
     db.paylater.findMany({ where: { userId } }),
-    db.budget.findMany({ where: { userId }, include: { category: true } }),
+    db.budget.findMany({ where: { userId }, include: { category: { select: categorySelect } } }),
     db.appSubscription.findMany({ where: { userId } }),
     db.emergencyFundPlan.findUnique({ where: { userId } }),
     db.transactionTemplate.findMany({

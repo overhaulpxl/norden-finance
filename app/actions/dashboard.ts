@@ -2,7 +2,6 @@
 
 import { getCurrentUser } from '../../lib/auth';
 import { getDashboardData as loadDashboardData, getUserProfile } from '../../lib/data/loaders';
-import { syncNotifications } from './notifications';
 
 export async function getDashboardData() {
   const user = await getCurrentUser();
@@ -11,13 +10,7 @@ export async function getDashboardData() {
   }
 
   try {
-    const data = await loadDashboardData(user.uid);
-    try {
-      await syncNotifications(user.uid);
-    } catch (err) {
-      console.error('Failed to sync notifications:', err);
-    }
-    return data;
+    return await loadDashboardData(user.uid);
   } catch (error) {
     console.error('Dashboard data unavailable:', error);
     const fallbackProfile = await getUserProfile(user.uid).catch(() => null);

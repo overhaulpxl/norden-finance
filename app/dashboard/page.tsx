@@ -3,6 +3,7 @@ import { getCurrentUser } from '../../lib/auth';
 import { redirect } from 'next/navigation';
 import AppLayout from '../../components/AppLayout';
 import { getPricingPlans, getTrialDays } from '../../lib/data/loaders';
+import { DEFAULT_MONTHLY_PRICE, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../../lib/constants';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -48,8 +49,19 @@ export default async function DashboardPage() {
   }
 
   const [trialDays, pricingPlans] = await Promise.all([
-    getTrialDays(),
-    getPricingPlans(),
+    getTrialDays().catch((error) => {
+      console.error('Trial days unavailable:', error);
+      return DEFAULT_TRIAL_DAYS;
+    }),
+    getPricingPlans().catch((error) => {
+      console.error('Pricing plans unavailable:', error);
+      return {
+        trial: null,
+        monthly: { name: 'Pro Monthly', price: DEFAULT_MONTHLY_PRICE },
+        yearly: { name: 'Pro Yearly', price: DEFAULT_YEARLY_PRICE },
+        all: [],
+      };
+    }),
   ]);
   const clientPricingPlans = {
     monthly: pricingPlans.monthly ? { name: pricingPlans.monthly.name, price: pricingPlans.monthly.price } : null,

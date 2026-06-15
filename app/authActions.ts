@@ -8,6 +8,7 @@
 // to create a server-side session cookie.
 
 import { auth } from '../lib/firebase';
+import { getPublicAppUrl } from '../lib/appUrl';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -91,7 +92,7 @@ export async function registerAction(fullName: string, email: string, password: 
 
     const data = await res.json();
     if (data.requiresEmailVerification && data.emailVerificationProvider === 'firebase') {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+      const appUrl = getPublicAppUrl(typeof window !== 'undefined' ? window.location.origin : undefined);
       await sendEmailVerification(credential.user, {
         url: `${appUrl.replace(/\/$/, '')}/auth/verified`
       });
