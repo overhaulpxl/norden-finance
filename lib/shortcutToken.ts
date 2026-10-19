@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from './prisma';
-import { getPublicAppUrl } from './appUrl';
+
+const DEFAULT_PUBLIC_APP_URL = 'https://nordenfinance.vercel.app';
 
 type ShortcutTokenPayload = {
   userId: string;
@@ -45,7 +46,12 @@ function isSafeEqual(a: string, b: string) {
 }
 
 export function getShortcutAppUrl() {
-  return getPublicAppUrl();
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const rawUrl = configured && !/localhost|127\.0\.0\.1/i.test(configured)
+    ? configured
+    : DEFAULT_PUBLIC_APP_URL;
+
+  return rawUrl.replace(/\/+$/, '') || DEFAULT_PUBLIC_APP_URL;
 }
 
 export function signShortcutToken(userId: string, version: number) {

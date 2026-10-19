@@ -39,8 +39,6 @@ prisma/*.db-journal
 
 # generated
 *.tsbuildinfo
-*.dump
-*.sql
 
 # local uploads / temp
 tmp/

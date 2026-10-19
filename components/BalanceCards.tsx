@@ -9,20 +9,14 @@ import { updateBalance, deleteBalance, restoreBalance } from '../app/actions';
 
 export default function BalanceCards({ balances }: { balances: Balance[] }) {
   const router = useRouter();
-  const [balanceOverrides, setBalanceOverrides] = useState<Record<string, Balance>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [method, setMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const localBalances = [
-    ...Object.values(balanceOverrides).filter((override) => !balances.some((balance) => balance.id === override.id)),
-    ...balances.map((balance) => balanceOverrides[balance.id] || balance),
-  ];
-
-  const activeBalances = localBalances.filter((balance) => !balance.archivedAt);
-  const archivedBalances = localBalances.filter((balance) => balance.archivedAt);
+  const activeBalances = balances.filter((balance) => !balance.archivedAt);
+  const archivedBalances = balances.filter((balance) => balance.archivedAt);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +28,6 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
     
     const res = await updateBalance(method, numericAmount, editingId);
     if (res.success) {
-      if ('wallet' in res && res.wallet) {
-        setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
-      }
       setMethod('');
       setAmount('');
       setEditingId(undefined);
@@ -81,7 +72,7 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
         </form>
       )}
 
-      {(!localBalances || activeBalances.length === 0) && !isEditing ? (
+      {(!balances || activeBalances.length === 0) && !isEditing ? (
         <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
           <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
             <span className="text-lg font-black text-black">💳</span>
@@ -115,15 +106,10 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
                     e.stopPropagation();
                     if (confirm(`Arsipkan dompet ${formatMethodName(b.name)}? Riwayat transaksi tetap aman.`)) {
                       setSuccess(null);
-                      deleteBalance(b.id).then((res) => {
-                        if (res.success && 'wallet' in res && res.wallet) {
-                          setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
-                          setSuccess('Dompet berhasil diarsipkan!');
-                          setTimeout(() => setSuccess(null), 5000);
-                          router.refresh();
-                        } else if (!res.success) {
-                          alert(res.error || 'Gagal mengarsipkan dompet');
-                        }
+                      deleteBalance(b.id).then(() => {
+                        setSuccess('Dompet berhasil diarsipkan!');
+                        setTimeout(() => setSuccess(null), 5000);
+                        router.refresh();
                       });
                     }
                   }}
@@ -150,15 +136,10 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
                     type="button"
                     onClick={() => {
                       setSuccess(null);
-                      restoreBalance(balance.id).then((res) => {
-                        if (res.success && 'wallet' in res && res.wallet) {
-                          setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
-                          setSuccess('Dompet berhasil dipulihkan!');
-                          setTimeout(() => setSuccess(null), 5000);
-                          router.refresh();
-                        } else if (!res.success) {
-                          alert(res.error || 'Gagal memulihkan dompet');
-                        }
+                      restoreBalance(balance.id).then(() => {
+                        setSuccess('Dompet berhasil dipulihkan!');
+                        setTimeout(() => setSuccess(null), 5000);
+                        router.refresh();
                       });
                     }}
                     className="border border-black bg-white p-1 text-black transition-colors hover:bg-[#bbf7d0] cursor-pointer"

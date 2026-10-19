@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Balance, Transaction } from '../types';
 import { formatRupiah, formatTanggal, formatMethodName } from '../lib/format';
 import { Search, Trash2, Edit2, Check, X, Download, ArrowDownRight, ArrowUpRight, ArrowRightLeft } from 'lucide-react';
@@ -9,9 +8,6 @@ import { updateTransaction, deleteTransaction } from '../app/actions';
 import WalletSelect from './WalletSelect';
 
 export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
-  const router = useRouter();
-  const [transactionOverrides, setTransactionOverrides] = useState<Record<string, Transaction>>({});
-  const [deletedTransactionIds, setDeletedTransactionIds] = useState<Set<string>>(() => new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -25,27 +21,22 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
   const [editMethod, setEditMethod] = useState('');
   const [editTags, setEditTags] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [pendingMutationId, setPendingMutationId] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const visibleTransactions = transactions
-    .filter((transaction) => !deletedTransactionIds.has(transaction.id))
-    .map((transaction) => transactionOverrides[transaction.id] || transaction);
-
-  const months = Array.from(new Set(visibleTransactions.map(t => {
+  const months = Array.from(new Set(transactions.map(t => {
     const d = new Date(t.transactionDate);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   }))).sort().reverse();
 
-  const categories = Array.from(new Set(visibleTransactions.map(t => t.category?.name || 'Lain-lain'))).sort();
-  const methods = Array.from(new Set(visibleTransactions.map(t => t.wallet?.name || 'Lain-lain'))).sort();
+  const categories = Array.from(new Set(transactions.map(t => t.category?.name || 'Lain-lain'))).sort();
+  const methods = Array.from(new Set(transactions.map(t => t.wallet?.name || 'Lain-lain'))).sort();
   
   const uniqueTags = Array.from(new Set(
-    visibleTransactions.flatMap((t) => t.tags || [])
+    transactions.flatMap((t) => t.tags || [])
   )).sort();
 
-  const filtered = visibleTransactions.filter(t => {
+  const filtered = transactions.filter(t => {
     const tags = t.tags || [];
     const query = searchQuery.toLowerCase();
     const haystack = [
@@ -94,7 +85,6 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
   };
 
   const handleEditSave = async (id: string) => {
-    if (pendingMutationId) return;
     const amount = parseInt(editAmount.replace(/\D/g, ''), 10);
     if (!amount) return;
     if (!editMethod.trim()) {
@@ -104,65 +94,28 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
     
     setError(null);
     setSuccess(null);
-    setPendingMutationId(id);
     const tags = editTags.split(/\s+/).map(tag => tag.replace(/^#/, '').trim()).filter(Boolean);
     const res = await updateTransaction(id, { amount, note: editNote, wallet: editMethod, tags });
     if (res.success) {
-      const wallet = balances.find((balance) => balance.name === editMethod);
-      const currentTransaction = visibleTransactions.find((transaction) => transaction.id === id);
-      if (currentTransaction) {
-        setTransactionOverrides((current) => ({
-          ...current,
-          [id]: {
-            ...currentTransaction,
-            amount,
-            note: editNote,
-            tags,
-            wallet: wallet
-              ? {
-                  id: wallet.id,
-                  name: wallet.name,
-                  type: wallet.type,
-                  currentBalance: wallet.currentBalance,
-                  userId: wallet.userId,
-                  archivedAt: wallet.archivedAt,
-                  createdAt: wallet.createdAt,
-                  updatedAt: wallet.updatedAt,
-                }
-              : currentTransaction.wallet,
-          },
-        }));
-      }
       setEditingId(null);
       setSuccess('Transaksi berhasil diperbarui!');
       setTimeout(() => setSuccess(null), 5000);
-      router.refresh();
     } else {
       setError(res.error || 'Gagal memperbarui transaksi');
     }
-    setPendingMutationId(null);
   };
 
   const handleDelete = async (id: string) => {
-    if (pendingMutationId) return;
     setError(null);
     setSuccess(null);
-    setPendingMutationId(id);
     const res = await deleteTransaction(id);
     if (res.success) {
-      setDeletedTransactionIds((current) => {
-        const next = new Set(current);
-        next.add(id);
-        return next;
-      });
       setDeletingId(null);
       setSuccess('Transaksi berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
-      router.refresh();
     } else {
       setError(res.error || 'Gagal menghapus transaksi');
     }
-    setPendingMutationId(null);
   };
 
   const selectClass = "bg-white border-[3px] border-black text-black font-black text-xs rounded-none px-3 py-2 outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider appearance-none cursor-pointer";
@@ -328,13 +281,13 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-16 justify-end">
                   {editingId === t.id ? (
                     <>
-                      <button disabled={pendingMutationId === t.id} onClick={() => handleEditSave(t.id)} className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50"><Check className="w-4 h-4 stroke-[3px]" /></button>
-                      <button disabled={pendingMutationId === t.id} onClick={() => setEditingId(null)} className="p-1.5 text-neutral-500 hover:bg-neutral-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50"><X className="w-4 h-4 stroke-[3px]" /></button>
+                      <button onClick={() => handleEditSave(t.id)} className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer"><Check className="w-4 h-4 stroke-[3px]" /></button>
+                      <button onClick={() => setEditingId(null)} className="p-1.5 text-neutral-500 hover:bg-neutral-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer"><X className="w-4 h-4 stroke-[3px]" /></button>
                     </>
                   ) : deletingId === t.id ? (
                     <>
-                      <button disabled={pendingMutationId === t.id} onClick={() => handleDelete(t.id)} className="p-1 text-red-650 hover:bg-red-50 rounded-none text-xs font-black transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50">Y</button>
-                      <button disabled={pendingMutationId === t.id} onClick={() => setDeletingId(null)} className="p-1 text-neutral-500 hover:bg-neutral-150 rounded-none text-xs font-black transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50">N</button>
+                      <button onClick={() => handleDelete(t.id)} className="p-1 text-red-650 hover:bg-red-50 rounded-none text-xs font-black transition-colors border border-transparent hover:border-black cursor-pointer">Y</button>
+                      <button onClick={() => setDeletingId(null)} className="p-1 text-neutral-500 hover:bg-neutral-150 rounded-none text-xs font-black transition-colors border border-transparent hover:border-black cursor-pointer">N</button>
                     </>
                   ) : (
                     <>

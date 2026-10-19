@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../lib/auth';
 import { prisma } from '../../../lib/prisma';
 import { getMonthlyReportData } from '../../../lib/data/loaders';
+import { generateMonthlyReportPdf } from '../../../lib/pdf/monthlyReport';
 
 const EXPORT_ROW_LIMIT = 5000;
 
@@ -25,23 +26,6 @@ export async function GET(request: Request) {
   const format = searchParams.get('format') || 'json';
   if (!['json', 'csv', 'pdf'].includes(format)) {
     return NextResponse.json({ error: 'Format tidak valid' }, { status: 400 });
-  }
-
-  if (format === 'pdf') {
-    const { generateMonthlyReportPdf } = await import('../../../lib/pdf/monthlyReport');
-    const now = new Date();
-    const reportData = await getMonthlyReportData(user.uid, now.getMonth() + 1, now.getFullYear());
-    const pdfBuffer = generateMonthlyReportPdf(reportData);
-
-    const fileName = `Norden_Report_${reportData.year}_${reportData.month}.pdf`;
-
-    return new NextResponse(new Uint8Array(pdfBuffer), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Cache-Control': 'no-store, max-age=0, must-revalidate',
-      },
-    });
   }
 
   const transactions = await prisma.transaction.findMany({
@@ -84,6 +68,22 @@ export async function GET(request: Request) {
       })),
       totalBalance,
       transactions: payload,
+    });
+  }
+
+  if (format === 'pdf') {
+    const now = new Date();
+    const reportData = await getMonthlyReportData(user.uid, now.getMonth() + 1, now.getFullYear());
+    const pdfBuffer = generateMonthlyReportPdf(reportData);
+
+    const fileName = `Norden_Report_${reportData.year}_${reportData.month}.pdf`;
+
+    return new NextResponse(new Uint8Array(pdfBuffer), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+      },
     });
   }
 

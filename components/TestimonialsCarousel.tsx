@@ -63,13 +63,11 @@ export default function TestimonialsCarousel({
   testimonials,
   testimonialsUrl = '/api/public/testimonials',
 }: TestimonialsCarouselProps) {
-  const [fetchedItems, setFetchedItems] = useState<PublicTestimonial[] | null>(null);
+  const [items, setItems] = useState(testimonials);
   const [visibleCount, setVisibleCount] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const items = fetchedItems?.length ? fetchedItems : testimonials;
-  const safeCurrentIndex = items.length > 0 ? Math.min(currentIndex, items.length - 1) : 0;
 
   useEffect(() => {
     if (!testimonialsUrl) return;
@@ -92,12 +90,10 @@ export default function TestimonialsCarousel({
           : [];
 
         if (nextTestimonials.length > 0) {
-          setFetchedItems(nextTestimonials);
+          setItems(nextTestimonials);
         }
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          setFetchedItems(null);
-        }
+      } catch {
+        // Keep the static fallback testimonials on network or API failure.
       }
     }
 
@@ -119,10 +115,10 @@ export default function TestimonialsCarousel({
   const visibleTestimonials = useMemo(() => {
     if (expanded || !canNavigate) return items;
     return Array.from({ length: visibleCount }, (_, offset) => {
-      const index = (safeCurrentIndex + offset) % items.length;
+      const index = (currentIndex + offset) % items.length;
       return items[index];
     });
-  }, [canNavigate, expanded, items, safeCurrentIndex, visibleCount]);
+  }, [canNavigate, currentIndex, expanded, items, visibleCount]);
 
   const goPrevious = () => {
     if (!canNavigate) return;

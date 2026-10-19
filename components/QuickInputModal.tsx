@@ -24,15 +24,7 @@ interface ReceiptScan {
   suggestedText: string;
 }
 
-export default function QuickInputModal({
-  balances,
-  onClose,
-  onSuccess,
-}: {
-  balances: Balance[];
-  onClose: () => void;
-  onSuccess?: () => void;
-}) {
+export default function QuickInputModal({ balances, onClose }: { balances: Balance[]; onClose: () => void }) {
   const router = useRouter();
   const [mode, setMode] = useState<'quick' | 'manual'>('quick');
   
@@ -70,14 +62,6 @@ export default function QuickInputModal({
     ? mMethod
     : activeWallets[0]?.name || '';
   const currentToMethod = activeWallets.some((wallet) => wallet.name === mToMethod) ? mToMethod : '';
-
-  const refreshAfterMutation = () => {
-    if (onSuccess) {
-      onSuccess();
-      return;
-    }
-    router.refresh();
-  };
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -136,7 +120,7 @@ export default function QuickInputModal({
       let txId: string | null = null;
 
       if (res.success && isAcceptedReceipt) {
-        refreshAfterMutation();
+        router.refresh();
         const formattedAmount = formatCurrency(receiptScan.amount);
         aiText = `Receipt saved for ${receiptScan.merchant || receiptScan.note || 'belanja'} sebesar ${formattedAmount}.`;
         if ('transactionId' in res && typeof res.transactionId === 'string') {
@@ -144,7 +128,7 @@ export default function QuickInputModal({
         }
         setReceiptScan(null);
       } else if (res.success && 'result' in res && res.result) {
-        refreshAfterMutation();
+        router.refresh();
         const amountVal = res.result.amount;
         const formattedAmount = formatCurrency(amountVal);
 
@@ -190,7 +174,7 @@ export default function QuickInputModal({
     setLoading(true);
     const res = await deleteTransaction(txId);
     if (res.success) {
-      refreshAfterMutation();
+      router.refresh();
       setChatMessages(prev => prev.map(m => {
         if (m.id === msgId) {
           return { ...m, text: '↩️ Transaksi berhasil dibatalkan.', txId: null };
@@ -221,7 +205,7 @@ export default function QuickInputModal({
     setLoading(false);
 
     if (res.success) {
-      refreshAfterMutation();
+      router.refresh();
       setTimeout(onClose, 1200);
     }
   };
@@ -320,7 +304,7 @@ export default function QuickInputModal({
     }
 
     if (res.success) {
-      refreshAfterMutation();
+      router.refresh();
       const transactionId = 'transactionId' in res && typeof res.transactionId === 'string'
         ? res.transactionId
         : null;
