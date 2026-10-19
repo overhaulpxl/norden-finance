@@ -32,7 +32,7 @@ export async function updateBalance(name: string, amount: number, id?: string) {
 
       if (!existing) throw new Error('Dompet tidak ditemukan');
 
-      await prisma.balance.update({
+      const wallet = await prisma.balance.update({
         where: { id },
         data: {
           name: walletName,
@@ -43,6 +43,8 @@ export async function updateBalance(name: string, amount: number, id?: string) {
       });
 
       await createAuditLog(userId, 'UPDATE_BALANCE', 'balance', id);
+      revalidatePath('/dashboard');
+      return { success: true, wallet };
     } else {
       // Upsert wallet by name
       const wallet = await prisma.balance.upsert({
@@ -52,10 +54,9 @@ export async function updateBalance(name: string, amount: number, id?: string) {
       });
 
       await createAuditLog(userId, 'UPDATE_BALANCE', 'balance', wallet.id);
+      revalidatePath('/dashboard');
+      return { success: true, wallet };
     }
-
-    revalidatePath('/dashboard');
-    return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal menyimpan dompet';
     return { success: false, error: message };
@@ -77,14 +78,14 @@ export async function deleteBalance(id: string) {
 
     if (!existing) throw new Error('Dompet tidak ditemukan');
 
-    await prisma.balance.update({
+    const wallet = await prisma.balance.update({
       where: { id },
       data: { archivedAt: new Date() },
     });
 
     await createAuditLog(userId, 'ARCHIVE_BALANCE', 'balance', id);
     revalidatePath('/dashboard');
-    return { success: true };
+    return { success: true, wallet };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal menghapus dompet';
     return { success: false, error: message };
@@ -101,14 +102,14 @@ export async function restoreBalance(id: string) {
     });
     if (!existing) throw new Error('Dompet tidak ditemukan');
 
-    await prisma.balance.update({
+    const wallet = await prisma.balance.update({
       where: { id },
       data: { archivedAt: null },
     });
 
     await createAuditLog(userId, 'RESTORE_BALANCE', 'balance', id);
     revalidatePath('/dashboard');
-    return { success: true };
+    return { success: true, wallet };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal memulihkan dompet';
     return { success: false, error: message };

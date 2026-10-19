@@ -3,16 +3,14 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import { AlertTriangle, CheckCircle2, Copy, Link2, Loader2, RotateCcw, ShieldCheck, Smartphone, Zap } from 'lucide-react';
 import { getShortcutEndpoint, regenerateShortcutToken } from '../app/actions';
+import { getPublicAppUrl } from '../lib/appUrl';
 
 type GuideStep = {
   title: string;
   body: React.ReactNode;
 };
 
-const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-const appUrl = (configuredAppUrl && !/localhost|127\.0\.0\.1/i.test(configuredAppUrl)
-  ? configuredAppUrl
-  : 'https://nordenfinance.vercel.app').replace(/\/+$/, '');
+const appUrl = getPublicAppUrl();
 
 function EndpointBox({
   endpoint,

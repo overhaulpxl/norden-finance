@@ -1,6 +1,7 @@
 import { getApps, initializeApp, cert, type ServiceAccount } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
+import { getPublicAppUrl } from './appUrl';
 
 type DecodedToken = {
   uid?: string;
@@ -111,7 +112,7 @@ export function getAdminAuth(): AdminAuthLike {
       email: uid.includes('@') ? uid : undefined,
     }),
     generateEmailVerificationLink: async (_email: string, actionCodeSettings?: { url: string }) => {
-      return actionCodeSettings?.url || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/verified`;
+      return actionCodeSettings?.url || `${getPublicAppUrl()}/auth/verified`;
     },
   };
 }
