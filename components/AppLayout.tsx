@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement } from '../types';
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
+import BrandLogo from './BrandLogo';
 import { Menu } from 'lucide-react';
 import WelcomeToast from './WelcomeToast';
 
@@ -94,6 +95,7 @@ interface AppLayoutProps {
     id: string;
     email: string;
     plan: 'trial' | 'pro';
+    effectivePlan?: string;
     fullName?: string;
     trialEndsAt?: string | null;
     role?: string;
@@ -119,13 +121,13 @@ interface AppLayoutProps {
   dataError?: string | null;
 }
 
-export default function AppLayout({ 
+export default function AppLayout({
   user,
-  transactions, 
-  balances, 
-  savingGoals, 
-  debts, 
-  wishlist, 
+  transactions,
+  balances,
+  savingGoals,
+  debts,
+  wishlist,
   paylaters,
   budgets,
   subscriptions,
@@ -162,10 +164,10 @@ export default function AppLayout({
   return (
     <div className="flex min-h-screen bg-[#FAF9F5]" style={{ backgroundImage: 'radial-gradient(#d1d1d1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
       <WelcomeToast userId={user.id} fullName={user.fullName} />
-      
+
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-950/40 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -179,47 +181,68 @@ export default function AppLayout({
       `}>
         <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
       </div>
-      
+
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 min-w-0">
         <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4 select-none">
-          {/* Mobile hamburger */}
-          <div className="flex items-center gap-3">
-            <button 
+          {/* Mobile hamburger & brand */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden rounded-none border-[2px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_#000] transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              aria-label="Buka menu navigasi"
+              className="lg:hidden rounded-none border-[2px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_#000] transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 shrink-0"
             >
               <Menu className="w-5 h-5 text-slate-800" />
             </button>
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black">
-              {activeTab === 'goals' ? 'Goals & Debts' : 
-               activeTab === 'automation' ? 'Automation' :
-               activeTab === 'reports' ? 'Data Dashboard' : 
-               activeTab === 'overview' ? 'Home' : 
+            <div className="lg:hidden shrink-0">
+              <BrandLogo variant="icon" priority className="h-7 w-7" />
+            </div>
+            <h2 className="text-lg sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black truncate">
+              {activeTab === 'goals' ? 'Target & Utang' :
+               activeTab === 'automation' ? 'Otomatisasi' :
+               activeTab === 'reports' ? 'Laporan & Analisis' :
+               activeTab === 'overview' ? 'Beranda' :
+               activeTab === 'wallet' ? 'Dompet & Saldo' :
+               activeTab === 'history' ? 'Riwayat Transaksi' :
+               activeTab === 'settings' ? 'Pengaturan' :
+               activeTab === 'help' ? 'Bantuan' :
+               activeTab === 'integrations' ? 'Integrasi' :
                activeTab}
             </h2>
           </div>
 
           {/* Header Actions */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {/* Level and PRO badge (Desktop only) */}
             <div className="hidden sm:flex items-center gap-2">
               <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color}`}>
                 Lvl {levelInfo.level}: {levelInfo.name}
               </span>
-              {user.plan === 'pro' && (
+              {user.effectivePlan === 'PRO_ACTIVE' && (
                 <span className="bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
                   👑 PRO
+                </span>
+              )}
+              {user.effectivePlan === 'PRO_PENDING' && (
+                <span className="bg-amber-200 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
+                  ⏳ PRO (REVIEW)
+                </span>
+              )}
+              {user.effectivePlan === 'FREE_BASIC' && (
+                <span className="bg-neutral-200 text-neutral-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
+                  🌱 FREE BASIC
                 </span>
               )}
             </div>
 
             <NotificationCenter />
 
-            <button 
+            <button
               onClick={() => setShowModal(true)}
-              className="brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+              className="brutal-btn px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0"
+              title="Catat transaksi baru"
             >
-              + New
+              <span className="hidden sm:inline">+ Catat Transaksi</span>
+              <span className="sm:hidden font-black">+ Catat</span>
             </button>
           </div>
         </header>
@@ -232,17 +255,18 @@ export default function AppLayout({
 
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           {activeTab === 'overview' && (
-            <OverviewLayout 
+            <OverviewLayout
               user={user}
-              transactions={transactions} 
-              balances={balances} 
-              debts={debts} 
-              wishlist={wishlist} 
+              transactions={transactions}
+              balances={balances}
+              debts={debts}
+              wishlist={wishlist}
               savingGoals={savingGoals}
               budgets={budgets}
               subscriptions={subscriptions}
               emergencyFundPlan={emergencyFundPlan}
               achievements={achievements}
+              onNewTransaction={() => setShowModal(true)}
             />
           )}
 
@@ -314,7 +338,7 @@ export default function AppLayout({
           )}
 
           {activeTab === 'settings' && (
-            <SettingsPage 
+            <SettingsPage
               user={user}
               trialDays={trialDays}
               pricingPlans={pricingPlans}

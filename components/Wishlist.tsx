@@ -26,7 +26,7 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
     setLoading(true);
     setSuccess(null);
     const numericAmount = parseInt(amount.replace(/\D/g, ''), 10);
-    
+
     const res = await addWishlistItem(name, numericAmount, url);
     if (res.success) {
       setName('');
@@ -64,28 +64,49 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
   const now = new Date();
 
   return (
-    <div className="brutal-card p-6 bg-white select-none">
-      <div className="flex justify-between items-center mb-6 border-b-[3px] border-black pb-4">
-        <h3 className="text-lg font-black text-black uppercase tracking-wider">Impulse Control (Wishlist)</h3>
-        <button onClick={() => setShowForm(!showForm)} className="brutal-btn-light text-xs px-4 py-2 cursor-pointer">
-          {showForm ? 'Cancel' : '+ New Item'}
+    <div className="brutal-card p-6 bg-white select-none space-y-5">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-[3px] border-black pb-4 gap-3">
+        <div>
+          <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider">
+            Wishlist & Cooldown Belanja
+          </h3>
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-0.5">
+            Masa tunggu 3 hari untuk menahan keinginan belanja impulsif
+          </p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="brutal-btn-accent text-xs px-4 py-2 cursor-pointer shrink-0"
+        >
+          {showForm ? 'Batal' : '+ Tambah Wishlist'}
         </button>
       </div>
 
       {success && (
-        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
           {success}
         </div>
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 border-[3px] border-black bg-white p-4 space-y-4 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <input type="text" placeholder="Item Name (e.g. Shoes)" value={name} onChange={e => setName(e.target.value)} className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
-          <input type="text" placeholder="Price" value={amount} onChange={e => setAmount(e.target.value)} className="w-full brutal-input px-4 py-2.5 text-sm font-bold" required />
-          <input type="url" placeholder="Store Link (Optional)" value={url} onChange={e => setUrl(e.target.value)} className="w-full brutal-input px-4 py-2.5 text-sm font-bold" />
-          <p className="text-xs font-bold text-neutral-600">Barang ini akan dikunci dalam masa tunggu (cooldown) 3 hari untuk menahan keinginan belanja impulsif.</p>
-          <button type="submit" disabled={loading} className="w-full brutal-btn py-3 flex justify-center items-center cursor-pointer">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'Save & Start Timer'}
+        <form onSubmit={handleSubmit} className="border-[3px] border-black bg-[#FAF9F5] p-5 space-y-3.5 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-black mb-1">Nama Barang</label>
+            <input type="text" placeholder="Contoh: Sepatu Olahraga" value={name} onChange={e => setName(e.target.value)} className="w-full brutal-input px-3.5 py-2 text-xs font-bold uppercase" required />
+          </div>
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-black mb-1">Perkiraan Harga (Rp)</label>
+            <input type="text" placeholder="Contoh: 750000" value={amount} onChange={e => setAmount(e.target.value)} className="w-full brutal-input px-3.5 py-2 text-xs font-bold" required />
+          </div>
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-black mb-1">Link Toko (Opsional)</label>
+            <input type="url" placeholder="https://..." value={url} onChange={e => setUrl(e.target.value)} className="w-full brutal-input px-3.5 py-2 text-xs font-bold" />
+          </div>
+          <p className="text-[11px] font-bold text-neutral-600 bg-white border border-black p-2.5">
+            Barang yang ditambahkan akan dikunci selama 3 hari sebagai periode pertimbangan sebelum dicatat sebagai pembelian.
+          </p>
+          <button type="submit" disabled={loading} className="w-full brutal-btn py-3 text-xs font-black uppercase tracking-wider flex justify-center items-center cursor-pointer">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'Simpan & Mulai Timer Cooldown'}
           </button>
         </form>
       )}
@@ -111,7 +132,7 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
             const isLocked = item.status === 'locked' && now < unlockDate;
             const diffTime = Math.abs(unlockDate.getTime() - now.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
+
             return (
               <div key={item.id} className={`relative p-4 border-[2px] border-black rounded-none flex flex-col group transition-all bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${item.status === 'bought' ? 'opacity-60 bg-neutral-50 shadow-none border-neutral-300' : isLocked ? 'bg-white' : 'bg-[#bbf7d0] border-black'}`}>
                 <div className="flex justify-between items-start mb-2">
@@ -143,12 +164,12 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
                     <div className="flex items-center gap-2">
                       <WalletSelect
                         wallets={balances}
-                        value={currentSelectedMethod} 
+                        value={currentSelectedMethod}
                         onChange={setSelectedMethod}
                         className="brutal-input px-2 py-1.5 text-xs w-28 font-black uppercase"
                         required
                       />
-                      <button 
+                      <button
                         onClick={() => handleBuy(item.id)}
                         disabled={loading || !currentSelectedMethod}
                         className="brutal-btn px-4 py-1.5 text-xs font-black uppercase cursor-pointer"
@@ -158,8 +179,8 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
                     </div>
                   </div>
                 )}
-                
-                <button 
+
+                <button
                   onClick={() => handleDelete(item.id)}
                   className="absolute right-4 bottom-4 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
                 >

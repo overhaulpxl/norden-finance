@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState, useRef } from 'react';
-import { ArrowLeft, Check, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, Upload, Loader2, Copy, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { submitPaymentRequest } from '../actions/payments';
 import { MVP_FEATURES } from '../../lib/constants';
@@ -65,13 +65,22 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
   const [paymentMethod, setPaymentMethod] = useState<'bca' | 'bni' | 'qris'>(availableMethods[0] || 'qris');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
   const [requests, setRequests] = useState(initialRequests);
+
+  const handleCopyAccount = (accountNumber: string) => {
+    if (!accountNumber) return;
+    navigator.clipboard.writeText(accountNumber);
+    setCopiedAccount(accountNumber);
+    setTimeout(() => setCopiedAccount(null), 3000);
+  };
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isPro = profile.plan === 'pro';
   const hasSelectedPlan = Boolean(pricingPlans[selectedPlan]);
+  const hasPendingRequest = requests.some((r) => r.status === 'pending');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -181,10 +190,22 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
         >
           <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Kembali ke Dasbor
         </Link>
-        <div className="flex items-center gap-2 border-[2px] border-black bg-[#bbf7d0] px-4 py-2 font-black text-xs uppercase tracking-wider">
-          Status: {isPro ? 'Pro Active 👑' : 'Trial Active ⚡'}
+        <div className={`flex items-center gap-2 border-[2px] border-black px-4 py-2 font-black text-xs uppercase tracking-wider ${
+          hasPendingRequest
+            ? 'bg-amber-200 text-black'
+            : isPro
+            ? 'bg-[#bbf7d0] text-black'
+            : 'bg-neutral-200 text-neutral-800'
+        }`}>
+          Status: {hasPendingRequest ? 'Pro (Verifikasi Pembayaran ⏳)' : isPro ? 'Pro Active 👑' : 'Free Basic 🌱'}
         </div>
       </div>
+
+      {hasPendingRequest && (
+        <div className="p-4 bg-amber-100 border-[3px] border-black text-black font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+          ⏳ Bukti pembayaran Anda telah dikirim dan sedang menunggu tinjauan Admin. Akses fitur Norden Pro Anda tetap aktif selama masa verifikasi.
+        </div>
+      )}
 
       {/* Main Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -307,15 +328,35 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
               {paymentMethod === 'bca' && (
                 <div>
                   <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Bank BCA</p>
-                  <p className="text-lg font-black text-black tracking-wider mt-1">{paymentSettings.bca_number}</p>
-                  <p className="text-xs font-bold text-neutral-600 mt-1 uppercase">{paymentSettings.bca_holder}</p>
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <p className="text-lg font-black text-black tracking-wider">{paymentSettings.bca_number}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyAccount(paymentSettings.bca_number)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black bg-white hover:bg-neutral-50 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                    >
+                      {copiedAccount === paymentSettings.bca_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedAccount === paymentSettings.bca_number ? 'Tersalin' : 'Salin Rekening'}</span>
+                    </button>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-600 mt-1 uppercase">A.N. {paymentSettings.bca_holder}</p>
                 </div>
               )}
               {paymentMethod === 'bni' && (
                 <div>
                   <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Bank BNI</p>
-                  <p className="text-lg font-black text-black tracking-wider mt-1">{paymentSettings.bni_number}</p>
-                  <p className="text-xs font-bold text-neutral-600 mt-1 uppercase">{paymentSettings.bni_holder}</p>
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <p className="text-lg font-black text-black tracking-wider">{paymentSettings.bni_number}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyAccount(paymentSettings.bni_number)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black bg-white hover:bg-neutral-50 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                    >
+                      {copiedAccount === paymentSettings.bni_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedAccount === paymentSettings.bni_number ? 'Tersalin' : 'Salin Rekening'}</span>
+                    </button>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-600 mt-1 uppercase">A.N. {paymentSettings.bni_holder}</p>
                 </div>
               )}
               {paymentMethod === 'qris' && (
@@ -425,11 +466,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                     <td className="p-3 border-r-[2px] border-black text-black">{formatCurrency(req.amount)}</td>
                     <td className="p-3 border-r-[2px] border-black">
                       <span className={`px-2 py-0.5 text-[10px] font-black border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
-                        req.status === 'approved' ? 'bg-[#bbf7d0] text-black' :
+                        req.status === 'approved' ? 'bg-[#bbf7d0] text-emerald-950' :
                         req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-[#fef08a] text-black'
+                        'bg-[#fef08a] text-amber-950'
                       }`}>
-                        {req.status}
+                        {req.status === 'approved' ? 'DISETUJUI' : req.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU VERIFIKASI'}
                       </span>
                     </td>
                     <td className="p-3 text-neutral-600 normal-case italic">{req.adminNote || '-'}</td>

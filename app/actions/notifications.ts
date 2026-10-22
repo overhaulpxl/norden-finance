@@ -104,27 +104,36 @@ export async function syncNotifications(userId: string) {
     }
   };
 
-  // 1. Trial Status Notifications
-  if (profile.plan === 'trial') {
-    const daysLeft = Math.ceil((new Date(profile.trialEndsAt).getTime() - now.getTime()) / 86_400_000);
-    if (daysLeft <= 0) {
-      await createNotificationIfUnique(
-        'Trial berakhir',
-        'Trial gratis Anda sudah berakhir. Upgrade sekarang agar fitur premium tetap aktif.',
-        'TRIAL_WARNING'
-      );
-    } else if (daysLeft <= 3) {
-      await createNotificationIfUnique(
-        'Trial akan berakhir',
-        `Trial Anda akan berakhir dalam ${daysLeft} hari. Upgrade ke Pro sekarang.`,
-        'TRIAL_WARNING'
-      );
-    } else if (daysLeft <= 7) {
-      await createNotificationIfUnique(
-        'Trial akan berakhir',
-        `Trial Anda akan berakhir dalam ${daysLeft} hari. Nikmati terus fitur premium Norden.`,
-        'TRIAL_WARNING'
-      );
+  // 1. Trial Status Notifications (only for users on trial without active Pro subscription or pending payment)
+  const billingSub = await prisma.billingSubscription.findFirst({
+    where: { userId, plan: 'pro', status: 'active' },
+  });
+  const isPaidPro = Boolean(billingSub && (!billingSub.expiredAt || billingSub.expiredAt > now));
+  const hasPendingPayment = paymentRequests.some((req) => req.status === 'pending');
+
+  if (profile.plan === 'trial' && !isPaidPro && !hasPendingPayment && profile.onboardingCompleted) {
+    const trialStarted = profile.trialStartedAt.getTime() < profile.trialEndsAt.getTime();
+    if (trialStarted) {
+      const daysLeft = Math.ceil((new Date(profile.trialEndsAt).getTime() - now.getTime()) / 86_400_000);
+      if (daysLeft <= 0) {
+        await createNotificationIfUnique(
+          'Trial berakhir — Selamat Datang di Free Basic',
+          'Trial gratis Anda telah berakhir. Anda kini menggunakan Free Basic. Catatan transaksi dan saldo dompet Anda tetap aman, dan Anda dapat upgrade ke Pro kapan saja.',
+          'TRIAL_WARNING'
+        );
+      } else if (daysLeft === 1) {
+        await createNotificationIfUnique(
+          'Trial berakhir besok',
+          'Trial 14 hari Anda akan berakhir besok. Upgrade ke Pro sekarang untuk mempertahankan akses fitur lanjutan.',
+          'TRIAL_WARNING'
+        );
+      } else if (daysLeft <= 3) {
+        await createNotificationIfUnique(
+          'Trial akan berakhir',
+          `Trial 14 hari Anda akan berakhir dalam ${daysLeft} hari. Nikmati terus fitur otomatisasi Norden.`,
+          'TRIAL_WARNING'
+        );
+      }
     }
   }
 

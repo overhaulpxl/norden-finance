@@ -10,6 +10,7 @@ import { getPricingPlans } from '../../lib/data/loaders';
 import { DEFAULT_MONTHLY_PRICE, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../../lib/constants';
 import { sendEmail } from '../../lib/email';
 import { getPaymentApprovedEmailHtml, getPaymentRejectedEmailHtml } from '../../lib/email/templates/paymentEmails';
+import { executeFinancialDataReset } from '../../lib/financialReset';
 
 async function sendPaymentStatusEmail({
   userId,
@@ -116,11 +117,15 @@ export async function approvePaymentRequest(requestId: string) {
 
     // Start a transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Update payment request status
-      await tx.paymentRequest.update({
-        where: { id: requestId },
+      // 1. Atomically update payment request status only if still pending (prevents race conditions)
+      const updatedPayment = await tx.paymentRequest.updateMany({
+        where: { id: requestId, status: PaymentStatus.pending },
         data: { status: PaymentStatus.approved },
       });
+
+      if (updatedPayment.count === 0) {
+        throw new Error('Permintaan pembayaran ini sudah diproses atau tidak lagi valid.');
+      }
 
       // 2. Update user profile to Pro plan
       await tx.profile.update({
@@ -128,17 +133,29 @@ export async function approvePaymentRequest(requestId: string) {
         data: { plan: PlanType.pro },
       });
 
-      // 3. Upsert subscription billing details
+      // 3. Upsert subscription billing details (preserve already-paid future time upon renewal)
       const billingDays = request.billingType === 'monthly' ? 30 : 365;
-      const expiredAt = new Date();
-      expiredAt.setDate(expiredAt.getDate() + billingDays);
 
       const existingBilling = await tx.billingSubscription.findFirst({
         where: {
           userId: request.userId,
           plan: PlanType.pro,
         },
+        orderBy: { expiredAt: 'desc' },
       });
+
+      let baseDate = new Date();
+      if (
+        existingBilling &&
+        existingBilling.status === 'active' &&
+        existingBilling.expiredAt &&
+        existingBilling.expiredAt > new Date()
+      ) {
+        baseDate = new Date(existingBilling.expiredAt);
+      }
+
+      const expiredAt = new Date(baseDate);
+      expiredAt.setDate(expiredAt.getDate() + billingDays);
 
       if (existingBilling) {
         await tx.billingSubscription.update({
@@ -191,13 +208,35 @@ export async function rejectPaymentRequest(requestId: string, adminNote: string)
       if (!request) throw new Error('Permintaan pembayaran tidak ditemukan');
       if (request.status !== PaymentStatus.pending) throw new Error('Permintaan ini sudah diproses');
 
-      await tx.paymentRequest.update({
-        where: { id: requestId },
+      const updatedPayment = await tx.paymentRequest.updateMany({
+        where: { id: requestId, status: PaymentStatus.pending },
         data: {
           status: PaymentStatus.rejected,
           adminNote: adminNote || null,
         },
       });
+
+      if (updatedPayment.count === 0) {
+        throw new Error('Permintaan pembayaran ini sudah diproses atau tidak lagi valid.');
+      }
+
+      // Reconcile profile.plan if user does not have another active entitlement
+      const userProfile = await tx.profile.findUnique({
+        where: { userId: request.userId },
+        select: { trialEndsAt: true },
+      });
+      const activeBilling = await tx.billingSubscription.findFirst({
+        where: { userId: request.userId, plan: PlanType.pro, status: 'active' },
+      });
+      const now = new Date();
+      if (!activeBilling || (activeBilling.expiredAt && activeBilling.expiredAt <= now)) {
+        if (userProfile && now >= userProfile.trialEndsAt) {
+          await tx.profile.update({
+            where: { userId: request.userId },
+            data: { plan: PlanType.trial },
+          });
+        }
+      }
     });
 
     const rejectedRequest = await prisma.paymentRequest.findUnique({
@@ -350,6 +389,37 @@ export async function updateUserRoleManually(targetUserId: string, newRole: User
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal merubah role pengguna';
+    return { success: false, error: message };
+  }
+}
+
+export async function resetUserFinancialDataByAdmin(targetUserId: string) {
+  try {
+    const { user, profile } = await requireUser(true);
+
+    if (profile.role !== 'admin') {
+      throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string') {
+      throw new Error('Target pengguna tidak valid.');
+    }
+
+    const res = await executeFinancialDataReset(targetUserId, {
+      userId: user.uid,
+      role: 'admin',
+    });
+
+    revalidatePath('/norden-control-center');
+    revalidatePath('/dashboard');
+
+    return {
+      success: true,
+      targetName: res.targetName,
+      counts: res.counts,
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal mereset data keuangan pengguna';
     return { success: false, error: message };
   }
 }

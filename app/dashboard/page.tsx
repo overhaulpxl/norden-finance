@@ -36,7 +36,10 @@ export default async function DashboardPage() {
       profile: {
         role: 'user',
         plan: 'trial',
+        effectivePlan: 'TRIAL',
         trialEndsAt: '',
+        proExpiredAt: null,
+        hasPendingPayment: false,
         onboardingCompleted: true,
         fullName: null,
       },
@@ -72,8 +75,11 @@ export default async function DashboardPage() {
     id: user.uid,
     email: user.email || '',
     plan: data.profile.plan as 'trial' | 'pro',
+    effectivePlan: data.profile.effectivePlan || (data.profile.plan === 'pro' ? 'PRO_ACTIVE' : 'TRIAL'),
     fullName: data.profile.fullName || undefined,
     trialEndsAt: data.profile.trialEndsAt || null,
+    proExpiredAt: data.profile.proExpiredAt || null,
+    hasPendingPayment: Boolean(data.profile.hasPendingPayment),
     role: data.profile.role,
   };
 

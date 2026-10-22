@@ -11,10 +11,10 @@ export default function BrandLogo({ variant = 'horizontal', className = '', prio
 
   return (
     <Image
-      src={isIcon ? '/brand/norden-icon.svg?v=2' : '/brand/norden-horizontal.svg?v=2'}
+      src={isIcon ? '/brand/norden-icon.png?v=3' : '/brand/norden-horizontal.png?v=3'}
       alt={isIcon ? 'Norden Finance' : 'Norden Finance logo'}
-      width={isIcon ? 755 : 1030}
-      height={isIcon ? 755 : 360}
+      width={isIcon ? 697 : 523}
+      height={isIcon ? 697 : 191}
       priority={priority}
       unoptimized
       className={`object-contain ${className}`}

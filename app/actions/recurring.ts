@@ -5,6 +5,7 @@ import { prisma } from '../../lib/prisma';
 import { requireUser } from '../../lib/auth';
 import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertPositiveInt } from '../../lib/validators';
+import { getUserEntitlement } from '../../lib/entitlements';
 import type { TransactionType } from '../../types';
 import type { Prisma } from '@prisma/client';
 
@@ -156,46 +157,68 @@ export async function processDueRecurringTransactions(limit = 50) {
   });
 
   let createdCount = 0;
+  let skippedCount = 0;
+  let failedCount = 0;
+
   for (const rule of dueRules) {
-    await prisma.$transaction(async (tx) => {
-      const [category, wallet] = await Promise.all([
-        resolveCategory(tx, rule.userId, rule.categoryName, rule.type as TransactionType),
-        resolveWallet(tx, rule.userId, rule.walletName),
-      ]);
-
-      await tx.transaction.create({
-        data: {
-          userId: rule.userId,
-          categoryId: category.id,
-          walletId: wallet.id,
-          type: rule.type,
-          amount: rule.amount,
-          note: rule.note || `Recurring: ${rule.name}`,
-          tags: rule.tags,
-          rawInput: `recurring:${rule.id}`,
-          transactionDate: now,
-        },
-      });
-
-      await tx.balance.update({
-        where: { id: wallet.id },
-        data: {
-          currentBalance: {
-            increment: rule.type === 'masuk' ? rule.amount : -rule.amount,
+    try {
+      // Re-evaluate user entitlement at execution time.
+      // Pro automation rules must not run for users who have fallen back to Free Basic.
+      const entitlement = await getUserEntitlement(rule.userId);
+      if (!entitlement.canAccessProFeatures) {
+        await prisma.recurringTransaction.update({
+          where: { id: rule.id },
+          data: {
+            nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
           },
-        },
-      });
+        });
+        skippedCount += 1;
+        continue;
+      }
 
-      await tx.recurringTransaction.update({
-        where: { id: rule.id },
-        data: {
-          lastRunAt: now,
-          nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
-        },
+      await prisma.$transaction(async (tx) => {
+        const [category, wallet] = await Promise.all([
+          resolveCategory(tx, rule.userId, rule.categoryName, rule.type as TransactionType),
+          resolveWallet(tx, rule.userId, rule.walletName),
+        ]);
+
+        await tx.transaction.create({
+          data: {
+            userId: rule.userId,
+            categoryId: category.id,
+            walletId: wallet.id,
+            type: rule.type,
+            amount: rule.amount,
+            note: rule.note || `Recurring: ${rule.name}`,
+            tags: rule.tags,
+            rawInput: `recurring:${rule.id}`,
+            transactionDate: now,
+          },
+        });
+
+        await tx.balance.update({
+          where: { id: wallet.id },
+          data: {
+            currentBalance: {
+              increment: rule.type === 'masuk' ? rule.amount : -rule.amount,
+            },
+          },
+        });
+
+        await tx.recurringTransaction.update({
+          where: { id: rule.id },
+          data: {
+            lastRunAt: now,
+            nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
+          },
+        });
       });
-    });
-    createdCount += 1;
+      createdCount += 1;
+    } catch (err: unknown) {
+      console.error(`Failed to process recurring rule ${rule.id} for user ${rule.userId}:`, err);
+      failedCount += 1;
+    }
   }
 
-  return { success: true, createdCount };
+  return { success: true, processedCount: dueRules.length, createdCount, skippedCount, failedCount };
 }

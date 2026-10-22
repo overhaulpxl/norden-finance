@@ -3,8 +3,13 @@ import { getAdminAuth } from '../../../../lib/firebaseAdmin';
 import { prisma } from '../../../../lib/prisma';
 import { SESSION_CONFIG } from '../../../../lib/auth';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
-import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
-import { getTrialDays } from '../../../../lib/data/loaders';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 import { sendVerificationEmail } from '../../../../lib/authEmail';
 
 /**
@@ -37,10 +42,9 @@ export async function POST(request: NextRequest) {
 
     if (!existingProfile) {
       const now = new Date();
-      const trialDays = await getTrialDays();
-      const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
 
-      // Create Profile + BillingSubscription in a transaction
+      // Create Profile + BillingSubscription in a transaction.
+      // Trial begins ONLY when onboarding is completed in completeOnboarding.
       await prisma.$transaction([
         prisma.profile.create({
           data: {
@@ -50,16 +54,16 @@ export async function POST(request: NextRequest) {
             plan: 'trial',
             onboardingCompleted: false,
             trialStartedAt: now,
-            trialEndsAt,
+            trialEndsAt: now,
           },
         }),
         prisma.billingSubscription.create({
           data: {
             userId,
             plan: 'trial',
-            status: 'trial',
+            status: 'onboarding',
             startedAt: now,
-            expiredAt: trialEndsAt,
+            expiredAt: now,
           },
         }),
       ]);
@@ -107,6 +111,15 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     console.error('Registration error:', error);
     const message = error instanceof Error ? error.message : 'Registration failed';
     return NextResponse.json(

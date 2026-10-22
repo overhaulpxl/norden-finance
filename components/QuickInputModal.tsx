@@ -35,7 +35,7 @@ export default function QuickInputModal({
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<'quick' | 'manual'>('quick');
-  
+
   // Quick/Chat mode states
   const [input, setInput] = useState('');
   const [scanning, setScanning] = useState(false);
@@ -155,7 +155,7 @@ export default function QuickInputModal({
           const wallet = res.walletName || 'Cash';
           const category = res.result.category || 'Lain-lain';
           aiText = `✅ Berhasil mencatat ${item} sebesar ${formattedAmount}. Dompet: ${wallet}. Kategori: ${category}.`;
-          
+
           if ('transactionId' in res && typeof res.transactionId === 'string') {
             txId = res.transactionId;
           }
@@ -294,7 +294,7 @@ export default function QuickInputModal({
       return;
     }
     const tagsArray = mTags.split(' ').map(t => t.replace('#', '').trim()).filter(Boolean);
-    
+
     if (mType === 'transfer') {
       res = await addTransferTransaction(amount, currentMethod, currentToMethod, mNote, tagsArray);
     } else {
@@ -330,7 +330,7 @@ export default function QuickInputModal({
         : 'wallet';
 
       setMAmount(''); setMCategory(''); setMNote(''); setMTags(''); setMToMethod(''); setIsRecurring(false);
-      
+
       if (transactionId) {
         setUndoTxId(transactionId);
         setMessage({ type: 'success', text: 'Transaksi berhasil ditambahkan.' });
@@ -347,51 +347,51 @@ export default function QuickInputModal({
     } else {
       setMessage({ type: 'error', text: res.error || 'Gagal menyimpan' });
     }
-    
+
     setLoading(false);
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 select-none">
-      <div className="bg-white border-[3px] border-black w-full max-w-md overflow-hidden rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200">
+      <div className="bg-white border-[3px] border-black w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 border-b-[3px] border-black flex justify-between items-center bg-white">
-          <h2 className="font-black text-black text-base uppercase tracking-wider">Tambah Transaksi</h2>
-          <button onClick={onClose} className="p-1.5 text-neutral-400 hover:text-black hover:bg-neutral-50 rounded-none transition-colors cursor-pointer border border-transparent hover:border-black">
+        <div className="px-6 py-4 border-b-[3px] border-black flex justify-between items-center bg-white shrink-0">
+          <h2 className="font-black text-black text-base uppercase tracking-wider">Catat Transaksi</h2>
+          <button onClick={onClose} aria-label="Tutup modal" className="p-1.5 text-neutral-400 hover:text-black hover:bg-neutral-50 rounded-none transition-colors cursor-pointer border border-transparent hover:border-black">
             <X className="w-5 h-5 stroke-[2.5px]" />
           </button>
         </div>
-        
+
         {/* Tabs */}
-        <div className="flex border-b-[3px] border-black bg-[#f3f4f6]">
-          <button 
+        <div className="flex border-b-[3px] border-black bg-[#f3f4f6] shrink-0">
+          <button
             type="button"
-            onClick={() => setMode('quick')} 
+            onClick={() => setMode('quick')}
             className={`flex-1 py-3 text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-r-[3px] border-black ${
               mode === 'quick' ? 'bg-white text-black font-black' : 'text-neutral-500 hover:bg-neutral-50'
             }`}
           >
-            Input Cepat (Chat AI)
+            Smart Input (Cepat)
           </button>
-          <button 
+          <button
             type="button"
-            onClick={() => setMode('manual')} 
+            onClick={() => setMode('manual')}
             className={`flex-1 py-3 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
               mode === 'manual' ? 'bg-white text-black font-black' : 'text-neutral-500 hover:bg-neutral-50'
             }`}
           >
-            Form Manual
+            Formulir Manual
           </button>
         </div>
-        
+
         {/* Tab Content */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1">
           {mode === 'quick' ? (
             <div className="space-y-4">
               {/* Chat-style log */}
               <div className="h-[260px] bg-[#E5DDD5] border-[3px] border-black p-4 overflow-y-auto flex flex-col gap-3.5 relative">
                 <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(black 1px, transparent 0)', backgroundSize: '16px 16px' }} />
-                
+
                 {chatMessages.map(msg => (
                   <div
                     key={msg.id}
@@ -405,7 +405,7 @@ export default function QuickInputModal({
                         {msg.sender === 'user' ? 'Anda' : 'Norden AI'}
                       </span>
                       <p className="text-[10px] font-bold text-black leading-snug whitespace-pre-line">{msg.text}</p>
-                      
+
                       {msg.txId && (
                         <button
                           type="button"
@@ -418,7 +418,7 @@ export default function QuickInputModal({
                     </div>
                   </div>
                 ))}
-                
+
                 {loading && (
                   <div className="self-start bg-white border-[2px] border-black p-2.5 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-1.5 items-center z-10">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
@@ -464,13 +464,13 @@ export default function QuickInputModal({
                 }}
                 className="flex gap-2 items-center"
               >
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" 
-                  className="hidden" 
-                  ref={fileInputRef} 
-                  onChange={handleFileUpload} 
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
                 />
                 <button
                   type="button"
@@ -481,7 +481,7 @@ export default function QuickInputModal({
                 >
                   {scanning ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : <Camera className="w-4 h-4 text-black stroke-[2.5px]" />}
                 </button>
-                
+
                 <div className="flex-1 flex border-[2.5px] border-black bg-white p-1 shadow-[2.5px_2.5px_0px_0px_#000] items-center">
                   <input
                     type="text"
@@ -525,7 +525,7 @@ export default function QuickInputModal({
                     <WalletSelect wallets={balances} value={currentMethod} onChange={setMMethod} className="brutal-input text-xs uppercase font-bold" required />
                   </div>
                 </div>
-                
+
                 {mType === 'transfer' ? (
                   <div>
                     <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Ke Wallet</label>
@@ -552,7 +552,7 @@ export default function QuickInputModal({
                   </label>
                 )}
               </div>
-              
+
               <button
                 type="submit"
                 disabled={loading}

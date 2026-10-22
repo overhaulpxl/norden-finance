@@ -32,9 +32,12 @@ export async function getDashboardData() {
       profile: {
         role: fallbackProfile?.role || 'user',
         plan: fallbackProfile?.plan || 'trial',
+        effectivePlan: 'TRIAL',
         trialEndsAt: fallbackProfile?.trialEndsAt.toISOString() || '',
+        proExpiredAt: null as string | null,
         onboardingCompleted: fallbackProfile?.onboardingCompleted ?? true,
         fullName: fallbackProfile?.fullName || null,
+        hasPendingPayment: false,
       },
       dataError: 'Data dashboard sedang tidak lengkap karena database tidak dapat dibaca.',
     };

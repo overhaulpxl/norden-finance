@@ -5,6 +5,8 @@ import { prisma } from '../../lib/prisma';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { buildShortcutEndpoint, getShortcutEndpointForUser, signShortcutToken } from '../../lib/shortcutToken';
+import { executeFinancialDataReset } from '../../lib/financialReset';
+import { getTrialDays } from '../../lib/data/loaders';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -22,15 +24,43 @@ export async function completeOnboarding(data: {
       throw new Error('Saldo awal tidak valid');
     }
 
-    await prisma.$transaction([
-      prisma.profile.update({
+    const currentProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { onboardingCompleted: true, trialStartedAt: true, trialEndsAt: true },
+    });
+
+    if (!currentProfile) {
+      throw new Error('Profil pengguna tidak ditemukan.');
+    }
+
+    // Trial starts ONLY upon completing onboarding for the first time
+    const shouldActivateTrial = !currentProfile.onboardingCompleted;
+    const now = new Date();
+    const trialDays = await getTrialDays();
+    const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.profile.update({
         where: { userId },
         data: {
           fullName: data.fullName.trim(),
           onboardingCompleted: true,
+          ...(shouldActivateTrial ? { trialStartedAt: now, trialEndsAt } : {}),
         },
-      }),
-      prisma.balance.upsert({
+      });
+
+      if (shouldActivateTrial) {
+        await tx.billingSubscription.updateMany({
+          where: { userId, plan: 'trial' },
+          data: {
+            startedAt: now,
+            expiredAt: trialEndsAt,
+            status: 'trial',
+          },
+        });
+      }
+
+      await tx.balance.upsert({
         where: { userId_name: { userId, name: walletName } },
         update: { currentBalance: data.openingBalance },
         create: {
@@ -39,8 +69,8 @@ export async function completeOnboarding(data: {
           type: walletName === 'CASH' ? 'cash' : 'bank',
           currentBalance: data.openingBalance,
         },
-      }),
-    ]);
+      });
+    });
 
     revalidatePath('/dashboard');
     revalidatePath('/onboarding');
@@ -48,6 +78,23 @@ export async function completeOnboarding(data: {
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal menyelesaikan onboarding';
+    return { success: false, error: message };
+  }
+}
+
+export async function resetUserFinancialData() {
+  try {
+    const { user } = await requireUser(false);
+    const res = await executeFinancialDataReset(user.uid, {
+      userId: user.uid,
+      role: 'user',
+    });
+
+    revalidatePath('/dashboard');
+    revalidatePath('/settings');
+    return { success: true, counts: res.counts };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal mereset data keuangan';
     return { success: false, error: message };
   }
 }

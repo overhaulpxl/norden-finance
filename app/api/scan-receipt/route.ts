@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { assertSameOrigin } from '../../../lib/requestSecurity';
-import { assertRateLimit, rateLimitKey } from '../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../lib/rateLimit';
+import { requireUser } from '../../../lib/auth';
 
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
     await assertRateLimit(rateLimitKey(req, 'scan-receipt'), 10, 60_000);
+    await requireUser('pro');
     const formData = await req.formData();
     const file = formData.get('image') as File | null;
     
@@ -87,6 +95,15 @@ Jika gambar bukan struk, kembalikan:
       note: parsedData.note ? String(parsedData.note).slice(0, 160) : (parsedData.merchant || 'Struk'),
     });
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     console.error('Gemini API Error:', error);
     const message = error instanceof Error ? error.message : 'Gagal menganalisis gambar';
     return NextResponse.json({ error: message }, { status: 500 });

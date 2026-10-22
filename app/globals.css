@@ -59,6 +59,13 @@
     box-shadow: 6px 6px 0px 0px #000000;
     transform: translate(-1px, -1px);
   }
+
+  .brutal-card-static {
+    background-color: #ffffff;
+    border: 3px solid #000000;
+    border-radius: 0px !important;
+    box-shadow: 4px 4px 0px 0px #000000;
+  }
   
   .brutal-btn {
     background-color: #000000;
@@ -85,6 +92,10 @@
     transform: translate(3px, 3px);
     box-shadow: none;
   }
+  .brutal-btn:focus-visible {
+    outline: 3px solid #000000;
+    outline-offset: 3px;
+  }
   
   .brutal-btn-light {
     background-color: #ffffff;
@@ -106,10 +117,87 @@
   .brutal-btn-light:hover {
     transform: translate(1px, 1px);
     box-shadow: 2px 2px 0px 0px #000000;
+    background-color: #f8fafc;
   }
   .brutal-btn-light:active {
     transform: translate(3px, 3px);
     box-shadow: none;
+  }
+  .brutal-btn-light:focus-visible {
+    outline: 3px solid #000000;
+    outline-offset: 3px;
+  }
+
+  .brutal-btn-accent {
+    background-color: #FFE066;
+    color: #000000;
+    border: 2.5px solid #000000;
+    border-radius: 0px !important;
+    padding: 0.625rem 1.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 3.5px 3.5px 0px 0px #000000;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .brutal-btn-accent:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px 0px #000000;
+    background-color: #fde047;
+  }
+  .brutal-btn-accent:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
+  }
+  .brutal-btn-accent:focus-visible {
+    outline: 3px solid #000000;
+    outline-offset: 3px;
+  }
+
+  .brutal-btn-danger {
+    background-color: #dc2626;
+    color: #ffffff;
+    border: 2.5px solid #000000;
+    border-radius: 0px !important;
+    padding: 0.625rem 1.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 3.5px 3.5px 0px 0px #000000;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .brutal-btn-danger:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px 0px #000000;
+    background-color: #b91c1c;
+  }
+  .brutal-btn-danger:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
+  }
+  .brutal-btn-danger:focus-visible {
+    outline: 3px solid #000000;
+    outline-offset: 3px;
+  }
+
+  .brutal-btn:disabled,
+  .brutal-btn-light:disabled,
+  .brutal-btn-accent:disabled,
+  .brutal-btn-danger:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: 2px 2px 0px 0px #000000 !important;
   }
 
   .brutal-input {
@@ -128,30 +216,52 @@
     box-shadow: 4px 4px 0px 0px #000000;
     transform: translate(-1.5px, -1.5px);
   }
+  .brutal-input:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+  }
 
-  .glass-card {
-    background-color: #ffffff;
-    border: 2.5px solid #000000;
+  .brutal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.625rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 2px solid #000000;
     border-radius: 0px !important;
-    box-shadow: 4px 4px 0px 0px #000000;
-    transition: all 0.15s ease-in-out;
+    box-shadow: 1.5px 1.5px 0px 0px #000000;
+    line-height: 1;
+    white-space: nowrap;
   }
-  
-  .glass-input {
-    width: 100%;
-    background-color: #ffffff;
+
+  .brutal-badge-yellow {
+    background-color: #FFE066;
     color: #000000;
-    border: 2.5px solid #000000;
-    border-radius: 0px !important;
-    padding: 0.625rem 1.25rem;
-    font-weight: 700;
-    outline: none;
-    box-shadow: 2.5px 2.5px 0px 0px #000000;
-    transition: all 0.15s ease-in-out;
   }
-  .glass-input:focus {
-    box-shadow: 4px 4px 0px 0px #000000;
-    transform: translate(-1.5px, -1.5px);
+
+  .brutal-badge-mint {
+    background-color: #bbf7d0;
+    color: #064e3b;
+  }
+
+  .brutal-badge-coral {
+    background-color: #fecaca;
+    color: #7f1d1d;
+  }
+
+  .brutal-badge-blue {
+    background-color: #bfdbfe;
+    color: #1e3a8a;
+  }
+
+  .brutal-badge-neutral {
+    background-color: #e5e5e5;
+    color: #171717;
   }
 
   @media (prefers-reduced-motion: reduce) {

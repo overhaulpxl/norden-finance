@@ -286,6 +286,9 @@ export async function completeOnboarding(data: {
 }) {
   return userActions.completeOnboarding(data);
 }
+export async function resetUserFinancialData() {
+  return userActions.resetUserFinancialData();
+}
 export async function deleteUserAccountData() {
   return userActions.deleteUserAccountData();
 }

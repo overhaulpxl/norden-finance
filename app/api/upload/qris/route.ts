@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireUser } from '../../../../lib/auth';
-import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
 import { getSignedUrl, uploadFile } from '../../../../lib/storage';
 
@@ -41,6 +47,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, imageUrl });
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     const message = error instanceof Error ? error.message : 'Gagal mengunggah QRIS';
     return NextResponse.json({ error: message }, { status: 400 });
   }

@@ -1,21 +1,37 @@
 import { NextResponse } from 'next/server';
 import { processDueRecurringTransactions } from '../../../actions/recurring';
+import { verifyCronAuthorization } from '../../../../lib/cronAuth';
+import { cleanupExpiredRateLimits } from '../../../../lib/rateLimit';
 
-export async function POST(request: Request) {
-  const expectedSecret = process.env.CRON_SECRET;
-  const providedSecret = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-
-  if (!expectedSecret || providedSecret !== expectedSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+async function handleCron(request: Request) {
+  const authCheck = verifyCronAuthorization(request);
+  if (!authCheck.authorized) {
+    return authCheck.response!;
   }
 
-  const result = await processDueRecurringTransactions();
-  return NextResponse.json(result);
+  // 1. Process recurring financial transactions
+  const recurringResult = await processDueRecurringTransactions();
+
+  // 2. Perform bounded rate-limit bucket cleanup (24-hour buffer)
+  let rateLimitCleanup: { deletedCount: number } | { error: string } = { deletedCount: 0 };
+  try {
+    rateLimitCleanup = await cleanupExpiredRateLimits();
+  } catch (cleanupError: unknown) {
+    const errorMsg = cleanupError instanceof Error ? cleanupError.message : 'Cleanup failed';
+    console.error('Rate limit bucket cleanup error:', errorMsg);
+    rateLimitCleanup = { error: errorMsg };
+  }
+
+  return NextResponse.json({
+    ...recurringResult,
+    rateLimitCleanup,
+  });
 }
 
-export async function GET() {
-  return NextResponse.json(
-    { error: 'Use POST with Authorization: Bearer <CRON_SECRET>.' },
-    { status: 405 }
-  );
+export async function GET(request: Request) {
+  return handleCron(request);
+}
+
+export async function POST(request: Request) {
+  return handleCron(request);
 }

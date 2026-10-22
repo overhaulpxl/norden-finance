@@ -7,6 +7,7 @@ import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertValidDate } from '../../lib/validators';
 import { getAdminAuth } from '../../lib/firebaseAdmin';
 import { sendEmail } from '../../lib/email';
+import { getUserEntitlement } from '../../lib/entitlements';
 
 const CHANNELS = new Set(['in_app', 'email']);
 
@@ -114,6 +115,19 @@ export async function processDueEmailReminders(limit = 50) {
 
   for (const reminder of dueReminders) {
     try {
+      const entitlement = await getUserEntitlement(reminder.userId);
+      if (!entitlement.canAccessProFeatures) {
+        await prisma.reminder.update({
+          where: { id: reminder.id },
+          data: {
+            emailLastError: 'Pengiriman email membutuhkan langganan Norden Pro aktif.',
+            emailAttemptCount: { increment: 1 },
+          },
+        });
+        failedCount += 1;
+        continue;
+      }
+
       const firebaseUser = await getAdminAuth().getUser(reminder.userId);
       if (!firebaseUser.email) {
         throw new Error('User email is not available from Firebase Auth');

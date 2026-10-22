@@ -1,4 +1,5 @@
 import type { Balance } from '../../types';
+import { CANONICAL_ALIASES, CANONICAL_WALLET_DISPLAY } from '../constants';
 
 type WalletLike = Pick<Balance, 'id' | 'name' | 'archivedAt'>;
 
@@ -9,38 +10,9 @@ export type WalletMatch = {
   source: 'input' | 'ai' | 'fallback';
 };
 
-const CANONICAL_ALIASES: Record<string, string[]> = {
-  gopay: ['gopay', 'go pay', 'go-pay'],
-  bni: ['bni', 'bank bni'],
-  bca: ['bca', 'bank bca'],
-  dana: ['dana'],
-  ovo: ['ovo'],
-  cash: ['cash', 'tunai', 'uang tunai'],
-  shopeepay: ['shopeepay', 'shopee pay', 'shopee-pay', 'spay'],
-  seabank: ['seabank', 'sea bank', 'sea-bank'],
-  jago: ['jago', 'bank jago'],
-  blu: ['blu', 'bank blu'],
-  paypal: ['paypal', 'pay pal'],
-  linkaja: ['linkaja', 'link aja', 'link-aja'],
-};
-
 function displayCanonicalWalletName(value: string) {
   const normalized = normalizeWalletName(value);
-  const display: Record<string, string> = {
-    gopay: 'GoPay',
-    bni: 'BNI',
-    bca: 'BCA',
-    dana: 'DANA',
-    ovo: 'OVO',
-    cash: 'Cash',
-    shopeepay: 'ShopeePay',
-    seabank: 'SeaBank',
-    jago: 'Jago',
-    blu: 'blu',
-    paypal: 'PayPal',
-    linkaja: 'LinkAja',
-  };
-  return display[normalized] || value;
+  return CANONICAL_WALLET_DISPLAY[normalized] || value;
 }
 
 export function normalizeText(value: string) {
@@ -110,10 +82,11 @@ function findAliasIndex(input: string, alias: string) {
   const spacedIndex = ` ${normalizedInput} `.indexOf(` ${normalizedAlias} `);
   if (spacedIndex >= 0) return Math.max(0, spacedIndex);
 
-  const compactInput = normalizeWalletName(input);
-  const compactAlias = normalizeWalletName(alias);
-  const compactIndex = compactInput.indexOf(compactAlias);
-  return compactIndex >= 0 ? compactIndex : -1;
+  // If not space-delimited, only match when bounded by non-alphabetic chars (e.g. "gopay50k" matches, but "perdana" does not)
+  const escaped = normalizedAlias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const boundedRegex = new RegExp(`(?<![a-z])${escaped}(?![a-z])`, 'i');
+  const match = normalizedInput.match(boundedRegex);
+  return match && match.index !== undefined ? match.index : -1;
 }
 
 export function detectWalletsFromInput(input: string, wallets: WalletLike[]): WalletMatch[] {
@@ -219,8 +192,37 @@ export function resolveTransferWalletsFromInput(input: string, wallets: WalletLi
   const matches = detectWalletsFromInput(input, wallets);
   if (matches.length < 2) return null;
 
-  return {
-    from: matches[0],
-    to: matches.find((match) => match.wallet.id !== matches[0].wallet.id) || null,
-  };
+  const lower = ' ' + normalizeText(input) + ' ';
+
+  // Check if any matched wallet explicitly follows 'ke' or 'to'
+  let toMatch: WalletMatch | null = null;
+  let fromMatch: WalletMatch | null = null;
+
+  for (const match of matches) {
+    const aliasNorm = normalizeText(match.alias);
+    if (new RegExp(`\\s(?:ke|to)\\s+${aliasNorm}\\s`, 'i').test(lower)) {
+      toMatch = match;
+      break;
+    }
+  }
+
+  for (const match of matches) {
+    const aliasNorm = normalizeText(match.alias);
+    if (new RegExp(`\\s(?:dari|from|pakai)\\s+${aliasNorm}\\s`, 'i').test(lower)) {
+      fromMatch = match;
+      break;
+    }
+  }
+
+  if (toMatch && !fromMatch) {
+    fromMatch = matches.find((m) => m.wallet.id !== toMatch!.wallet.id) || null;
+  } else if (fromMatch && !toMatch) {
+    toMatch = matches.find((m) => m.wallet.id !== fromMatch!.wallet.id) || null;
+  } else if (!fromMatch && !toMatch) {
+    fromMatch = matches[0];
+    toMatch = matches.find((m) => m.wallet.id !== matches[0].wallet.id) || null;
+  }
+
+  if (!fromMatch || !toMatch) return null;
+  return { from: fromMatch, to: toMatch };
 }

@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import { processInput } from '../../actions';
 import { assertSameOrigin } from '../../../lib/requestSecurity';
-import { assertRateLimit, rateLimitKey } from '../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../lib/rateLimit';
 
 type ProcessResult = Awaited<ReturnType<typeof processInput>>;
 
@@ -33,6 +39,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ error: getError(result) }, { status: 400 });
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

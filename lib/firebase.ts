@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
 
@@ -25,6 +25,17 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+// Connect client to Auth Emulator only in development when explicitly enabled
+if (
+  process.env.NODE_ENV !== 'production' &&
+  process.env.NEXT_PUBLIC_USE_FIREBASE_AUTH_EMULATOR === 'true'
+) {
+  const emulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || 'http://127.0.0.1:9099';
+  if (!(auth as { emulatorConfig?: unknown }).emulatorConfig) {
+    connectAuthEmulator(auth, emulatorHost, { disableWarnings: true });
+  }
+}
 
 export let analytics: Analytics | undefined;
 if (typeof window !== 'undefined') {
