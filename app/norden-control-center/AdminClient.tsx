@@ -438,15 +438,24 @@ export default function AdminClient({
         method: 'POST',
         body: formData,
       });
-      const uploadData = await uploadResponse.json();
+      const uploadData = await uploadResponse.json().catch(() => ({}));
       if (!uploadResponse.ok || !uploadData.imageUrl) {
         throw new Error(uploadData.error || 'Gagal mengunggah QRIS.');
       }
       setQrisImage(uploadData.imageUrl);
-      setSuccess('Gambar QRIS berhasil diunggah ke Firebase Storage! Klik Simpan untuk memperbarui pengaturan.');
-    } catch (err: any) {
-      console.error(err);
-      setError('Gagal mengunggah gambar QRIS. Pastikan Firebase Storage aktif dan coba lagi.');
+      setSuccess('Gambar QRIS berhasil diunggah! Klik Simpan untuk memperbarui pengaturan.');
+    } catch (err: unknown) {
+      console.error('QRIS upload error:', err);
+      const rawMessage = err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+      if (
+        rawMessage.includes('SUPABASE_SECRET_KEY') ||
+        rawMessage.includes('SUPABASE_SERVICE_ROLE_KEY') ||
+        rawMessage.includes('SUPABASE_URL')
+      ) {
+        setError('Konfigurasi Supabase Storage belum lengkap pada deployment ini. Pastikan environment variables Supabase terpasang di Vercel.');
+      } else {
+        setError('Gagal mengunggah gambar QRIS. Periksa koneksi dan coba lagi.');
+      }
     } finally {
       setUpdatingSettings(false);
     }
