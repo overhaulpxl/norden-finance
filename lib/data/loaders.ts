@@ -4,6 +4,7 @@ import { PaymentStatus, PlanType, type PrismaClient } from '@prisma/client';
 import { prisma } from '../prisma';
 import { syncAchievements } from '../achievements';
 import { DEFAULT_MONTHLY_PRICE, DEFAULT_PRICING, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../constants';
+import { getUserEntitlement } from '../entitlements';
 
 const INDONESIAN_MONTHS = [
   'Januari',
@@ -223,7 +224,10 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     }),
   ]);
 
-  const achievements = await syncAchievements(db, userId);
+  const [achievements, entitlement] = await Promise.all([
+    syncAchievements(db, userId),
+    getUserEntitlement(userId),
+  ]);
 
   return {
     transactions,
@@ -242,10 +246,13 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     achievements,
     profile: {
       role: profile.role,
-      plan: profile.plan,
-      trialEndsAt: profile.trialEndsAt.toISOString(),
+      plan: entitlement.isPro ? 'pro' : 'trial',
+      effectivePlan: entitlement.effectivePlan,
+      trialEndsAt: entitlement.effectivePlan === 'TRIAL' ? entitlement.trialEndsAt.toISOString() : null,
+      proExpiredAt: entitlement.proExpiredAt?.toISOString() || null,
       onboardingCompleted: profile.onboardingCompleted,
       fullName: profile.fullName,
+      hasPendingPayment: entitlement.hasPendingPayment,
     },
     dataError: null as string | null,
   };
@@ -574,7 +581,15 @@ export async function getPaymentSettings(db: Db = prisma) {
   const bcaHolder = settingsMap.get('bca_holder') || '';
   const bniNumber = settingsMap.get('bni_number') || '';
   const bniHolder = settingsMap.get('bni_holder') || '';
-  const qrisImage = settingsMap.get('qris_image') || '';
+  let qrisImage = settingsMap.get('qris_image') || '';
+  if (qrisImage.startsWith('qris/')) {
+    try {
+      const { getPublicUrl } = await import('../storage');
+      qrisImage = getPublicUrl(qrisImage);
+    } catch {
+      // keep original if resolution fails
+    }
+  }
 
   return {
     bca_number: bcaNumber,

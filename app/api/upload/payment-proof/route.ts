@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireUser } from '../../../../lib/auth';
-import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
 import { getSignedUrl, uploadFile } from '../../../../lib/storage';
 
@@ -33,10 +39,28 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now()}_${safeFileName(file.name)}`;
     const storagePath = await uploadFile(`payment-proofs/${user.uid}`, fileName, buffer, file.type);
-    const proofUrl = await getSignedUrl(storagePath, 60 * 24 * 30);
+    let previewUrl: string | null = null;
+    try {
+      previewUrl = await getSignedUrl(storagePath, 60);
+    } catch {
+      // previewUrl is optional for immediate client confirmation
+    }
 
-    return NextResponse.json({ success: true, proofPath: proofUrl });
+    return NextResponse.json({
+      success: true,
+      proofPath: storagePath,
+      previewUrl,
+    });
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     const message = error instanceof Error ? error.message : 'Gagal mengunggah bukti pembayaran';
     return NextResponse.json({ error: message }, { status: 400 });
   }

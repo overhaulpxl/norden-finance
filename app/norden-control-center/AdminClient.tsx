@@ -7,7 +7,7 @@ import {
   ArrowLeft, Check, X, Eye, Loader2, MessageSquare, 
   Users, CreditCard, Search, Activity, Heart, Wallet, Target,
   DollarSign, TrendingUp, HelpCircle, Star, Calendar, RefreshCw,
-  Upload, Sliders, Trash2
+  Upload, Sliders, Trash2, RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
 import BrandLogo from '../../components/BrandLogo';
@@ -17,6 +17,7 @@ import {
   updateUserPlanManually, 
   updateUserRoleManually,
   deleteUserAccountByAdmin,
+  resetUserFinancialDataByAdmin,
   updateFeedbackStatus,
   updatePaymentSettings,
   updatePricingSettings
@@ -175,6 +176,9 @@ export default function AdminClient({
   const [customDays, setCustomDays] = useState('30');
   const [deleteModalUser, setDeleteModalUser] = useState<UserProfileItem | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [resetModalUser, setResetModalUser] = useState<UserProfileItem | null>(null);
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -361,6 +365,34 @@ export default function AdminClient({
     }
   };
 
+  const handleResetUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetModalUser) return;
+    if (resetConfirmText !== 'RESET KEUANGAN') {
+      setError('Ketik RESET KEUANGAN untuk mengonfirmasi reset data keuangan pengguna.');
+      return;
+    }
+
+    setResetLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await resetUserFinancialDataByAdmin(resetModalUser.userId);
+      if (res.success) {
+        setSuccess(`Data keuangan pengguna "${res.targetName || resetModalUser.fullName}" berhasil di-reset.`);
+        setResetModalUser(null);
+        setResetConfirmText('');
+      } else {
+        setError(res.error || 'Gagal mereset data keuangan pengguna.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan sistem.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleToggleFeedback = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'reviewed' ? 'open' : 'reviewed';
     setLoadingId(id);
@@ -406,15 +438,24 @@ export default function AdminClient({
         method: 'POST',
         body: formData,
       });
-      const uploadData = await uploadResponse.json();
+      const uploadData = await uploadResponse.json().catch(() => ({}));
       if (!uploadResponse.ok || !uploadData.imageUrl) {
         throw new Error(uploadData.error || 'Gagal mengunggah QRIS.');
       }
       setQrisImage(uploadData.imageUrl);
-      setSuccess('Gambar QRIS berhasil diunggah ke Firebase Storage! Klik Simpan untuk memperbarui pengaturan.');
-    } catch (err: any) {
-      console.error(err);
-      setError('Gagal mengunggah gambar QRIS. Pastikan Firebase Storage aktif dan coba lagi.');
+      setSuccess('Gambar QRIS berhasil diunggah! Klik Simpan untuk memperbarui pengaturan.');
+    } catch (err: unknown) {
+      console.error('QRIS upload error:', err);
+      const rawMessage = err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+      if (
+        rawMessage.includes('SUPABASE_SECRET_KEY') ||
+        rawMessage.includes('SUPABASE_SERVICE_ROLE_KEY') ||
+        rawMessage.includes('SUPABASE_URL')
+      ) {
+        setError('Konfigurasi Supabase Storage belum lengkap pada deployment ini. Pastikan environment variables Supabase terpasang di Vercel.');
+      } else {
+        setError('Gagal mengunggah gambar QRIS. Periksa koneksi dan coba lagi.');
+      }
     } finally {
       setUpdatingSettings(false);
     }
@@ -775,16 +816,20 @@ export default function AdminClient({
                             <button
                               onClick={() => handleApprove(req.id)}
                               disabled={loadingId !== null}
-                              className="p-1.5 border-[2px] border-black bg-[#bbf7d0] hover:bg-emerald-200 disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-[#bbf7d0] hover:bg-emerald-200 disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                              title="Setujui pembayaran dan aktifkan paket Pro"
                             >
-                              {loadingId === req.id ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : <Check className="w-4 h-4 text-black stroke-[3px]" />}
+                              {loadingId === req.id ? <Loader2 className="w-3.5 h-3.5 animate-spin text-black" /> : <Check className="w-3.5 h-3.5 text-black stroke-[3px]" />}
+                              <span>Setujui</span>
                             </button>
                             <button
                               onClick={() => setRejectId(req.id)}
                               disabled={loadingId !== null}
-                              className="p-1.5 border-[2px] border-black bg-red-100 hover:bg-red-200 disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-red-100 hover:bg-red-200 text-red-800 disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                              title="Tolak pembayaran dengan catatan alasan"
                             >
-                              <X className="w-4 h-4 text-red-700 stroke-[3px]" />
+                              <X className="w-3.5 h-3.5 text-red-700 stroke-[3px]" />
+                              <span>Tolak</span>
                             </button>
                           </div>
                         ) : (
@@ -884,6 +929,20 @@ export default function AdminClient({
                             title={isSelf ? 'Anda tidak bisa mendegradasi role Anda sendiri' : ''}
                           >
                             {u.role === 'admin' ? 'DEMOTE' : 'PROMOTE ADMIN'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setResetModalUser(u);
+                              setResetConfirmText('');
+                              setError('');
+                              setSuccess('');
+                            }}
+                            disabled={loadingId !== null || resetLoading}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-amber-100 hover:bg-amber-200 text-amber-950 disabled:opacity-30 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                            title="Reset data keuangan pengguna tanpa menghapus akun"
+                          >
+                            <RotateCcw className="w-3 h-3 stroke-[3px]" />
+                            Reset Keuangan
                           </button>
                           <button
                             onClick={() => openDeleteModal(u)}
@@ -1381,6 +1440,58 @@ export default function AdminClient({
               >
                 {loadingId === deleteModalUser.userId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 stroke-[3px]" />}
                 Hapus Akun Permanen
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset User Financial Data Modal */}
+      {resetModalUser && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-[3px] border-black p-6 rounded-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] max-w-md w-full relative">
+            <button
+              onClick={() => { setResetModalUser(null); setResetConfirmText(''); }}
+              className="absolute top-3 right-3 p-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 rounded-none cursor-pointer"
+              disabled={resetLoading}
+            >
+              <X className="w-4 h-4 text-black stroke-[3px]" />
+            </button>
+            <h4 className="font-black text-black uppercase tracking-wider mb-2 flex items-center gap-2">
+              <RotateCcw className="w-5 h-5 text-amber-600 stroke-[2.5px]" /> Reset Data Keuangan Pengguna
+            </h4>
+            <p className="text-xs font-bold text-neutral-600 leading-relaxed mb-4">
+              Aksi ini akan menghapus seluruh catatan transaksi, dompet, saldo, budget, target tabungan, utang, paylater, bill subscriptions, reminders, dan gamifikasi milik pengguna ini.
+            </p>
+
+            <div className="border-[2px] border-black bg-amber-50 p-3 mb-4 space-y-1">
+              <p className="text-xs font-black uppercase tracking-wider text-black">{resetModalUser.fullName}</p>
+              <p className="break-all font-mono text-[10px] font-bold text-neutral-700">{resetModalUser.userId}</p>
+              <p className="text-[10px] font-bold text-emerald-800 uppercase mt-2">
+                ✓ Akun login, profil pengguna, status paket ({resetModalUser.plan}), bukti pembayaran, dan log audit TETAP AMAN.
+              </p>
+            </div>
+
+            <form onSubmit={handleResetUserSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase text-black">Ketik RESET KEUANGAN untuk konfirmasi</label>
+                <input
+                  type="text"
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-black text-xs uppercase"
+                  placeholder="RESET KEUANGAN"
+                  autoFocus
+                  disabled={resetLoading}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={resetLoading || resetConfirmText !== 'RESET KEUANGAN'}
+                className="w-full py-2.5 border-[3px] border-black bg-amber-500 text-black font-black text-xs uppercase tracking-wider rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {resetLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4 stroke-[3px]" />}
+                Eksekusi Reset Keuangan
               </button>
             </form>
           </div>

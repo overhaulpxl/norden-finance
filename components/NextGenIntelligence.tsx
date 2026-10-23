@@ -22,8 +22,6 @@ import {
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Line,
   LineChart,
@@ -219,34 +217,34 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
           @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;display=swap');
         </style>
       </defs>
-      
+
       <!-- Background and Decorative Grid -->
       <rect width="100%" height="100%" fill="${background}"/>
       <path d="M0 250H1080M0 580H1080M0 910H1080M0 1240H1080M0 1570H1080" stroke="#000" stroke-width="3" opacity="0.12"/>
       <path d="M210 0V1920M540 0V1920M870 0V1920" stroke="#000" stroke-width="3" opacity="0.08"/>
-      
+
       <!-- Outer Card with Neobrutalist Shadow -->
       <rect x="74" y="74" width="964" height="1804" fill="#000"/>
       <rect x="58" y="58" width="964" height="1804" fill="#fff" stroke="#000" stroke-width="10"/>
-      
+
       <!-- Header Bar with Shadow -->
       <rect x="108" y="108" width="896" height="116" fill="#FFE066"/>
       <rect x="92" y="92" width="896" height="116" fill="#000" stroke="#000" stroke-width="8"/>
       <text x="136" y="166" font-family="${fontFam}" font-size="44" font-weight="900" fill="#FFE066" letter-spacing="2">NORDEN FINANCE</text>
       <rect x="846" y="118" width="86" height="54" fill="#FFE066" stroke="#fff" stroke-width="4"/>
       <text x="889" y="158" text-anchor="middle" font-family="${fontFam}" font-size="34" font-weight="900" fill="#000">N</text>
-      
+
       <!-- Title -->
       <text x="92" y="302" font-family="${fontFam}" font-size="76" font-weight="900" fill="#000">Monthly</text>
       <text x="92" y="382" font-family="${fontFam}" font-size="76" font-weight="900" fill="#000">Wrapped</text>
       <text x="96" y="432" font-family="${fontFam}" font-size="32" font-weight="800" fill="#525252">${sanitizeSvgText(data.month)}</text>
-      
+
       <!-- Total Pengeluaran Card -->
       <rect x="108" y="506" width="896" height="285" fill="#000"/>
       <rect x="92" y="490" width="896" height="285" fill="#FFE066" stroke="#000" stroke-width="8"/>
       <text x="138" y="566" font-family="${fontFam}" font-size="34" font-weight="900" fill="#000" letter-spacing="1">TOTAL PENGELUARAN</text>
       ${svgMultilineText({ text: data.totalExpense, x: 138, y: 680, maxChars: 18, maxLines: 1, lineHeight: 0, fontSize: 92 })}
-      
+
       <!-- Kategori Utama Card -->
       <rect x="108" y="851" width="416" height="250" fill="#000"/>
       <rect x="92" y="835" width="416" height="250" fill="#fff" stroke="#000" stroke-width="8"/>
@@ -255,7 +253,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <text x="136" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Kategori Utama</text>
       ${svgMultilineText({ text: data.topCategoryName, x: 136, y: 1010, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 40 })}
       <text x="136" y="1055" font-family="${fontFam}" font-size="24" font-weight="900" fill="#737373">${sanitizeSvgText(data.topCategoryAmount)} · ${data.topCategoryPercent}%</text>
-      
+
       <!-- Total Transaksi Card (Black theme with yellow shadow) -->
       <rect x="588" y="851" width="416" height="250" fill="#FFE066"/>
       <rect x="572" y="835" width="416" height="250" fill="#000" stroke="#000" stroke-width="8"/>
@@ -263,7 +261,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <text x="671" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">AKTIVITAS</text>
       <text x="616" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#FFE066">Total Transaksi</text>
       ${svgMultilineText({ text: data.totalTransactions, x: 616, y: 1018, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 50, fill: '#fff' })}
-      
+
       <!-- Cashflow Card (Black theme with yellow shadow) -->
       <rect x="108" y="1156" width="416" height="250" fill="#FFE066"/>
       <rect x="92" y="1140" width="416" height="250" fill="#000" stroke="#000" stroke-width="8"/>
@@ -271,7 +269,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <text x="191" y="1197" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">CASHFLOW</text>
       <text x="136" y="1258" font-family="${fontFam}" font-size="30" font-weight="900" fill="#FFE066">Cashflow</text>
       ${svgMultilineText({ text: data.cashflow, x: 136, y: 1323, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 46, fill: '#fff' })}
-      
+
       <!-- Wallet Aktif Card -->
       <rect x="588" y="1156" width="416" height="250" fill="#000"/>
       <rect x="572" y="1140" width="416" height="250" fill="#fff" stroke="#000" stroke-width="8"/>
@@ -279,13 +277,13 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <text x="661" y="1197" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">DOMPET</text>
       <text x="616" y="1258" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Wallet Aktif</text>
       ${svgMultilineText({ text: data.walletBalance, x: 616, y: 1323, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 40 })}
-      
+
       <!-- Insight Card -->
       <rect x="108" y="1466" width="896" height="230" fill="#000"/>
       <rect x="92" y="1450" width="896" height="230" fill="#FFE066" stroke="#000" stroke-width="8"/>
       <text x="136" y="1514" font-family="${fontFam}" font-size="32" font-weight="900" fill="#000" letter-spacing="1">INSIGHT BULAN INI</text>
       ${svgMultilineText({ text: data.insight, x: 136, y: 1575, maxChars: 42, maxLines: 2, lineHeight: 42, fontSize: 28, fontWeight: 800 })}
-      
+
       <!-- Footer Brand Elements -->
       <text x="92" y="1760" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Track your money. Find your direction.</text>
       <rect x="866" y="1731" width="86" height="86" fill="#000"/>
@@ -339,6 +337,7 @@ export default function NextGenIntelligence({
   paylaters,
   achievements,
 }: NextGenIntelligenceProps) {
+  const [activeSubTab, setActiveSubTab] = useState<'trends' | 'habits' | 'wrapped'>('trends');
   const [allocatorIncome, setAllocatorIncome] = useState('');
   const [allocatorStatus, setAllocatorStatus] = useState<string | null>(null);
   const [shareTemplate, setShareTemplate] = useState('Monthly Wrapped');
@@ -566,314 +565,360 @@ export default function NextGenIntelligence({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <PiggyBank className="h-4 w-4 stroke-[3px]" />
-              50/30/20 Smart Allocator
-            </h4>
-          </div>
-          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-neutral-600">Pendapatan bulanan</label>
-          <input
-            value={allocatorIncome}
-            onChange={(event) => setAllocatorIncome(event.target.value)}
-            placeholder={analysis.avgIncome ? `Saran: ${Math.round(analysis.avgIncome)}` : 'Masukkan nominal pendapatan'}
-            className="brutal-input mb-4 text-sm"
-            inputMode="numeric"
-          />
-          <div className="mb-4 grid grid-cols-3 gap-2">
-            <SmallMetric label="Needs 50%" value={formatRupiah(allocator.needs)} tone="bg-[#bbf7d0]" />
-            <SmallMetric label="Wants 30%" value={formatRupiah(allocator.wants)} tone="bg-[#bfdbfe]" />
-            <SmallMetric label="Savings 20%" value={formatRupiah(allocator.savings)} tone="bg-[#fef08a]" />
-          </div>
-          <button onClick={handleCreateAllocatorBudgets} className="brutal-btn w-full text-xs">
-            Buat Budget 50/30/20
-          </button>
-          {allocatorStatus && <p className="mt-3 text-xs font-bold text-black">{allocatorStatus}</p>}
-        </div>
+      {/* Sub-tab Navigation */}
+      <div className="flex flex-wrap gap-2 border-b-[3px] border-black pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('trends')}
+          className={`px-4 py-2 border-[2.5px] border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            activeSubTab === 'trends'
+              ? 'bg-[#FFE066] text-black shadow-[3px_3px_0px_0px_#000] -translate-x-[1px] -translate-y-[1px]'
+              : 'bg-white text-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_0px_#000]'
+          }`}
+        >
+          Tren & Arus Kas
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('habits')}
+          className={`px-4 py-2 border-[2.5px] border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            activeSubTab === 'habits'
+              ? 'bg-[#FFE066] text-black shadow-[3px_3px_0px_0px_#000] -translate-x-[1px] -translate-y-[1px]'
+              : 'bg-white text-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_0px_#000]'
+          }`}
+        >
+          Alokasi & Kebiasaan
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('wrapped')}
+          className={`px-4 py-2 border-[2.5px] border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            activeSubTab === 'wrapped'
+              ? 'bg-[#FFE066] text-black shadow-[3px_3px_0px_0px_#000] -translate-x-[1px] -translate-y-[1px]'
+              : 'bg-white text-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_0px_#000]'
+          }`}
+        >
+          Rangkuman & Berbagi
+        </button>
+      </div>
 
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <Flag className="h-4 w-4 stroke-[3px]" />
-              Daily Financial Missions
-            </h4>
-          </div>
-          <div className="space-y-3">
-            {analysis.missions.map((mission) => (
-              <div key={mission.title} className={`border-[2px] border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${mission.done ? 'bg-[#bbf7d0]' : 'bg-white'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-wider text-black">{mission.title}</p>
-                    <p className="mt-1 text-[11px] font-bold text-neutral-600">{mission.detail}</p>
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-black">{mission.reward} XP</span>
-                </div>
+      {/* Tab 1: Tren & Arus Kas */}
+      {activeSubTab === 'trends' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <TrendingUp className="h-4 w-4 stroke-[3px]" />
+                  Financial Journey (Net Worth)
+                </h4>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <TrendingUp className="h-4 w-4 stroke-[3px]" />
-              Financial Journey
-            </h4>
-          </div>
-          <div className="mb-4 grid grid-cols-2 gap-3">
-            <SmallMetric label="Net worth" value={formatRupiah(analysis.netWorth)} tone="bg-white" />
-            <SmallMetric label="Growth" value={`${analysis.journeyGrowth >= 0 ? '+' : ''}${analysis.journeyGrowth.toFixed(1)}%`} tone={analysis.journeyGrowth >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
-          </div>
-          <div className="h-44">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={analysis.journey.length ? analysis.journey : [{ label: 'Saat ini', value: analysis.netWorth }]}>
-                <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
-                <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
-                <YAxis tickFormatter={(value) => compactRupiah.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={52} />
-                <Tooltip formatter={(value: unknown) => formatRupiah(Number(value || 0))} contentStyle={{ background: '#fff', border: '3px solid #000', borderRadius: 0, fontSize: 11, fontWeight: 900 }} />
-                <Area type="monotone" dataKey="value" stroke="#000" strokeWidth={3} fill="#bbf7d0" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <BarChart3 className="h-4 w-4 stroke-[3px]" />
-              Budget Forecast
-            </h4>
-          </div>
-          {analysis.budgetForecasts.length === 0 ? (
-            <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
-              Buat budget kategori untuk melihat forecast akhir bulan.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {analysis.budgetForecasts.slice(0, 5).map((budget) => (
-                <div key={budget.name} className={`border-[2px] border-black p-3 ${budget.risk >= 1 ? 'bg-[#fecaca]' : budget.risk >= 0.8 ? 'bg-[#fef08a]' : 'bg-white'}`}>
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="text-xs font-black uppercase tracking-wider text-black">{budget.name}</p>
-                    <p className="text-xs font-black text-black">{Math.round(budget.risk * 100)}%</p>
-                  </div>
-                  <div className="h-3 border-[2px] border-black bg-white">
-                    <div className="h-full bg-black" style={{ width: `${Math.min(budget.risk * 100, 100)}%` }} />
-                  </div>
-                  <p className="mt-2 text-[11px] font-bold text-neutral-700">
-                    Saat ini {formatRupiah(budget.spent)}, prediksi akhir bulan {formatRupiah(budget.forecast)}, limit {formatRupiah(budget.limit)}.
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <Wallet className="h-4 w-4 stroke-[3px]" />
-              Cashflow Forecast
-            </h4>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <SmallMetric label="Saldo saat ini" value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
-            <SmallMetric label="Prediksi 30 hari" value={formatRupiah(analysis.cashflow30)} tone={analysis.cashflow30 >= analysis.totalBalance * 0.5 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
-            <SmallMetric label="Subscription" value={formatRupiah(analysis.upcomingSubscriptions)} tone="bg-[#bfdbfe]" />
-            <SmallMetric label="Paylater" value={formatRupiah(analysis.upcomingPaylater)} tone="bg-[#fef08a]" />
-          </div>
-          <div className="mt-4 border-[2px] border-black bg-white p-3 text-xs font-bold text-neutral-700">
-            Prediksi memakai saldo dompet, rata-rata cashflow harian, langganan aktif, dan cicilan paylater yang belum lunas.
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <Activity className="h-4 w-4 stroke-[3px]" />
-              Money Habits
-            </h4>
-          </div>
-          <div className="space-y-3">
-            <SmallMetric label="Kopi bulan ini" value={`${analysis.coffeeTransactions.filter((item) => sameMonth(new Date(item.transactionDate), today)).length} kali`} tone="bg-[#fef08a]" />
-            <SmallMetric label="Total kopi" value={formatRupiah(analysis.coffeeTransactions.reduce((sum, item) => sum + item.amount, 0))} tone="bg-white" />
-            <SmallMetric label="Hari paling boros" value={WEEKDAY_LABELS[analysis.busiestDay.day]} tone="bg-[#fecaca]" />
-            <SmallMetric label="Kategori tersering" value={analysis.allCategoriesByCount[0]?.name || 'Belum ada'} tone="bg-[#bfdbfe]" />
-          </div>
-        </div>
-
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <Repeat className="h-4 w-4 stroke-[3px]" />
-              Subscription Insights
-            </h4>
-          </div>
-          {analysis.subscriptionInsights.length === 0 ? (
-            <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
-              Catat subscription untuk mendeteksi pemborosan berulang.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {analysis.subscriptionInsights.slice(0, 4).map((subscription) => (
-                <div key={subscription.id} className={`border-[2px] border-black p-3 ${subscription.risk ? 'bg-[#fecaca]' : 'bg-white'}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wider text-black">{subscription.name}</p>
-                      <p className="mt-1 text-[11px] font-bold text-neutral-700">
-                        {formatRupiah(subscription.amount)}/bulan, {subscription.relatedCount} transaksi terkait dalam 90 hari.
-                      </p>
-                    </div>
-                    {subscription.risk && <AlertTriangle className="h-4 w-4 flex-shrink-0 stroke-[3px] text-black" />}
-                  </div>
-                  {subscription.risk && (
-                    <p className="mt-2 text-[11px] font-black text-black">Pertimbangkan review langganan ini.</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <Target className="h-4 w-4 stroke-[3px]" />
-              Monthly Wrapped
-            </h4>
-          </div>
-          <div className="space-y-3">
-            <SmallMetric label={LONG_MONTH_FORMAT.format(today)} value={formatRupiah(analysis.currentMonth.expense)} tone="bg-black text-white" />
-            <SmallMetric label="Kategori favorit" value={analysis.topCategory?.name || 'Belum ada'} tone="bg-[#bbf7d0]" />
-            <SmallMetric label="Hari tersibuk" value={analysis.busiestDay ? WEEKDAY_LABELS[analysis.busiestDay.day] : 'Belum ada'} tone="bg-[#bfdbfe]" />
-            <SmallMetric label="Wallet teraktif" value={analysis.activeWallet?.[0] || 'Belum ada'} tone="bg-[#fef08a]" />
-            <SmallMetric label="Achievement" value={`${achievements.length} unlocked`} tone="bg-white" />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <CalendarDays className="h-4 w-4 stroke-[3px]" />
-              Financial Replay
-            </h4>
-          </div>
-          {analysis.replayTransactions.length === 0 ? (
-            <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
-              Replay muncul setelah ada transaksi bulanan.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <SmallMetric label={analysis.replayMonth.label} value={`${analysis.replayMonth.count} transaksi`} tone="bg-[#bbf7d0]" />
-                <SmallMetric label="Saldo akhir estimasi" value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
-                <SmallMetric label="Pemasukan" value={formatRupiah(analysis.replayMonth.income)} tone="bg-[#bfdbfe]" />
-                <SmallMetric label="Pengeluaran" value={formatRupiah(analysis.replayMonth.expense)} tone="bg-[#fecaca]" />
-              </div>
-              <div className="border-[2px] border-black p-3">
-                <p className="text-xs font-black uppercase tracking-wider text-black">Highlight</p>
-                <p className="mt-2 text-xs font-bold text-neutral-700">
-                  Transaksi terbesar: {analysis.largestTransaction ? `${analysis.largestTransaction.note || analysis.largestTransaction.category?.name || 'Transaksi'} (${formatRupiah(analysis.largestTransaction.amount)})` : 'Belum ada'}.
-                </p>
-                <p className="mt-1 text-xs font-bold text-neutral-700">
-                  Bulan terbaik: {analysis.bestMonth ? `${analysis.bestMonth.label}, net ${formatRupiah(analysis.bestMonth.net)}` : 'Belum ada'}.
-                </p>
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <SmallMetric label="Net worth saat ini" value={formatRupiah(analysis.netWorth)} tone="bg-white" />
+                <SmallMetric label="Pertumbuhan" value={`${analysis.journeyGrowth >= 0 ? '+' : ''}${analysis.journeyGrowth.toFixed(1)}%`} tone={analysis.journeyGrowth >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analysis.recentMonths}>
+                  <AreaChart data={analysis.journey.length ? analysis.journey : [{ label: 'Saat ini', value: analysis.netWorth }]}>
                     <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
                     <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
                     <YAxis tickFormatter={(value) => compactRupiah.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={52} />
                     <Tooltip formatter={(value: unknown) => formatRupiah(Number(value || 0))} contentStyle={{ background: '#fff', border: '3px solid #000', borderRadius: 0, fontSize: 11, fontWeight: 900 }} />
-                    <Bar dataKey="income" fill="#bbf7d0" stroke="#000" strokeWidth={2} />
-                    <Bar dataKey="expense" fill="#fecaca" stroke="#000" strokeWidth={2} />
-                  </BarChart>
+                    <Area type="monotone" dataKey="value" stroke="#000" strokeWidth={3} fill="#bbf7d0" />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
-          )}
-        </div>
 
-        <div className="brutal-card bg-white p-5 sm:p-6">
-          <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-            <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-              <Share2 className="h-4 w-4 stroke-[3px]" />
-              Norden Share Card
-            </h4>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_260px]">
-            <div className="space-y-3">
-              <select value={shareTemplate} onChange={(event) => setShareTemplate(event.target.value)} className="brutal-input text-xs font-black uppercase">
-                {shareTemplates.map((template) => (
-                  <option key={template} value={template}>{template}</option>
-                ))}
-              </select>
-              <div className="flex gap-2">
-                {CARD_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setShareBackground(color)}
-                    className={`h-9 w-9 border-[2px] border-black ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
-                    style={{ backgroundColor: color }}
-                    aria-label={`Pilih warna ${color}`}
-                  />
-                ))}
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <Wallet className="h-4 w-4 stroke-[3px]" />
+                  Proyeksi Arus Kas (30 Hari)
+                </h4>
               </div>
-              <button
-                onClick={() => downloadSharePng({
-                  data: wrappedData,
-                  background: shareBackground,
-                })}
-                className="brutal-btn flex w-full items-center justify-center gap-2 text-xs"
-              >
-                <Download className="h-4 w-4" />
-                Download PNG
+              <div className="grid grid-cols-2 gap-3">
+                <SmallMetric label="Saldo saat ini" value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
+                <SmallMetric label="Prediksi 30 hari" value={formatRupiah(analysis.cashflow30)} tone={analysis.cashflow30 >= analysis.totalBalance * 0.5 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
+                <SmallMetric label="Tagihan rutin" value={formatRupiah(analysis.upcomingSubscriptions)} tone="bg-[#bfdbfe]" />
+                <SmallMetric label="Cicilan paylater" value={formatRupiah(analysis.upcomingPaylater)} tone="bg-[#fef08a]" />
+              </div>
+              <div className="mt-4 border-[2px] border-black bg-[#FAF9F5] p-3 text-xs font-bold text-neutral-700">
+                Prediksi dihitung dari saldo aktif, rata-rata harian, tagihan subscription, dan cicilan paylater yang belum lunas.
+              </div>
+            </div>
+          </div>
+
+          <div className="brutal-card bg-white p-5 sm:p-6">
+            <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                <LineChartIcon className="h-4 w-4 stroke-[3px]" />
+                Tren Pertumbuhan Finansial (6 Bulan Terakhir)
+              </h4>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={analysis.recentMonths}>
+                  <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
+                  <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
+                  <YAxis tickFormatter={(value) => compactRupiah.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={58} />
+                  <Tooltip formatter={(value: unknown) => formatRupiah(Number(value || 0))} contentStyle={{ background: '#fff', border: '3px solid #000', borderRadius: 0, fontSize: 11, fontWeight: 900 }} />
+                  <Line type="monotone" dataKey="income" stroke="#047857" strokeWidth={3} dot={{ r: 3, fill: '#bbf7d0', stroke: '#000', strokeWidth: 2 }} name="Pemasukan" />
+                  <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={3} dot={{ r: 3, fill: '#fecaca', stroke: '#000', strokeWidth: 2 }} name="Pengeluaran" />
+                  <Line type="monotone" dataKey="net" stroke="#000" strokeWidth={3} dot={{ r: 3, fill: '#fef08a', stroke: '#000', strokeWidth: 2 }} name="Surplus/Defisit" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Alokasi & Kebiasaan */}
+      {activeSubTab === 'habits' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <PiggyBank className="h-4 w-4 stroke-[3px]" />
+                  Alokasi Ideal 50/30/20
+                </h4>
+              </div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-neutral-600">Pendapatan bulanan</label>
+              <input
+                value={allocatorIncome}
+                onChange={(event) => setAllocatorIncome(event.target.value)}
+                placeholder={analysis.avgIncome ? `Saran: ${Math.round(analysis.avgIncome)}` : 'Masukkan nominal pendapatan'}
+                className="brutal-input mb-4 text-xs font-bold"
+                inputMode="numeric"
+              />
+              <div className="mb-4 grid grid-cols-3 gap-2">
+                <SmallMetric label="Needs 50%" value={formatRupiah(allocator.needs)} tone="bg-[#bbf7d0]" />
+                <SmallMetric label="Wants 30%" value={formatRupiah(allocator.wants)} tone="bg-[#bfdbfe]" />
+                <SmallMetric label="Savings 20%" value={formatRupiah(allocator.savings)} tone="bg-[#fef08a]" />
+              </div>
+              <button onClick={handleCreateAllocatorBudgets} className="brutal-btn w-full text-xs">
+                Buat Pos Anggaran 50/30/20
               </button>
-              <div className="grid grid-cols-2 gap-2">
-                <SmallMetric label="Kategori" value={wrappedData.topCategoryName} tone="bg-[#fef08a]" />
-                <SmallMetric label="Cashflow" value={wrappedData.cashflow} tone={analysis.currentMonth.net >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
-                <SmallMetric label="Transaksi" value={wrappedData.totalTransactions} tone="bg-white" />
-                <SmallMetric label="Wallet" value={wrappedData.walletBalance} tone="bg-[#bfdbfe]" />
+              {allocatorStatus && <p className="mt-3 text-xs font-bold text-black">{allocatorStatus}</p>}
+            </div>
+
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <BarChart3 className="h-4 w-4 stroke-[3px]" />
+                  Prediksi Risiko Anggaran (Budget Forecast)
+                </h4>
+              </div>
+              {analysis.budgetForecasts.length === 0 ? (
+                <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
+                  Buat anggaran kategori untuk melihat proyeksi akhir bulan.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {analysis.budgetForecasts.slice(0, 4).map((budget) => (
+                    <div key={budget.name} className={`border-[2px] border-black p-3 ${budget.risk >= 1 ? 'bg-[#fecaca]' : budget.risk >= 0.8 ? 'bg-[#fef08a]' : 'bg-white'}`}>
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <p className="text-xs font-black uppercase tracking-wider text-black">{budget.name}</p>
+                        <p className="text-xs font-black text-black">{Math.round(budget.risk * 100)}%</p>
+                      </div>
+                      <div className="h-3 border-[2px] border-black bg-white">
+                        <div className="h-full bg-black" style={{ width: `${Math.min(budget.risk * 100, 100)}%` }} />
+                      </div>
+                      <p className="mt-2 text-[11px] font-bold text-neutral-700">
+                        Terpakai {formatRupiah(budget.spent)}, prediksi {formatRupiah(budget.forecast)}, limit {formatRupiah(budget.limit)}.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <Activity className="h-4 w-4 stroke-[3px]" />
+                  Pola Kebiasaan Finansial
+                </h4>
+              </div>
+              <div className="space-y-3">
+                <SmallMetric label="Kopi bulan ini" value={`${analysis.coffeeTransactions.filter((item) => sameMonth(new Date(item.transactionDate), today)).length} kali`} tone="bg-[#fef08a]" />
+                <SmallMetric label="Total jajan kopi" value={formatRupiah(analysis.coffeeTransactions.reduce((sum, item) => sum + item.amount, 0))} tone="bg-white" />
+                <SmallMetric label="Hari paling boros" value={WEEKDAY_LABELS[analysis.busiestDay.day]} tone="bg-[#fecaca]" />
+                <SmallMetric label="Kategori tersering" value={analysis.allCategoriesByCount[0]?.name || 'Belum ada'} tone="bg-[#bfdbfe]" />
               </div>
             </div>
-            <div className="mx-auto w-full max-w-[260px]">
-              <div className="aspect-[9/16] overflow-hidden border-[3px] border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <img src={wrappedPreviewSvg} alt="Preview Monthly Wrapped Norden Finance" className="h-full w-full object-cover" />
+
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <Repeat className="h-4 w-4 stroke-[3px]" />
+                  Evaluasi Langganan Rutin
+                </h4>
+              </div>
+              {analysis.subscriptionInsights.length === 0 ? (
+                <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
+                  Catat subscription untuk mendeteksi tagihan berulang yang jarang terpakai.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {analysis.subscriptionInsights.slice(0, 3).map((subscription) => (
+                    <div key={subscription.id} className={`border-[2px] border-black p-3 ${subscription.risk ? 'bg-[#fecaca]' : 'bg-white'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wider text-black">{subscription.name}</p>
+                          <p className="mt-1 text-[11px] font-bold text-neutral-700">
+                            {formatRupiah(subscription.amount)}/bulan, {subscription.relatedCount} transaksi terkait dalam 90 hari.
+                          </p>
+                        </div>
+                        {subscription.risk && <AlertTriangle className="h-4 w-4 flex-shrink-0 stroke-[3px] text-black" />}
+                      </div>
+                      {subscription.risk && (
+                        <p className="mt-2 text-[11px] font-black text-black">Pertimbangkan apakah langganan ini masih dibutuhkan.</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="brutal-card bg-white p-5 sm:p-6">
+            <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                <Flag className="h-4 w-4 stroke-[3px]" />
+                Tantangan Disiplin Harian (Missions)
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {analysis.missions.map((mission) => (
+                <div key={mission.title} className={`border-[2px] border-black p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${mission.done ? 'bg-[#bbf7d0]' : 'bg-white'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wider text-black">{mission.title}</p>
+                      <p className="mt-1 text-[11px] font-bold text-neutral-600 leading-snug">{mission.detail}</p>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-black shrink-0">{mission.reward} XP</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Rangkuman & Berbagi */}
+      {activeSubTab === 'wrapped' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <Target className="h-4 w-4 stroke-[3px]" />
+                  Rangkuman Bulanan ({LONG_MONTH_FORMAT.format(today)})
+                </h4>
+              </div>
+              <div className="space-y-3">
+                <SmallMetric label={LONG_MONTH_FORMAT.format(today)} value={formatRupiah(analysis.currentMonth.expense)} tone="bg-black text-white" />
+                <SmallMetric label="Kategori favorit" value={analysis.topCategory?.name || 'Belum ada'} tone="bg-[#bbf7d0]" />
+                <SmallMetric label="Hari paling sibuk" value={analysis.busiestDay ? WEEKDAY_LABELS[analysis.busiestDay.day] : 'Belum ada'} tone="bg-[#bfdbfe]" />
+                <SmallMetric label="Dompet teraktif" value={analysis.activeWallet?.[0] || 'Belum ada'} tone="bg-[#fef08a]" />
+                <SmallMetric label="Pencapaian terbuka" value={`${achievements.length} badge terbuka`} tone="bg-white" />
+              </div>
+            </div>
+
+            <div className="brutal-card bg-white p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                  <CalendarDays className="h-4 w-4 stroke-[3px]" />
+                  Kilas Balik Transaksi (Replay)
+                </h4>
+              </div>
+              {analysis.replayTransactions.length === 0 ? (
+                <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
+                  Replay bulanan akan muncul setelah ada mutasi transaksi tercatat.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <SmallMetric label={analysis.replayMonth.label} value={`${analysis.replayMonth.count} transaksi`} tone="bg-[#bbf7d0]" />
+                    <SmallMetric label="Estimasi saldo akhir" value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
+                    <SmallMetric label="Total pemasukan" value={formatRupiah(analysis.replayMonth.income)} tone="bg-[#bfdbfe]" />
+                    <SmallMetric label="Total pengeluaran" value={formatRupiah(analysis.replayMonth.expense)} tone="bg-[#fecaca]" />
+                  </div>
+                  <div className="border-[2px] border-black bg-[#FAF9F5] p-3">
+                    <p className="text-xs font-black uppercase tracking-wider text-black">Sorotan</p>
+                    <p className="mt-1 text-xs font-bold text-neutral-700">
+                      Transaksi terbesar: {analysis.largestTransaction ? `${analysis.largestTransaction.note || analysis.largestTransaction.category?.name || 'Transaksi'} (${formatRupiah(analysis.largestTransaction.amount)})` : 'Belum ada'}.
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-neutral-700">
+                      Bulan terbaik: {analysis.bestMonth ? `${analysis.bestMonth.label}, surplus ${formatRupiah(analysis.bestMonth.net)}` : 'Belum ada'}.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="brutal-card bg-white p-5 sm:p-6">
+            <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
+              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+                <Share2 className="h-4 w-4 stroke-[3px]" />
+                Kartu Berbagi Visual (Share Card)
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-[1fr_260px] items-start">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black uppercase text-neutral-600 mb-1 tracking-wider">Template Kartu</label>
+                  <select value={shareTemplate} onChange={(event) => setShareTemplate(event.target.value)} className="brutal-input text-xs font-black uppercase">
+                    {shareTemplates.map((template) => (
+                      <option key={template} value={template}>{template}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase text-neutral-600 mb-1 tracking-wider">Warna Latar</label>
+                  <div className="flex gap-2">
+                    {CARD_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setShareBackground(color)}
+                        className={`h-9 w-9 border-[2px] border-black ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
+                        style={{ backgroundColor: color }}
+                        aria-label={`Pilih warna ${color}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => downloadSharePng({
+                    data: wrappedData,
+                    background: shareBackground,
+                  })}
+                  className="brutal-btn flex w-full items-center justify-center gap-2 text-xs font-black uppercase tracking-wider"
+                >
+                  <Download className="h-4 w-4" />
+                  Unduh Kartu PNG
+                </button>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <SmallMetric label="Kategori Utama" value={wrappedData.topCategoryName} tone="bg-[#fef08a]" />
+                  <SmallMetric label="Cashflow" value={wrappedData.cashflow} tone={analysis.currentMonth.net >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
+                  <SmallMetric label="Transaksi" value={wrappedData.totalTransactions} tone="bg-white" />
+                  <SmallMetric label="Saldo Dompet" value={wrappedData.walletBalance} tone="bg-[#bfdbfe]" />
+                </div>
+              </div>
+              <div className="mx-auto w-full max-w-[260px]">
+                <div className="aspect-[9/16] overflow-hidden border-[3px] border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <img src={wrappedPreviewSvg} alt="Preview Monthly Wrapped Norden Finance" className="h-full w-full object-cover" />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="brutal-card bg-white p-5 sm:p-6">
-        <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-          <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
-            <LineChartIcon className="h-4 w-4 stroke-[3px]" />
-            Financial Growth Trend
-          </h4>
-        </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={analysis.recentMonths}>
-              <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
-              <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
-              <YAxis tickFormatter={(value) => compactRupiah.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={58} />
-              <Tooltip formatter={(value: unknown) => formatRupiah(Number(value || 0))} contentStyle={{ background: '#fff', border: '3px solid #000', borderRadius: 0, fontSize: 11, fontWeight: 900 }} />
-              <Line type="monotone" dataKey="income" stroke="#047857" strokeWidth={3} dot={{ r: 3, fill: '#bbf7d0', stroke: '#000', strokeWidth: 2 }} />
-              <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={3} dot={{ r: 3, fill: '#fecaca', stroke: '#000', strokeWidth: 2 }} />
-              <Line type="monotone" dataKey="net" stroke="#000" strokeWidth={3} dot={{ r: 3, fill: '#fef08a', stroke: '#000', strokeWidth: 2 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      )}
     </section>
   );
 }

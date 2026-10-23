@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal, Achievement } from '../types';
 import { formatRupiah } from '../lib/format';
-import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale, Sparkles, SlidersHorizontal, Calendar } from 'lucide-react';
 import { addCustomNotification } from '../app/actions/notifications';
 
 function WidgetSkeleton({ className = '' }: { className?: string }) {
@@ -67,26 +67,28 @@ interface OverviewProps {
     id: string;
     email: string;
     plan: 'trial' | 'pro';
+    effectivePlan?: string;
     fullName?: string;
     trialEndsAt?: string | null;
   };
+  onNewTransaction?: () => void;
 }
 
 const DEFAULT_TOP_WIDGETS = [
-  { id: 'total-balance', name: 'Total Balance', visible: true },
-  { id: 'net-worth', name: 'Net Worth', visible: true },
-  { id: 'health-score', name: 'Financial Health', visible: true },
+  { id: 'total-balance', name: 'Total Saldo', visible: true },
+  { id: 'net-worth', name: 'Kekayaan Bersih', visible: true },
+  { id: 'health-score', name: 'Kesehatan Finansial', visible: true },
 ];
 
 const DEFAULT_WIDGETS = [
-  { id: 'monthly-recap', name: 'Monthly Recap', visible: true, column: 'left' as const },
-  { id: 'expense-chart', name: 'Expense Chart', visible: true, column: 'left' as const },
-  { id: 'recent-transactions', name: 'Recent Transactions', visible: true, column: 'left' as const },
-  { id: 'no-spend-calendar', name: 'No Spend Calendar', visible: true, column: 'right' as const },
-  { id: 'momentum-center', name: 'Streaks & Reminders', visible: true, column: 'right' as const },
-  { id: 'emergency-fund', name: 'Emergency Fund', visible: true, column: 'right' as const },
-  { id: 'budget-manager', name: 'Budget Manager', visible: true, column: 'right' as const },
-  { id: 'subscription-manager', name: 'Subscription Manager', visible: true, column: 'right' as const },
+  { id: 'recent-transactions', name: 'Transaksi Terbaru', visible: true, column: 'left' as const },
+  { id: 'expense-chart', name: 'Distribusi Pengeluaran', visible: true, column: 'left' as const },
+  { id: 'monthly-recap', name: 'Rekap Bulanan', visible: true, column: 'left' as const },
+  { id: 'budget-manager', name: 'Kontrol Anggaran', visible: true, column: 'right' as const },
+  { id: 'momentum-center', name: 'Disiplin & Pengingat', visible: true, column: 'right' as const },
+  { id: 'no-spend-calendar', name: 'Kalender Hemat', visible: true, column: 'right' as const },
+  { id: 'emergency-fund', name: 'Dana Darurat', visible: true, column: 'right' as const },
+  { id: 'subscription-manager', name: 'Tagihan Berulang', visible: true, column: 'right' as const },
 ];
 
 function readStoredWidgets<T extends Array<{ id: string }>>(key: string, fallback: T): T {
@@ -114,27 +116,50 @@ export default function OverviewLayout({
   savingGoals,
   achievements,
   user,
+  onNewTransaction,
 }: OverviewProps) {
-  const totalBalance = balances.reduce((acc, curr) => acc + curr.currentBalance, 0);
+  const activeBalances = useMemo(() => balances.filter(b => !b.archivedAt), [balances]);
+  const totalBalance = useMemo(() => activeBalances.reduce((acc, curr) => acc + curr.currentBalance, 0), [activeBalances]);
 
   // Net Worth Calculation: Total Balance + Piutang - Utang
-  const activePiutang = debts
+  const activePiutang = useMemo(() => debts
     .filter(d => d.type === 'piutang' && !d.isSettled)
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .reduce((acc, curr) => acc + curr.amount, 0), [debts]);
 
-  const activeUtang = debts
+  const activeUtang = useMemo(() => debts
     .filter(d => d.type === 'hutang' && !d.isSettled)
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .reduce((acc, curr) => acc + curr.amount, 0), [debts]);
 
   const netWorth = totalBalance + activePiutang - activeUtang;
 
-  // Get recent 5 transactions
-  const recentTransactions = [...transactions].sort((a, b) => 
-    new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
-  ).slice(0, 5);
+  // Monthly flow calculations
+  const now = useMemo(() => new Date(), []);
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
 
-  // All features are accessible for both trial and pro
-  const isPro = true;
+  const monthlyFlow = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    transactions.forEach(tx => {
+      const d = new Date(tx.transactionDate);
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        if (tx.type === 'masuk') income += tx.amount;
+        if (tx.type === 'keluar') expense += tx.amount;
+      }
+    });
+    return {
+      income,
+      expense,
+      net: income - expense,
+    };
+  }, [transactions, currentMonth, currentYear]);
+
+  // Get recent 6 transactions sorted by date
+  const recentTransactions = useMemo(() => [...transactions].sort((a, b) =>
+    new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
+  ).slice(0, 6), [transactions]);
+
+  const isPro = user.effectivePlan === 'PRO_ACTIVE' || user.effectivePlan === 'TRIAL' || user.effectivePlan === 'PRO_PENDING';
 
   // Layout customization state
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -154,7 +179,7 @@ export default function OverviewLayout({
         'Anda berhasil menyesuaikan susunan widget dashboard Norden Finance Anda.',
         'LAYOUT_UPDATE'
       );
-      setTimeout(() => setSuccess(null), 5000);
+      setTimeout(() => setSuccess(null), 4000);
     }
     setIsCustomizing(!isCustomizing);
   };
@@ -224,31 +249,54 @@ export default function OverviewLayout({
       'Susunan widget dashboard telah dikembalikan ke pengaturan awal pabrik.',
       'LAYOUT_RESET'
     );
-    setTimeout(() => setSuccess(null), 5000);
+    setTimeout(() => setSuccess(null), 4000);
   };
+
+  const formattedMonth = useMemo(() => {
+    return now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  }, [now]);
 
   const renderColumnWidget = (id: string) => {
     switch (id) {
-      case 'monthly-recap':
-        return <MonthlyRecap key={id} transactions={transactions} />;
-      case 'expense-chart':
-        return <ExpenseChart key={id} transactions={transactions} />;
       case 'recent-transactions':
         return (
           <div key={id} className="brutal-card p-6 flex flex-col bg-white border-[3px] border-black">
-            <div className="flex justify-between items-center mb-6 border-b-[3px] border-black pb-4">
-              <h3 className="text-lg font-black text-black uppercase tracking-wider">Recent Transactions</h3>
+            <div className="flex justify-between items-center mb-5 border-b-[3px] border-black pb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider">Aktivitas Transaksi Terbaru</h3>
+                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide mt-0.5">Catatan pengeluaran, pemasukan, dan transfer terakhir</p>
+              </div>
+              {onNewTransaction && (
+                <button
+                  onClick={onNewTransaction}
+                  className="px-3 py-1.5 border-[2px] border-black bg-[#FFE066] text-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                >
+                  + Tambah
+                </button>
+              )}
             </div>
+
             {recentTransactions.length === 0 ? (
-              <div className="text-center py-6 text-neutral-400 font-bold text-sm uppercase tracking-wider">
-                Belum ada transaksi. Gunakan input cepat untuk mencatat!
+              <div className="text-center py-8 border-2 border-dashed border-black p-6 bg-[#FAF9F5]">
+                <p className="text-sm font-black text-black uppercase tracking-wider">Belum Ada Transaksi Tercatat</p>
+                <p className="text-xs font-bold text-neutral-500 mt-1 uppercase tracking-wide">
+                  Mulai catat transaksi pertama Anda dengan Smart Input atau formulir cepat.
+                </p>
+                {onNewTransaction && (
+                  <button
+                    onClick={onNewTransaction}
+                    className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+                  >
+                    + Catat Transaksi Pertama
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="divide-y-2 divide-neutral-100">
                 {recentTransactions.map(t => (
-                  <div key={t.id} className="flex items-center justify-between py-3 border-b-2 border-neutral-100 last:border-0">
+                  <div key={t.id} className="flex items-center justify-between py-3.5 first:pt-1 last:pb-1">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-9 h-9 border-2 border-black rounded-none flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                      <div className={`w-9 h-9 border-[2px] border-black rounded-none flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
                         t.type === 'masuk' ? 'bg-[#bbf7d0] text-black' : 
                         t.type === 'transfer' ? 'bg-[#bfdbfe] text-black' : 
                         'bg-[#fecaca] text-black'
@@ -258,12 +306,16 @@ export default function OverviewLayout({
                          <ArrowUpRight className="w-4 h-4 stroke-[3px]" />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-black text-black uppercase tracking-wider truncate">{t.category?.name || 'Lain-lain'}</p>
-                        <p className="text-xs font-semibold text-neutral-400 capitalize truncate mt-0.5">{t.note || t.wallet?.name || 'Lain-lain'}</p>
+                        <p className="text-xs sm:text-sm font-black text-black uppercase tracking-wider truncate">
+                          {t.category?.name || 'Lain-lain'}
+                        </p>
+                        <p className="text-[11px] font-bold text-neutral-500 truncate mt-0.5">
+                          {t.note || t.wallet?.name || 'Lain-lain'}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-4">
-                      <span className={`text-sm font-black block tracking-wider ${
+                      <span className={`text-xs sm:text-sm font-black block tracking-wider ${
                         t.type === 'masuk' ? 'text-emerald-700' : 
                         t.type === 'transfer' ? 'text-blue-700' : 
                         'text-black'
@@ -280,12 +332,17 @@ export default function OverviewLayout({
             )}
           </div>
         );
+      case 'expense-chart':
+        return <ExpenseChart key={id} transactions={transactions} />;
+      case 'monthly-recap':
+        return <MonthlyRecap key={id} transactions={transactions} />;
       case 'no-spend-calendar':
         return <NoSpendCalendar key={id} transactions={transactions} />;
       case 'budget-manager':
         return <BudgetManager key={id} budgets={budgets} transactions={transactions} isPro={isPro} />;
       case 'subscription-manager':
         return <SubscriptionManager key={id} subscriptions={subscriptions} balances={balances} isPro={isPro} />;
+      case 'emergencyFundPlan':
       case 'emergency-fund':
         return <EmergencyFundTracker key={id} transactions={transactions} balances={balances} emergencyFundPlan={emergencyFundPlan} />;
       case 'momentum-center':
@@ -297,13 +354,39 @@ export default function OverviewLayout({
 
   return (
     <div className="space-y-6 select-none">
-      {/* Layout Customize Action Bar */}
-      <div className="flex justify-end">
+      {/* Overview Context Header & Action Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_#000]">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 border-[2px] border-black bg-[#FAF9F5] text-xs font-black uppercase tracking-wider">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{formattedMonth}</span>
+          </div>
+
+          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_#000] ${
+            user.effectivePlan === 'PRO_ACTIVE'
+              ? 'bg-[#FFE066] text-black'
+              : user.effectivePlan === 'PRO_PENDING'
+              ? 'bg-amber-200 text-black'
+              : user.effectivePlan === 'TRIAL'
+              ? 'bg-[#bbf7d0] text-black'
+              : 'bg-neutral-200 text-neutral-800'
+          }`}>
+            {user.effectivePlan === 'PRO_ACTIVE'
+              ? 'PRO 👑'
+              : user.effectivePlan === 'PRO_PENDING'
+              ? 'PRO (REVIEW ⏳)'
+              : user.effectivePlan === 'TRIAL'
+              ? 'TRIAL ⚡'
+              : 'FREE BASIC 🌱'}
+          </span>
+        </div>
+
         <button 
           onClick={handleToggleCustomize}
-          className="brutal-btn flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider bg-[#FFE066] text-black border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
         >
-          {isCustomizing ? '💾 SELESAI & SIMPAN' : '⚙️ SESUAIKAN LAYOUT'}
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span>{isCustomizing ? 'Selesai & Simpan' : 'Atur Tata Letak'}</span>
         </button>
       </div>
 
@@ -313,22 +396,22 @@ export default function OverviewLayout({
         </div>
       )}
 
+      {/* Layout Customizer Panel */}
       {isCustomizing && (
         <div className="brutal-card p-6 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">
           <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-3">
-            <h3 className="text-sm font-black uppercase tracking-wider text-black">⚙️ KUSTOMISASI TATA LETAK DASHBOARD</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-black">Kustomisasi Tata Letak Dashboard</h3>
             <button 
               onClick={handleResetLayout}
-              className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+              className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
             >
-              🔄 Default
+              Kembalikan Default
             </button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Top Cards Config */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">KARTU METRIK UTAMA (ATAS)</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">Kartu Metrik Utama (Atas)</h4>
               <div className="space-y-2">
                 {topWidgets.map((widget, index) => (
                   <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black bg-[#FAF9F5] text-xs font-bold uppercase">
@@ -339,22 +422,21 @@ export default function OverviewLayout({
                     <div className="flex items-center gap-1.5">
                       <button 
                         onClick={() => handleToggleTopWidget(widget.id)}
-                        title={widget.visible ? "Sembunyikan" : "Tampilkan"}
-                        className={`p-1.5 border border-black transition-colors ${widget.visible ? 'bg-[#bbf7d0] hover:bg-[#86efac]' : 'bg-[#fecaca] hover:bg-[#fca5a5]'}`}
+                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'}`}
                       >
-                        {widget.visible ? '👁️' : '❌'}
+                        {widget.visible ? 'Tampil' : 'Sembunyi'}
                       </button>
                       <button 
                         disabled={index === 0}
                         onClick={() => handleMoveTopWidget(index, 'up')}
-                        className="p-1.5 border border-black bg-white hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white"
+                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
                       >
                         ↑
                       </button>
                       <button 
                         disabled={index === topWidgets.length - 1}
                         onClick={() => handleMoveTopWidget(index, 'down')}
-                        className="p-1.5 border border-black bg-white hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white"
+                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
                       >
                         ↓
                       </button>
@@ -364,48 +446,42 @@ export default function OverviewLayout({
               </div>
             </div>
             
-            {/* Main Widgets Config */}
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">WIDGET KONTEN DASHBOARD</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">Widget Konten Dashboard</h4>
               <div className="space-y-2">
                 {columnWidgets.map((widget, index) => (
                   <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black bg-[#FAF9F5] text-xs font-bold uppercase">
                     <div className="flex flex-col gap-0.5">
                       <span className="font-black text-black">{widget.name}</span>
                       <span className="text-[9px] text-neutral-400 tracking-wider">
-                        KOLOM: {widget.column === 'left' ? 'KIRI (LEBAR)' : 'KANAN (SEMPIT)'}
+                        KOLOM: {widget.column === 'left' ? 'KIRI' : 'KANAN'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {/* Toggle Visibility */}
                       <button 
                         onClick={() => handleToggleColumnWidget(widget.id)}
-                        title={widget.visible ? "Sembunyikan" : "Tampilkan"}
-                        className={`p-1.5 border border-black transition-colors ${widget.visible ? 'bg-[#bbf7d0] hover:bg-[#86efac]' : 'bg-[#fecaca] hover:bg-[#fca5a5]'}`}
+                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'}`}
                       >
-                        {widget.visible ? '👁️' : '❌'}
+                        {widget.visible ? 'Tampil' : 'Sembunyi'}
                       </button>
-                      {/* Move Up */}
                       <button 
                         disabled={index === 0}
                         onClick={() => handleMoveColumnWidget(index, 'up')}
-                        className="p-1.5 border border-black bg-white hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white"
+                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
                       >
                         ↑
                       </button>
-                      {/* Move Down */}
                       <button 
                         disabled={index === columnWidgets.length - 1}
                         onClick={() => handleMoveColumnWidget(index, 'down')}
-                        className="p-1.5 border border-black bg-white hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white"
+                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
                       >
                         ↓
                       </button>
-                      {/* Switch Column */}
                       <button 
                         onClick={() => handleSwitchColumnWidget(widget.id)}
-                        title="Pindah Kolom"
-                        className="p-1.5 border border-black bg-[#bfdbfe] hover:bg-[#93c5fd]"
+                        className="px-2 py-1 border border-black bg-[#bfdbfe]"
+                        title="Pindah kolom"
                       >
                         ⇆
                       </button>
@@ -418,40 +494,46 @@ export default function OverviewLayout({
         </div>
       )}
 
-      {/* Top Metrics Row */}
+      {/* Hero Financial Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {topWidgets
           .filter(w => w.visible)
           .map(w => {
             if (w.id === 'total-balance') {
               return (
-                <div key={w.id} className="brutal-card p-6 bg-black text-white flex flex-col justify-between border-[3px] border-black">
+                <div key={w.id} className="brutal-card p-6 bg-black text-white flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-[#bbf7d0] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Wallet className="w-4 h-4" /> Total Balance
+                      <Wallet className="w-4 h-4 stroke-[2.5px]" /> Total Saldo Dompet
                     </p>
                     <h2 className="text-3xl xl:text-4xl font-black text-white truncate">{formatRupiah(totalBalance)}</h2>
                   </div>
-                  <p className="text-[10px] font-bold text-neutral-400 mt-4 uppercase tracking-wider">
-                    Saldo gabungan dari {balances.length} dompet aktif
-                  </p>
+
+                  <div className="mt-4 pt-3 border-t border-neutral-700 flex justify-between items-center text-[11px] font-bold">
+                    <span className="text-neutral-400 uppercase tracking-wide">
+                      {activeBalances.length} Dompet Aktif
+                    </span>
+                    <span className="text-[#bbf7d0] uppercase tracking-wide font-black">
+                      Arus Kas: {monthlyFlow.net >= 0 ? '+' : ''}{formatRupiah(monthlyFlow.net)}
+                    </span>
+                  </div>
                 </div>
               );
             }
             if (w.id === 'net-worth') {
               return (
-                <div key={w.id} className="brutal-card p-6 bg-white text-black flex flex-col justify-between border-[3px] border-black">
+                <div key={w.id} className="brutal-card p-6 bg-white text-black flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-black uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Scale className="w-4 h-4" /> Net Worth
+                      <Scale className="w-4 h-4 stroke-[2.5px]" /> Kekayaan Bersih (Net Worth)
                     </p>
                     <h2 className={`text-3xl xl:text-4xl font-black truncate ${netWorth >= 0 ? 'text-black' : 'text-red-600'}`}>
                       {formatRupiah(netWorth)}
                     </h2>
                   </div>
                   <div className="text-[10px] font-bold text-black mt-4 flex justify-between uppercase tracking-wider border-t-2 border-black pt-3">
-                    <span>Utang: {formatRupiah(activeUtang)}</span>
-                    <span>Piutang: {formatRupiah(activePiutang)}</span>
+                    <span className="text-red-700 font-black">Utang: {formatRupiah(activeUtang)}</span>
+                    <span className="text-emerald-700 font-black">Piutang: {formatRupiah(activePiutang)}</span>
                   </div>
                 </div>
               );
@@ -467,16 +549,40 @@ export default function OverviewLayout({
           })}
       </div>
 
+      {/* Smart Input & Quick Entry Callout Banner */}
+      {onNewTransaction && (
+        <div className="border-[3px] border-black bg-[#FFE066] p-4 sm:p-5 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-black stroke-[2.5px]" />
+              <h3 className="text-sm sm:text-base font-black text-black uppercase tracking-wider">
+                Catat Transaksi Instan (Smart Input)
+              </h3>
+            </div>
+            <p className="text-xs font-bold text-neutral-800 leading-relaxed">
+              Ketik cepat: <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">kopi 25k gopay</span>, <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">gaji 5jt bca</span>, atau <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">transfer bca ke dana 100k</span>.
+            </p>
+          </div>
+
+          <button
+            onClick={onNewTransaction}
+            className="brutal-btn px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-black text-white border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
+          >
+            + Catat Sekarang
+          </button>
+        </div>
+      )}
+
       {/* Main Content Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Left Column (Wider) */}
+        {/* Left Column (Wider, Primary Activity & Distribution) */}
         <div className="lg:col-span-2 space-y-6">
           {columnWidgets
             .filter(w => w.column === 'left' && w.visible)
             .map(w => renderColumnWidget(w.id))}
         </div>
         
-        {/* Right Column (Narrower) */}
+        {/* Right Column (Planning, Budgets & Discipline) */}
         <div className="space-y-6">
           {columnWidgets
             .filter(w => w.column === 'right' && w.visible)

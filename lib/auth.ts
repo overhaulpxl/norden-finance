@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { getAdminAuth } from './firebaseAdmin';
-import { prisma } from './prisma';
+import { getUserEntitlement } from './entitlements';
 
 const SESSION_COOKIE_NAME = '__session';
 const SESSION_EXPIRY_DAYS = 5;
@@ -9,6 +9,9 @@ export interface AuthUser {
   uid: string;
   email: string;
 }
+
+export type { UserEntitlement, EffectivePlan } from './entitlements';
+export type AccessRequirement = 'read' | 'basic' | 'pro' | boolean;
 
 /**
  * Get the current user from the Firebase session cookie.
@@ -34,60 +37,60 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 /**
- * Require an authenticated user with an active plan.
- * Throws if not logged in, or if plan is expired and isWriteAction is true.
- * All server actions that modify data should call this with isWriteAction=true.
+ * Require an authenticated user with appropriate access level.
+ *
+ * Requirement levels:
+ * - 'read' (or false): User must be authenticated.
+ * - 'basic': User must be authenticated and finished onboarding. Allowed for Free Basic, Trial, Pro.
+ * - 'pro' (or true): User must have active Pro entitlement (paid Pro, active trial, or pending payment).
  */
-export async function requireUser(isWriteAction = false) {
+export async function requireUser(requirement: AccessRequirement = 'read') {
   const user = await getCurrentUser();
   if (!user) {
     throw new Error('Anda harus login terlebih dahulu.');
   }
 
-  const profile = await prisma.profile.findUnique({
-    where: { userId: user.uid },
-    select: {
-      id: true,
-      userId: true,
-      role: true,
-      plan: true,
-      trialStartedAt: true,
-      trialEndsAt: true,
-      onboardingCompleted: true,
-      fullName: true,
-    },
-  });
+  const entitlement = await getUserEntitlement(user.uid);
 
-  if (!profile) {
-    throw new Error('Profil tidak ditemukan.');
+  const profile = {
+    id: user.uid,
+    userId: user.uid,
+    role: entitlement.role,
+    plan: (entitlement.effectivePlan === 'FREE_BASIC' ? 'trial' : entitlement.isPro ? 'pro' : 'trial') as 'trial' | 'pro',
+    effectivePlan: entitlement.effectivePlan,
+    trialStartedAt: entitlement.trialStartedAt,
+    trialEndsAt: entitlement.trialEndsAt,
+    onboardingCompleted: entitlement.onboardingCompleted,
+    fullName: null as string | null,
+  };
+
+  // If requirement is read only
+  if (requirement === false || requirement === 'read') {
+    return { user, profile, entitlement };
   }
 
-  if (isWriteAction) {
-    // Check trial expiration
-    if (profile.plan === 'trial') {
-      const now = new Date();
-      if (now > profile.trialEndsAt) {
-        throw new Error('Masa trial Anda telah berakhir. Upgrade ke Pro untuk melanjutkan.');
-      }
-    }
-
-    // Check pro subscription status
-    if (profile.plan === 'pro') {
-      const billing = await prisma.billingSubscription.findFirst({
-        where: {
-          userId: user.uid,
-          plan: 'pro',
-          status: 'active',
-        },
-      });
-
-      if (!billing) {
-        throw new Error('Langganan Pro Anda tidak aktif. Upgrade ke Pro untuk melanjutkan.');
-      }
-    }
+  // If user has not completed onboarding
+  if (!entitlement.onboardingCompleted) {
+    throw new Error('Anda harus menyelesaikan onboarding terlebih dahulu.');
   }
 
-  return { user, profile };
+  // Core Basic Finance write operations (transactions, wallets)
+  if (requirement === 'basic') {
+    if (!entitlement.canWriteBasicFinance) {
+      throw new Error('Akses pencatatan keuangan tidak tersedia.');
+    }
+    return { user, profile, entitlement };
+  }
+
+  // Genuine Pro-only operations (recurring background runner, email reminders, receipt OCR)
+  if (requirement === true || requirement === 'pro') {
+    if (!entitlement.canAccessProFeatures) {
+      throw new Error('Fitur ini membutuhkan akun Norden Pro. Silakan upgrade ke Pro untuk melanjutkan.');
+    }
+    return { user, profile, entitlement };
+  }
+
+  return { user, profile, entitlement };
 }
 
 /**

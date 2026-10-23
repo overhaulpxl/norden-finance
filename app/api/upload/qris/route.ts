@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { requireUser } from '../../../../lib/auth';
-import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
-import { getSignedUrl, uploadFile } from '../../../../lib/storage';
+import { getPublicUrl, uploadFile } from '../../../../lib/storage';
 
 function safeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'qris.jpg';
@@ -36,11 +42,24 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `merchant_${Date.now()}_${safeFileName(file.name)}`;
-    const storagePath = await uploadFile('qris', fileName, buffer, file.type);
-    const imageUrl = await getSignedUrl(storagePath, 60 * 24 * 365);
+    const storagePath = await uploadFile('qris', fileName, buffer, file.type, { upsert: true });
+    const imageUrl = getPublicUrl(storagePath);
 
-    return NextResponse.json({ success: true, imageUrl });
+    return NextResponse.json({
+      success: true,
+      qrisPath: storagePath,
+      imageUrl,
+    });
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     const message = error instanceof Error ? error.message : 'Gagal mengunggah QRIS';
     return NextResponse.json({ error: message }, { status: 400 });
   }

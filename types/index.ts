@@ -305,6 +305,9 @@ export interface AppUser {
   id: string;
   email: string;
   plan: PlanType;
+  effectivePlan?: string;
   fullName: string;
   trialEndsAt: string | null;
+  proExpiredAt?: string | null;
+  hasPendingPayment?: boolean;
 }

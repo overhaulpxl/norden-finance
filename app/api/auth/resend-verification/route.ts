@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendVerificationEmail } from '../../../../lib/authEmail';
 import { getAdminAuth } from '../../../../lib/firebaseAdmin';
 import { prisma } from '../../../../lib/prisma';
-import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
+import { sendVerificationEmail } from '../../../../lib/authEmail';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+} from '../../../../lib/rateLimit';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
 
 function normalizeAuthError(error: unknown): { code: string; message: string; status: number } {
@@ -100,16 +105,30 @@ export async function POST(request: NextRequest) {
     // IP-based limit (5 requests per 60 seconds)
     try {
       await assertRateLimit(rateLimitKey(request, 'auth-resend-verification'), 5, 60_000);
-    } catch {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: 'RATE_LIMITED',
-          code: 'RATE_LIMITED',
-          message: 'Please wait before requesting another verification email.'
-        },
-        { status: 429 }
-      );
+    } catch (rlError: unknown) {
+      if (rlError instanceof RateLimitExceededError) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: 'RATE_LIMITED',
+            code: 'RATE_LIMITED',
+            message: 'Please wait before requesting another verification email.',
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(rlError.retryAfterSeconds),
+            },
+          }
+        );
+      }
+      if (rlError instanceof RateLimitIpError) {
+        return NextResponse.json(
+          { ok: false, error: rlError.message, message: rlError.message },
+          { status: 400 }
+        );
+      }
+      throw rlError;
     }
 
     const { idToken } = await request.json();
@@ -129,16 +148,24 @@ export async function POST(request: NextRequest) {
     try {
       await assertRateLimit(`resend-uid-min:${decodedToken.uid}`, 1, 60_000);
       await assertRateLimit(`resend-uid-15m:${decodedToken.uid}`, 3, 15 * 60_000);
-    } catch {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: 'RATE_LIMITED',
-          code: 'RATE_LIMITED',
-          message: 'Please wait before requesting another verification email.'
-        },
-        { status: 429 }
-      );
+    } catch (rlError: unknown) {
+      if (rlError instanceof RateLimitExceededError) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: 'RATE_LIMITED',
+            code: 'RATE_LIMITED',
+            message: 'Please wait before requesting another verification email.',
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(rlError.retryAfterSeconds),
+            },
+          }
+        );
+      }
+      throw rlError;
     }
 
     const provider = process.env.EMAIL_VERIFICATION_PROVIDER || 'firebase';

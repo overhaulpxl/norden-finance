@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://nordenfinance.vercel.app">https://nordenfinance.vercel.app</a>
+  <a href="https://nordenfinance.site">https://nordenfinance.site</a>
 </p>
 
 <p align="center">

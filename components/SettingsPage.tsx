@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key } from 'lucide-react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw } from 'lucide-react';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, deleteUser } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { deleteUserAccountData } from '../app/actions';
+import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
 import Link from 'next/link';
 import { MVP_FEATURES } from '../lib/constants';
 import { formatCurrency } from '../lib/format';
@@ -12,6 +12,7 @@ interface SettingsProps {
     id: string;
     email: string;
     plan: 'trial' | 'pro';
+    effectivePlan?: string;
     fullName?: string;
     trialEndsAt?: string | null;
   };
@@ -37,6 +38,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [now] = useState(() => Date.now());
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deletePassword, setDeletePassword] = useState('');
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [resetAcknowledged, setResetAcknowledged] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+  const [resetError, setResetError] = useState<string | null>(null);
   const monthlyPrice = pricingPlans.monthly?.price ?? null;
   const yearlyPrice = pricingPlans.yearly?.price ?? null;
   const yearlySavingsPercent = monthlyPrice && yearlyPrice
@@ -77,6 +83,35 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetFinancialData = async () => {
+    if (resetConfirmText !== 'RESET KEUANGAN' || !resetAcknowledged) {
+      setResetError('Ketik RESET KEUANGAN dan centang kotak konfirmasi terlebih dahulu.');
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError(null);
+    setResetSuccess(null);
+
+    try {
+      const res = await resetUserFinancialData();
+      if (res.success) {
+        setResetSuccess('Data keuangan berhasil di-reset! Workspace Anda telah bersih kembali.');
+        setResetConfirmText('');
+        setResetAcknowledged(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        setResetError(res.error || 'Gagal mereset data keuangan.');
+      }
+    } catch (err: unknown) {
+      setResetError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -154,9 +189,21 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <p className="text-sm text-neutral-500 font-bold uppercase tracking-wider">{user.email}</p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
-                  isPro ? 'bg-[#bbf7d0] text-black' : 'bg-[#fef08a] text-black'
+                  user.effectivePlan === 'PRO_ACTIVE'
+                    ? 'bg-[#bbf7d0] text-black'
+                    : user.effectivePlan === 'PRO_PENDING'
+                    ? 'bg-amber-200 text-black'
+                    : user.effectivePlan === 'TRIAL'
+                    ? 'bg-[#fef08a] text-black'
+                    : 'bg-neutral-200 text-neutral-800'
                 }`}>
-                  {isPro ? 'Pro Plan 👑' : `Trial ⚡${trialDaysLeft !== null ? ` — ${trialDaysLeft} hari` : ''}`}
+                  {user.effectivePlan === 'PRO_ACTIVE'
+                    ? 'Pro Plan 👑'
+                    : user.effectivePlan === 'PRO_PENDING'
+                    ? 'Pro (Menunggu Verifikasi ⏳)'
+                    : user.effectivePlan === 'TRIAL'
+                    ? `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} hari)` : ''}`
+                    : 'Free Basic 🌱'}
                 </span>
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color} text-black`}>
                   Lvl {levelInfo.level}: {levelInfo.name}
@@ -247,14 +294,20 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Trial / Current */}
           <div className={`p-6 border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
-            !isPro ? 'bg-[#fef08a]' : 'bg-white'
+            !isPro ? (user.effectivePlan === 'FREE_BASIC' ? 'bg-[#e5e5e5]' : 'bg-[#fef08a]') : 'bg-white'
           }`}>
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-5 h-5 text-black stroke-[3px]" />
-              <h4 className="text-base font-black text-black uppercase tracking-wider">Trial Plan</h4>
+              <h4 className="text-base font-black text-black uppercase tracking-wider">
+                {user.effectivePlan === 'FREE_BASIC' ? 'Free Basic' : 'Trial Plan'}
+              </h4>
             </div>
             <p className="text-3xl font-black text-black mb-1 tracking-wider">Rp 0</p>
-            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">{trialDays} hari gratis akses penuh</p>
+            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">
+              {user.effectivePlan === 'FREE_BASIC'
+                ? 'Pencatatan keuangan dasar tanpa batas waktu'
+                : `${trialDays} hari gratis akses penuh`}
+            </p>
             <ul className="space-y-2">
               {allFeatures.slice(0, 6).map((f, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm font-bold text-black uppercase tracking-wider">
@@ -294,7 +347,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </ul>
             {isPro ? (
               <div className="mt-6 p-2 bg-white text-black text-center text-xs font-black uppercase tracking-widest rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                ✓ Paket Aktif
+                {user.effectivePlan === 'PRO_PENDING' ? '⏳ Menunggu Verifikasi Admin' : '✓ Paket Aktif'}
               </div>
             ) : (
               <Link href="/upgrade" className="block mt-6 w-full brutal-btn py-3 text-xs font-black uppercase tracking-widest text-center cursor-pointer">
@@ -308,16 +361,81 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
 
       {/* Data & Storage */}
-      <div className="brutal-card p-6 bg-white">
-        <div className="flex justify-between items-start mb-6 border-b-[3px] border-black pb-4">
+      <div className="brutal-card p-6 bg-white space-y-6">
+        <div className="flex justify-between items-start border-b-[3px] border-black pb-4">
           <h3 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
             <Database className="w-5 h-5 text-black stroke-[3px]" /> Data & Penyimpanan
           </h3>
         </div>
-        <p className="text-sm text-neutral-600 font-bold mb-4 uppercase tracking-wide">
+        <p className="text-sm text-neutral-600 font-bold uppercase tracking-wide">
           Semua data keuangan Anda disimpan secara aman di cloud menggunakan Firebase dan PostgreSQL. 
           Data diamankan menggunakan otentikasi Firebase dan otorisasi Prisma.
         </p>
+
+        {/* Reset Financial Data Card */}
+        <div className="p-5 bg-amber-50 border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-start gap-3">
+            <RotateCcw className="w-6 h-6 text-amber-700 flex-shrink-0 mt-0.5 stroke-[2.5px]" />
+            <div className="flex-1 space-y-3">
+              <div>
+                <h4 className="text-sm font-black text-black uppercase tracking-wider">Reset Workspace Keuangan</h4>
+                <p className="text-xs text-neutral-700 font-bold mt-1 leading-relaxed">
+                  Menghapus seluruh catatan transaksi, dompet, saldo, budget, target tabungan, utang, paylater, tagihan, dan reminder.
+                </p>
+                <p className="text-xs text-emerald-800 font-black mt-1">
+                  ✓ Akun, profil, masa trial / langganan Pro, bukti pembayaran, dan riwayat login Anda TETAP AMAN dan TIDAK BERUBAH.
+                </p>
+                <p className="text-[11px] text-neutral-500 font-bold mt-1">
+                  💡 Disarankan mengunduh cadangan catatan via menu <strong>Data Dashboard (Export CSV / PDF)</strong> sebelum melakukan reset.
+                </p>
+              </div>
+
+              {resetError && (
+                <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider">
+                  ❌ {resetError}
+                </div>
+              )}
+              {resetSuccess && (
+                <div className="p-3 bg-emerald-100 border-[2px] border-black text-emerald-800 font-bold text-xs uppercase tracking-wider">
+                  ✅ {resetSuccess}
+                </div>
+              )}
+
+              <div className="space-y-2 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={resetAcknowledged}
+                    onChange={(e) => setResetAcknowledged(e.target.checked)}
+                    className="w-4 h-4 border-2 border-black rounded-none cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-black uppercase tracking-wider">
+                    Saya paham data transaksi & dompet akan dihapus permanen
+                  </span>
+                </label>
+
+                <input
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  className="w-full max-w-sm brutal-input text-xs font-black uppercase"
+                  placeholder="KETIK RESET KEUANGAN"
+                  disabled={resetLoading}
+                />
+              </div>
+
+              <button
+                onClick={handleResetFinancialData}
+                disabled={resetLoading || resetConfirmText !== 'RESET KEUANGAN' || !resetAcknowledged}
+                className="mt-2 px-4 py-2.5 border-[2px] border-black bg-[#FFE066] text-black rounded-none text-xs font-black hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4 stroke-[3px]" />
+                {resetLoading ? 'MEMPROSES RESET...' : 'Reset Data Keuangan'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Zona Bahaya (Account Deletion) */}
         <div className="p-4 bg-white border-[3px] border-red-650 rounded-none shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">
           <div className="flex items-start gap-3">
             <Trash2 className="w-5 h-5 text-red-650 flex-shrink-0 mt-0.5 stroke-[2.5px]" />

@@ -3,18 +3,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles } from 'lucide-react';
 import { formatCurrency } from '../lib/format';
+import { parseTransaction } from '../lib/parser';
+import { CANONICAL_WALLET_DISPLAY } from '../lib/constants';
+import type { ParseResult } from '../types';
 
 interface Message {
   id: string;
   sender: 'user' | 'ai';
   text: string;
-  parsedDetails?: {
-    item: string;
-    amount: string;
-    wallet: string;
-    category: string;
-    type: 'pemasukan' | 'pengeluaran' | 'transfer';
-  };
+  parsedDetails?: ParseResult;
 }
 
 interface Particle {
@@ -36,7 +33,7 @@ export default function ChatSandbox() {
     {
       id: '2',
       sender: 'ai',
-      text: '✅ Berhasil mencatat Nasi Padang sebesar Rp 35.000. Dompet: Cash. Kategori: Makanan & Minuman.'
+      text: '✅ [Simulasi] Berhasil mencatat Makan siang padang sebesar Rp 35.000. Dompet: Cash. Kategori: Makanan.'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -70,72 +67,6 @@ export default function ChatSandbox() {
     }, 1200);
   };
 
-  function parseText(text: string) {
-    const normalized = text.toLowerCase();
-    
-    // Parse Amount
-    let amount = 'Rp 0';
-    let rawAmount = 0;
-    const kMatch = normalized.match(/(\d+(?:\.\d+)?)\s*k\b/);
-    const rbMatch = normalized.match(/(\d+(?:\.\d+)?)\s*rb\b/);
-    const jtMatch = normalized.match(/(\d+(?:\.\d+)?)\s*jt\b/);
-    const numMatch = normalized.match(/(\d[\d\.]*)/);
-
-    if (jtMatch) {
-      rawAmount = parseFloat(jtMatch[1]) * 1000000;
-    } else if (kMatch) {
-      rawAmount = parseFloat(kMatch[1]) * 1000;
-    } else if (rbMatch) {
-      rawAmount = parseFloat(rbMatch[1]) * 1000;
-    } else if (numMatch) {
-      rawAmount = parseInt(numMatch[1].replace(/\./g, ''), 10);
-    }
-    if (rawAmount) {
-      amount = formatCurrency(rawAmount);
-    }
-
-    // Parse Wallet
-    let wallet = 'Cash';
-    if (normalized.includes('bca')) wallet = 'BCA';
-    else if (normalized.includes('mandiri')) wallet = 'Mandiri';
-    else if (normalized.includes('gopay')) wallet = 'GoPay';
-    else if (normalized.includes('ovo')) wallet = 'OVO';
-    else if (normalized.includes('dana')) wallet = 'DANA';
-    else if (normalized.includes('bni')) wallet = 'BNI';
-
-    // Parse Type & Category
-    let type: 'pemasukan' | 'pengeluaran' | 'transfer' = 'pengeluaran';
-    let category = 'Lain-lain';
-    let item = 'Transaksi';
-
-    if (normalized.includes('gaji') || normalized.includes('masuk') || normalized.includes('dapat')) {
-      type = 'pemasukan';
-      category = 'Pendapatan';
-      item = 'Gaji/Pendapatan';
-    } else if (normalized.includes('trf') || normalized.includes('transfer') || normalized.includes('kirim')) {
-      type = 'transfer';
-      category = 'Transfer Internal';
-      item = 'Transfer Saldo';
-    } else {
-      // Guess item
-      if (normalized.includes('kopi') || normalized.includes('coffee') || normalized.includes('starbucks')) {
-        item = 'Kopi';
-        category = 'Makanan & Minuman';
-      } else if (normalized.includes('padang') || normalized.includes('makan') || normalized.includes('bakso') || normalized.includes('nasi')) {
-        item = 'Makanan Siang';
-        category = 'Makanan & Minuman';
-      } else if (normalized.includes('bensin') || normalized.includes('gojek') || normalized.includes('grab') || normalized.includes('tax')) {
-        item = 'Transportasi';
-        category = 'Transportasi';
-      } else if (normalized.includes('film') || normalized.includes('nonton') || normalized.includes('netflix') || normalized.includes('bioskop')) {
-        item = 'Hiburan';
-        category = 'Hiburan';
-      }
-    }
-
-    return { item, amount, wallet, category, type };
-  }
-
   function handleSend(text: string) {
     if (!text.trim()) return;
 
@@ -150,14 +81,26 @@ export default function ChatSandbox() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const parsed = parseText(text);
+      const parsed = parseTransaction(text);
       let aiText = '';
-      if (parsed.type === 'pemasukan') {
-        aiText = `✅ Pendapatan ${parsed.amount} (${parsed.item}) berhasil ditambahkan ke saldo ${parsed.wallet}.`;
+      const wallet = CANONICAL_WALLET_DISPLAY[parsed.method.toLowerCase()] || (parsed.method !== 'unknown' ? parsed.method.toUpperCase() : 'Cash');
+
+      if (!parsed.amount || parsed.amount <= 0) {
+        aiText = 'Format input belum dikenali. Coba sertakan nominal seperti "kopi 25k gopay", "gaji bca 5jt", atau "transfer bca ke dana 100k".';
+      } else if (parsed.isBalanceUpdate) {
+        aiText = `✅ [Simulasi] Saldo ${wallet} berhasil diperbarui menjadi ${formatCurrency(parsed.amount)}.`;
       } else if (parsed.type === 'transfer') {
-        aiText = `✅ Transfer saldo sebesar ${parsed.amount} berhasil diproses dari/ke ${parsed.wallet}.`;
+        const toWallet = parsed.transferToMethod
+          ? CANONICAL_WALLET_DISPLAY[parsed.transferToMethod.toLowerCase()] || parsed.transferToMethod.toUpperCase()
+          : null;
+        const dest = toWallet ? `ke ${toWallet}` : 'ke dompet tujuan';
+        aiText = `✅ [Simulasi] Transfer ${formatCurrency(parsed.amount)} dari ${wallet} ${dest} berhasil diproses.`;
+      } else if (parsed.type === 'masuk') {
+        const item = parsed.note && parsed.note !== '-' ? parsed.note : 'Pemasukan';
+        aiText = `✅ [Simulasi] Pemasukan ${formatCurrency(parsed.amount)} (${item}) berhasil dicatat ke ${wallet}. Kategori: ${parsed.category || 'Gaji'}.`;
       } else {
-        aiText = `✅ Berhasil mencatat ${parsed.item} sebesar ${parsed.amount}. Dompet: ${parsed.wallet}. Kategori: ${parsed.category}.`;
+        const item = parsed.note && parsed.note !== '-' ? parsed.note : 'Pengeluaran';
+        aiText = `✅ [Simulasi] Berhasil mencatat ${item} sebesar ${formatCurrency(parsed.amount)}. Dompet: ${wallet}. Kategori: ${parsed.category || 'Lain-lain'}.`;
       }
 
       const aiMsg: Message = {
@@ -169,7 +112,9 @@ export default function ChatSandbox() {
 
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
-      triggerConfetti();
+      if (parsed.amount > 0) {
+        triggerConfetti();
+      }
     }, 800); // 800ms natural response delay
   }
 

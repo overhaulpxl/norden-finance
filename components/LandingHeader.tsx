@@ -10,10 +10,11 @@ type LandingHeaderProps = {
 };
 
 const sectionLinks = [
-  { href: '#home', label: 'Home' },
-  { href: '#philosophy', label: 'Philosophy' },
-  { href: '#features', label: 'Features' },
-  { href: '#pricing', label: 'Pricing' },
+  { href: '#home', label: 'Beranda' },
+  { href: '#features', label: 'Fitur' },
+  { href: '#philosophy', label: 'Filosofi' },
+  { href: '#pricing', label: 'Paket' },
+  { href: '#faq', label: 'FAQ' },
 ];
 
 export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps) {

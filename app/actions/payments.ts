@@ -44,18 +44,28 @@ async function validatePaymentInput(data: {
   if (
     !data.proofPath ||
     data.proofPath.length > 2048 ||
-    data.proofPath.startsWith('data:') ||
-    (
-      !/^https:\/\/firebasestorage\.googleapis\.com\/|^https:\/\/storage\.googleapis\.com\//.test(data.proofPath) &&
-      !(process.env.NODE_ENV !== 'production' && data.proofPath.startsWith('/api/mock-file?'))
-    )
+    data.proofPath.startsWith('data:')
   ) {
     throw new Error('Bukti pembayaran tidak valid');
   }
 
-  const expectedPath = `payment-proofs%2F${encodeURIComponent(userId)}%2F`;
-  const expectedRawPath = `payment-proofs/${userId}/`;
-  if (!data.proofPath.includes(expectedPath) && !data.proofPath.includes(expectedRawPath)) {
+  // Canonical Supabase Storage reference: payment-proofs/<userId>/<filename>
+  const isCanonicalProof =
+    data.proofPath.startsWith(`payment-proofs/${userId}/`) &&
+    !data.proofPath.includes('..') &&
+    !data.proofPath.includes('\\');
+
+  // Support development mock endpoints
+  const isDevMock =
+    process.env.NODE_ENV !== 'production' && data.proofPath.startsWith('/api/mock-file?');
+
+  // Backward compatibility for existing records containing legacy Firebase storage URLs
+  const isLegacyFirebaseProof =
+    (/^https:\/\/firebasestorage\.googleapis\.com\/|^https:\/\/storage\.googleapis\.com\//.test(data.proofPath)) &&
+    (data.proofPath.includes(`payment-proofs%2F${encodeURIComponent(userId)}%2F`) ||
+     data.proofPath.includes(`payment-proofs/${userId}/`));
+
+  if (!isCanonicalProof && !isLegacyFirebaseProof && !isDevMock) {
     throw new Error('Bukti pembayaran harus diunggah dari akun ini');
   }
 }
@@ -114,7 +124,23 @@ export async function getPaymentRequests() {
       },
     });
 
-    return { success: true, data };
+    const { getSignedUrl } = await import('../../lib/storage');
+    const resolvedData = await Promise.all(data.map(async req => {
+      let resolvedProof = req.proofPath;
+      if (req.proofPath && req.proofPath.startsWith('payment-proofs/')) {
+        try {
+          resolvedProof = await getSignedUrl(req.proofPath, 60);
+        } catch {
+          // If resolution fails, keep canonical reference
+        }
+      }
+      return {
+        ...req,
+        proofPath: resolvedProof,
+      };
+    }));
+
+    return { success: true, data: resolvedData };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal memuat riwayat pembayaran';
     return { success: false, error: message };

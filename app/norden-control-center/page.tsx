@@ -40,8 +40,17 @@ export default async function AdminPage() {
   const referencedProfiles = await prisma.profile.findMany({ where: { userId: { in: referencedProfileIds } } });
   const profilesMap = new Map(referencedProfiles.map(p => [p.userId, p]));
 
-  const serializedRequests = paymentRequests.map(req => {
+  const { getSignedUrl } = await import('../../lib/storage');
+  const serializedRequests = await Promise.all(paymentRequests.map(async req => {
     const userProfile = profilesMap.get(req.userId);
+    let viewProof = req.proofPath;
+    if (req.proofPath && req.proofPath.startsWith('payment-proofs/')) {
+      try {
+        viewProof = await getSignedUrl(req.proofPath, 60);
+      } catch (err) {
+        console.error('Failed to resolve signed URL for proof:', err);
+      }
+    }
     return {
       id: req.id,
       userId: req.userId,
@@ -49,14 +58,14 @@ export default async function AdminPage() {
       billingType: req.billingType,
       amount: req.amount,
       paymentMethod: req.paymentMethod,
-      proofPath: req.proofPath,
+      proofPath: viewProof,
       status: req.status,
       adminNote: req.adminNote,
       fullName: userProfile?.fullName || 'Tanpa Nama',
       createdAt: req.createdAt.toISOString(),
       updatedAt: req.updatedAt.toISOString(),
     };
-  });
+  }));
 
   const serializedUsers = listedUsers.map(u => ({
     id: u.id,

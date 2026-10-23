@@ -13,6 +13,7 @@ interface SidebarProps {
   user: {
     email: string;
     plan: 'trial' | 'pro';
+    effectivePlan?: string;
     fullName?: string;
     trialEndsAt?: string | null;
     role?: string;
@@ -164,9 +165,21 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
               <p className="text-xs font-black text-black truncate leading-tight uppercase tracking-wider">{user.fullName || 'User'}</p>
               <p className="text-[8px] font-bold text-neutral-500 uppercase tracking-wide truncate mt-0.5">Lvl {levelInfo.level}: {levelInfo.name}</p>
               <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-black inline-block mt-1 leading-none ${
-                user.plan === 'pro' ? 'bg-[#FFE066] text-black' : 'bg-neutral-200 text-neutral-600'
+                user.effectivePlan === 'PRO_ACTIVE'
+                  ? 'bg-[#FFE066] text-black'
+                  : user.effectivePlan === 'PRO_PENDING'
+                  ? 'bg-amber-200 text-black'
+                  : user.effectivePlan === 'TRIAL'
+                  ? 'bg-[#bbf7d0] text-black'
+                  : 'bg-neutral-200 text-neutral-700'
               }`}>
-                {user.plan === 'pro' ? 'PRO 👑' : 'TRIAL ⚡'}
+                {user.effectivePlan === 'PRO_ACTIVE'
+                  ? 'PRO 👑'
+                  : user.effectivePlan === 'PRO_PENDING'
+                  ? 'PRO (REVIEW ⏳)'
+                  : user.effectivePlan === 'TRIAL'
+                  ? 'TRIAL ⚡'
+                  : 'FREE BASIC 🌱'}
               </span>
             </div>
           </div>

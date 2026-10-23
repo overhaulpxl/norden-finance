@@ -37,13 +37,11 @@ export default function Loading() {
 
       <div className="relative max-w-sm w-full bg-white border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center flex flex-col items-center">
         <div
-          className="w-20 h-20 flex items-center justify-center mb-6"
+          className="flex items-center justify-center mb-4"
           style={{ animation: 'subtle-bounce 1.5s infinite ease-in-out' }}
         >
-          <BrandLogo variant="icon" priority className="h-20 w-20" />
+          <BrandLogo variant="horizontal" priority className="h-12 sm:h-14 w-auto" />
         </div>
-
-        <BrandLogo variant="horizontal" priority className="h-12 w-auto" />
 
         <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mt-1">
           Smart Financial Engine

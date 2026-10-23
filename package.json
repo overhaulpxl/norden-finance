@@ -2,12 +2,16 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
     "check:production": "tsx scripts/check-production-readiness.ts",
     "check:bundle": "tsx scripts/check-bundle-budget.ts",
     "check:release": "npm run lint && npx tsc --noEmit && npx prisma validate && npm audit --omit=dev && npm run build && npm run check:bundle && npm run check:production",
@@ -20,6 +24,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
+    "@supabase/storage-js": "^2.118.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",

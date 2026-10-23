@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from './prisma';
+import { getUserEntitlement } from './entitlements';
 import { getPublicAppUrl } from './appUrl';
 
 type ShortcutTokenPayload = {
@@ -102,35 +103,15 @@ export async function validateShortcutToken(token: string) {
 }
 
 export async function assertShortcutWriteAccess(userId: string) {
-  const profile = await prisma.profile.findUnique({
-    where: { userId },
-    select: {
-      plan: true,
-      trialEndsAt: true,
-    },
-  });
+  const entitlement = await getUserEntitlement(userId);
 
-  if (!profile) {
-    throw new Error('Profil tidak ditemukan.');
+  if (!entitlement.onboardingCompleted) {
+    throw new Error('Selesaikan onboarding terlebih dahulu.');
   }
 
-  if (profile.plan === 'trial' && new Date() > profile.trialEndsAt) {
-    throw new Error('Masa trial Anda telah berakhir. Upgrade ke Pro untuk melanjutkan.');
+  if (!entitlement.canWriteBasicFinance) {
+    throw new Error('Akses shortcut tidak tersedia.');
   }
 
-  if (profile.plan === 'pro') {
-    const billing = await prisma.billingSubscription.findFirst({
-      where: {
-        userId,
-        plan: 'pro',
-        status: 'active',
-      },
-    });
-
-    if (!billing) {
-      throw new Error('Langganan Pro Anda tidak aktif. Upgrade ke Pro untuk melanjutkan.');
-    }
-  }
-
-  return profile;
+  return entitlement;
 }

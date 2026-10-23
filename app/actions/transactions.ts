@@ -331,7 +331,7 @@ export async function processUserInput(userId: string, input: string) {
 
 export async function processInput(input: string) {
   try {
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     return await processUserInput(user.uid, input);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal menyimpan data';
@@ -356,7 +356,7 @@ export async function addExplicitTransaction(data: {
   receiptDate?: string;
 }) {
   try {
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
     const txDate = data.transactionDate ? new Date(data.transactionDate) : new Date();
     const walletName = data.wallet || data.method || 'Lain-lain';
@@ -421,7 +421,7 @@ export async function addTransferTransaction(
     assertNonEmpty(toWallet, 'Dompet tujuan');
     if (fromWallet.toLowerCase() === toWallet.toLowerCase()) throw new Error('Dompet asal dan tujuan tidak boleh sama');
 
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
 
     const [fromWalletId, toWalletId, categoryId] = await Promise.all([
@@ -470,7 +470,7 @@ export async function addTransferTransaction(
  */
 export async function deleteTransaction(id: string) {
   try {
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
 
     const tx = await prisma.transaction.findFirst({
@@ -547,7 +547,7 @@ export async function updateTransaction(
   }
 ) {
   try {
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
 
     const tx = await prisma.transaction.findFirst({

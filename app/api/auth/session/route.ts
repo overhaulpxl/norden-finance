@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '../../../../lib/firebaseAdmin';
 import { SESSION_CONFIG } from '../../../../lib/auth';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
-import { assertRateLimit, rateLimitKey } from '../../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 
 /**
  * POST /api/auth/session
@@ -43,6 +49,15 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error: unknown) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     console.error('Session creation error:', error);
     const message = error instanceof Error ? error.message : 'Failed to create session';
     return NextResponse.json(

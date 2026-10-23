@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { processInput } from '../../actions';
 import { processUserInput } from '../../actions/transactions';
 import { assertSameOrigin } from '../../../lib/requestSecurity';
-import { assertRateLimit, rateLimitKey } from '../../../lib/rateLimit';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+} from '../../../lib/rateLimit';
 import { assertShortcutWriteAccess, validateShortcutToken } from '../../../lib/shortcutToken';
 
 type ProcessResult = Awaited<ReturnType<typeof processInput>> | Awaited<ReturnType<typeof processUserInput>>;
@@ -33,14 +38,32 @@ export async function POST(request: Request) {
     try {
       await assertRateLimit(rateLimitKey(request, `api-shortcut-token:${tokenUserId}`), 30, 60_000);
     } catch (error: unknown) {
+      if (error instanceof RateLimitExceededError) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 429, headers: { 'Retry-After': String(error.retryAfterSeconds) } }
+        );
+      }
+      if (error instanceof RateLimitIpError) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+      }
       const message = error instanceof Error ? error.message : 'Terlalu banyak request.';
-      return NextResponse.json({ success: false, error: message }, { status: 429 });
+      return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
   } else {
     try {
       assertSameOrigin(request);
       await assertRateLimit(rateLimitKey(request, 'api-shortcut'), 30, 60_000);
     } catch (error: unknown) {
+      if (error instanceof RateLimitExceededError) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 429, headers: { 'Retry-After': String(error.retryAfterSeconds) } }
+        );
+      }
+      if (error instanceof RateLimitIpError) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+      }
       const message = error instanceof Error ? error.message : 'Invalid request origin';
       return NextResponse.json({ success: false, error: message }, { status: 403 });
     }

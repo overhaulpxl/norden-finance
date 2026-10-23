@@ -147,9 +147,8 @@ git push -u origin main
 
 | Variable Name | Value | Keterangan |
 |---|---|---|
-| `DATABASE_URL` | *URL dari Langkah 1* | Connection String PostgreSQL |
-| `POSTGRES_URL` | *URL dari Langkah 1* | Connection String PostgreSQL |
-| `PRISMA_DATABASE_URL` | *URL dari Langkah 1* | Connection String PostgreSQL |
+| `DATABASE_URL` | *URL Pooled dari Langkah 1* | Connection String PostgreSQL Pooled (misal: port 6543 Supavisor) |
+| `DIRECT_URL` | *URL Direct dari Langkah 1* | Connection String PostgreSQL Direct (misal: port 5432) untuk migrasi |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | *Dari Firebase Web App* | Firebase Client API Key |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | *Dari Firebase Web App* | `project-id.firebaseapp.com` |
 | `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | *Dari Firebase Web App* | ID project Firebase Anda |
@@ -161,7 +160,8 @@ git push -u origin main
 | `FIREBASE_ADMIN_CLIENT_EMAIL` | *Dari Service Account JSON* | Email Client Firebase Admin |
 | `FIREBASE_ADMIN_PRIVATE_KEY` | *Dari Service Account JSON* | Key lengkap dengan tanda kutip & `\n` |
 | `GEMINI_API_KEY` | *Dari Langkah 3* | API Key Google Gemini |
-| `NEXT_PUBLIC_APP_URL` | `https://nama-app-anda.vercel.app` | URL domain Vercel Anda |
+| `CRON_SECRET` | *Minimal 32 karakter acak* | Secret token untuk otorisasi Vercel Cron jobs |
+| `NEXT_PUBLIC_APP_URL` | `https://nordenfinance.site` | URL domain production Anda |
 
 5. Klik tombol **Deploy**. Vercel akan otomatis melakukan build proyek dan menyiapkan link live URL.
 
@@ -169,16 +169,16 @@ git push -u origin main
 
 ## 🛠️ Langkah 5: Migrasi Database ke Database Live (Production)
 
-Setelah Vercel berhasil dideploy, Anda harus memigrasikan skema database Prisma Anda ke database live yang baru dibuat di Neon/Supabase.
+Setelah Vercel berhasil dideploy, Anda harus menjalankan migrasi database Prisma ke database live yang baru dibuat di Neon/Supabase menggunakan perintah migrasi production formal:
 
 1. Buka file `.env.local` (atau `.env`) di komputer Anda secara lokal.
-2. Ganti `DATABASE_URL` sementara dengan URL Database live dari Neon/Supabase yang Anda dapatkan di Langkah 1.
-3. Jalankan perintah migrasi ini di terminal komputer lokal Anda:
+2. Pastikan `DATABASE_URL` mengarah ke URL pooled database live, dan `DIRECT_URL` mengarah ke URL direct port 5432 database live.
+3. Jalankan perintah migrasi production ini di terminal:
    ```bash
-   npx prisma db push
+   npm run db:migrate
    ```
-   *Perintah ini akan membuat semua tabel database yang dibutuhkan langsung pada database cloud Anda.*
-4. Kembalikan lagi `DATABASE_URL` di file `.env.local` Anda ke URL database lokal/dev jika Anda ingin melanjutkan development lokal.
+   *(Perintah ini mengeksekusi `prisma migrate deploy`, yang menerapkan seluruh skema dari `prisma/migrations/` dan mencatat riwayat di tabel `_prisma_migrations` tanpa mereset atau menghapus data produksi. Jangan gunakan `prisma db push` di lingkungan production).*
+4. Kembalikan lagi `DATABASE_URL` dan `DIRECT_URL` di file `.env.local` Anda ke URL database lokal jika Anda ingin melanjutkan development lokal.
 
 ---
 

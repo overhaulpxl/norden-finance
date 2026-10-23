@@ -13,7 +13,7 @@ export async function updateBalance(name: string, amount: number, id?: string) {
   try {
     assertNonEmpty(name, 'Nama dompet');
     assertNonNegativeInt(amount, 'Saldo');
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
     const walletName = name.toUpperCase();
 
@@ -68,7 +68,7 @@ export async function updateBalance(name: string, amount: number, id?: string) {
  */
 export async function deleteBalance(id: string) {
   try {
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
 
     // Verify ownership
@@ -94,7 +94,7 @@ export async function deleteBalance(id: string) {
 
 export async function restoreBalance(id: string) {
   try {
-    const { user } = await requireUser(true);
+    const { user } = await requireUser('basic');
     const userId = user.uid;
 
     const existing = await prisma.balance.findFirst({
