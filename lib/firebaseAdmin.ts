@@ -1,6 +1,5 @@
 import { getApps, initializeApp, cert, type ServiceAccount } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getStorage } from 'firebase-admin/storage';
 
 function envWithFallback(primary: string, fallback: string): string | undefined {
   return process.env[primary] || process.env[fallback];
@@ -98,44 +97,8 @@ export function getAdminAuth() {
     return getAuth();
   }
 
-  // Fail closed: Never return an unverified JWT decoder
+    // Fail closed: Never return an unverified JWT decoder
   throw new Error(
     'Firebase Admin authentication is not configured. Either configure Firebase service account credentials (FIREBASE_PROJECT_ID, etc.) or enable the local Auth Emulator (FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099).'
   );
-}
-
-export function getAdminStorage() {
-  const isConfigured = 
-    envWithFallback('FIREBASE_PROJECT_ID', 'FIREBASE_ADMIN_PROJECT_ID') &&
-    envWithFallback('FIREBASE_CLIENT_EMAIL', 'FIREBASE_ADMIN_CLIENT_EMAIL') &&
-    envWithFallback('FIREBASE_PRIVATE_KEY', 'FIREBASE_ADMIN_PRIVATE_KEY');
-
-  if (isConfigured) {
-    ensureFirebaseAdminApp();
-    return getStorage();
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Firebase Admin environment variables (FIREBASE_ADMIN_PROJECT_ID, etc.) are required in production.');
-  }
-
-  // Fallback storage bucket mock for local development
-  return {
-    bucket: () => ({
-      file: (filePath: string) => ({
-        save: async () => {
-          console.log(`[Mock Storage] Saved file: ${filePath}`);
-          return;
-        },
-        getSignedUrl: async () => {
-          console.log(`[Mock Storage] Generated signed URL for: ${filePath}`);
-          return [`/api/mock-file?path=${encodeURIComponent(filePath)}`];
-        },
-        delete: async () => {
-          console.log(`[Mock Storage] Deleted file: ${filePath}`);
-          return;
-        },
-      }),
-    }),
-  };
 }

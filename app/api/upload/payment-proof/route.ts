@@ -39,9 +39,18 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now()}_${safeFileName(file.name)}`;
     const storagePath = await uploadFile(`payment-proofs/${user.uid}`, fileName, buffer, file.type);
-    const proofUrl = await getSignedUrl(storagePath, 60 * 24 * 30);
+    let previewUrl: string | null = null;
+    try {
+      previewUrl = await getSignedUrl(storagePath, 60);
+    } catch {
+      // previewUrl is optional for immediate client confirmation
+    }
 
-    return NextResponse.json({ success: true, proofPath: proofUrl });
+    return NextResponse.json({
+      success: true,
+      proofPath: storagePath,
+      previewUrl,
+    });
   } catch (error: unknown) {
     if (error instanceof RateLimitExceededError) {
       return rateLimitResponse(error);

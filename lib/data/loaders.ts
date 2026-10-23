@@ -581,7 +581,15 @@ export async function getPaymentSettings(db: Db = prisma) {
   const bcaHolder = settingsMap.get('bca_holder') || '';
   const bniNumber = settingsMap.get('bni_number') || '';
   const bniHolder = settingsMap.get('bni_holder') || '';
-  const qrisImage = settingsMap.get('qris_image') || '';
+  let qrisImage = settingsMap.get('qris_image') || '';
+  if (qrisImage.startsWith('qris/')) {
+    try {
+      const { getPublicUrl } = await import('../storage');
+      qrisImage = getPublicUrl(qrisImage);
+    } catch {
+      // keep original if resolution fails
+    }
+  }
 
   return {
     bca_number: bcaNumber,
