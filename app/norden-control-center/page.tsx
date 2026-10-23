@@ -19,13 +19,52 @@ export default async function AdminPage() {
     redirect('/dashboard');
   }
 
+  let adminStatsData: Awaited<ReturnType<typeof getAdminStats>>;
+  let adminDataError: string | undefined;
+
+  try {
+    adminStatsData = await getAdminStats();
+    if (adminStatsData.statsError) {
+      adminDataError = adminStatsData.statsError;
+    }
+  } catch (err: unknown) {
+    console.error('Control center data load failed:', err);
+    adminDataError = 'Data Control Center sedang tidak dapat dimuat dari database. Silakan muat ulang halaman.';
+    adminStatsData = {
+      paymentRequests: [],
+      feedbacks: [],
+      listedUsers: [],
+      auditLogs: [],
+      platformStats: {
+        totalUsers: 0,
+        proUsers: 0,
+        trialUsers: 0,
+        adminUsers: 0,
+        totalTransactions: 0,
+        totalBalances: 0,
+        totalBudgets: 0,
+        totalSavingGoals: 0,
+        totalDebts: 0,
+        totalPaylaters: 0,
+        totalSubscriptions: 0,
+        totalRevenue: 0,
+        pendingPayments: 0,
+        approvedPayments: 0,
+        rejectedPayments: 0,
+        userGrowth: [],
+        isUnavailable: true,
+      },
+      statsError: adminDataError,
+    };
+  }
+
   const {
     paymentRequests,
     feedbacks,
     listedUsers,
     auditLogs,
     platformStats,
-  } = await getAdminStats();
+  } = adminStatsData;
 
   // ========================================
   // Serialize everything
@@ -114,6 +153,7 @@ export default async function AdminPage() {
         initialPaymentSettings={paymentSettings}
         initialPricingPlans={pricingPlans}
         currentAdminId={profile.userId}
+        initialError={adminDataError}
       />
     </div>
   );
