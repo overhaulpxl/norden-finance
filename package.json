@@ -12,7 +12,6 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "check:data-counts": "tsx scripts/check-data-counts.ts",
     "check:production": "tsx scripts/check-production-readiness.ts",
     "check:bundle": "tsx scripts/check-bundle-budget.ts",
     "check:release": "npm run lint && npx tsc --noEmit && npx prisma validate && npm audit --omit=dev && npm run build && npm run check:bundle && npm run check:production",

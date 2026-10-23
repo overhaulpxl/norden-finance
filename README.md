@@ -323,10 +323,9 @@ RESEND_API_KEY=
 EMAIL_FROM=
 
 # Application Config
-NEXT_PUBLIC_APP_URL=https://nordenfinance.site
+NEXT_PUBLIC_APP_URL=
 CRON_SECRET=
 SHORTCUT_TOKEN_SECRET=
-STORAGE_PROVIDER=firebase
 ```
 
 ---
@@ -359,14 +358,6 @@ This project is fully ready for deployment on **Vercel** (Free/Hobby tier):
 3. During build, Vercel will trigger the `postinstall` script to run `prisma generate`.
 4. Deploy the live database schema from your local terminal using `npx prisma migrate deploy` before testing.
 5. Refer to `DEPLOYMENT_GUIDE.md` for a comprehensive step-by-step setup walkthrough.
-
-## Hostinger Managed Node.js Deployment
-
-Hostinger deployment uses Managed Node.js hosting, not VPS. Use branch `master`, root directory `/`, install command `npm install`, build command `npm run build`, and start command `npm run start`.
-
-Keep `DATABASE_URL` pointed at the existing external PostgreSQL database. Do not migrate to Hostinger MySQL and do not reset the database. Set `NEXT_PUBLIC_APP_URL=https://nordenfinance.site` and keep `STORAGE_PROVIDER=firebase` unless Hostinger disk persistence has been verified after restart and redeploy.
-
-See `DEPLOY_HOSTINGER.md` for the full deployment, backup, data verification, DNS, Firebase Authorized Domains, and rollback checklist.
 
 ---
 
