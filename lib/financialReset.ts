@@ -125,6 +125,9 @@ export async function executeFinancialDataReset(
       achievements: deletedAchievements.count,
       notifications: deletedNotifications.count,
     };
+  }, {
+    maxWait: 5000,
+    timeout: 20000,
   });
 
   return {

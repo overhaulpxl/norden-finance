@@ -30,6 +30,26 @@ export type PricingPlans = Awaited<ReturnType<typeof getPricingPlans>>;
 export type MonthlyReportData = Awaited<ReturnType<typeof getMonthlyReportData>>;
 export type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 
+export interface PlatformStats {
+  totalUsers: number;
+  proUsers: number;
+  trialUsers: number;
+  adminUsers: number;
+  totalTransactions: number;
+  totalBalances: number;
+  totalBudgets: number;
+  totalSavingGoals: number;
+  totalDebts: number;
+  totalPaylaters: number;
+  totalSubscriptions: number;
+  totalRevenue: number;
+  pendingPayments: number;
+  approvedPayments: number;
+  rejectedPayments: number;
+  userGrowth: { date: string; count: number }[];
+  isUnavailable?: boolean;
+}
+
 type Db = PrismaClient;
 
 type PricingSource = 'plan' | 'settings' | 'fallback';
@@ -388,67 +408,53 @@ export async function getMonthlyReportData(userId: string, month: number, year: 
 }
 
 export async function getAdminStats(db: Db = prisma) {
-  const [
-    paymentRequests,
-    feedbacks,
-    listedUsers,
-    auditLogs,
-    totalUsers,
-    proUsers,
-    trialUsers,
-    adminUsers,
-    totalTransactions,
-    totalBalances,
-    totalBudgets,
-    totalSavingGoals,
-    totalDebts,
-    totalPaylaters,
-    totalSubscriptions,
-    approvedPaymentStats,
-    pendingPayments,
-    rejectedPayments,
-  ] = await Promise.all([
-    db.paymentRequest.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT }),
-    db.feedback.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT }),
-    db.profile.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT }),
-    db.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 }),
-    db.profile.count(),
-    db.profile.count({ where: { plan: PlanType.pro } }),
-    db.profile.count({ where: { plan: PlanType.trial } }),
-    db.profile.count({ where: { role: 'admin' } }),
-    db.transaction.count({ where: { deletedAt: null } }),
-    db.balance.count(),
-    db.budget.count(),
-    db.savingGoal.count(),
-    db.debt.count(),
-    db.paylater.count(),
-    db.appSubscription.count(),
-    db.paymentRequest.aggregate({ where: { status: PaymentStatus.approved }, _sum: { amount: true }, _count: true }),
-    db.paymentRequest.count({ where: { status: PaymentStatus.pending } }),
-    db.paymentRequest.count({ where: { status: PaymentStatus.rejected } }),
-  ]);
+  // Step 1: Sequential retrieval of core management lists
+  // Executing sequentially ensures exactly 1 connection checkout at any moment,
+  // completely eliminating pool queue contention on pools with connection_limit=1.
+  const paymentRequests = await db.paymentRequest.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT });
+  const feedbacks = await db.feedback.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT });
+  const listedUsers = await db.profile.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT });
+  const auditLogs = await db.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const recentUsers = await db.profile.findMany({
-    where: { createdAt: { gte: thirtyDaysAgo } },
-    orderBy: { createdAt: 'asc' },
-    select: { createdAt: true },
-    take: 1000,
-  });
+  // Step 2: Bounded sequential retrieval of noncritical platform summary statistics
+  // Wrapped in a dedicated error boundary to prevent whole-page crash if pool times out.
+  let platformStats: PlatformStats;
+  let statsError: string | undefined;
 
-  const userGrowthMap: Record<string, number> = {};
-  recentUsers.forEach((user) => {
-    const dateKey = user.createdAt.toISOString().split('T')[0];
-    userGrowthMap[dateKey] = (userGrowthMap[dateKey] || 0) + 1;
-  });
+  try {
+    const approvedPaymentStats = await db.paymentRequest.aggregate({ where: { status: PaymentStatus.approved }, _sum: { amount: true }, _count: true });
+    const pendingPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.pending } });
+    const rejectedPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.rejected } });
 
-  return {
-    paymentRequests,
-    feedbacks,
-    listedUsers,
-    auditLogs,
-    platformStats: {
+    const totalUsers = await db.profile.count();
+    const proUsers = await db.profile.count({ where: { plan: PlanType.pro } });
+    const trialUsers = await db.profile.count({ where: { plan: PlanType.trial } });
+    const adminUsers = await db.profile.count({ where: { role: 'admin' } });
+
+    const totalTransactions = await db.transaction.count({ where: { deletedAt: null } });
+    const totalBalances = await db.balance.count();
+    const totalBudgets = await db.budget.count();
+    const totalSavingGoals = await db.savingGoal.count();
+    const totalDebts = await db.debt.count();
+    const totalPaylaters = await db.paylater.count();
+    const totalSubscriptions = await db.appSubscription.count();
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentUsers = await db.profile.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true },
+      take: 1000,
+    });
+
+    const userGrowthMap: Record<string, number> = {};
+    recentUsers.forEach((user) => {
+      const dateKey = user.createdAt.toISOString().split('T')[0];
+      userGrowthMap[dateKey] = (userGrowthMap[dateKey] || 0) + 1;
+    });
+
+    platformStats = {
       totalUsers,
       proUsers,
       trialUsers,
@@ -465,7 +471,39 @@ export async function getAdminStats(db: Db = prisma) {
       approvedPayments: approvedPaymentStats._count,
       rejectedPayments,
       userGrowth: Object.entries(userGrowthMap).map(([date, count]) => ({ date, count })),
-    },
+      isUnavailable: false,
+    };
+  } catch (err: unknown) {
+    console.error('Noncritical platform statistics unavailable (Prisma pool pressure or timeout):', err);
+    statsError = 'Sebagian data statistik platform sementara tidak dapat dimuat karena batas waktu database.';
+    platformStats = {
+      totalUsers: 0,
+      proUsers: 0,
+      trialUsers: 0,
+      adminUsers: 0,
+      totalTransactions: 0,
+      totalBalances: 0,
+      totalBudgets: 0,
+      totalSavingGoals: 0,
+      totalDebts: 0,
+      totalPaylaters: 0,
+      totalSubscriptions: 0,
+      totalRevenue: 0,
+      pendingPayments: 0,
+      approvedPayments: 0,
+      rejectedPayments: 0,
+      userGrowth: [],
+      isUnavailable: true,
+    };
+  }
+
+  return {
+    paymentRequests,
+    feedbacks,
+    listedUsers,
+    auditLogs,
+    platformStats,
+    statsError,
   };
 }
 

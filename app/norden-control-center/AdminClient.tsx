@@ -87,6 +87,7 @@ interface PlatformStats {
   approvedPayments: number;
   rejectedPayments: number;
   userGrowth: { date: string; count: number }[];
+  isUnavailable?: boolean;
 }
 
 interface PaymentSettings {
@@ -124,6 +125,7 @@ interface AdminClientProps {
   initialPaymentSettings: PaymentSettings;
   initialPricingPlans: PricingPlans;
   currentAdminId: string;
+  initialError?: string;
 }
 
 export default function AdminClient({ 
@@ -134,7 +136,8 @@ export default function AdminClient({
   platformStats,
   initialPaymentSettings,
   initialPricingPlans,
-  currentAdminId 
+  currentAdminId,
+  initialError
 }: AdminClientProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'payments' | 'users' | 'logs' | 'feedbacks' | 'settings'>('overview');
   
@@ -180,7 +183,7 @@ export default function AdminClient({
   const [resetConfirmText, setResetConfirmText] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError || '');
   const [success, setSuccess] = useState('');
 
   // Local Counts
@@ -358,8 +361,9 @@ export default function AdminClient({
       } else {
         setError(res.error || 'Gagal menghapus akun pengguna.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan sistem.');
+    } catch (err: unknown) {
+      console.error('Delete user client error:', err);
+      setError('Terjadi gangguan sistem saat memproses penghapusan akun.');
     } finally {
       setLoadingId(null);
     }
@@ -386,8 +390,9 @@ export default function AdminClient({
       } else {
         setError(res.error || 'Gagal mereset data keuangan pengguna.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan sistem.');
+    } catch (err: unknown) {
+      console.error('Reset financial client error:', err);
+      setError('Terjadi gangguan sistem saat memproses reset data keuangan pengguna.');
     } finally {
       setResetLoading(false);
     }
@@ -544,11 +549,11 @@ export default function AdminClient({
         {/* Global Statistics Cards */}
         <div className="flex flex-wrap gap-4">
           <div className="border-[2px] border-black p-3 bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-center min-w-[90px]">
-            <p className="text-lg font-black text-black">{formatCurrency(platformStats.totalRevenue)}</p>
+            <p className="text-lg font-black text-black">{platformStats.isUnavailable ? '-' : formatCurrency(platformStats.totalRevenue)}</p>
             <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest mt-0.5">Total Revenue</p>
           </div>
           <div className="border-[2px] border-black p-3 bg-[#bbf7d0] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-center min-w-[90px]">
-            <p className="text-lg font-black text-black">{platformStats.proUsers}</p>
+            <p className="text-lg font-black text-black">{platformStats.isUnavailable ? '-' : platformStats.proUsers}</p>
             <p className="text-[9px] font-black text-emerald-800 uppercase tracking-widest mt-0.5">Pro User</p>
           </div>
           <div className="border-[2px] border-black p-3 bg-[#fef08a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-center min-w-[90px]">
@@ -642,7 +647,7 @@ export default function AdminClient({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-black uppercase text-neutral-500">Total Transaksi</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.totalTransactions}</h4>
+                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable ? '-' : platformStats.totalTransactions}</h4>
                 </div>
                 <Activity className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
@@ -652,7 +657,7 @@ export default function AdminClient({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-black uppercase text-neutral-500">Akun Finansial</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.totalBalances}</h4>
+                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable ? '-' : platformStats.totalBalances}</h4>
                 </div>
                 <Wallet className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
@@ -662,7 +667,7 @@ export default function AdminClient({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-black uppercase text-neutral-500">Anggaran Aktif</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.totalBudgets}</h4>
+                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable ? '-' : platformStats.totalBudgets}</h4>
                 </div>
                 <Target className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
@@ -672,7 +677,7 @@ export default function AdminClient({
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs font-black uppercase text-neutral-500">Tabungan & Hutang</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.totalSavingGoals + platformStats.totalDebts}</h4>
+                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable ? '-' : platformStats.totalSavingGoals + platformStats.totalDebts}</h4>
                 </div>
                 <DollarSign className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
@@ -686,16 +691,16 @@ export default function AdminClient({
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-xs font-bold uppercase mb-1">
-                    <span>Approved payments ({platformStats.approvedPayments})</span>
-                    <span>{formatCurrency(platformStats.totalRevenue)}</span>
+                    <span>Approved payments ({platformStats.isUnavailable ? '-' : platformStats.approvedPayments})</span>
+                    <span>{platformStats.isUnavailable ? '-' : formatCurrency(platformStats.totalRevenue)}</span>
                   </div>
                   <div className="w-full h-3 border-[2px] border-black bg-neutral-100">
                     <div 
                       className="h-full bg-[#bbf7d0]" 
                       style={{ 
-                        width: `${platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments > 0 
-                          ? (platformStats.approvedPayments / (platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments)) * 100 
-                          : 0}%` 
+                        width: `${!platformStats.isUnavailable && platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments > 0
+                          ? (platformStats.approvedPayments / (platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments)) * 100
+                          : 0}%`
                       }} 
                     />
                   </div>
@@ -703,16 +708,16 @@ export default function AdminClient({
 
                 <div>
                   <div className="flex justify-between text-xs font-bold uppercase mb-1">
-                    <span>Pending payments ({platformStats.pendingPayments})</span>
-                    <span>{platformStats.pendingPayments} Permohonan</span>
+                    <span>Pending payments ({platformStats.isUnavailable ? '-' : platformStats.pendingPayments})</span>
+                    <span>{platformStats.isUnavailable ? '-' : `${platformStats.pendingPayments} Permohonan`}</span>
                   </div>
                   <div className="w-full h-3 border-[2px] border-black bg-neutral-100">
                     <div 
                       className="h-full bg-[#fef08a]" 
                       style={{ 
-                        width: `${platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments > 0 
-                          ? (platformStats.pendingPayments / (platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments)) * 100 
-                          : 0}%` 
+                        width: `${!platformStats.isUnavailable && platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments > 0
+                          ? (platformStats.pendingPayments / (platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments)) * 100
+                          : 0}%`
                       }} 
                     />
                   </div>
@@ -720,16 +725,16 @@ export default function AdminClient({
 
                 <div>
                   <div className="flex justify-between text-xs font-bold uppercase mb-1">
-                    <span>Rejected payments ({platformStats.rejectedPayments})</span>
-                    <span>{platformStats.rejectedPayments} Permohonan</span>
+                    <span>Rejected payments ({platformStats.isUnavailable ? '-' : platformStats.rejectedPayments})</span>
+                    <span>{platformStats.isUnavailable ? '-' : `${platformStats.rejectedPayments} Permohonan`}</span>
                   </div>
                   <div className="w-full h-3 border-[2px] border-black bg-neutral-100">
                     <div 
                       className="h-full bg-red-200" 
                       style={{ 
-                        width: `${platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments > 0 
-                          ? (platformStats.rejectedPayments / (platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments)) * 100 
-                          : 0}%` 
+                        width: `${!platformStats.isUnavailable && platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments > 0
+                          ? (platformStats.rejectedPayments / (platformStats.approvedPayments + platformStats.rejectedPayments + platformStats.pendingPayments)) * 100
+                          : 0}%`
                       }} 
                     />
                   </div>
@@ -743,11 +748,11 @@ export default function AdminClient({
               <div className="grid grid-cols-2 gap-4">
                 <div className="border-[2px] border-black p-4 bg-neutral-50 text-center">
                   <p className="text-xs font-black uppercase text-neutral-500">Masa Trial</p>
-                  <p className="text-xl font-black text-black mt-1">{platformStats.trialUsers}</p>
+                  <p className="text-xl font-black text-black mt-1">{platformStats.isUnavailable ? '-' : platformStats.trialUsers}</p>
                 </div>
                 <div className="border-[2px] border-black p-4 bg-[#bbf7d0] text-center">
                   <p className="text-xs font-black uppercase text-neutral-500">Pro Subscriptions</p>
-                  <p className="text-xl font-black text-emerald-950 mt-1">{platformStats.proUsers}</p>
+                  <p className="text-xl font-black text-emerald-950 mt-1">{platformStats.isUnavailable ? '-' : platformStats.proUsers}</p>
                 </div>
               </div>
               <div className="text-[10px] text-neutral-500 font-bold uppercase leading-tight italic">

@@ -94,8 +94,21 @@ export async function resetUserFinancialData() {
     revalidatePath('/settings');
     return { success: true, counts: res.counts };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mereset data keuangan';
-    return { success: false, error: message };
+    const rawMessage = error instanceof Error ? error.message : '';
+    if (rawMessage === 'Anda harus login terlebih dahulu.') {
+      return { success: false, error: rawMessage };
+    }
+
+    console.error('resetUserFinancialData database error:', error instanceof Error ? error.name : 'Unknown error');
+
+    if (rawMessage.includes('Transaction') || rawMessage.includes('timeout') || rawMessage.includes('P2024')) {
+      return {
+        success: false,
+        error: 'Reset data keuangan tidak dapat diselesaikan karena batas waktu transaksi database. Silakan coba kembali.',
+      };
+    }
+
+    return { success: false, error: 'Gagal mereset data keuangan karena gangguan sistem database.' };
   }
 }
 
@@ -131,6 +144,9 @@ export async function deleteUserAccountData() {
       
       // Finally delete user profile
       await tx.profile.deleteMany({ where: { userId } });
+    }, {
+      maxWait: 5000,
+      timeout: 20000,
     });
 
     // Clear session cookie on server
@@ -145,8 +161,21 @@ export async function deleteUserAccountData() {
 
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus data akun';
-    return { success: false, error: message };
+    const rawMessage = error instanceof Error ? error.message : '';
+    if (rawMessage === 'Anda harus login terlebih dahulu.') {
+      return { success: false, error: rawMessage };
+    }
+
+    console.error('deleteUserAccountData database error:', error instanceof Error ? error.name : 'Unknown error');
+
+    if (rawMessage.includes('Transaction') || rawMessage.includes('timeout') || rawMessage.includes('P2024')) {
+      return {
+        success: false,
+        error: 'Penghapusan data akun tidak dapat diselesaikan karena batas waktu transaksi database. Silakan coba kembali.',
+      };
+    }
+
+    return { success: false, error: 'Gagal menghapus data akun karena gangguan sistem database.' };
   }
 }
 

@@ -401,7 +401,7 @@ export async function resetUserFinancialDataByAdmin(targetUserId: string) {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
     }
 
-    if (!targetUserId || typeof targetUserId !== 'string') {
+    if (!targetUserId || typeof targetUserId !== 'string' || !targetUserId.trim()) {
       throw new Error('Target pengguna tidak valid.');
     }
 
@@ -419,8 +419,26 @@ export async function resetUserFinancialDataByAdmin(targetUserId: string) {
       counts: res.counts,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mereset data keuangan pengguna';
-    return { success: false, error: message };
+    const rawMessage = error instanceof Error ? error.message : '';
+    if (
+      rawMessage === 'Anda tidak memiliki akses untuk melakukan tindakan ini.' ||
+      rawMessage === 'Target pengguna tidak valid.' ||
+      rawMessage === 'ID pengguna target tidak valid.' ||
+      rawMessage === 'Profil pengguna tidak ditemukan.'
+    ) {
+      return { success: false, error: rawMessage };
+    }
+
+    console.error('resetUserFinancialDataByAdmin database error:', error instanceof Error ? error.name : 'Unknown error');
+
+    if (rawMessage.includes('Transaction') || rawMessage.includes('timeout') || rawMessage.includes('P2024')) {
+      return {
+        success: false,
+        error: 'Reset data keuangan tidak dapat diselesaikan karena batas waktu transaksi database. Silakan coba kembali.',
+      };
+    }
+
+    return { success: false, error: 'Gagal mereset data keuangan pengguna karena gangguan sistem database.' };
   }
 }
 
@@ -434,6 +452,10 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
 
     if (targetUserId === user.uid) {
       throw new Error('Anda tidak dapat menghapus akun admin yang sedang digunakan.');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || !targetUserId.trim()) {
+      throw new Error('Target pengguna tidak valid.');
     }
 
     const targetProfile = await prisma.profile.findUnique({
@@ -468,6 +490,9 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
       await tx.feedback.deleteMany({ where: { userId: targetUserId } });
       await tx.auditLog.deleteMany({ where: { userId: targetUserId } });
       await tx.profile.delete({ where: { userId: targetUserId } });
+    }, {
+      maxWait: 5000,
+      timeout: 20000,
     });
 
     try {
@@ -485,8 +510,26 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
 
     return { success: true, deletedName: targetProfile.fullName || 'Tanpa Nama' };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus akun pengguna';
-    return { success: false, error: message };
+    const rawMessage = error instanceof Error ? error.message : '';
+    if (
+      rawMessage === 'Anda tidak memiliki akses untuk melakukan tindakan ini.' ||
+      rawMessage === 'Anda tidak dapat menghapus akun admin yang sedang digunakan.' ||
+      rawMessage === 'Target pengguna tidak valid.' ||
+      rawMessage === 'Profil pengguna tidak ditemukan.'
+    ) {
+      return { success: false, error: rawMessage };
+    }
+
+    console.error('deleteUserAccountByAdmin database error:', error instanceof Error ? error.name : 'Unknown error');
+
+    if (rawMessage.includes('Transaction') || rawMessage.includes('timeout') || rawMessage.includes('P2024')) {
+      return {
+        success: false,
+        error: 'Penghapusan akun tidak dapat diselesaikan karena batas waktu transaksi database. Silakan coba kembali.',
+      };
+    }
+
+    return { success: false, error: 'Gagal menghapus akun pengguna karena gangguan sistem database.' };
   }
 }
 
