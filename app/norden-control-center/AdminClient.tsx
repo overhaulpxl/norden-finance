@@ -361,8 +361,9 @@ export default function AdminClient({
       } else {
         setError(res.error || 'Gagal menghapus akun pengguna.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan sistem.');
+    } catch (err: unknown) {
+      console.error('Delete user client error:', err);
+      setError('Terjadi gangguan sistem saat memproses penghapusan akun.');
     } finally {
       setLoadingId(null);
     }
@@ -389,8 +390,9 @@ export default function AdminClient({
       } else {
         setError(res.error || 'Gagal mereset data keuangan pengguna.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan sistem.');
+    } catch (err: unknown) {
+      console.error('Reset financial client error:', err);
+      setError('Terjadi gangguan sistem saat memproses reset data keuangan pengguna.');
     } finally {
       setResetLoading(false);
     }
