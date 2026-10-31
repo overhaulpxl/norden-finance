@@ -3,11 +3,6 @@
   "regions": [
     "sin1"
   ],
-  "git": {
-    "deploymentEnabled": {
-      "perf/phase12g-singapore-region": false
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/recurring",
