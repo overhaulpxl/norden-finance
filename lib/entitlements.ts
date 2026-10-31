@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { prisma } from './prisma';
 
 export type EffectivePlan =
@@ -35,7 +36,8 @@ export interface UserEntitlement {
  *    Preserves user account, full financial history, manual transactions,
  *    wallet balances, local Smart Input, and data exports.
  */
-export async function getUserEntitlement(userId: string): Promise<UserEntitlement> {
+export const getUserEntitlement = cache(async (userId: string): Promise<UserEntitlement> => {
+  const t0 = performance.now();
   const now = new Date();
 
   const [profile, activeBilling, pendingPayment] = await Promise.all([
@@ -72,9 +74,11 @@ export async function getUserEntitlement(userId: string): Promise<UserEntitlemen
     throw new Error('Profil pengguna tidak ditemukan.');
   }
 
+  let entitlement: UserEntitlement;
+
   // 1. Incomplete Onboarding
   if (!profile.onboardingCompleted) {
-    return {
+    entitlement = {
       userId,
       effectivePlan: 'ONBOARDING',
       isPro: false,
@@ -89,11 +93,9 @@ export async function getUserEntitlement(userId: string): Promise<UserEntitlemen
       hasPendingPayment: false,
       pendingPaymentId: null,
     };
-  }
-
-  // 2. Active Paid Pro Subscription
-  if (activeBilling && (!activeBilling.expiredAt || activeBilling.expiredAt > now)) {
-    return {
+  } else if (activeBilling && (!activeBilling.expiredAt || activeBilling.expiredAt > now)) {
+    // 2. Active Paid Pro Subscription
+    entitlement = {
       userId,
       effectivePlan: 'PRO_ACTIVE',
       isPro: true,
@@ -108,15 +110,13 @@ export async function getUserEntitlement(userId: string): Promise<UserEntitlemen
       hasPendingPayment: Boolean(pendingPayment),
       pendingPaymentId: pendingPayment?.id || null,
     };
-  }
-
-  // 3. Unexpired Trial
-  if (now < profile.trialEndsAt) {
+  } else if (now < profile.trialEndsAt) {
+    // 3. Unexpired Trial
     const trialDaysLeft = Math.max(
       0,
       Math.ceil((profile.trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     );
-    return {
+    entitlement = {
       userId,
       effectivePlan: 'TRIAL',
       isPro: true,
@@ -131,11 +131,9 @@ export async function getUserEntitlement(userId: string): Promise<UserEntitlemen
       hasPendingPayment: Boolean(pendingPayment),
       pendingPaymentId: pendingPayment?.id || null,
     };
-  }
-
-  // 4. Valid Submitted Pending Payment (Temporary Pro access while awaiting review)
-  if (pendingPayment && pendingPayment.proofPath && pendingPayment.amount > 0) {
-    return {
+  } else if (pendingPayment && pendingPayment.proofPath && pendingPayment.amount > 0) {
+    // 4. Valid Submitted Pending Payment (Temporary Pro access while awaiting review)
+    entitlement = {
       userId,
       effectivePlan: 'PRO_PENDING',
       isPro: true,
@@ -150,22 +148,29 @@ export async function getUserEntitlement(userId: string): Promise<UserEntitlemen
       hasPendingPayment: true,
       pendingPaymentId: pendingPayment.id,
     };
+  } else {
+    // 5. Free Basic Fallback
+    entitlement = {
+      userId,
+      effectivePlan: 'FREE_BASIC',
+      isPro: false,
+      canAccessProFeatures: false,
+      canWriteBasicFinance: true,
+      role: profile.role,
+      onboardingCompleted: true,
+      trialDaysLeft: 0,
+      trialStartedAt: profile.trialStartedAt,
+      trialEndsAt: profile.trialEndsAt,
+      proExpiredAt: null,
+      hasPendingPayment: false,
+      pendingPaymentId: null,
+    };
   }
 
-  // 5. Free Basic Fallback
-  return {
-    userId,
-    effectivePlan: 'FREE_BASIC',
-    isPro: false,
-    canAccessProFeatures: false,
-    canWriteBasicFinance: true,
-    role: profile.role,
-    onboardingCompleted: true,
-    trialDaysLeft: 0,
-    trialStartedAt: profile.trialStartedAt,
-    trialEndsAt: profile.trialEndsAt,
-    proExpiredAt: null,
-    hasPendingPayment: false,
-    pendingPaymentId: null,
-  };
-}
+  const dur = Math.round((performance.now() - t0) * 10) / 10;
+  if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'preview') {
+    console.log(`[PERF:ENTITLEMENT] getUserEntitlement completed in ${dur}ms (uid: ${userId})`);
+  }
+
+  return entitlement;
+});

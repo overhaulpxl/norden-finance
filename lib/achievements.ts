@@ -32,30 +32,56 @@ function bestTransactionStreak(dates: Date[]) {
   return best;
 }
 
-export async function syncAchievements(prisma: Db, userId: string) {
+export type PreloadedAchievementData = {
+  transactions?: Array<{ transactionDate: Date }>;
+  balances?: Array<{ currentBalance: number }>;
+  goals?: Array<{ targetAmount: number; currentAmount: number }>;
+  emergencyFundPlan?: { monthlyExpense: number } | null;
+};
+
+export async function syncAchievements(
+  prisma: Db,
+  userId: string,
+  preloaded?: PreloadedAchievementData
+) {
+  const t0 = performance.now();
+
   const [
     transactions,
     balances,
     goals,
     emergencyFundPlan,
+    existing,
   ] = await Promise.all([
-    prisma.transaction.findMany({
-      where: { userId, deletedAt: null },
-      select: { transactionDate: true },
-      orderBy: { transactionDate: 'asc' },
-      take: 1000,
-    }),
-    prisma.balance.findMany({
-      where: { userId, archivedAt: null },
-      select: { currentBalance: true },
-    }),
-    prisma.savingGoal.findMany({
+    preloaded?.transactions
+      ? Promise.resolve(preloaded.transactions)
+      : prisma.transaction.findMany({
+          where: { userId, deletedAt: null },
+          select: { transactionDate: true },
+          orderBy: { transactionDate: 'asc' },
+          take: 1000,
+        }),
+    preloaded?.balances
+      ? Promise.resolve(preloaded.balances)
+      : prisma.balance.findMany({
+          where: { userId, archivedAt: null },
+          select: { currentBalance: true },
+        }),
+    preloaded?.goals
+      ? Promise.resolve(preloaded.goals)
+      : prisma.savingGoal.findMany({
+          where: { userId },
+          select: { targetAmount: true, currentAmount: true },
+        }),
+    preloaded !== undefined
+      ? Promise.resolve(preloaded.emergencyFundPlan ?? null)
+      : prisma.emergencyFundPlan.findUnique({
+          where: { userId },
+          select: { monthlyExpense: true },
+        }),
+    prisma.achievement.findMany({
       where: { userId },
-      select: { targetAmount: true, currentAmount: true },
-    }),
-    prisma.emergencyFundPlan.findUnique({
-      where: { userId },
-      select: { monthlyExpense: true },
+      orderBy: { unlockedAt: 'desc' },
     }),
   ]);
 
@@ -104,20 +130,51 @@ export async function syncAchievements(prisma: Db, userId: string) {
     },
   ];
 
-  for (const achievement of definitions.filter((item) => item.complete)) {
-    await prisma.achievement.upsert({
-      where: { userId_title: { userId, title: achievement.title } },
-      update: {},
-      create: {
+  const existingMap = new Map(existing.map((item) => [item.title, item]));
+  const newlyCompleted = definitions.filter((item) => item.complete && !existingMap.has(item.title));
+  const unearned = existing.filter((item) => {
+    const def = definitions.find((d) => d.title === item.title);
+    return def && !def.complete;
+  });
+
+  let writesCount = 0;
+
+  if (newlyCompleted.length > 0) {
+    for (const achievement of newlyCompleted) {
+      await prisma.achievement.upsert({
+        where: { userId_title: { userId, title: achievement.title } },
+        update: {},
+        create: {
+          userId,
+          title: achievement.title,
+          description: achievement.description,
+        },
+      });
+      writesCount++;
+    }
+  }
+
+  if (unearned.length > 0) {
+    await prisma.achievement.deleteMany({
+      where: {
         userId,
-        title: achievement.title,
-        description: achievement.description,
+        title: { in: unearned.map((item) => item.title) },
       },
+    });
+    writesCount += unearned.length;
+  }
+
+  const dur = Math.round((performance.now() - t0) * 10) / 10;
+  if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'preview') {
+    console.log(`[PERF:ACHIEVEMENTS] syncAchievements completed in ${dur}ms (writes: ${writesCount}, user: ${userId})`);
+  }
+
+  if (writesCount > 0) {
+    return prisma.achievement.findMany({
+      where: { userId },
+      orderBy: { unlockedAt: 'desc' },
     });
   }
 
-  return prisma.achievement.findMany({
-    where: { userId },
-    orderBy: { unlockedAt: 'desc' },
-  });
+  return existing;
 }

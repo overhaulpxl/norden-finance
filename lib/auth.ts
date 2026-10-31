@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { getAdminAuth } from './firebaseAdmin';
 import { getUserEntitlement } from './entitlements';
@@ -15,10 +16,12 @@ export type AccessRequirement = 'read' | 'basic' | 'pro' | boolean;
 
 /**
  * Get the current user from the Firebase session cookie.
+ * Request-scoped deduplication via React cache().
  * Returns null if no valid session exists.
  * Used in server components and server actions.
  */
-export async function getCurrentUser(): Promise<AuthUser | null> {
+export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
+  const t0 = performance.now();
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
@@ -26,6 +29,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     if (!sessionCookie) return null;
 
     const decodedClaims = await getAdminAuth().verifySessionCookie(sessionCookie, true);
+    const dur = Math.round((performance.now() - t0) * 10) / 10;
+    if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'preview') {
+      console.log(`[PERF:AUTH] verifySessionCookie completed in ${dur}ms (uid: ${decodedClaims.uid})`);
+    }
 
     return {
       uid: decodedClaims.uid,
@@ -34,7 +41,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   } catch {
     return null;
   }
-}
+});
 
 /**
  * Require an authenticated user with appropriate access level.
