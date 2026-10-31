@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/rateLimit';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
 import { getPublicUrl, uploadFile } from '../../../../lib/storage';
+import { assertWritesAllowed } from '../../../../lib/maintenance';
 
 function safeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'qris.jpg';
@@ -25,6 +26,7 @@ function assertImage(file: File) {
 
 export async function POST(request: Request) {
   try {
+    assertWritesAllowed('upload-qris');
     assertSameOrigin(request);
     await assertRateLimit(rateLimitKey(request, 'upload-qris'), 5, 60_000);
 

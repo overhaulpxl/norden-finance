@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server';
 import { processDueRecurringTransactions } from '../../../actions/recurring';
 import { verifyCronAuthorization } from '../../../../lib/cronAuth';
 import { cleanupExpiredRateLimits } from '../../../../lib/rateLimit';
+import { isMaintenanceMode } from '../../../../lib/maintenance';
 
 async function handleCron(request: Request) {
   const authCheck = verifyCronAuthorization(request);
   if (!authCheck.authorized) {
     return authCheck.response!;
+  }
+
+  if (isMaintenanceMode()) {
+    return NextResponse.json(
+      { status: 'skipped', reason: 'maintenance_freeze_active' },
+      { status: 503 }
+    );
   }
 
   // 1. Process recurring financial transactions
