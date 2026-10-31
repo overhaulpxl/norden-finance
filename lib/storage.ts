@@ -57,12 +57,17 @@ export function parseStorageReference(ref: string): StorageReference {
   };
 }
 
-function getSupabaseBaseUrl(): string {
-  const url =
-    process.env.SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    'https://cfsjmpfgywfvpmrguqsi.supabase.co';
-  return url.replace(/\/+$/, '');
+export function getSupabaseBaseUrl(): string {
+  const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = (rawUrl || '').trim().replace(/\/+$/, '');
+
+  if (!url) {
+    throw new Error(
+      'Server configuration error: SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL is required for Supabase Storage'
+    );
+  }
+
+  return url;
 }
 
 /**
