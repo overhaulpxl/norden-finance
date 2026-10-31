@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-const host = 'https://norden-l1luy5l42-zaidaans-projects.vercel.app';
+const host = 'https://norden-p7vqy1rq3-zaidaans-projects.vercel.app';
 const fbApiKey = 'AIzaSyB7TpcmWqRMK6GdwjXXBV9yxtq_pdehlNo';
 
 // Read tokens from authorized local configs
