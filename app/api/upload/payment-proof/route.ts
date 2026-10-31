@@ -54,6 +54,9 @@ export async function POST(request: Request) {
       previewUrl,
     });
   } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('MAINTENANCE_ACTIVE')) {
+      return NextResponse.json({ error: error.message, maintenance: true }, { status: 503 });
+    }
     if (error instanceof RateLimitExceededError) {
       return rateLimitResponse(error);
     }
