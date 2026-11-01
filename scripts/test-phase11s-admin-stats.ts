@@ -186,9 +186,28 @@ async function runTests() {
 
   assert.strictEqual(timeoutResult.paymentRequests.length, 1, 'Core payment requests must not be lost when noncritical stats fail');
   assert.strictEqual(timeoutResult.listedUsers.length, 1, 'Core listed users must not be lost when noncritical stats fail');
-  assert.strictEqual(timeoutResult.platformStats.isUnavailable, true, 'isUnavailable must be true on timeout');
+  assert.strictEqual(timeoutResult.platformStats.unavailableMetrics?.users, true, 'User metrics must be flagged as unavailable on timeout');
+  assert.strictEqual(timeoutResult.platformStats.totalRevenue, 19000, 'Successful metrics (revenue) must not be hidden when another metric fails');
   assert.ok(timeoutResult.statsError, 'statsError must contain user-friendly notification');
-  assert.strictEqual(timeoutResult.platformStats.totalRevenue, 0, 'Fallback revenue placeholder must be 0');
+
+  // Full failure check (all noncritical domains time out)
+  const allTimeoutDb: any = {
+    ...mockDb,
+    paymentRequest: {
+      ...mockDb.paymentRequest,
+      aggregate: async () => { throw new Error('P2024'); },
+      count: async () => { throw new Error('P2024'); },
+    },
+    profile: {
+      ...mockDb.profile,
+      count: async () => { throw new Error('P2024'); },
+    },
+    transaction: { count: async () => { throw new Error('P2024'); } },
+    balance: { count: async () => { throw new Error('P2024'); } },
+  };
+  const allTimeoutResult = await getAdminStats(allTimeoutDb);
+  assert.strictEqual(allTimeoutResult.platformStats.isUnavailable, true, 'isUnavailable must be true when all metrics fail');
+  assert.strictEqual(allTimeoutResult.platformStats.totalRevenue, 0, 'Fallback revenue must be 0 when all metrics fail');
 
   console.log('  ✓ Error boundary verified: Noncritical stat timeout does not crash admin data retrieval.');
 

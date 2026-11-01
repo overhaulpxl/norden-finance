@@ -30,6 +30,14 @@ export type PricingPlans = Awaited<ReturnType<typeof getPricingPlans>>;
 export type MonthlyReportData = Awaited<ReturnType<typeof getMonthlyReportData>>;
 export type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 
+export interface UnavailableMetrics {
+  users?: boolean;
+  transactions?: boolean;
+  financials?: boolean;
+  revenue?: boolean;
+  userGrowth?: boolean;
+}
+
 export interface PlatformStats {
   totalUsers: number;
   proUsers: number;
@@ -48,6 +56,7 @@ export interface PlatformStats {
   rejectedPayments: number;
   userGrowth: { date: string; count: number }[];
   isUnavailable?: boolean;
+  unavailableMetrics?: UnavailableMetrics;
 }
 
 type Db = PrismaClient;
@@ -450,6 +459,7 @@ export async function getAdminStats(db: Db = prisma) {
     let approvedPayments = 0;
     let pendingPayments = 0;
     let rejectedPayments = 0;
+    const unavailableMetrics: UnavailableMetrics = {};
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -476,76 +486,141 @@ export async function getAdminStats(db: Db = prisma) {
       $queryRaw?: (query: Prisma.Sql) => Promise<AggRow[]>;
     };
 
+    let consolidatedSucceeded = false;
+
     if (clientWithRaw.$queryRaw) {
-      const aggResult = await clientWithRaw.$queryRaw(Prisma.sql`
-        SELECT
-          (SELECT COUNT(*)::int FROM "Profile") AS "totalUsers",
-          (SELECT COUNT(*)::int FROM "Profile" WHERE "plan" = ${PlanType.pro}) AS "proUsers",
-          (SELECT COUNT(*)::int FROM "Profile" WHERE "plan" = ${PlanType.trial}) AS "trialUsers",
-          (SELECT COUNT(*)::int FROM "Profile" WHERE "role" = 'admin') AS "adminUsers",
-          (SELECT COUNT(*)::int FROM "Transaction" WHERE "deletedAt" IS NULL) AS "totalTransactions",
-          (SELECT COUNT(*)::int FROM "Balance") AS "totalBalances",
-          (SELECT COUNT(*)::int FROM "Budget") AS "totalBudgets",
-          (SELECT COUNT(*)::int FROM "SavingGoal") AS "totalSavingGoals",
-          (SELECT COUNT(*)::int FROM "Debt") AS "totalDebts",
-          (SELECT COUNT(*)::int FROM "Paylater") AS "totalPaylaters",
-          (SELECT COUNT(*)::int FROM "AppSubscription") AS "totalSubscriptions",
-          (SELECT COALESCE(SUM("amount"), 0)::float FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.approved}) AS "totalRevenue",
-          (SELECT COUNT(*)::int FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.approved}) AS "approvedPayments",
-          (SELECT COUNT(*)::int FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.pending}) AS "pendingPayments",
-          (SELECT COUNT(*)::int FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.rejected}) AS "rejectedPayments"
-      `);
+      try {
+        const aggResult = await clientWithRaw.$queryRaw(Prisma.sql`
+          SELECT
+            (SELECT COUNT(*)::int FROM "Profile") AS "totalUsers",
+            (SELECT COUNT(*)::int FROM "Profile" WHERE "plan" = ${PlanType.pro}::"PlanType") AS "proUsers",
+            (SELECT COUNT(*)::int FROM "Profile" WHERE "plan" = ${PlanType.trial}::"PlanType") AS "trialUsers",
+            (SELECT COUNT(*)::int FROM "Profile" WHERE "role" = 'admin'::"UserRole") AS "adminUsers",
+            (SELECT COUNT(*)::int FROM "Transaction" WHERE "deletedAt" IS NULL) AS "totalTransactions",
+            (SELECT COUNT(*)::int FROM "Balance") AS "totalBalances",
+            (SELECT COUNT(*)::int FROM "Budget") AS "totalBudgets",
+            (SELECT COUNT(*)::int FROM "SavingGoal") AS "totalSavingGoals",
+            (SELECT COUNT(*)::int FROM "Debt") AS "totalDebts",
+            (SELECT COUNT(*)::int FROM "Paylater") AS "totalPaylaters",
+            (SELECT COUNT(*)::int FROM "AppSubscription") AS "totalSubscriptions",
+            (SELECT COALESCE(SUM("amount"), 0)::float FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.approved}::"PaymentStatus") AS "totalRevenue",
+            (SELECT COUNT(*)::int FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.approved}::"PaymentStatus") AS "approvedPayments",
+            (SELECT COUNT(*)::int FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.pending}::"PaymentStatus") AS "pendingPayments",
+            (SELECT COUNT(*)::int FROM "PaymentRequest" WHERE "status" = ${PaymentStatus.rejected}::"PaymentStatus") AS "rejectedPayments"
+        `);
 
-      const agg = aggResult[0] || {} as Partial<AggRow>;
-      totalUsers = Number(agg.totalUsers) || 0;
-      proUsers = Number(agg.proUsers) || 0;
-      trialUsers = Number(agg.trialUsers) || 0;
-      adminUsers = Number(agg.adminUsers) || 0;
-      totalTransactions = Number(agg.totalTransactions) || 0;
-      totalBalances = Number(agg.totalBalances) || 0;
-      totalBudgets = Number(agg.totalBudgets) || 0;
-      totalSavingGoals = Number(agg.totalSavingGoals) || 0;
-      totalDebts = Number(agg.totalDebts) || 0;
-      totalPaylaters = Number(agg.totalPaylaters) || 0;
-      totalSubscriptions = Number(agg.totalSubscriptions) || 0;
-      totalRevenue = Number(agg.totalRevenue) || 0;
-      approvedPayments = Number(agg.approvedPayments) || 0;
-      pendingPayments = Number(agg.pendingPayments) || 0;
-      rejectedPayments = Number(agg.rejectedPayments) || 0;
-    } else {
-      // Fallback for unit testing mocks without $queryRaw
-      const approvedPaymentStats = await db.paymentRequest.aggregate({ where: { status: PaymentStatus.approved }, _sum: { amount: true }, _count: true });
-      pendingPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.pending } });
-      rejectedPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.rejected } });
-      totalRevenue = approvedPaymentStats._sum.amount || 0;
-      approvedPayments = approvedPaymentStats._count;
-
-      totalUsers = await db.profile.count();
-      proUsers = await db.profile.count({ where: { plan: PlanType.pro } });
-      trialUsers = await db.profile.count({ where: { plan: PlanType.trial } });
-      adminUsers = await db.profile.count({ where: { role: 'admin' } });
-
-      totalTransactions = await db.transaction.count({ where: { deletedAt: null } });
-      totalBalances = await db.balance.count();
-      totalBudgets = await db.budget.count();
-      totalSavingGoals = await db.savingGoal.count();
-      totalDebts = await db.debt.count();
-      totalPaylaters = await db.paylater.count();
-      totalSubscriptions = await db.appSubscription.count();
+        const agg = aggResult[0] || ({} as Partial<AggRow>);
+        totalUsers = Number(agg.totalUsers) || 0;
+        proUsers = Number(agg.proUsers) || 0;
+        trialUsers = Number(agg.trialUsers) || 0;
+        adminUsers = Number(agg.adminUsers) || 0;
+        totalTransactions = Number(agg.totalTransactions) || 0;
+        totalBalances = Number(agg.totalBalances) || 0;
+        totalBudgets = Number(agg.totalBudgets) || 0;
+        totalSavingGoals = Number(agg.totalSavingGoals) || 0;
+        totalDebts = Number(agg.totalDebts) || 0;
+        totalPaylaters = Number(agg.totalPaylaters) || 0;
+        totalSubscriptions = Number(agg.totalSubscriptions) || 0;
+        totalRevenue = Number(agg.totalRevenue) || 0;
+        approvedPayments = Number(agg.approvedPayments) || 0;
+        pendingPayments = Number(agg.pendingPayments) || 0;
+        rejectedPayments = Number(agg.rejectedPayments) || 0;
+        consolidatedSucceeded = true;
+      } catch (rawErr) {
+        console.error('Consolidated $queryRaw failed, attempting decoupled fallback queries:', rawErr);
+      }
     }
 
-    const recentUsers = await db.profile.findMany({
-      where: { createdAt: { gte: thirtyDaysAgo } },
-      orderBy: { createdAt: 'asc' },
-      select: { createdAt: true },
-      take: 1000,
-    });
+    if (!consolidatedSucceeded) {
+      // Decoupled independent sequential execution per domain (preserves peak concurrency = 1)
+      
+      // Domain 1: Revenue & Payments
+      try {
+        const approvedPaymentStats = await db.paymentRequest.aggregate({
+          where: { status: PaymentStatus.approved },
+          _sum: { amount: true },
+          _count: true,
+        });
+        totalRevenue = approvedPaymentStats._sum.amount || 0;
+        approvedPayments = approvedPaymentStats._count;
+        pendingPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.pending } });
+        rejectedPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.rejected } });
+      } catch (err) {
+        console.error('Failed to load payment/revenue statistics:', err);
+        unavailableMetrics.revenue = true;
+      }
 
+      // Domain 2: Users & Profiles
+      try {
+        totalUsers = await db.profile.count();
+        proUsers = await db.profile.count({ where: { plan: PlanType.pro } });
+        trialUsers = await db.profile.count({ where: { plan: PlanType.trial } });
+        adminUsers = await db.profile.count({ where: { role: 'admin' } });
+      } catch (err) {
+        console.error('Failed to load user/profile statistics:', err);
+        unavailableMetrics.users = true;
+      }
+
+      // Domain 3: Transactions
+      try {
+        totalTransactions = await db.transaction.count({ where: { deletedAt: null } });
+      } catch (err) {
+        console.error('Failed to load transaction statistics:', err);
+        unavailableMetrics.transactions = true;
+      }
+
+      // Domain 4: Financial Accounts & Budgets
+      try {
+        totalBalances = await db.balance.count();
+        totalBudgets = await db.budget.count();
+        totalSavingGoals = await db.savingGoal.count();
+        totalDebts = await db.debt.count();
+        totalPaylaters = await db.paylater.count();
+        totalSubscriptions = await db.appSubscription.count();
+      } catch (err) {
+        console.error('Failed to load financial account/budget statistics:', err);
+        unavailableMetrics.financials = true;
+      }
+    }
+
+    // Domain 5: 30-day user growth
     const userGrowthMap: Record<string, number> = {};
-    recentUsers.forEach((user) => {
-      const dateKey = user.createdAt.toISOString().split('T')[0];
-      userGrowthMap[dateKey] = (userGrowthMap[dateKey] || 0) + 1;
-    });
+    try {
+      const recentUsers = await db.profile.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        orderBy: { createdAt: 'asc' },
+        select: { createdAt: true },
+        take: 1000,
+      });
+
+      recentUsers.forEach((user) => {
+        const dateKey = user.createdAt.toISOString().split('T')[0];
+        userGrowthMap[dateKey] = (userGrowthMap[dateKey] || 0) + 1;
+      });
+    } catch (err) {
+      console.error('Failed to load user growth statistics:', err);
+      unavailableMetrics.userGrowth = true;
+    }
+
+    const failedDomains: string[] = [];
+    if (unavailableMetrics.revenue) failedDomains.push('pendapatan & pembayaran');
+    if (unavailableMetrics.users) failedDomains.push('pengguna');
+    if (unavailableMetrics.transactions) failedDomains.push('transaksi');
+    if (unavailableMetrics.financials) failedDomains.push('akun finansial');
+    if (unavailableMetrics.userGrowth) failedDomains.push('grafik pertumbuhan');
+
+    const allFailed = Boolean(
+      unavailableMetrics.revenue &&
+      unavailableMetrics.users &&
+      unavailableMetrics.transactions &&
+      unavailableMetrics.financials
+    );
+
+    if (failedDomains.length > 0) {
+      statsError = allFailed
+        ? 'Sebagian data statistik platform sementara tidak dapat dimuat karena batas waktu database.'
+        : `Sebagian data statistik (${failedDomains.join(', ')}) sementara tidak dapat dimuat karena batas waktu database.`;
+    }
 
     platformStats = {
       totalUsers,
@@ -564,7 +639,8 @@ export async function getAdminStats(db: Db = prisma) {
       approvedPayments,
       rejectedPayments,
       userGrowth: Object.entries(userGrowthMap).map(([date, count]) => ({ date, count })),
-      isUnavailable: false,
+      isUnavailable: allFailed,
+      unavailableMetrics: Object.keys(unavailableMetrics).length > 0 ? unavailableMetrics : undefined,
     };
   } catch (err: unknown) {
     console.error('Noncritical platform statistics unavailable (Prisma pool pressure or timeout):', err);
@@ -587,6 +663,13 @@ export async function getAdminStats(db: Db = prisma) {
       rejectedPayments: 0,
       userGrowth: [],
       isUnavailable: true,
+      unavailableMetrics: {
+        users: true,
+        transactions: true,
+        financials: true,
+        revenue: true,
+        userGrowth: true,
+      },
     };
   }
 

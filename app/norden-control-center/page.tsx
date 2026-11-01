@@ -53,6 +53,13 @@ export default async function AdminPage() {
         rejectedPayments: 0,
         userGrowth: [],
         isUnavailable: true,
+        unavailableMetrics: {
+          users: true,
+          transactions: true,
+          financials: true,
+          revenue: true,
+          userGrowth: true,
+        },
       },
       statsError: adminDataError,
     };
