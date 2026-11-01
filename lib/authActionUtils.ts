@@ -13,10 +13,15 @@ export function getSafeContinueUrl(continueUrl: string | null): string {
       'localhost',
     ];
     const isAllowedVercel =
-      parsed.hostname.endsWith('.vercel.app') && parsed.hostname.includes('norden');
+      process.env.NODE_ENV !== 'production' &&
+      parsed.hostname.endsWith('.vercel.app') &&
+      parsed.hostname.includes('norden');
 
     if (allowedHostnames.includes(parsed.hostname) || isAllowedVercel) {
-      return parsed.pathname + parsed.search + parsed.hash;
+      const safePath = parsed.pathname + parsed.search + parsed.hash;
+      if (safePath.startsWith('/') && !safePath.startsWith('//') && !safePath.startsWith('/\\')) {
+        return safePath;
+      }
     }
   } catch {
     // Malformed URL, fallback

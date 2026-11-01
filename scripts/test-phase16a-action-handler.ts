@@ -34,7 +34,7 @@ async function runPhase16aTests() {
     ['https://www.nordenfinance.site/dashboard', '/dashboard', 'approved production www hostname'],
     ['https://nordenfinance.site/login', '/login', 'approved production apex hostname'],
     ['http://localhost:3000/dashboard', '/dashboard', 'approved localhost hostname'],
-    ['https://norden-preview-zaidaans-projects.vercel.app/upgrade', '/upgrade', 'approved preview vercel hostname'],
+    ['https://norden-preview-zaidaans-projects.vercel.app/upgrade', '/upgrade', 'approved preview vercel hostname in dev'],
     ['https://evil.com/phishing', '/dashboard', 'unauthorized external domain rejected'],
     ['https://malicious.org/stealer?code=123', '/dashboard', 'malicious.org rejected'],
     ['//evil.com/phishing', '/dashboard', 'protocol-relative URL rejected'],
@@ -51,6 +51,17 @@ async function runPhase16aTests() {
       `Safe URL validation failed for ${description}: got "${result}", expected "${expected}"`
     );
     console.log(`  ✓ [PASS] ${description}: "${input}" -> "${result}"`);
+  }
+
+  // Verify that in Production mode, preview domains are rejected
+  const oldNodeEnv = process.env.NODE_ENV;
+  try {
+    (process.env as any).NODE_ENV = 'production';
+    const prodPreviewResult = getSafeContinueUrl('https://norden-preview-zaidaans-projects.vercel.app/upgrade');
+    assert.strictEqual(prodPreviewResult, '/dashboard', 'Preview domains must be rejected in production mode');
+    console.log('  ✓ [PASS] Preview domain safely rejected in production mode: -> "/dashboard"');
+  } finally {
+    (process.env as any).NODE_ENV = oldNodeEnv;
   }
 
   // ------------------------------------------------------------------
