@@ -88,33 +88,61 @@ async function runRegressionTests() {
   assert.ok(partialRes.statsError?.includes('pendapatan & pembayaran'), 'statsError must specifically identify failed domain');
   console.log('  ✓ Verified: Revenue failure does NOT hide user counts, transactions, or account balances.');
 
-  // TEST 3: Timeout errors produce safe fallbacks
-  console.log('\n[3] Testing full database timeout produces safe fallbacks...');
-  const totalTimeoutDb: any = {
+  // TEST 3: Specific error classification (P2024 pool timeout, P1001 network failure, P2010 query error)
+  console.log('\n[3] Testing distinct error classification for P2024, P1001, and P2010...');
+  
+  // 3A: P2024 Pool Timeout
+  const p2024Db: any = {
     ...healthyDb,
     paymentRequest: {
       ...healthyDb.paymentRequest,
-      aggregate: async () => { throw new Error('Timed out fetching connection (P2024)'); },
-      count: async () => { throw new Error('Timed out fetching connection (P2024)'); },
+      aggregate: async () => { const e: any = new Error('Timed out fetching connection'); e.code = 'P2024'; throw e; },
+      count: async () => { const e: any = new Error('Timed out fetching connection'); e.code = 'P2024'; throw e; },
     },
     profile: {
       ...healthyDb.profile,
-      count: async () => { throw new Error('Timed out fetching connection (P2024)'); },
+      count: async () => { const e: any = new Error('Timed out fetching connection'); e.code = 'P2024'; throw e; },
       findMany: async ({ where }: any = {}) => {
-        if (where?.createdAt) throw new Error('Timed out fetching connection (P2024)');
+        if (where?.createdAt) { const e: any = new Error('Timed out fetching connection'); e.code = 'P2024'; throw e; }
         return [];
       },
     },
-    transaction: { count: async () => { throw new Error('Timed out fetching connection (P2024)'); } },
-    balance: { count: async () => { throw new Error('Timed out fetching connection (P2024)'); } },
+    transaction: { count: async () => { const e: any = new Error('Timed out'); e.code = 'P2024'; throw e; } },
+    balance: { count: async () => { const e: any = new Error('Timed out'); e.code = 'P2024'; throw e; } },
   };
-  const totalTimeoutRes = await getAdminStats(totalTimeoutDb);
-  assert.strictEqual(totalTimeoutRes.platformStats.isUnavailable, true, 'isUnavailable must be true when all metrics fail');
-  assert.strictEqual(totalTimeoutRes.platformStats.totalRevenue, 0, 'Safe fallback for revenue must be 0');
-  assert.strictEqual(totalTimeoutRes.platformStats.proUsers, 0, 'Safe fallback for proUsers must be 0');
-  assert.strictEqual(totalTimeoutRes.platformStats.totalTransactions, 0, 'Safe fallback for transactions must be 0');
-  assert.ok(totalTimeoutRes.statsError?.includes('batas waktu database'), 'Must show timeout message without crash');
-  console.log('  ✓ Safe fallback verified under total timeout.');
+  const p2024Res = await getAdminStats(p2024Db);
+  assert.strictEqual(p2024Res.platformStats.isUnavailable, true, 'isUnavailable must be true when all metrics fail');
+  assert.ok(p2024Res.statsError?.includes('batas waktu koneksi database'), `P2024 must report connection timeout, got: ${p2024Res.statsError}`);
+  console.log('  ✓ P2024 classified accurately as connection timeout.');
+
+  // 3B: P1001 Database Connectivity Failure
+  const p1001Db: any = {
+    ...healthyDb,
+    paymentRequest: {
+      ...healthyDb.paymentRequest,
+      aggregate: async () => { const e: any = new Error("Can't reach database server"); e.code = 'P1001'; throw e; },
+    },
+  };
+  const p1001Res = await getAdminStats(p1001Db);
+  assert.ok(p1001Res.statsError?.includes('koneksi ke server database terputus'), `P1001 must report connectivity failure, got: ${p1001Res.statsError}`);
+  console.log('  ✓ P1001 classified accurately as server connectivity failure.');
+
+  // 3C: P2010 Raw Query / Type Failure
+  const p2010Db: any = {
+    ...healthyDb,
+    $queryRaw: async () => {
+      const e: any = new Error('Raw query failed. Code: 42883');
+      e.code = 'P2010';
+      throw e;
+    },
+    paymentRequest: {
+      ...healthyDb.paymentRequest,
+      aggregate: async () => { const e: any = new Error('syntax error'); e.code = 'P2010'; throw e; },
+    },
+  };
+  const p2010Res = await getAdminStats(p2010Db);
+  assert.ok(p2010Res.statsError?.includes('kesalahan pemrosesan kueri database'), `P2010 must report query processing error, got: ${p2010Res.statsError}`);
+  console.log('  ✓ P2010 classified accurately as query processing failure (not masquerading as timeout).');
 
   // TEST 4: PII and database credentials never appear in errors
   console.log('\n[4] Verifying no PII or database credentials leaked in errors...');

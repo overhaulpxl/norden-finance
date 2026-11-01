@@ -427,6 +427,38 @@ export async function getMonthlyReportData(userId: string, month: number, year: 
   };
 }
 
+function classifyDatabaseError(err: unknown): { code: string; userReason: string } {
+  let code = 'UNKNOWN';
+  let userReason = 'kendala database sementara';
+
+  if (err && typeof err === 'object') {
+    const errCode = (err as { code?: string }).code;
+    const msg = String((err as { message?: string }).message || '');
+
+    if (errCode === 'P2024' || msg.includes('P2024') || /timed out|timeout/i.test(msg)) {
+      code = 'P2024';
+      userReason = 'batas waktu koneksi database';
+    } else if (errCode === 'P1001' || msg.includes('P1001') || /can't reach database|connect ECONNREFUSED/i.test(msg)) {
+      code = 'P1001';
+      userReason = 'koneksi ke server database terputus';
+    } else if (errCode === 'P2010' || msg.includes('P2010') || msg.includes('42883') || /raw query failed/i.test(msg)) {
+      code = 'P2010';
+      userReason = 'kesalahan pemrosesan kueri database';
+    }
+  }
+
+  return { code, userReason };
+}
+
+function sanitizeLogMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message
+      .replace(/\/\/[^:]+:[^@]+@[^/\s]+/g, '//***:***@***')
+      .replace(/password=[^\s&]+/gi, 'password=***');
+  }
+  return String(err);
+}
+
 export async function getAdminStats(db: Db = prisma) {
   const t0 = performance.now();
 
@@ -460,6 +492,7 @@ export async function getAdminStats(db: Db = prisma) {
     let pendingPayments = 0;
     let rejectedPayments = 0;
     const unavailableMetrics: UnavailableMetrics = {};
+    let lastErrorReason: string | undefined;
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -527,7 +560,9 @@ export async function getAdminStats(db: Db = prisma) {
         rejectedPayments = Number(agg.rejectedPayments) || 0;
         consolidatedSucceeded = true;
       } catch (rawErr) {
-        console.error('Consolidated $queryRaw failed, attempting decoupled fallback queries:', rawErr);
+        const { code, userReason } = classifyDatabaseError(rawErr);
+        lastErrorReason = userReason;
+        console.error(`Consolidated $queryRaw failed (code: ${code}), attempting decoupled fallback queries:`, sanitizeLogMessage(rawErr));
       }
     }
 
@@ -546,7 +581,9 @@ export async function getAdminStats(db: Db = prisma) {
         pendingPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.pending } });
         rejectedPayments = await db.paymentRequest.count({ where: { status: PaymentStatus.rejected } });
       } catch (err) {
-        console.error('Failed to load payment/revenue statistics:', err);
+        const { code, userReason } = classifyDatabaseError(err);
+        lastErrorReason = userReason;
+        console.error(`Failed to load payment/revenue statistics (code: ${code}):`, sanitizeLogMessage(err));
         unavailableMetrics.revenue = true;
       }
 
@@ -557,7 +594,9 @@ export async function getAdminStats(db: Db = prisma) {
         trialUsers = await db.profile.count({ where: { plan: PlanType.trial } });
         adminUsers = await db.profile.count({ where: { role: 'admin' } });
       } catch (err) {
-        console.error('Failed to load user/profile statistics:', err);
+        const { code, userReason } = classifyDatabaseError(err);
+        lastErrorReason = userReason;
+        console.error(`Failed to load user/profile statistics (code: ${code}):`, sanitizeLogMessage(err));
         unavailableMetrics.users = true;
       }
 
@@ -565,7 +604,9 @@ export async function getAdminStats(db: Db = prisma) {
       try {
         totalTransactions = await db.transaction.count({ where: { deletedAt: null } });
       } catch (err) {
-        console.error('Failed to load transaction statistics:', err);
+        const { code, userReason } = classifyDatabaseError(err);
+        lastErrorReason = userReason;
+        console.error(`Failed to load transaction statistics (code: ${code}):`, sanitizeLogMessage(err));
         unavailableMetrics.transactions = true;
       }
 
@@ -578,7 +619,9 @@ export async function getAdminStats(db: Db = prisma) {
         totalPaylaters = await db.paylater.count();
         totalSubscriptions = await db.appSubscription.count();
       } catch (err) {
-        console.error('Failed to load financial account/budget statistics:', err);
+        const { code, userReason } = classifyDatabaseError(err);
+        lastErrorReason = userReason;
+        console.error(`Failed to load financial account/budget statistics (code: ${code}):`, sanitizeLogMessage(err));
         unavailableMetrics.financials = true;
       }
     }
@@ -598,7 +641,9 @@ export async function getAdminStats(db: Db = prisma) {
         userGrowthMap[dateKey] = (userGrowthMap[dateKey] || 0) + 1;
       });
     } catch (err) {
-      console.error('Failed to load user growth statistics:', err);
+      const { code, userReason } = classifyDatabaseError(err);
+      lastErrorReason = userReason;
+      console.error(`Failed to load user growth statistics (code: ${code}):`, sanitizeLogMessage(err));
       unavailableMetrics.userGrowth = true;
     }
 
@@ -616,10 +661,12 @@ export async function getAdminStats(db: Db = prisma) {
       unavailableMetrics.financials
     );
 
+    const primaryReason = lastErrorReason || 'kendala database sementara';
+
     if (failedDomains.length > 0) {
       statsError = allFailed
-        ? 'Sebagian data statistik platform sementara tidak dapat dimuat karena batas waktu database.'
-        : `Sebagian data statistik (${failedDomains.join(', ')}) sementara tidak dapat dimuat karena batas waktu database.`;
+        ? `Sebagian data statistik platform sementara tidak dapat dimuat karena ${primaryReason}.`
+        : `Sebagian data statistik (${failedDomains.join(', ')}) sementara tidak dapat dimuat karena ${primaryReason}.`;
     }
 
     platformStats = {
@@ -643,8 +690,9 @@ export async function getAdminStats(db: Db = prisma) {
       unavailableMetrics: Object.keys(unavailableMetrics).length > 0 ? unavailableMetrics : undefined,
     };
   } catch (err: unknown) {
-    console.error('Noncritical platform statistics unavailable (Prisma pool pressure or timeout):', err);
-    statsError = 'Sebagian data statistik platform sementara tidak dapat dimuat karena batas waktu database.';
+    const { code, userReason } = classifyDatabaseError(err);
+    console.error(`Noncritical platform statistics unavailable (code: ${code}):`, sanitizeLogMessage(err));
+    statsError = `Sebagian data statistik platform sementara tidak dapat dimuat karena ${userReason}.`;
     platformStats = {
       totalUsers: 0,
       proUsers: 0,
