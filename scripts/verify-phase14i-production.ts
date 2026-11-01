@@ -5,8 +5,8 @@ import os from 'os';
 import admin from 'firebase-admin';
 
 const prodHost = 'https://www.nordenfinance.site';
-const dplId = 'dpl_BaSvY1dCkv1tTpDFpP3eRy3i4d7P';
-const promotedCommit = '0fa5dcb043c2d17c69675582364788b737ca6379';
+const dplId = 'dpl_2z7sJ9NNsTvXYVrd2X6DqnEYFcST';
+const promotedCommit = '5d60be3474d2bca88e6e5fe91cb74e50eb95b9d3';
 const sgRef = 'tidpkhwcxrsugioctpnf';
 const adminUid = 'yf8PxJOaPWYp3bvRqtTeu7onblT2';
 const fbApiKey = 'AIzaSyBLbnAnZLiRKpLQojKdiQQDBklq64CMJqY';
