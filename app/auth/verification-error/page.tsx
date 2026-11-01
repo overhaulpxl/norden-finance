@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { AlertTriangle, ArrowLeft } from 'lucide-react';
 import BrandLogo from '../../../components/BrandLogo';
+
+export const metadata: Metadata = {
+  title: 'Kesalahan Verifikasi Email',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function VerificationErrorPage() {
   return (

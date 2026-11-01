@@ -1,9 +1,18 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import BrandLogo from '../../../components/BrandLogo';
 import { getTrialDays } from '../../../lib/data/loaders';
 import { ArrowLeft, Shield } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Syarat dan Ketentuan',
+  description: 'Syarat dan ketentuan penggunaan layanan aplikasi keuangan pribadi Norden Finance.',
+  alternates: {
+    canonical: '/legal/terms',
+  },
+};
 
 export default async function TermsPage() {
   const trialDays = await getTrialDays();

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import {
   Check,
   MessageSquare,
@@ -16,6 +17,7 @@ import BackToTop from '../components/BackToTop';
 import LandingUX from '../components/LandingUX';
 import BrandLogo from '../components/BrandLogo';
 import LandingHeader from '../components/LandingHeader';
+import JsonLd from '../components/JsonLd';
 import {
   LANDING_MONTHLY_PRICE,
   LANDING_TRIAL_DAYS,
@@ -25,6 +27,16 @@ import { formatCurrency } from '../lib/format';
 
 export const dynamic = 'force-static';
 
+export const metadata: Metadata = {
+  title: {
+    absolute: 'Norden Finance — Aplikasi Keuangan Pribadi',
+  },
+  description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
+  alternates: {
+    canonical: '/',
+  },
+};
+
 export default function LandingPage() {
   const trialDays = LANDING_TRIAL_DAYS;
   const monthlyPrice = LANDING_MONTHLY_PRICE;
@@ -33,6 +45,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] font-sans antialiased relative">
+      <JsonLd />
       <LandingUX />
 
       <style>{`
@@ -89,13 +102,13 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-black max-w-4xl leading-[1.05] mb-6 uppercase select-none reveal">
-            Kendalikan Arus Kas. <br />
-            Temukan Arah Finansial.
+            Kelola Keuangan Pribadi <br />
+            Lebih Teratur dengan Norden
           </h1>
 
           <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-2xl leading-relaxed mb-8 uppercase tracking-wide select-none reveal">
-            Catat transaksi dalam hitungan detik dengan bahasa natural. <br className="hidden sm:inline" />
-            Pantau seluruh rekening bank, e-wallet, dan pos anggaran dalam satu dashboard terstruktur.
+            Catat pemasukan dan pengeluaran harian dalam hitungan detik dengan Smart Input natural. <br className="hidden sm:inline" />
+            Pantau seluruh rekening bank, e-wallet, pos anggaran, dan target tabungan dalam satu sistem terstruktur.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-14 reveal w-full sm:w-auto">
@@ -150,7 +163,7 @@ export default function LandingPage() {
                 Fitur Inti Produk
               </span>
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
-                Tiga Fondasi Utama Norden
+                Tiga Fondasi Utama Aplikasi Keuangan Norden
               </h2>
               <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
                 Dirancang khusus untuk memotong kerumitan spreadsheet dan memusatkan kendali finansial Anda.
@@ -198,7 +211,7 @@ export default function LandingPage() {
                     2. Multi-Dompet & Saldo
                   </h3>
                   <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
-                    Pantau seluruh saldo likuid di satu tempat. Hubungkan mutasi kas tunai, rekening bank (BCA, BNI, Mandiri), dan saldo dompet digital (DANA, GoPay, OVO, ShopeePay).
+                    Pantau seluruh saldo likuid di satu tempat. Catat dan kelola mutasi kas tunai, rekening bank (BCA, BNI, Mandiri), dan saldo dompet digital (DANA, GoPay, OVO, ShopeePay) secara mandiri.
                   </p>
 
                   <div className="bg-[#FAF9F5] border-[2px] border-black p-3 space-y-2 text-xs font-bold">
@@ -258,7 +271,7 @@ export default function LandingPage() {
                   Filosofi Produk
                 </span>
                 <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase leading-[1.05]">
-                  Kenapa Norden?
+                  Kenapa Memilih Norden Finance?
                 </h2>
                 <div className="space-y-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-700">
                   <p>
@@ -307,7 +320,7 @@ export default function LandingPage() {
                 Transparansi & Keamanan
               </span>
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
-                Privasi dan Kepemilikan Data Anda
+                Privasi dan Keamanan Data Finansial Anda
               </h2>
               <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
                 Kami percaya data keuangan Anda adalah milik Anda sepenuhnya.
@@ -361,7 +374,7 @@ export default function LandingPage() {
                 Paket Langganan
               </span>
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
-                Pilihan Paket Norden
+                Pilihan Paket Langganan Norden Finance
               </h2>
               <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
                 Mulai dengan trial gratis 14 hari. Lanjutkan ke Pro atau tetap gunakan Free Basic.
@@ -489,7 +502,7 @@ export default function LandingPage() {
                 FAQ
               </span>
               <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-black uppercase">
-                Pertanyaan yang Sering Diajukan
+                Pertanyaan yang Sering Diajukan Seputar Norden
               </h2>
             </div>
 
