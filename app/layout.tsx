@@ -4,8 +4,39 @@ import './globals.css';
 const font = Outfit({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Norden Finance",
-  description: "Track your money. Find your direction. Norden adalah Personal Finance Operating System yang membantu Anda mencatat transaksi, mengelola saldo, memantau budget, dan memahami arah keuangan Anda.",
+  metadataBase: new URL('https://www.nordenfinance.site'),
+  title: {
+    default: 'Norden Finance — Aplikasi Keuangan Pribadi',
+    template: '%s | Norden Finance',
+  },
+  description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Norden Finance — Aplikasi Keuangan Pribadi',
+    description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
+    url: 'https://www.nordenfinance.site',
+    siteName: 'Norden Finance',
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Norden Finance — Aplikasi Keuangan Pribadi',
+    description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
       { url: '/brand/favicon-16.png?v=3', sizes: '16x16', type: 'image/png' },

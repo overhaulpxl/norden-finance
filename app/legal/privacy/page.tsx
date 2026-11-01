@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import BrandLogo from '../../../components/BrandLogo';
 import { ArrowLeft, Lock } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Kebijakan Privasi',
+  description: 'Kebijakan privasi dan perlindungan data pengguna aplikasi keuangan pribadi Norden Finance.',
+  alternates: {
+    canonical: '/legal/privacy',
+  },
+};
 
 export default function PrivacyPage() {
   return (

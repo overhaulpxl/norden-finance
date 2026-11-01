@@ -1,9 +1,20 @@
+import type { Metadata } from 'next';
 import { getDashboardData } from '../actions';
 import { getCurrentUser } from '../../lib/auth';
 import { redirect } from 'next/navigation';
 import AppLayout from '../../components/AppLayout';
 import { getPricingPlans, getTrialDays } from '../../lib/data/loaders';
 import { DEFAULT_MONTHLY_PRICE, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../../lib/constants';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Dashboard Keuangan',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
