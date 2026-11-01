@@ -77,7 +77,9 @@ async function verifyProduction() {
   });
   assert.strictEqual(nonAdminSessRes.status, 200, 'Non-admin session creation must return 200');
   const nonAdminRawCookies = nonAdminSessRes.headers.getSetCookie ? nonAdminSessRes.headers.getSetCookie() : [nonAdminSessRes.headers.get('set-cookie')];
-  const nonAdminCookie = nonAdminRawCookies.find((c: any) => c && c.startsWith('__session=')).split(';')[0];
+  const nonAdminCookieItem = nonAdminRawCookies.find((c: any) => c && c.startsWith('__session='));
+  assert.ok(nonAdminCookieItem, 'Must receive __session cookie for non-admin');
+  const nonAdminCookie = nonAdminCookieItem.split(';')[0];
 
   const nonAdminAccessRes = await fetch(`${prodHost}/norden-control-center`, {
     headers: { Cookie: nonAdminCookie },
