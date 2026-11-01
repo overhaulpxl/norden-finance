@@ -28,7 +28,9 @@ import { formatCurrency } from '../lib/format';
 export const dynamic = 'force-static';
 
 export const metadata: Metadata = {
-  title: 'Norden Finance — Aplikasi Keuangan Pribadi',
+  title: {
+    absolute: 'Norden Finance — Aplikasi Keuangan Pribadi',
+  },
   description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
   alternates: {
     canonical: '/',
@@ -209,7 +211,7 @@ export default function LandingPage() {
                     2. Multi-Dompet & Saldo
                   </h3>
                   <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
-                    Pantau seluruh saldo likuid di satu tempat. Hubungkan mutasi kas tunai, rekening bank (BCA, BNI, Mandiri), dan saldo dompet digital (DANA, GoPay, OVO, ShopeePay).
+                    Pantau seluruh saldo likuid di satu tempat. Catat dan kelola mutasi kas tunai, rekening bank (BCA, BNI, Mandiri), dan saldo dompet digital (DANA, GoPay, OVO, ShopeePay) secara mandiri.
                   </p>
 
                   <div className="bg-[#FAF9F5] border-[2px] border-black p-3 space-y-2 text-xs font-bold">
