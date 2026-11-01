@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-const host = 'https://norden-bigvd5l2i-zaidaans-projects.vercel.app';
+const host = process.argv[2] || 'https://norden-hny245m98-zaidaans-projects.vercel.app';
 const fbApiKey = 'AIzaSyB7TpcmWqRMK6GdwjXXBV9yxtq_pdehlNo';
 
 const vAuthPath = path.join(os.homedir(), 'AppData', 'Roaming', 'com.vercel.cli', 'Data', 'auth.json');

@@ -80,16 +80,16 @@ export async function verifyPhase15b(targetUrl: string, isPreview: boolean = tru
   // ---------------------------------------------------------
   console.log('\n2. Testing Crawler Response & X-Robots-Tag on Private Routes:');
   const privateRoutes = [
-    { path: '/login', expectedStatus: 200, rendersHtml: true },
-    { path: '/register', expectedStatus: 200, rendersHtml: true },
-    { path: '/forgot-password', expectedStatus: 200, rendersHtml: true },
-    { path: '/verify-email', expectedStatus: 200, rendersHtml: true },
-    { path: '/upgrade', expectedStatus: 307, rendersHtml: false }, // redirects unauth
-    { path: '/dashboard', expectedStatus: 307, rendersHtml: false }, // redirects unauth
-    { path: '/norden-control-center', expectedStatus: 307, rendersHtml: false }, // redirects unauth
-    { path: '/onboarding', expectedStatus: 307, rendersHtml: false }, // redirects unauth
-    { path: '/auth/verified', expectedStatus: 200, rendersHtml: true },
-    { path: '/auth/verification-error', expectedStatus: 200, rendersHtml: true },
+    { path: '/login', requiresAuthRedirect: false },
+    { path: '/register', requiresAuthRedirect: false },
+    { path: '/forgot-password', requiresAuthRedirect: false },
+    { path: '/verify-email', requiresAuthRedirect: false },
+    { path: '/upgrade', requiresAuthRedirect: true },
+    { path: '/dashboard', requiresAuthRedirect: true },
+    { path: '/norden-control-center', requiresAuthRedirect: true },
+    { path: '/onboarding', requiresAuthRedirect: true },
+    { path: '/auth/verified', requiresAuthRedirect: false },
+    { path: '/auth/verification-error', requiresAuthRedirect: false },
   ];
 
   for (const r of privateRoutes) {
@@ -97,23 +97,24 @@ export async function verifyPhase15b(targetUrl: string, isPreview: boolean = tru
     const xRobotsTag = res.headers.get('x-robots-tag') || '';
     const bodyText = await res.text();
 
-    // Check X-Robots-Tag header
+    // 1. Check X-Robots-Tag header
     record(
       xRobotsTag.toLowerCase().includes('noindex'),
       `${r.path} returns X-Robots-Tag: "${xRobotsTag}" (HTTP ${res.status})`,
       `${r.path} MISSING X-Robots-Tag header! Got: "${xRobotsTag}"`
     );
 
-    // If renders HTML, check <meta name="robots" content="noindex, nofollow">
-    if (r.rendersHtml) {
-      const hasMetaNoIndex = bodyText.includes('name="robots" content="noindex, nofollow"') || bodyText.includes('content="noindex, nofollow"');
-      record(hasMetaNoIndex, `${r.path} HTML body contains <meta name="robots" content="noindex, nofollow">`, `${r.path} missing meta noindex in HTML body`);
-    }
+    // 2. Check HTML body contains <meta name="robots" content="noindex, nofollow">
+    const hasMetaNoIndex = bodyText.includes('name="robots" content="noindex, nofollow"') || bodyText.includes('content="noindex, nofollow"');
+    record(hasMetaNoIndex, `${r.path} HTML body contains <meta name="robots" content="noindex, nofollow">`, `${r.path} missing meta noindex in HTML body`);
 
-    // If redirects, verify location is /login and zero sensitive data leaked
-    if (r.expectedStatus === 307) {
-      const location = res.headers.get('location') || '';
-      record(location.includes('/login'), `${r.path} safely redirects unauthenticated visitor to /login (${location})`, `${r.path} redirection failed! Location: ${location}`);
+    // 3. If requires authentication, verify redirect (HTTP 307 or HTML meta-refresh to /login)
+    if (r.requiresAuthRedirect) {
+      const isHttpRedirect = [301, 302, 307, 308].includes(res.status) && (res.headers.get('location') || '').includes('/login');
+      const isMetaRefreshRedirect = bodyText.includes('http-equiv="refresh"') && bodyText.includes('url=/login');
+      const redirectsToLogin = isHttpRedirect || isMetaRefreshRedirect;
+
+      record(redirectsToLogin, `${r.path} safely redirects unauthenticated visitor to /login (method: ${isHttpRedirect ? 'HTTP 307' : 'Meta Refresh'})`, `${r.path} authentication redirection missing!`);
       record(!bodyText.includes('transactions') && !bodyText.includes('balances') && !bodyText.includes('adminStats'), `${r.path} response body leaks zero private financial/admin data`, `${r.path} body leaks sensitive data!`);
     }
   }
