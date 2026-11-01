@@ -48,7 +48,9 @@ async function run() {
   console.log('  Session creation status:', sessRes.status);
   assert.strictEqual(sessRes.status, 200, 'Session creation must return 200');
   const rawCookies = sessRes.headers.getSetCookie ? sessRes.headers.getSetCookie() : [sessRes.headers.get('set-cookie')];
-  const cookie = rawCookies.find((c: any) => c && c.startsWith('__session=')).split(';')[0];
+  const sessionCookie = rawCookies.find((c: any) => c && c.startsWith('__session='));
+  assert.ok(sessionCookie, 'Must receive __session cookie in set-cookie header');
+  const cookie = sessionCookie.split(';')[0];
   console.log('  ✓ Session cookie obtained.');
 
   console.log('\n3. Requesting GET /norden-control-center with authenticated admin session...');
