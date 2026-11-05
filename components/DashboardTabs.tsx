@@ -15,7 +15,6 @@ import NoSpendCalendar from './NoSpendCalendar';
 import Wishlist from './Wishlist';
 import { WishlistItem, Paylater } from '../types';
 import PaylaterList from './PaylaterList';
-import Integrations from './Integrations';
 
 interface DashboardTabsProps {
   transactions: Transaction[];
@@ -27,14 +26,13 @@ interface DashboardTabsProps {
 }
 
 export default function DashboardTabs({ transactions, balances, savingGoals, debts, wishlist, paylaters }: DashboardTabsProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'integrations'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history'>('overview');
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'wallet', label: 'Dompet' },
     { id: 'goals', label: 'Target, Utang & Cicilan' },
     { id: 'history', label: 'Riwayat' },
-    { id: 'integrations', label: 'Integrations (NFC)' },
   ] as const;
 
   return (
@@ -99,12 +97,6 @@ export default function DashboardTabs({ transactions, balances, savingGoals, deb
         {activeTab === 'history' && (
           <div className="space-y-6">
             <TransactionTable transactions={transactions} />
-          </div>
-        )}
-
-        {activeTab === 'integrations' && (
-          <div className="space-y-6">
-            <Integrations />
           </div>
         )}
       </div>

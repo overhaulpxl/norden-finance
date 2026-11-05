@@ -58,6 +58,12 @@ export const metadata: Metadata = {
     shortcut: '/brand/favicon-32.png?v=3',
     apple: '/brand/apple-touch-icon.png?v=3',
   },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Norden',
+  },
 };
 
 export default function RootLayout({
