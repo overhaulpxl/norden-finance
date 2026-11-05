@@ -10,6 +10,33 @@ import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/form
 import { compressReceiptImage } from '../lib/imageCompression';
 import { triggerHaptic } from '../lib/haptics';
 import { triggerUndoToast } from '../lib/undoToast';
+import { getCategoryEmoji } from '../lib/categoryEmoji';
+
+const QUICK_AMOUNT_INCREMENTS = [
+  { label: '+10rb', value: 10000 },
+  { label: '+20rb', value: 20000 },
+  { label: '+50rb', value: 50000 },
+  { label: '+100rb', value: 100000 },
+];
+
+const QUICK_EXPENSE_CATEGORIES = [
+  'Makan',
+  'Transport',
+  'Belanja',
+  'Tagihan',
+  'Kopi',
+  'Hiburan',
+  'Kesehatan',
+];
+
+const QUICK_INCOME_CATEGORIES = [
+  'Gaji',
+  'Bonus',
+  'Freelance',
+  'Dividen',
+  'Penjualan',
+  'Hadiah',
+];
 
 interface ChatMessage {
   id: string;
@@ -443,13 +470,32 @@ export default function QuickInputModal({
     setLoading(false);
   };
 
+  const handleQuickAmount = (increment: number) => {
+    triggerHaptic('selection');
+    const current = parseRupiahInput(mAmount) || 0;
+    const next = current + increment;
+    setMAmount(formatRupiahInput(next.toString()));
+  };
+
+  const handleClearAmount = () => {
+    triggerHaptic('light');
+    setMAmount('');
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 select-none">
       <div className="bg-white border-[3px] border-black w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 py-4 border-b-[3px] border-black flex justify-between items-center bg-white shrink-0">
           <h2 className="font-black text-black text-base uppercase tracking-wider">Catat Transaksi</h2>
-          <button onClick={onClose} aria-label="Tutup modal" className="p-1.5 text-neutral-400 hover:text-black hover:bg-neutral-50 rounded-none transition-colors cursor-pointer border border-transparent hover:border-black">
+          <button 
+            onClick={() => {
+              triggerHaptic('light');
+              onClose();
+            }} 
+            aria-label="Tutup modal" 
+            className="p-1.5 text-neutral-400 hover:text-black hover:bg-neutral-50 rounded-none transition-colors cursor-pointer border border-transparent hover:border-black"
+          >
             <X className="w-5 h-5 stroke-[2.5px]" />
           </button>
         </div>
@@ -458,7 +504,10 @@ export default function QuickInputModal({
         <div className="flex border-b-[3px] border-black bg-[#f3f4f6] shrink-0">
           <button
             type="button"
-            onClick={() => setMode('quick')}
+            onClick={() => {
+              triggerHaptic('selection');
+              setMode('quick');
+            }}
             className={`flex-1 py-3 text-xs font-black uppercase tracking-wider transition-all cursor-pointer border-r-[3px] border-black ${
               mode === 'quick' ? 'bg-white text-black font-black' : 'text-neutral-500 hover:bg-neutral-50'
             }`}
@@ -467,7 +516,10 @@ export default function QuickInputModal({
           </button>
           <button
             type="button"
-            onClick={() => setMode('manual')}
+            onClick={() => {
+              triggerHaptic('selection');
+              setMode('manual');
+            }}
             className={`flex-1 py-3 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
               mode === 'manual' ? 'bg-white text-black font-black' : 'text-neutral-500 hover:bg-neutral-50'
             }`}
@@ -613,15 +665,42 @@ export default function QuickInputModal({
             <form onSubmit={handleManualSubmit} className="space-y-4">
               <div className="space-y-4">
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setMType('keluar')} className={`flex-1 py-2 text-xs font-black rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer ${
-                    mType === 'keluar' ? 'bg-[#fecaca] text-black' : 'bg-white text-black'
-                  }`}>Pengeluaran</button>
-                  <button type="button" onClick={() => setMType('masuk')} className={`flex-1 py-2 text-xs font-black rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer ${
-                    mType === 'masuk' ? 'bg-[#bbf7d0] text-black' : 'bg-white text-black'
-                  }`}>Pemasukan</button>
-                  <button type="button" onClick={() => setMType('transfer')} className={`flex-1 py-2 text-xs font-black rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer ${
-                    mType === 'transfer' ? 'bg-[#bfdbfe] text-black' : 'bg-white text-black'
-                  }`}>Transfer</button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setMType('keluar');
+                    }} 
+                    className={`flex-1 py-2 text-xs font-black rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer ${
+                      mType === 'keluar' ? 'bg-[#fecaca] text-black' : 'bg-white text-black'
+                    }`}
+                  >
+                    Pengeluaran
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setMType('masuk');
+                    }} 
+                    className={`flex-1 py-2 text-xs font-black rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer ${
+                      mType === 'masuk' ? 'bg-[#bbf7d0] text-black' : 'bg-white text-black'
+                    }`}
+                  >
+                    Pemasukan
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setMType('transfer');
+                    }} 
+                    className={`flex-1 py-2 text-xs font-black rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all cursor-pointer ${
+                      mType === 'transfer' ? 'bg-[#bfdbfe] text-black' : 'bg-white text-black'
+                    }`}
+                  >
+                    Transfer
+                  </button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -642,6 +721,30 @@ export default function QuickInputModal({
                   </div>
                 </div>
 
+                {/* Quick Nominal Increment Chips */}
+                <div className="flex flex-wrap items-center gap-1.5 -mt-2">
+                  <span className="text-[9px] font-black text-neutral-400 uppercase tracking-widest mr-0.5">Tambah:</span>
+                  {QUICK_AMOUNT_INCREMENTS.map(chip => (
+                    <button
+                      key={chip.label}
+                      type="button"
+                      onClick={() => handleQuickAmount(chip.value)}
+                      className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-white text-neutral-800 border-[1.5px] border-black shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer hover:bg-neutral-100"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                  {mAmount && (
+                    <button
+                      type="button"
+                      onClick={handleClearAmount}
+                      className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 border-[1.5px] border-black shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+
                 {mType === 'transfer' ? (
                   <div>
                     <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Ke Wallet</label>
@@ -649,8 +752,40 @@ export default function QuickInputModal({
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Kategori</label>
-                    <input type="text" placeholder="e.g. makan, transport" value={mCategory} onChange={e => setMCategory(e.target.value)} className="brutal-input text-xs font-bold" required />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-black text-neutral-500 uppercase tracking-widest">Kategori</label>
+                      <span className="text-[9px] font-bold text-neutral-400">Pilih cepat atau ketik</span>
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. makan, transport" 
+                      value={mCategory} 
+                      onChange={e => setMCategory(e.target.value)} 
+                      className="brutal-input text-xs font-bold" 
+                      required 
+                    />
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      {(mType === 'masuk' ? QUICK_INCOME_CATEGORIES : QUICK_EXPENSE_CATEGORIES).map(cat => {
+                        const isSelected = mCategory.toLowerCase().trim() === cat.toLowerCase();
+                        const emoji = getCategoryEmoji(cat);
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('selection');
+                              setMCategory(cat);
+                            }}
+                            className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border-[1.5px] border-black shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 ${
+                              isSelected ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-800 hover:bg-neutral-50'
+                            }`}
+                          >
+                            <span>{emoji}</span>
+                            <span>{cat}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
                 <div>
@@ -663,7 +798,15 @@ export default function QuickInputModal({
                 </div>
                 {mType !== 'transfer' && (
                   <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                    <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)} className="w-4 h-4 border-[2px] border-black rounded-none accent-black cursor-pointer" />
+                    <input 
+                      type="checkbox" 
+                      checked={isRecurring} 
+                      onChange={e => {
+                        triggerHaptic('selection');
+                        setIsRecurring(e.target.checked);
+                      }} 
+                      className="w-4 h-4 border-[2px] border-black rounded-none accent-black cursor-pointer" 
+                    />
                     <span className="text-xs font-black text-neutral-600 uppercase tracking-wider">Berulang tiap bulan (Tagihan / Langganan)</span>
                   </label>
                 )}
