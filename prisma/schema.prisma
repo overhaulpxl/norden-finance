@@ -168,7 +168,7 @@ model TransactionTemplate {
   userId       String // Firebase UID
   name         String
   type         TransactionType @default(keluar)
-  amount       Float
+  amount       Int
   categoryName String
   walletName   String
   note         String?
@@ -190,7 +190,7 @@ model RecurringTransaction {
   userId       String // Firebase UID
   name         String
   type         TransactionType @default(keluar)
-  amount       Float
+  amount       Int
   categoryName String
   walletName   String
   note         String?
@@ -300,7 +300,7 @@ model AppSubscription {
 model EmergencyFundPlan {
   id             String   @id @default(cuid())
   userId         String   @unique // Firebase UID
-  monthlyExpense Float
+  monthlyExpense Int
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

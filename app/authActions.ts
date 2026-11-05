@@ -17,6 +17,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendEmailVerification,
+  type ActionCodeSettings,
 } from 'firebase/auth';
 
 export async function loginAction(email: string, password: string) {
@@ -129,7 +130,15 @@ export async function forgotPasswordAction(email: string) {
   }
 
   try {
-    await sendPasswordResetEmail(auth, email);
+    const origin =
+      typeof window !== 'undefined' && window.location.origin
+        ? window.location.origin
+        : getPublicAppUrl('https://www.nordenfinance.site');
+    const actionCodeSettings: ActionCodeSettings = {
+      url: `${origin}/auth/action`,
+      handleCodeInApp: false,
+    };
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal mengirim email reset';
