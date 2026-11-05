@@ -1,7 +1,8 @@
 // Norden Finance Service Worker
-const CACHE_NAME = 'norden-v1.2.0-static';
+const CACHE_NAME = 'norden-v1.3.0-static';
 const PRECACHE_ASSETS = [
   '/',
+  '/offline.html',
   '/manifest.webmanifest',
   '/brand/norden-icon.png',
   '/brand/apple-touch-icon.png',
@@ -83,6 +84,8 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cached = await caches.match(req);
           if (cached) return cached;
+          const offlinePage = await caches.match('/offline.html');
+          if (offlinePage) return offlinePage;
           const fallback = await caches.match('/');
           if (fallback) return fallback;
           return new Response('Offline - Norden Finance', {
