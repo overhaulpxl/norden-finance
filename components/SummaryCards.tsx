@@ -1,7 +1,11 @@
+'use client';
+
 import { Transaction, Balance } from '../types';
 import { formatRupiah } from '../lib/format';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 export default function SummaryCards({ transactions, balances }: { transactions: Transaction[], balances: Balance[] }) {
+  const { maskBalance } = useHideBalance();
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -28,19 +32,19 @@ export default function SummaryCards({ transactions, balances }: { transactions:
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 select-none">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, i) => (
-          <div key={i} className="brutal-card p-5 h-full flex flex-col justify-center bg-white border border-slate-200 rounded-xl">
-            <p className="text-slate-500 text-xs font-bold mb-1.5 uppercase tracking-wider">{card.title}</p>
-            <p className="text-xl font-bold text-slate-900">{formatRupiah(card.amount)}</p>
+          <div key={i} className="brutal-card p-5 h-full flex flex-col justify-center bg-white border-[2px] border-black rounded-none shadow-[3px_3px_0px_0px_#000]">
+            <p className="text-neutral-500 text-xs font-black mb-1.5 uppercase tracking-wider">{card.title}</p>
+            <p className="text-xl font-black text-black tracking-wider">{maskBalance(formatRupiah(card.amount))}</p>
           </div>
         ))}
       </div>
       
       {selisih !== 0 && (
-        <div className="text-xs text-slate-600 font-semibold flex items-center gap-2 border border-red-200 p-3 bg-red-50/50 rounded-lg">
-          <span>Selisih <strong className="text-red-600 font-bold">{formatRupiah(Math.abs(selisih))}</strong> antara catatan dan saldo asli.</span>
+        <div className="text-xs text-neutral-800 font-bold flex items-center gap-2 border-[2px] border-black p-3 bg-red-50 rounded-none shadow-[2px_2px_0px_0px_#000]">
+          <span>Selisih <strong className="text-red-600 font-black">{maskBalance(formatRupiah(Math.abs(selisih)))}</strong> antara catatan dan saldo asli.</span>
         </div>
       )}
     </div>

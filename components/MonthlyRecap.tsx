@@ -3,8 +3,10 @@
 import { useMemo } from 'react';
 import { Transaction } from '../types';
 import { formatRupiah } from '../lib/format';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 export default function MonthlyRecap({ transactions }: { transactions: Transaction[] }) {
+  const { maskBalance } = useHideBalance();
   const monthlyData = useMemo(() => {
     const map: Record<string, { masuk: number; keluar: number }> = {};
     transactions.filter(t => t.type !== 'transfer').forEach(tx => {
@@ -43,17 +45,17 @@ export default function MonthlyRecap({ transactions }: { transactions: Transacti
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-black text-black uppercase tracking-wider">{m.label}</span>
                 <span className={`text-base font-black tracking-wider ${surplus >= 0 ? 'text-emerald-700' : 'text-black'}`}>
-                  {surplus >= 0 ? '+' : '-'}{formatRupiah(Math.abs(surplus))}
+                  {surplus >= 0 ? '+' : '-'}{maskBalance(formatRupiah(Math.abs(surplus)))}
                 </span>
               </div>
               <div className="flex justify-between text-xs">
                 <div className="space-y-1">
                   <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block">Pemasukan</span>
-                  <span className="font-black text-emerald-700 text-xs tracking-wider">{formatRupiah(m.masuk)}</span>
+                  <span className="font-black text-emerald-700 text-xs tracking-wider">{maskBalance(formatRupiah(m.masuk))}</span>
                 </div>
                 <div className="space-y-1 text-right">
                   <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block">Pengeluaran</span>
-                  <span className="font-black text-red-650 text-red-600 text-xs tracking-wider">{formatRupiah(m.keluar)}</span>
+                  <span className="font-black text-red-650 text-red-600 text-xs tracking-wider">{maskBalance(formatRupiah(m.keluar))}</span>
                 </div>
               </div>
             </div>

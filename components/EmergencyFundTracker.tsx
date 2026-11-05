@@ -6,6 +6,8 @@ import { Balance, EmergencyFundPlan, Transaction } from '../types';
 import { MIN_EMERGENCY_MONTHLY_EXPENSE } from '../lib/constants';
 import { formatCoverageMonths, formatCurrency } from '../lib/format';
 import { updateEmergencyFundPlan } from '../app/actions';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 function estimateMonthlyExpense(transactions: Transaction[]) {
   const now = new Date();
@@ -53,6 +55,7 @@ export default function EmergencyFundTracker({
   balances: Balance[];
   emergencyFundPlan: EmergencyFundPlan | null;
 }) {
+  const { maskBalance } = useHideBalance();
   const estimatedExpense = useMemo(() => estimateMonthlyExpense(transactions), [transactions]);
   const [savedMonthlyExpense, setSavedMonthlyExpense] = useState(() => emergencyFundPlan?.monthlyExpense || 0);
   const totalBalance = balances
@@ -111,10 +114,12 @@ export default function EmergencyFundTracker({
     setSaving(false);
 
     if (result.success) {
+      triggerHaptic('success');
       setSavedMonthlyExpense(parsed.value);
       setInput(formatInputValue(parsed.value));
       setStatus({ type: 'success', text: 'Target dana darurat diperbarui.' });
     } else {
+      triggerHaptic('warning');
       setStatus({ type: 'error', text: result.error || 'Gagal menyimpan dana darurat.' });
     }
   }
@@ -242,12 +247,12 @@ export default function EmergencyFundTracker({
                   <Target className="h-4 w-4 stroke-[3px] text-black" />
                   <span className="text-xs font-black uppercase tracking-widest text-black">Target {target.months} Bulan</span>
                 </div>
-                <span className="text-right text-sm font-black text-black">{formatCurrency(target.targetAmount)}</span>
+                <span className="text-right text-sm font-black text-black">{maskBalance(formatCurrency(target.targetAmount))}</span>
               </div>
               <div className="mb-3 grid gap-2 text-xs font-bold text-neutral-700 sm:grid-cols-2">
                 <p>
                   Saldo Saat Ini:<br />
-                  <span className="font-black text-black">{formatCurrency(totalBalance)}</span>
+                  <span className="font-black text-black">{maskBalance(formatCurrency(totalBalance))}</span>
                 </p>
                 <p className="sm:text-right">
                   Progress:<br />
@@ -268,7 +273,7 @@ export default function EmergencyFundTracker({
                 ) : (
                   <PiggyBank className="mt-0.5 h-4 w-4 shrink-0 stroke-[3px]" />
                 )}
-                <p>Status: {target.progress >= 100 ? 'Target tercapai' : `Masih perlu ${formatCurrency(target.remaining)}`}</p>
+                <p>Status: {target.progress >= 100 ? 'Target tercapai' : `Masih perlu ${maskBalance(formatCurrency(target.remaining))}`}</p>
               </div>
             </div>
           ))}

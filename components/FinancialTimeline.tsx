@@ -3,12 +3,14 @@
 import { Transaction } from '../types';
 import { formatRupiah } from '../lib/format';
 import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, CalendarDays } from 'lucide-react';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 function monthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export default function FinancialTimeline({ transactions }: { transactions: Transaction[] }) {
+  const { maskBalance } = useHideBalance();
   const grouped = transactions.reduce<Record<string, Transaction[]>>((acc, transaction) => {
     const key = monthKey(new Date(transaction.transactionDate));
     acc[key] = acc[key] || [];
@@ -54,12 +56,12 @@ export default function FinancialTimeline({ transactions }: { transactions: Tran
                       {monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
                     </h4>
                     <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">
-                      {items.length} transaksi, net {formatRupiah(net)}
+                      {items.length} transaksi, net {maskBalance(formatRupiah(net))}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[10px] font-black uppercase tracking-wider">
-                    <span className="border-[2px] border-black bg-[#bbf7d0] px-2 py-1 text-black">In {formatRupiah(income)}</span>
-                    <span className="border-[2px] border-black bg-[#fecaca] px-2 py-1 text-black">Out {formatRupiah(expense)}</span>
+                    <span className="border-[2px] border-black bg-[#bbf7d0] px-2 py-1 text-black">In {maskBalance(formatRupiah(income))}</span>
+                    <span className="border-[2px] border-black bg-[#fecaca] px-2 py-1 text-black">Out {maskBalance(formatRupiah(expense))}</span>
                   </div>
                 </div>
 
@@ -80,7 +82,7 @@ export default function FinancialTimeline({ transactions }: { transactions: Tran
                             </p>
                           </div>
                         </div>
-                        <span className="flex-shrink-0 text-xs font-black text-black">{formatRupiah(transaction.amount)}</span>
+                        <span className="flex-shrink-0 text-xs font-black text-black">{maskBalance(formatRupiah(transaction.amount))}</span>
                       </div>
                     );
                   })}

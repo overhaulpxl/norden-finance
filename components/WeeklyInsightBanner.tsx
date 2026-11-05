@@ -5,6 +5,7 @@ import { Transaction } from '../types';
 import { formatRupiah } from '../lib/format';
 import { Sparkles, TrendingDown, TrendingUp, X, CheckCircle2 } from 'lucide-react';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 interface WeeklyInsightBannerProps {
   transactions: Transaction[];
@@ -12,6 +13,7 @@ interface WeeklyInsightBannerProps {
 }
 
 export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsightBannerProps) {
+  const { maskBalance } = useHideBalance();
   const now = useMemo(() => new Date(), []);
   const weekNumber = useMemo(() => {
     const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
@@ -128,10 +130,10 @@ export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsi
 
             <p className="text-xs sm:text-sm font-black text-black leading-snug">
               {insight.trend === 'down'
-                ? `Hebat! Pengeluaran 7 hari terakhir kamu turun ${insight.percentChange}% dibanding minggu lalu (${formatRupiah(insight.thisWeekTotal)} vs ${formatRupiah(insight.lastWeekTotal)}).`
+                ? `Hebat! Pengeluaran 7 hari terakhir kamu turun ${insight.percentChange}% dibanding minggu lalu (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
                 : insight.trend === 'up'
-                ? `Pengeluaran 7 hari terakhir naik ${insight.percentChange}% dibanding minggu lalu (${formatRupiah(insight.thisWeekTotal)} vs ${formatRupiah(insight.lastWeekTotal)}).`
-                : `Total pengeluaran 7 hari terakhir: ${formatRupiah(insight.thisWeekTotal)} dari ${insight.txCount} transaksi.`}
+                ? `Pengeluaran 7 hari terakhir naik ${insight.percentChange}% dibanding minggu lalu (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
+                : `Total pengeluaran 7 hari terakhir: ${maskBalance(formatRupiah(insight.thisWeekTotal))} dari ${insight.txCount} transaksi.`}
             </p>
 
             {insight.topCategory && (
@@ -139,7 +141,7 @@ export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsi
                 <span>Alokasi tertinggi minggu ini:</span>
                 <span className="font-black text-black inline-flex items-center gap-1 bg-white px-2 py-0.5 border border-black text-[11px]">
                   <span>{getCategoryEmoji(insight.topCategory)}</span>
-                  <span>{insight.topCategory} ({formatRupiah(insight.topCategoryAmount)})</span>
+                  <span>{insight.topCategory} ({maskBalance(formatRupiah(insight.topCategoryAmount))})</span>
                 </span>
               </p>
             )}

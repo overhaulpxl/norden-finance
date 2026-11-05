@@ -5,7 +5,8 @@ import { Transaction, TransactionType } from '../types';
 import { X, Loader2, Save } from 'lucide-react';
 import { updateTransaction } from '../app/actions';
 import { addCustomNotification } from '../app/actions/notifications';
-import { formatCurrency } from '../lib/format';
+import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/format';
+import { triggerHaptic } from '../lib/haptics';
 
 interface Props {
   transaction: Transaction;
@@ -16,7 +17,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
   const [form, setForm] = useState({
     type: transaction.type,
     category: transaction.category?.name || 'Lain-lain',
-    amount: transaction.amount.toString(),
+    amount: formatRupiahInput(transaction.amount),
     method: transaction.wallet?.name || 'Lain-lain',
     note: transaction.note || '',
     transaction_date: transaction.transactionDate ? (typeof transaction.transactionDate === 'string' ? transaction.transactionDate.slice(0, 16) : transaction.transactionDate.toISOString().slice(0, 16)) : '',
@@ -31,7 +32,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
     setError(null);
     setSuccess(null);
 
-    const numericAmount = parseInt(form.amount.replace(/\D/g, ''), 10) || 0;
+    const numericAmount = parseRupiahInput(form.amount);
 
     const res = await updateTransaction(transaction.id, {
       type: form.type as TransactionType,
@@ -43,6 +44,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
     });
 
     if (res.success) {
+      triggerHaptic('success');
       setSuccess('Transaksi berhasil diperbarui!');
       // Add custom notification for premium user experience
       await addCustomNotification(
@@ -55,6 +57,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
         onClose();
       }, 1500);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menyimpan');
     }
     setLoading(false);
@@ -110,8 +113,15 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Nominal</label>
-              <input type="text" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="w-full brutal-input px-3 py-2 text-sm font-bold" required />
+              <label className={labelClass}>Nominal (Rp)</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={form.amount}
+                onChange={e => setForm({ ...form, amount: formatRupiahInput(e.target.value) })}
+                className="w-full brutal-input px-3 py-2 text-sm font-bold"
+                required
+              />
             </div>
             <div>
               <label className={labelClass}>Metode / Dompet</label>
