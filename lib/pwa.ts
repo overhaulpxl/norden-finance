@@ -56,3 +56,14 @@ export async function promptPwaInstall(): Promise<'accepted' | 'dismissed' | 'un
     return 'unsupported';
   }
 }
+
+export function registerServiceWorker() {
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // Registration failed or ignored
+      });
+    });
+  }
+}
+

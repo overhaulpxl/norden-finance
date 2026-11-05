@@ -25,6 +25,7 @@ const CommandPaletteModal = dynamic(() => import('./CommandPaletteModal'), {
 });
 import { useLanguage } from '../lib/i18n';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { registerServiceWorker } from '../lib/pwa';
 
 function PanelSkeleton({ className = '' }: { className?: string }) {
   return (
@@ -155,13 +156,40 @@ export default function AppLayout({
   const router = useRouter();
   const { lang, setLang, t } = useLanguage();
   const { isBalanceHidden, toggleHideBalance } = useHideBalance();
-  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help'>('overview');
-  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help'>(() => {
+    if (typeof window !== 'undefined') {
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      const validTabs = ['overview', 'wallet', 'goals', 'history', 'automation', 'reports', 'settings', 'help'];
+      if (tabParam && validTabs.includes(tabParam)) {
+        return tabParam as 'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help';
+      }
+    }
+    return 'overview';
+  });
+  const [showModal, setShowModal] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('action') === 'new_tx';
+    }
+    return false;
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
-  // Global Cmd+K / Ctrl+K shortcut
+  // Global shortcuts and Service Worker initialization
   useEffect(() => {
+    registerServiceWorker();
+
+    // Clean URL query params if shortcut was used
+    if (typeof window !== 'undefined' && window.location.search) {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('action') || url.searchParams.has('tab')) {
+        url.searchParams.delete('action');
+        url.searchParams.delete('tab');
+        const cleanUrl = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '');
+        window.history.replaceState({}, '', cleanUrl);
+      }
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();

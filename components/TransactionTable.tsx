@@ -10,9 +10,11 @@ import WalletSelect from './WalletSelect';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
 import { triggerHaptic } from '../lib/haptics';
 import { triggerUndoToast } from '../lib/undoToast';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
   const router = useRouter();
+  const { maskBalance } = useHideBalance();
   const [transactionOverrides, setTransactionOverrides] = useState<Record<string, Transaction>>({});
   const [deletedTransactionIds, setDeletedTransactionIds] = useState<Set<string>>(() => new Set());
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,20 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
 
     return matchesSearch && matchesMonth && matchesType && matchesCategory && matchesMethod && matchesTag;
   });
+
+  const filteredSummary = (() => {
+    let income = 0;
+    let expense = 0;
+    for (const tx of filtered) {
+      if (tx.type === 'masuk') income += tx.amount;
+      else if (tx.type === 'keluar') expense += tx.amount;
+    }
+    return {
+      income,
+      expense,
+      net: income - expense,
+    };
+  })();
 
   const exportTransactionsToCSV = (txList: Transaction[]) => {
     if (txList.length === 0) return;
@@ -396,6 +412,40 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         </button>
       </div>
 
+      {/* Filtered Financial Summary Strip */}
+      {filtered.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-[#FAF9F5] border-[2px] border-black p-3 shadow-[2.5px_2.5px_0px_0px_#000]">
+          <div className="space-y-0.5">
+            <span className="text-[9px] font-black uppercase text-neutral-500 tracking-wider block">
+              Pengeluaran
+            </span>
+            <p className="text-xs sm:text-sm font-black text-red-700 truncate">
+              -{maskBalance(formatRupiah(filteredSummary.expense))}
+            </p>
+          </div>
+
+          <div className="space-y-0.5">
+            <span className="text-[9px] font-black uppercase text-neutral-500 tracking-wider block">
+              Pemasukan
+            </span>
+            <p className="text-xs sm:text-sm font-black text-emerald-700 truncate">
+              +{maskBalance(formatRupiah(filteredSummary.income))}
+            </p>
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 space-y-0.5 border-t sm:border-t-0 sm:border-l border-neutral-300 pt-1.5 sm:pt-0 sm:pl-3">
+            <span className="text-[9px] font-black uppercase text-neutral-500 tracking-wider block">
+              Arus Kas Bersih
+            </span>
+            <p className={`text-xs sm:text-sm font-black truncate ${
+              filteredSummary.net >= 0 ? 'text-emerald-800' : 'text-red-800'
+            }`}>
+              {filteredSummary.net >= 0 ? '+' : ''}{maskBalance(formatRupiah(filteredSummary.net))}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2.5">
         {filtered.length === 0 ? (
           <div className="text-center py-12 bg-white border-[3px] border-black border-dashed rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-6 space-y-3">
@@ -506,7 +556,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                       t.type === 'transfer' ? 'text-blue-700' :
                       'text-black'
                     }`}>
-                      {t.type === 'masuk' ? '+' : t.type === 'transfer' ? '' : '-'}{formatRupiah(t.amount)}
+                      {t.type === 'masuk' ? '+' : t.type === 'transfer' ? '' : '-'}{maskBalance(formatRupiah(t.amount))}
                     </span>
                   )}
                 </div>
@@ -592,7 +642,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 activeDetailTx.type === 'transfer' ? 'text-blue-700' :
                 'text-black'
               }`}>
-                {activeDetailTx.type === 'masuk' ? '+' : activeDetailTx.type === 'transfer' ? '' : '-'}{formatRupiah(activeDetailTx.amount)}
+                {activeDetailTx.type === 'masuk' ? '+' : activeDetailTx.type === 'transfer' ? '' : '-'}{maskBalance(formatRupiah(activeDetailTx.amount))}
               </h2>
             </div>
 
