@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { AppSubscription, Balance } from '../types';
 import { addSubscription, toggleSubscriptionActive, deleteSubscription } from '../app/actions';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Trash2, Calendar, CheckSquare, Square } from 'lucide-react';
 import WalletSelect from './WalletSelect';
 
@@ -21,6 +21,8 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
   const [method, setMethod] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const activeSubscriptions = subscriptions.filter(s => s.isActive);
   const totalCost = activeSubscriptions.reduce((sum, s) => sum + s.amount, 0);
@@ -49,25 +51,20 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
     setError(null);
     setSuccess(null);
 
-    if (!name.trim() || !amount || !billingDay || !method.trim()) {
-      setError('Harap isi semua kolom');
+    const amtNum = parseRupiahInput(amount);
+    const dayNum = parseInt(billingDay.replace(/\D/g, ''), 10);
+
+    if (!name.trim() || !amtNum || !dayNum || !method.trim()) {
+      setError('Harap isi semua kolom dengan benar');
       return;
     }
 
-    const amtNum = parseInt(amount, 10);
-    const dayNum = parseInt(billingDay, 10);
-
-    if (isNaN(amtNum) || amtNum <= 0) {
-      setError('Nominal harus berupa angka positif');
-      return;
-    }
-
-    if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
+    if (dayNum < 1 || dayNum > 31) {
       setError('Tanggal tagihan harus antara 1 dan 31');
       return;
     }
 
-    const res = await addSubscription({ name, amount: amtNum, billingDay: dayNum, method });
+    const res = await addSubscription({ name: name.trim(), amount: amtNum, billingDay: dayNum, method });
     if (res.success) {
       setName('');
       setAmount('');
@@ -77,7 +74,7 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
       setSuccess('Langganan berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
-      setError(res.error || 'Gagal menyimpan');
+      setError(res.error || 'Gagal menyimpan langganan');
     }
   }
 
@@ -89,11 +86,16 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
   }
 
   async function handleDelete(id: string) {
+    setDeleting(true);
     setSuccess(null);
-    if (confirm('Hapus langganan ini?')) {
-      await deleteSubscription(id);
+    const res = await deleteSubscription(id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
+    if (res.success) {
       setSuccess('Langganan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menghapus langganan');
     }
   }
 
@@ -141,23 +143,27 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Nominal per Bulan</label>
+              <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Nominal per Bulan (Rp)</label>
               <input 
-                type="number" 
-                placeholder="Rp" 
+                type="text" 
+                inputMode="numeric"
+                placeholder="Contoh: 186.000" 
                 value={amount} 
-                onChange={e => setAmount(e.target.value)}
+                onChange={e => setAmount(formatRupiahInput(e.target.value))}
                 className="w-full brutal-input p-2 text-xs font-bold"
+                required
               />
             </div>
             <div>
               <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Tanggal Tagihan (1-31)</label>
               <input 
-                type="number" 
-                placeholder="e.g. 15" 
+                type="text" 
+                inputMode="numeric"
+                placeholder="Contoh: 15" 
                 value={billingDay} 
-                onChange={e => setBillingDay(e.target.value)}
+                onChange={e => setBillingDay(e.target.value.replace(/\D/g, ''))}
                 className="w-full brutal-input p-2 text-xs font-bold"
+                required
               />
             </div>
             <div>
@@ -227,12 +233,34 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
                 </div>
               </div>
 
-              <button 
-                onClick={() => handleDelete(s.id)}
-                className="text-neutral-400 hover:text-red-500 transition-colors ml-4 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {confirmDeleteId === s.id ? (
+                <div className="flex items-center gap-1.5 ml-4">
+                  <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={() => handleDelete(s.id)}
+                    className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                  >
+                    Ya
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setConfirmDeleteId(s.id)}
+                  className="text-neutral-400 hover:text-red-500 transition-colors ml-4 cursor-pointer p-1"
+                  title="Hapus langganan"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))}
         </div>

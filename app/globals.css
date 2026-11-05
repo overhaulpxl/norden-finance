@@ -289,3 +289,17 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Safe-area padding for mobile devices & Capacitor wrapper */
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+.safe-left {
+  padding-left: max(env(safe-area-inset-left), 0px);
+}
+.safe-right {
+  padding-right: max(env(safe-area-inset-right), 0px);
+}

@@ -1,10 +1,11 @@
 'use client';
 
-import { Home, Wallet, Target, History, Plus, FileText, Settings, HelpCircle, LogOut, Zap, Shield, Repeat2 } from 'lucide-react';
+import { Home, Wallet, Target, History, Plus, FileText, Settings, HelpCircle, LogOut, Shield, Repeat2 } from 'lucide-react';
 import React, { useTransition } from 'react';
 import { logoutAction } from '../app/authActions';
 import Link from 'next/link';
 import BrandLogo from './BrandLogo';
+import { useLanguage } from '../lib/i18n';
 
 interface SidebarProps {
   activeTab: string;
@@ -25,25 +26,25 @@ interface SidebarProps {
   };
 }
 
-type SidebarTab = 'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations';
+type SidebarTab = 'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help';
 
 export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, user, levelInfo }: SidebarProps) {
   const [isPending, startTransition] = useTransition();
   const [now] = React.useState(() => Date.now());
+  const { t, lang } = useLanguage();
 
   const menuItems = [
-    { id: 'overview', label: 'Home', icon: Home },
-    { id: 'wallet', label: 'Wallets', icon: Wallet },
-    { id: 'goals', label: 'Goals & Debts', icon: Target },
-    { id: 'history', label: 'Transactions', icon: History },
-    { id: 'automation', label: 'Automation', icon: Repeat2 },
+    { id: 'overview', label: t('nav_home'), icon: Home },
+    { id: 'wallet', label: t('nav_wallet'), icon: Wallet },
+    { id: 'goals', label: t('nav_goals'), icon: Target },
+    { id: 'history', label: t('nav_history'), icon: History },
+    { id: 'automation', label: t('nav_automation'), icon: Repeat2 },
   ] as const;
 
   const secondaryItems: Array<{ id: SidebarTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
-    { id: 'reports', label: 'Data Dashboard', icon: FileText },
-    { id: 'integrations', label: 'Integrations', icon: Zap },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'help', label: 'Help', icon: HelpCircle },
+    { id: 'reports', label: t('nav_reports'), icon: FileText },
+    { id: 'settings', label: t('nav_settings'), icon: Settings },
+    { id: 'help', label: t('nav_help'), icon: HelpCircle },
   ];
 
   const [confirmLogout, setConfirmLogout] = React.useState(false);
@@ -81,7 +82,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
           className="w-full bg-[#FFE066] text-black border-[2.5px] border-black font-black uppercase text-xs py-3 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4 stroke-[3px]" />
-          New Transaction
+          {t('btn_new_transaction')}
         </button>
       </div>
 
@@ -106,7 +107,9 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
         })}
 
         <div className="pt-6 pb-2">
-          <p className="px-4 text-[9px] font-black text-neutral-500 uppercase tracking-widest">Other</p>
+          <p className="px-4 text-[9px] font-black text-neutral-500 uppercase tracking-widest">
+            {lang === 'id' ? 'Lainnya' : 'Other'}
+          </p>
         </div>
         
         {secondaryItems.map((item) => {
@@ -133,9 +136,11 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
         <div className="px-4 mb-3">
           <div className="p-3 bg-white border-[2px] border-black rounded-none shadow-[3px_3px_0px_0px_#000] text-center">
             <p className="text-[10px] font-black text-[#FF6B6B] uppercase tracking-wider">Trial</p>
-            <p className="text-sm font-black text-black mt-0.5">{trialDaysLeft} hari tersisa</p>
+            <p className="text-sm font-black text-black mt-0.5">
+              {lang === 'id' ? `${trialDaysLeft} hari tersisa` : `${trialDaysLeft} days left`}
+            </p>
             <a href="/upgrade" className="text-[10px] font-black text-black underline hover:text-neutral-800 transition-colors mt-1.5 block">
-              Upgrade ke Pro
+              {lang === 'id' ? 'Upgrade ke Pro' : 'Upgrade to Pro'}
             </a>
           </div>
         </div>
@@ -189,7 +194,11 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
             className={`w-full flex items-center justify-center gap-1.5 py-1.5 border-[2px] border-black rounded-none text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 mt-1 cursor-pointer bg-black text-white hover:bg-neutral-800`}
           >
             <LogOut className="w-3.5 h-3.5 stroke-[2.5px]" />
-            {isPending ? 'Keluar...' : confirmLogout ? 'Ulangi klik' : 'Keluar Akun'}
+            {isPending
+              ? (lang === 'id' ? 'Keluar...' : 'Logging out...')
+              : confirmLogout
+              ? (lang === 'id' ? 'Ulangi klik' : 'Click again')
+              : (lang === 'id' ? 'Keluar Akun' : 'Log Out')}
           </button>
         </div>
       </div>

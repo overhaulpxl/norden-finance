@@ -1,7 +1,19 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
 import './globals.css';
+import { LanguageProvider } from '../lib/i18n';
+import { HideBalanceProvider } from '../lib/HideBalanceContext';
+
 const font = Outfit({ subsets: ['latin'] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#FFE066',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.nordenfinance.site'),
@@ -55,8 +67,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className="light" suppressHydrationWarning>
-      <body className={`${font.className} transition-colors duration-300`} suppressHydrationWarning>
-        {children}
+      <body className={`${font.className} transition-colors duration-300 antialiased`} suppressHydrationWarning>
+        <LanguageProvider>
+          <HideBalanceProvider>
+            {children}
+          </HideBalanceProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -36,6 +36,37 @@ export function formatMethodName(method: string): string {
   return method.toUpperCase();
 }
 
+/**
+ * Formats user input with Indonesian thousand separators (dot).
+ * Examples:
+ *   "10000" -> "10.000"
+ *   "10.000" -> "10.000"
+ *   "1500000" -> "1.500.000"
+ *   "" -> ""
+ */
+export function formatRupiahInput(value: string | number | null | undefined): string {
+  if (value === '' || value === null || value === undefined) return '';
+  const digits = String(value).replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/**
+ * Extracts clean positive integer from formatted currency string.
+ * Examples:
+ *   "10.000" -> 10000
+ *   "Rp 10.000" -> 10000
+ *   "10000" -> 10000
+ *   "" -> 0
+ */
+export function parseRupiahInput(value: string | number | null | undefined): number {
+  if (value === '' || value === null || value === undefined) return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? Math.round(value) : 0;
+  const digits = String(value).replace(/\D/g, '');
+  const parsed = parseInt(digits, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 // "makan" -> "Makan", "lain-lain" -> "Lain-Lain", "ayam geprek" -> "Ayam Geprek"
 export function capitalize(text: string): string {
   if (!text) return '';

@@ -6,6 +6,8 @@ import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, Emer
 import { formatRupiah } from '../lib/format';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale, Sparkles, SlidersHorizontal, Calendar } from 'lucide-react';
 import { addCustomNotification } from '../app/actions/notifications';
+import { useLanguage } from '../lib/i18n';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 function WidgetSkeleton({ className = '' }: { className?: string }) {
   return (
@@ -118,6 +120,8 @@ export default function OverviewLayout({
   user,
   onNewTransaction,
 }: OverviewProps) {
+  const { lang, t } = useLanguage();
+  const { maskBalance } = useHideBalance();
   const activeBalances = useMemo(() => balances.filter(b => !b.archivedAt), [balances]);
   const totalBalance = useMemo(() => activeBalances.reduce((acc, curr) => acc + curr.currentBalance, 0), [activeBalances]);
 
@@ -253,8 +257,8 @@ export default function OverviewLayout({
   };
 
   const formattedMonth = useMemo(() => {
-    return now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-  }, [now]);
+    return now.toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' });
+  }, [now, lang]);
 
   const renderColumnWidget = (id: string) => {
     switch (id) {
@@ -320,10 +324,10 @@ export default function OverviewLayout({
                         t.type === 'transfer' ? 'text-blue-700' : 
                         'text-black'
                       }`}>
-                        {t.type === 'masuk' ? '+' : t.type === 'transfer' ? '' : '-'}{formatRupiah(t.amount)}
+                        {t.type === 'masuk' ? '+' : t.type === 'transfer' ? '' : '-'}{maskBalance(formatRupiah(t.amount))}
                       </span>
                       <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">
-                        {new Date(t.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        {new Date(t.transactionDate).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' })}
                       </p>
                     </div>
                   </div>
@@ -504,17 +508,17 @@ export default function OverviewLayout({
                 <div key={w.id} className="brutal-card p-6 bg-black text-white flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-[#bbf7d0] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Wallet className="w-4 h-4 stroke-[2.5px]" /> Total Saldo Dompet
+                      <Wallet className="w-4 h-4 stroke-[2.5px]" /> {lang === 'id' ? 'Total Saldo Dompet' : 'Total Wallet Balance'}
                     </p>
-                    <h2 className="text-3xl xl:text-4xl font-black text-white truncate">{formatRupiah(totalBalance)}</h2>
+                    <h2 className="text-3xl xl:text-4xl font-black text-white truncate">{maskBalance(formatRupiah(totalBalance))}</h2>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-neutral-700 flex justify-between items-center text-[11px] font-bold">
                     <span className="text-neutral-400 uppercase tracking-wide">
-                      {activeBalances.length} Dompet Aktif
+                      {activeBalances.length} {lang === 'id' ? 'Dompet Aktif' : 'Active Wallets'}
                     </span>
                     <span className="text-[#bbf7d0] uppercase tracking-wide font-black">
-                      Arus Kas: {monthlyFlow.net >= 0 ? '+' : ''}{formatRupiah(monthlyFlow.net)}
+                      {lang === 'id' ? 'Arus Kas: ' : 'Cashflow: '}{monthlyFlow.net >= 0 ? '+' : ''}{maskBalance(formatRupiah(monthlyFlow.net))}
                     </span>
                   </div>
                 </div>
@@ -525,15 +529,15 @@ export default function OverviewLayout({
                 <div key={w.id} className="brutal-card p-6 bg-white text-black flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-black uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Scale className="w-4 h-4 stroke-[2.5px]" /> Kekayaan Bersih (Net Worth)
+                      <Scale className="w-4 h-4 stroke-[2.5px]" /> {t('card_net_worth')} (Net Worth)
                     </p>
                     <h2 className={`text-3xl xl:text-4xl font-black truncate ${netWorth >= 0 ? 'text-black' : 'text-red-600'}`}>
-                      {formatRupiah(netWorth)}
+                      {maskBalance(formatRupiah(netWorth))}
                     </h2>
                   </div>
                   <div className="text-[10px] font-bold text-black mt-4 flex justify-between uppercase tracking-wider border-t-2 border-black pt-3">
-                    <span className="text-red-700 font-black">Utang: {formatRupiah(activeUtang)}</span>
-                    <span className="text-emerald-700 font-black">Piutang: {formatRupiah(activePiutang)}</span>
+                    <span className="text-red-700 font-black">{lang === 'id' ? 'Utang' : 'Debt'}: {maskBalance(formatRupiah(activeUtang))}</span>
+                    <span className="text-emerald-700 font-black">{lang === 'id' ? 'Piutang' : 'Receivable'}: {maskBalance(formatRupiah(activePiutang))}</span>
                   </div>
                 </div>
               );

@@ -7,8 +7,10 @@ import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget,
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
-import { Menu } from 'lucide-react';
+import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus } from 'lucide-react';
 import WelcomeToast from './WelcomeToast';
+import { useLanguage } from '../lib/i18n';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 function PanelSkeleton({ className = '' }: { className?: string }) {
   return (
@@ -56,10 +58,6 @@ const QuickInputModal = dynamic(() => import('./QuickInputModal'), {
   loading: () => null,
 });
 const PaylaterList = dynamic(() => import('./PaylaterList'), {
-  ssr: false,
-  loading: () => <PanelSkeleton />,
-});
-const Integrations = dynamic(() => import('./Integrations'), {
   ssr: false,
   loading: () => <PanelSkeleton />,
 });
@@ -141,7 +139,9 @@ export default function AppLayout({
   dataError
 }: AppLayoutProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help' | 'integrations'>('overview');
+  const { lang, setLang, t } = useLanguage();
+  const { isBalanceHidden, toggleHideBalance } = useHideBalance();
+  const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help'>('overview');
   const [showModal, setShowModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -160,6 +160,17 @@ export default function AppLayout({
     if (txCount >= 5) return { level: 2, name: 'Consistent Tracker', color: 'bg-[#60a5fa]' }; // blue
     return { level: 1, name: 'Beginner Saver', color: 'bg-[#a3a3a3]' }; // gray
   })();
+
+  const tabTitle = {
+    overview: t('nav_home'),
+    wallet: t('nav_wallet'),
+    goals: t('nav_goals'),
+    history: t('nav_history'),
+    automation: t('nav_automation'),
+    reports: t('nav_reports'),
+    settings: t('nav_settings'),
+    help: t('nav_help'),
+  }[activeTab];
 
   return (
     <div className="flex min-h-screen bg-[#FAF9F5]" style={{ backgroundImage: 'radial-gradient(#d1d1d1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
@@ -182,7 +193,7 @@ export default function AppLayout({
         <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
       </div>
 
-      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 min-w-0">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 min-w-0">
         <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4 select-none">
           {/* Mobile hamburger & brand */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -197,21 +208,46 @@ export default function AppLayout({
               <BrandLogo variant="icon" priority className="h-7 w-7" />
             </div>
             <h2 className="text-lg sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black truncate">
-              {activeTab === 'goals' ? 'Target & Utang' :
-               activeTab === 'automation' ? 'Otomatisasi' :
-               activeTab === 'reports' ? 'Laporan & Analisis' :
-               activeTab === 'overview' ? 'Beranda' :
-               activeTab === 'wallet' ? 'Dompet & Saldo' :
-               activeTab === 'history' ? 'Riwayat Transaksi' :
-               activeTab === 'settings' ? 'Pengaturan' :
-               activeTab === 'help' ? 'Bantuan' :
-               activeTab === 'integrations' ? 'Integrasi' :
-               activeTab}
+              {tabTitle}
             </h2>
           </div>
 
           {/* Header Actions */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Hide / Show Balance Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleHideBalance}
+              title={isBalanceHidden ? t('btn_show_balance') : t('btn_hide_balance')}
+              className={`p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
+                isBalanceHidden ? 'bg-amber-100 text-black' : 'bg-white text-black'
+              }`}
+            >
+              {isBalanceHidden ? <EyeOff className="w-4 h-4 stroke-[2.5px]" /> : <Eye className="w-4 h-4 stroke-[2.5px]" />}
+            </button>
+
+            {/* Language Switcher [ ID | EN ] */}
+            <div className="flex border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white text-[11px] font-black uppercase tracking-wider overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setLang('id')}
+                className={`px-2 py-1.5 transition-colors cursor-pointer ${
+                  lang === 'id' ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-500 hover:text-black'
+                }`}
+              >
+                ID
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang('en')}
+                className={`px-2 py-1.5 transition-colors cursor-pointer border-l-[1.5px] border-black ${
+                  lang === 'en' ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-500 hover:text-black'
+                }`}
+              >
+                EN
+              </button>
+            </div>
+
             {/* Level and PRO badge (Desktop only) */}
             <div className="hidden sm:flex items-center gap-2">
               <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color}`}>
@@ -241,8 +277,8 @@ export default function AppLayout({
               className="brutal-btn px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0"
               title="Catat transaksi baru"
             >
-              <span className="hidden sm:inline">+ Catat Transaksi</span>
-              <span className="sm:hidden font-black">+ Catat</span>
+              <span className="hidden sm:inline">{t('btn_new_transaction')}</span>
+              <span className="sm:hidden font-black">{t('btn_new_tx_short')}</span>
             </button>
           </div>
         </header>
@@ -355,14 +391,69 @@ export default function AppLayout({
               <HelpPage />
             </div>
           )}
-
-          {activeTab === 'integrations' && (
-            <div className="brutal-card p-4 sm:p-6 bg-white">
-              <Integrations />
-            </div>
-          )}
         </div>
       </main>
+
+      {/* Mobile Sticky Bottom Navigation Bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t-[3px] border-black safe-bottom shadow-[0px_-2px_0px_0px_rgba(0,0,0,1)] select-none">
+        <div className="flex justify-around items-center h-16 px-2">
+          <button
+            type="button"
+            onClick={() => handleTabChange('overview')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
+              activeTab === 'overview' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+            }`}
+          >
+            <Home className={`w-5 h-5 ${activeTab === 'overview' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
+            <span className="text-[10px] uppercase tracking-wider mt-0.5">{lang === 'id' ? 'Beranda' : 'Home'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('wallet')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
+              activeTab === 'wallet' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+            }`}
+          >
+            <Wallet className={`w-5 h-5 ${activeTab === 'wallet' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
+            <span className="text-[10px] uppercase tracking-wider mt-0.5">{lang === 'id' ? 'Dompet' : 'Wallets'}</span>
+          </button>
+
+          {/* Floating Action Button (FAB) */}
+          <div className="relative -top-4 flex flex-col items-center justify-center px-2">
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              aria-label="Catat Transaksi"
+              className="w-13 h-13 rounded-full bg-[#FFE066] hover:bg-[#FFD633] text-black border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+            >
+              <Plus className="w-7 h-7 stroke-[3px]" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('goals')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
+              activeTab === 'goals' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+            }`}
+          >
+            <Target className={`w-5 h-5 ${activeTab === 'goals' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
+            <span className="text-[10px] uppercase tracking-wider mt-0.5">{lang === 'id' ? 'Target' : 'Goals'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('history')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
+              activeTab === 'history' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+            }`}
+          >
+            <History className={`w-5 h-5 ${activeTab === 'history' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
+            <span className="text-[10px] uppercase tracking-wider mt-0.5">{lang === 'id' ? 'Riwayat' : 'History'}</span>
+          </button>
+        </div>
+      </nav>
 
       {showModal && (
         <QuickInputModal

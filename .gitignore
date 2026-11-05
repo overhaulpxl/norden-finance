@@ -52,3 +52,10 @@ storage/
 serviceAccountKey.json
 firebase-service-account.json
 *-firebase-adminsdk-*.json
+
+# agent harness & local artifacts
+.agents/
+.opencode/
+logo.zip
+skills-lock.json
+supabase/.temp/

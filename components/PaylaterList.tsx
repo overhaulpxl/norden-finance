@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Balance, Paylater } from '../types';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { addPaylater, payPaylaterInstallment, deletePaylater } from '../app/actions';
 import { Plus, Trash2, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
@@ -19,6 +19,8 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const activeWallets = useMemo(() => getActiveWallets(balances), [balances]);
   const currentPayMethod = activeWallets.some((wallet) => wallet.name === payMethod)
     ? payMethod
@@ -26,14 +28,23 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseInt(totalAmount.replace(/\D/g, ''), 10);
-    const tenor = parseInt(tenorMonths, 10);
+    setError(null);
+    setSuccess(null);
+    const amount = parseRupiahInput(totalAmount);
+    const tenor = parseInt(tenorMonths.replace(/\D/g, ''), 10);
     
-    if (!itemName || !platform || !amount || !tenor) return;
+    if (!itemName.trim() || !platform.trim() || !amount || !tenor) {
+      setError('Harap lengkapi semua kolom dengan benar.');
+      return;
+    }
+
+    if (tenor <= 0 || tenor > 120) {
+      setError('Tenor harus antara 1 sampai 120 bulan.');
+      return;
+    }
     
     setLoading(true);
-    setSuccess(null);
-    const res = await addPaylater(itemName, platform, amount, tenor);
+    const res = await addPaylater(itemName.trim(), platform.trim(), amount, tenor);
     if (res.success) {
       setShowAdd(false);
       setItemName('');
@@ -42,17 +53,20 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
       setTenorMonths('');
       setSuccess('Cicilan paylater berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menyimpan cicilan paylater.');
     }
     setLoading(false);
   };
 
   const handlePay = async (id: string) => {
     if (!currentPayMethod.trim()) {
-      alert('Masukkan dompet/metode pembayaran');
+      setError('Pilih dompet / metode pembayaran terlebih dahulu.');
       return;
     }
     setLoading(true);
     setSuccess(null);
+    setError(null);
     const res = await payPaylaterInstallment(id, currentPayMethod);
     if (res.success) {
       setPayingId(null);
@@ -60,19 +74,23 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
       setSuccess('Pembayaran cicilan berhasil dicatat!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
-      alert(res.error || 'Gagal membayar cicilan');
+      setError(res.error || 'Gagal membayar cicilan.');
     }
     setLoading(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Hapus cicilan paylater ini?')) {
-      setSuccess(null);
-      const res = await deletePaylater(id);
-      if (res.success) {
-        setSuccess('Cicilan paylater berhasil dihapus!');
-        setTimeout(() => setSuccess(null), 5000);
-      }
+    setLoading(true);
+    setSuccess(null);
+    setError(null);
+    const res = await deletePaylater(id);
+    setLoading(false);
+    setConfirmDeleteId(null);
+    if (res.success) {
+      setSuccess('Cicilan paylater berhasil dihapus!');
+      setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menghapus cicilan paylater.');
     }
   };
 
@@ -100,24 +118,46 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
         </div>
       )}
 
+      {error && (
+        <div className="p-3 border-[2px] border-black bg-red-100 text-red-700 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+          ❌ {error}
+        </div>
+      )}
+
       {showAdd && (
         <form onSubmit={handleAdd} className="mb-6 border-[3px] border-black bg-white p-4 space-y-4 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Nama Barang / Transaksi</label>
-              <input type="text" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="e.g. iPhone 15 Pro" className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
+              <input type="text" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="Contoh: iPhone 15 Pro" className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
             </div>
             <div>
               <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Platform</label>
-              <input type="text" value={platform} onChange={e => setPlatform(e.target.value)} placeholder="e.g. SPayLater, GoPayLater" className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
+              <input type="text" value={platform} onChange={e => setPlatform(e.target.value)} placeholder="Contoh: SPayLater, GoPayLater" className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
             </div>
             <div>
               <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Total Harga (Rp)</label>
-              <input type="text" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} placeholder="e.g. 15000000" className="w-full brutal-input px-4 py-2.5 text-sm font-bold" required />
+              <input 
+                type="text" 
+                inputMode="numeric"
+                value={totalAmount} 
+                onChange={e => setTotalAmount(formatRupiahInput(e.target.value))} 
+                placeholder="Contoh: 1.500.000" 
+                className="w-full brutal-input px-4 py-2.5 text-sm font-bold" 
+                required 
+              />
             </div>
             <div>
               <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Tenor (Bulan)</label>
-              <input type="number" min="1" value={tenorMonths} onChange={e => setTenorMonths(e.target.value)} placeholder="e.g. 12" className="w-full brutal-input px-4 py-2.5 text-sm font-bold" required />
+              <input 
+                type="text" 
+                inputMode="numeric"
+                value={tenorMonths} 
+                onChange={e => setTenorMonths(e.target.value.replace(/\D/g, ''))} 
+                placeholder="Contoh: 12" 
+                className="w-full brutal-input px-4 py-2.5 text-sm font-bold" 
+                required 
+              />
             </div>
           </div>
           <button type="submit" disabled={loading} className="w-full brutal-btn py-3 flex justify-center items-center gap-2 cursor-pointer">
@@ -154,12 +194,34 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
                     <h3 className="font-black text-black text-base uppercase tracking-wider">{p.itemName}</h3>
                     <p className="text-[10px] font-black text-black border-[2px] border-black bg-white px-2 py-0.5 rounded-none inline-block mt-1 uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">{p.platform}</p>
                   </div>
-                  <button 
-                    onClick={() => handleDelete(p.id)} 
-                    className="text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {confirmDeleteId === p.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => handleDelete(p.id)}
+                        className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                      >
+                        Ya
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setConfirmDeleteId(p.id)} 
+                      className="text-neutral-400 hover:text-red-500 transition-all p-1.5 cursor-pointer"
+                      title="Hapus cicilan"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex justify-between items-end mb-2">
@@ -217,7 +279,27 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="text-emerald-700 w-5 h-5" />
-                  <button onClick={() => handleDelete(p.id)} className="text-neutral-500 hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                  {confirmDeleteId === p.id ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => handleDelete(p.id)}
+                        className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                      >
+                        Ya
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setConfirmDeleteId(p.id)} className="text-neutral-500 hover:text-red-500 transition-colors cursor-pointer" title="Hapus cicilan lunas"><Trash2 className="w-4 h-4" /></button>
+                  )}
                 </div>
               </div>
             ))}

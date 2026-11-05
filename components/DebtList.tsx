@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Debt, DebtType } from '../types';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Loader2, Trash2 } from 'lucide-react';
 import { addDebt, toggleDebtSettled, deleteDebt } from '../app/actions';
 
@@ -18,6 +18,8 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
   const [filter, setFilter] = useState<'all' | 'active' | 'settled'>('active');
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,19 +27,19 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
     setLoading(true);
     setError(null);
     setSuccess(null);
-    const numericAmount = parseInt(amount.replace(/\D/g, ''), 10);
+    const numericAmount = parseRupiahInput(amount);
     const numericTenor = parseInt(tenor.replace(/\D/g, ''), 10);
     const numericInterest = parseFloat(interest);
 
-    if (!numericAmount) {
-      setError('Nominal tidak valid');
+    if (!numericAmount || numericAmount <= 0) {
+      setError('Nominal harus berupa angka positif');
       setLoading(false);
       return;
     }
     
     const res = await addDebt({
       type: formType,
-      person,
+      person: person.trim(),
       amount: numericAmount,
       note: note.trim() || undefined,
       tenorMonths: !isNaN(numericTenor) ? numericTenor : undefined,
@@ -69,13 +71,16 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus catatan ini?')) {
-      setSuccess(null);
-      const res = await deleteDebt(id);
-      if (res.success) {
-        setSuccess('Catatan berhasil dihapus!');
-        setTimeout(() => setSuccess(null), 5000);
-      }
+    setDeleting(true);
+    setSuccess(null);
+    const res = await deleteDebt(id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
+    if (res.success) {
+      setSuccess('Catatan berhasil dihapus!');
+      setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menghapus catatan');
     }
   };
 
@@ -134,12 +139,34 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
           </select>
           <div className="flex gap-3">
             <input type="text" placeholder="Nama" value={person} onChange={e => setPerson(e.target.value)} className="flex-1 brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
-            <input type="text" placeholder="Nominal" value={amount} onChange={e => setAmount(e.target.value)} className="flex-1 brutal-input px-4 py-2.5 text-sm font-bold" required />
+            <input 
+              type="text" 
+              inputMode="numeric"
+              placeholder="Nominal (Rp)" 
+              value={amount} 
+              onChange={e => setAmount(formatRupiahInput(e.target.value))} 
+              className="flex-1 brutal-input px-4 py-2.5 text-sm font-bold" 
+              required 
+            />
           </div>
           <input type="text" placeholder="Catatan (opsional)" value={note} onChange={e => setNote(e.target.value)} className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" />
           <div className="grid grid-cols-2 gap-3">
-            <input type="number" placeholder="Tenor (Bln)" value={tenor} onChange={e => setTenor(e.target.value)} className="w-full brutal-input px-4 py-2.5 text-sm font-bold" />
-            <input type="number" step="0.1" placeholder="Bunga (%)" value={interest} onChange={e => setInterest(e.target.value)} className="w-full brutal-input px-4 py-2.5 text-sm font-bold" />
+            <input 
+              type="text" 
+              inputMode="numeric"
+              placeholder="Tenor (Bulan)" 
+              value={tenor} 
+              onChange={e => setTenor(e.target.value.replace(/\D/g, ''))} 
+              className="w-full brutal-input px-4 py-2.5 text-sm font-bold" 
+            />
+            <input 
+              type="number" 
+              step="0.1" 
+              placeholder="Bunga (%)" 
+              value={interest} 
+              onChange={e => setInterest(e.target.value)} 
+              className="w-full brutal-input px-4 py-2.5 text-sm font-bold" 
+            />
           </div>
           <button type="submit" disabled={loading} className="w-full brutal-btn py-3 flex justify-center items-center cursor-pointer">
             {loading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'Simpan'}
@@ -200,12 +227,34 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
                 >
                   {d.isSettled ? 'Undo Settle' : 'Mark as Settled'}
                 </button>
-                <button 
-                  onClick={() => handleDelete(d.id)}
-                  className="text-neutral-400 hover:text-red-650 opacity-0 group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {confirmDeleteId === d.id ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => handleDelete(d.id)}
+                      className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                    >
+                      Ya
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => setConfirmDeleteId(d.id)}
+                    className="text-neutral-400 hover:text-red-650 transition-all p-1.5 cursor-pointer"
+                    title="Hapus catatan"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))}

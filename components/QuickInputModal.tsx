@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { processInput, addExplicitTransaction, addTransferTransaction, addRecurringTransaction, deleteTransaction } from '../app/actions';
 import { Balance } from '../types';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
-import { formatCurrency } from '../lib/format';
+import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/format';
 
 interface ChatMessage {
   id: string;
@@ -198,7 +198,11 @@ export default function QuickInputModal({
         return m;
       }));
     } else {
-      alert(res.error || 'Gagal membatalkan transaksi');
+      setChatMessages(prev => [...prev, {
+        id: Math.random().toString(),
+        sender: 'ai',
+        text: `❌ ${res.error || 'Gagal membatalkan transaksi'}`
+      }]);
     }
     setLoading(false);
   };
@@ -287,7 +291,7 @@ export default function QuickInputModal({
     setMessage(null);
 
     let res;
-    const amount = parseInt(mAmount.replace(/\D/g, ''), 10);
+    const amount = parseRupiahInput(mAmount);
     if (!amount || !currentMethod || (mType === 'transfer' && !currentToMethod) || (mType !== 'transfer' && !mCategory)) {
       setMessage({ type: 'error', text: 'Semua field wajib harus diisi' });
       setLoading(false);
@@ -517,8 +521,16 @@ export default function QuickInputModal({
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Nominal</label>
-                    <input type="text" placeholder="e.g. 50000" value={mAmount} onChange={e => setMAmount(e.target.value)} className="brutal-input text-xs font-bold" required />
+                    <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Nominal (Rp)</label>
+                    <input 
+                      type="text" 
+                      inputMode="numeric"
+                      placeholder="Contoh: 50.000" 
+                      value={mAmount} 
+                      onChange={e => setMAmount(formatRupiahInput(e.target.value))} 
+                      className="brutal-input text-xs font-bold" 
+                      required 
+                    />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">{mType === 'transfer' ? 'Dari Wallet' : 'Wallet'}</label>

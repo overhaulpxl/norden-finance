@@ -124,9 +124,23 @@ export async function logoutAction() {
   }
 }
 
+import { sendPasswordResetLinkAction } from './actions/user';
+
 export async function forgotPasswordAction(email: string) {
   if (!email) {
     return { success: false, error: 'Email harus diisi' };
+  }
+
+  try {
+    const serverRes = await sendPasswordResetLinkAction(email);
+    if (serverRes.success) {
+      return { success: true };
+    }
+    if (serverRes.error && serverRes.error.includes('tidak terdaftar')) {
+      return { success: false, error: serverRes.error };
+    }
+  } catch (serverErr) {
+    console.warn('Server password reset email failed, attempting client fallback...', serverErr);
   }
 
   try {

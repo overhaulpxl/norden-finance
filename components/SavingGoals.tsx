@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { SavingGoal, Transaction } from '../types';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Loader2, TrendingUp } from 'lucide-react';
 import { addSavingGoal, updateSavingGoal, deleteSavingGoal } from '../app/actions';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -129,15 +129,17 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const monthlySavings = useMemo(() => buildMonthlySavings(transactions), [transactions]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !targetAmount) return;
+    const amount = parseRupiahInput(targetAmount);
+    if (!name.trim() || amount <= 0) return;
     setLoading(true);
     setSuccess(null);
-    const amount = parseInt(targetAmount.replace(/\D/g, ''), 10) || 0;
-    const res = await addSavingGoal(name, amount);
+    const res = await addSavingGoal(name.trim(), amount);
     if (res.success) { 
       setName(''); 
       setTargetAmount(''); 
@@ -149,10 +151,9 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
   };
 
   const handleUpdateCurrent = async (id: string) => {
-    if (!editAmount) return;
+    const amount = parseRupiahInput(editAmount);
     setLoading(true);
     setSuccess(null);
-    const amount = parseInt(editAmount.replace(/\D/g, ''), 10) || 0;
     const res = await updateSavingGoal(id, { currentAmount: amount });
     if (res.success) {
       setEditingId(null); 
@@ -164,9 +165,11 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus target tabungan ini?')) return;
+    setDeleting(true);
     setSuccess(null);
     const res = await deleteSavingGoal(id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
     if (res.success) {
       setSuccess('Target tabungan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
@@ -190,10 +193,18 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
 
       {showForm && (
         <form onSubmit={handleAdd} className="mb-6 brutal-card bg-white p-5 flex flex-col sm:flex-row gap-3 border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <input type="text" placeholder="Name (e.g. Macbook)" value={name} onChange={e => setName(e.target.value)} className="flex-1 brutal-input px-4 py-2 text-sm" required />
-          <input type="text" placeholder="Target Amount" value={targetAmount} onChange={e => setTargetAmount(e.target.value)} className="flex-1 brutal-input px-4 py-2 text-sm" required />
+          <input type="text" placeholder="Nama Target (Contoh: Macbook)" value={name} onChange={e => setName(e.target.value)} className="flex-1 brutal-input px-4 py-2 text-sm font-bold uppercase" required />
+          <input 
+            type="text" 
+            inputMode="numeric"
+            placeholder="Target Nominal (Rp)" 
+            value={targetAmount} 
+            onChange={e => setTargetAmount(formatRupiahInput(e.target.value))} 
+            className="flex-1 brutal-input px-4 py-2 text-sm font-bold" 
+            required 
+          />
           <button type="submit" disabled={loading} className="brutal-btn px-5 py-2.5 min-w-[80px] flex justify-center items-center cursor-pointer">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'Save'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'Simpan'}
           </button>
         </form>
       )}
@@ -228,13 +239,34 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                       {remaining > 0 && <span className="text-neutral-400 font-bold"> • {formatRupiah(remaining)} left</span>}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className={`text-xl font-black ${progress >= 100 ? 'text-emerald-700' : 'text-black'}`}>
                       {progress.toFixed(1)}%
                     </span>
-                    <button onClick={() => handleDelete(goal.id)} className="text-neutral-500 hover:text-red-650 hover:underline font-black text-xs uppercase tracking-wider cursor-pointer">
-                      Delete
-                    </button>
+                    {confirmDeleteId === goal.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                        <button
+                          type="button"
+                          disabled={deleting}
+                          onClick={() => handleDelete(goal.id)}
+                          className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                        >
+                          Ya
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDeleteId(goal.id)} className="text-neutral-500 hover:text-red-650 hover:underline font-black text-xs uppercase tracking-wider cursor-pointer">
+                        Hapus
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="w-full bg-[#f3f4f6] border-[2px] border-black rounded-none h-4 mb-3 overflow-hidden shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
@@ -242,13 +274,21 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                 </div>
                 {editingId === goal.id ? (
                   <div className="flex gap-2 mt-3">
-                    <input type="text" placeholder="Current Balance" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="flex-1 max-w-[150px] brutal-input text-xs py-1.5" autoFocus />
-                    <button onClick={() => handleUpdateCurrent(goal.id)} disabled={loading} className="brutal-btn text-xs px-3 py-1.5 cursor-pointer">Update</button>
-                    <button onClick={() => { setEditingId(null); setEditAmount(''); }} className="brutal-btn-light text-xs px-3 py-1.5 cursor-pointer">Cancel</button>
+                    <input 
+                      type="text" 
+                      inputMode="numeric"
+                      placeholder="Saldo Saat Ini (Rp)" 
+                      value={editAmount} 
+                      onChange={e => setEditAmount(formatRupiahInput(e.target.value))} 
+                      className="flex-1 max-w-[180px] brutal-input text-xs py-1.5 font-bold" 
+                      autoFocus 
+                    />
+                    <button onClick={() => handleUpdateCurrent(goal.id)} disabled={loading} className="brutal-btn text-xs px-3 py-1.5 cursor-pointer">Simpan</button>
+                    <button onClick={() => { setEditingId(null); setEditAmount(''); }} className="brutal-btn-light text-xs px-3 py-1.5 cursor-pointer">Batal</button>
                   </div>
                 ) : (
-                  <button onClick={() => { setEditingId(goal.id); setEditAmount(goal.currentAmount.toString()); }} className="text-xs font-black text-neutral-500 hover:text-black transition-colors mt-1 underline uppercase tracking-wider cursor-pointer">
-                    Update Progress
+                  <button onClick={() => { setEditingId(goal.id); setEditAmount(formatRupiahInput(goal.currentAmount)); }} className="text-xs font-black text-neutral-500 hover:text-black transition-colors mt-1 underline uppercase tracking-wider cursor-pointer">
+                    Perbarui Progres
                   </button>
                 )}
 

@@ -7,6 +7,8 @@ import { revalidatePath } from 'next/cache';
 import { buildShortcutEndpoint, getShortcutEndpointForUser, signShortcutToken } from '../../lib/shortcutToken';
 import { executeFinancialDataReset } from '../../lib/financialReset';
 import { getTrialDays } from '../../lib/data/loaders';
+import { getAdminAuth } from '../../lib/firebaseAdmin';
+import { sendPasswordResetEmail } from '../../lib/authEmail';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -238,3 +240,50 @@ export async function regenerateShortcutToken() {
     return { success: false, error: message };
   }
 }
+
+export async function sendPasswordResetLinkAction(targetEmail?: string) {
+  try {
+    let emailToUse = targetEmail?.trim().toLowerCase();
+    let userName: string | undefined;
+
+    // Resolve from authenticated session if not provided
+    if (!emailToUse) {
+      try {
+        const { user } = await requireUser(false);
+        if (user.email) {
+          emailToUse = user.email.toLowerCase();
+        }
+      } catch {
+        // Not authenticated
+      }
+    }
+
+    if (!emailToUse) {
+      return { success: false, error: 'Alamat email wajib diisi.' };
+    }
+
+    // Verify user exists in Firebase Admin
+    const adminAuth = getAdminAuth();
+    try {
+      const userRecord = await adminAuth.getUserByEmail(emailToUse);
+      userName = userName || userRecord.displayName || undefined;
+    } catch {
+      return { success: false, error: 'Alamat email tidak terdaftar di sistem.' };
+    }
+
+    const sendRes = await sendPasswordResetEmail({
+      email: emailToUse,
+      userName,
+    });
+
+    if ('error' in sendRes && sendRes.error) {
+      return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
+    }
+
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal mengirim email reset password.';
+    return { success: false, error: message };
+  }
+}
+

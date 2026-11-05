@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Budget, Transaction } from '../types';
 import { addBudget, deleteBudget } from '../app/actions';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Trash2, AlertTriangle } from 'lucide-react';
 
 interface BudgetManagerProps {
@@ -18,6 +18,8 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
   const [limit, setLimit] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -49,14 +51,10 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
     setError(null);
     setSuccess(null);
 
-    if (!category.trim() || !limit) {
-      setError('Harap isi semua kolom');
-      return;
-    }
+    const limitNum = parseRupiahInput(limit);
 
-    const limitNum = parseInt(limit, 10);
-    if (isNaN(limitNum) || limitNum <= 0) {
-      setError('Limit bulanan harus berupa angka positif');
+    if (!category.trim() || limitNum <= 0) {
+      setError('Harap isi kategori dan limit bulanan dengan angka positif');
       return;
     }
 
@@ -73,11 +71,16 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
   }
 
   async function handleDeleteBudget(id: string) {
+    setDeleting(true);
     setSuccess(null);
-    if (confirm('Apakah Anda yakin ingin menghapus budget ini?')) {
-      await deleteBudget(id);
+    const res = await deleteBudget(id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
+    if (res.success) {
       setSuccess('Budget bulanan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      setError(res.error || 'Gagal menghapus budget');
     }
   }
 
@@ -127,13 +130,15 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Limit Bulanan</label>
+                <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Limit Bulanan (Rp)</label>
                 <input 
-                  type="number" 
-                  placeholder="Rp" 
+                  type="text" 
+                  inputMode="numeric"
+                  placeholder="Contoh: 500.000" 
                   value={limit} 
-                  onChange={e => setLimit(e.target.value)}
+                  onChange={e => setLimit(formatRupiahInput(e.target.value))}
                   className="w-full brutal-input p-2 text-xs font-bold"
+                  required
                 />
               </div>
             </div>
@@ -175,12 +180,34 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
                       </span>
                     )}
                   </div>
-                  <button 
-                    onClick={() => handleDeleteBudget(b.id)}
-                    className="text-neutral-400 hover:text-red-500 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {confirmDeleteId === b.id ? (
+                    <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
+                      <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                      <button
+                        type="button"
+                        disabled={deleting}
+                        onClick={() => handleDeleteBudget(b.id)}
+                        className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                      >
+                        Ya
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setConfirmDeleteId(b.id)}
+                      className="text-neutral-400 hover:text-red-600 transition-colors cursor-pointer p-1"
+                      title="Hapus budget"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex justify-between items-end text-xs font-black text-black mt-2 tracking-wider">

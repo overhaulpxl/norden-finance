@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import { Balance } from '../types';
-import { formatRupiah, formatMethodName } from '../lib/format';
+import { formatRupiah, formatMethodName, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { ArchiveRestore, Loader2, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { updateBalance, deleteBalance, restoreBalance } from '../app/actions';
+import { useHideBalance } from '../lib/HideBalanceContext';
 
 export default function BalanceCards({ balances }: { balances: Balance[] }) {
   const router = useRouter();
+  const { maskBalance } = useHideBalance();
   const [balanceOverrides, setBalanceOverrides] = useState<Record<string, Balance>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
@@ -16,6 +18,8 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
   const localBalances = [
     ...Object.values(balanceOverrides).filter((override) => !balances.some((balance) => balance.id === override.id)),
     ...balances.map((balance) => balanceOverrides[balance.id] || balance),
@@ -30,9 +34,10 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
 
     setLoading(true);
     setSuccess(null);
-    const numericAmount = parseInt(amount.replace(/\D/g, ''), 10) || 0;
+    setError(null);
+    const numericAmount = parseRupiahInput(amount);
 
-    const res = await updateBalance(method, numericAmount, editingId);
+    const res = await updateBalance(method.trim().toUpperCase(), numericAmount, editingId);
     if (res.success) {
       if ('wallet' in res && res.wallet) {
         setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
@@ -45,9 +50,42 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
       setTimeout(() => setSuccess(null), 5000);
       router.refresh();
     } else {
-      alert(res.error || 'Gagal update saldo');
+      setError(res.error || 'Gagal update saldo dompet');
     }
     setLoading(false);
+  };
+
+  const handleArchive = async (walletId: string) => {
+    setLoading(true);
+    setSuccess(null);
+    setError(null);
+    const res = await deleteBalance(walletId);
+    setLoading(false);
+    setConfirmArchiveId(null);
+    if (res.success && 'wallet' in res && res.wallet) {
+      setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
+      setSuccess('Dompet berhasil diarsipkan!');
+      setTimeout(() => setSuccess(null), 4000);
+      router.refresh();
+    } else if (!res.success) {
+      setError(res.error || 'Gagal mengarsipkan dompet');
+    }
+  };
+
+  const handleRestore = async (walletId: string) => {
+    setLoading(true);
+    setSuccess(null);
+    setError(null);
+    const res = await restoreBalance(walletId);
+    setLoading(false);
+    if (res.success && 'wallet' in res && res.wallet) {
+      setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
+      setSuccess('Dompet berhasil dipulihkan!');
+      setTimeout(() => setSuccess(null), 5000);
+      router.refresh();
+    } else if (!res.success) {
+      setError(res.error || 'Gagal memulihkan dompet');
+    }
   };
 
   return (
@@ -74,6 +112,12 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
         </div>
       )}
 
+      {error && (
+        <div className="p-3 border-[2px] border-black bg-red-100 text-red-700 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
+          ❌ {error}
+        </div>
+      )}
+
       {isEditing && (
         <form onSubmit={handleSubmit} className="p-5 border-[3px] border-black bg-[#FAF9F5] flex flex-col sm:flex-row gap-3 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in slide-in-from-top-2">
           <input
@@ -86,9 +130,10 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
           />
           <input
             type="text"
+            inputMode="numeric"
             placeholder="NOMINAL SALDO SAAT INI (RP)"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => setAmount(formatRupiahInput(e.target.value))}
             className="flex-1 brutal-input px-3.5 py-2.5 text-xs font-bold"
             required
           />
@@ -121,7 +166,7 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
               onClick={() => {
                 setEditingId(b.id);
                 setMethod(b.name);
-                setAmount(b.currentBalance.toString());
+                setAmount(formatRupiahInput(b.currentBalance));
                 setIsEditing(true);
               }}
             >
@@ -130,35 +175,46 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
                   <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 px-1.5 py-0.5 border border-black bg-[#FAF9F5]">
                     {b.type === 'cash' ? 'CASH' : b.type === 'ewallet' ? 'E-WALLET' : 'BANK'}
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`Arsipkan dompet ${formatMethodName(b.name)}? Riwayat transaksi tetap aman.`)) {
-                        setSuccess(null);
-                        deleteBalance(b.id).then((res) => {
-                          if (res.success && 'wallet' in res && res.wallet) {
-                            setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
-                            setSuccess('Dompet berhasil diarsipkan!');
-                            setTimeout(() => setSuccess(null), 4000);
-                            router.refresh();
-                          } else if (!res.success) {
-                            alert(res.error || 'Gagal mengarsipkan dompet');
-                          }
-                        });
-                      }
-                    }}
-                    className="text-neutral-500 hover:text-red-650 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 -mt-1 -mr-1 cursor-pointer"
-                    title={`Arsipkan dompet ${formatMethodName(b.name)}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {confirmArchiveId === b.id ? (
+                    <div 
+                      className="flex items-center gap-1 z-10" 
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => handleArchive(b.id)}
+                        className="px-1.5 py-0.5 bg-red-600 text-white border border-black text-[9px] font-black uppercase hover:bg-red-700 cursor-pointer"
+                      >
+                        Arsipkan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmArchiveId(null)}
+                        className="px-1.5 py-0.5 bg-neutral-200 text-black border border-black text-[9px] font-black uppercase hover:bg-neutral-300 cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmArchiveId(b.id);
+                      }}
+                      className="text-neutral-500 hover:text-red-650 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 -mt-1 -mr-1 cursor-pointer"
+                      title={`Arsipkan dompet ${formatMethodName(b.name)}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 <h4 className="text-xs sm:text-sm text-black uppercase font-black tracking-wider truncate mb-2">
                   {formatMethodName(b.name)}
                 </h4>
               </div>
               <span className="text-base sm:text-xl font-black text-black tracking-wide">
-                {formatRupiah(b.currentBalance)}
+                {maskBalance(formatRupiah(b.currentBalance))}
               </span>
             </div>
           ))}
@@ -175,26 +231,14 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
                   <span className="text-[10px] font-black uppercase tracking-wider text-black">{formatMethodName(balance.name)}</span>
                   <button
                     type="button"
-                    onClick={() => {
-                      setSuccess(null);
-                      restoreBalance(balance.id).then((res) => {
-                        if (res.success && 'wallet' in res && res.wallet) {
-                          setBalanceOverrides((current) => ({ ...current, [res.wallet.id]: res.wallet }));
-                          setSuccess('Dompet berhasil dipulihkan!');
-                          setTimeout(() => setSuccess(null), 5000);
-                          router.refresh();
-                        } else if (!res.success) {
-                          alert(res.error || 'Gagal memulihkan dompet');
-                        }
-                      });
-                    }}
+                    onClick={() => handleRestore(balance.id)}
                     className="border border-black bg-white p-1 text-black transition-colors hover:bg-[#bbf7d0] cursor-pointer"
                     title="Restore wallet"
                   >
                     <ArchiveRestore className="h-3.5 w-3.5 stroke-[3px]" />
                   </button>
                 </div>
-                <span className="text-sm font-black text-neutral-700">{formatRupiah(balance.currentBalance)}</span>
+                <span className="text-sm font-black text-neutral-700">{maskBalance(formatRupiah(balance.currentBalance))}</span>
               </div>
             ))}
           </div>

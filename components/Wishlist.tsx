@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Balance, WishlistItem } from '../types';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { addWishlistItem, deleteWishlistItem, markWishlistBought } from '../app/actions';
 import { Loader2, Trash2, ExternalLink, Clock } from 'lucide-react';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
@@ -15,6 +15,8 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const activeWallets = useMemo(() => getActiveWallets(balances), [balances]);
   const currentSelectedMethod = activeWallets.some((wallet) => wallet.name === selectedMethod)
     ? selectedMethod
@@ -22,12 +24,12 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !amount) return;
+    const numericAmount = parseRupiahInput(amount);
+    if (!name.trim() || numericAmount <= 0) return;
     setLoading(true);
     setSuccess(null);
-    const numericAmount = parseInt(amount.replace(/\D/g, ''), 10);
 
-    const res = await addWishlistItem(name, numericAmount, url);
+    const res = await addWishlistItem(name.trim(), numericAmount, url.trim() || undefined);
     if (res.success) {
       setName('');
       setAmount('');
@@ -51,13 +53,14 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Hapus wishlist ini?')) {
-      setSuccess(null);
-      const res = await deleteWishlistItem(id);
-      if (res.success) {
-        setSuccess('Wishlist berhasil dihapus!');
-        setTimeout(() => setSuccess(null), 5000);
-      }
+    setDeleting(true);
+    setSuccess(null);
+    const res = await deleteWishlistItem(id);
+    setDeleting(false);
+    setConfirmDeleteId(null);
+    if (res.success) {
+      setSuccess('Wishlist berhasil dihapus!');
+      setTimeout(() => setSuccess(null), 5000);
     }
   };
 
@@ -96,7 +99,15 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
           </div>
           <div>
             <label className="block text-xs font-black uppercase tracking-wider text-black mb-1">Perkiraan Harga (Rp)</label>
-            <input type="text" placeholder="Contoh: 750000" value={amount} onChange={e => setAmount(e.target.value)} className="w-full brutal-input px-3.5 py-2 text-xs font-bold" required />
+            <input 
+              type="text" 
+              inputMode="numeric"
+              placeholder="Contoh: 750.000" 
+              value={amount} 
+              onChange={e => setAmount(formatRupiahInput(e.target.value))} 
+              className="w-full brutal-input px-3.5 py-2 text-xs font-bold" 
+              required 
+            />
           </div>
           <div>
             <label className="block text-xs font-black uppercase tracking-wider text-black mb-1">Link Toko (Opsional)</label>
@@ -180,12 +191,34 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
                   </div>
                 )}
 
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="absolute right-4 bottom-4 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {confirmDeleteId === item.id ? (
+                  <div className="absolute right-4 bottom-3 flex items-center gap-1.5 bg-white border border-black p-1 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                    <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => handleDelete(item.id)}
+                      className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase hover:bg-red-700 cursor-pointer"
+                    >
+                      Ya
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase hover:bg-neutral-300 cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(item.id)}
+                    className="absolute right-4 bottom-4 text-neutral-400 hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
+                    title="Hapus wishlist"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             );
           })}

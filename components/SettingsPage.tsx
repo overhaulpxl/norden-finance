@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2 } from 'lucide-react';
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, deleteUser } from 'firebase/auth';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck } from 'lucide-react';
+import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
 import { forgotPasswordAction } from '../app/authActions';
@@ -31,14 +31,11 @@ interface SettingsProps {
 
 export default function SettingsPage({ user, stats, trialDays, pricingPlans }: SettingsProps) {
   const isPro = user.plan === 'pro';
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [now] = useState(() => Date.now());
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deletePassword, setDeletePassword] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [resetConfirmText, setResetConfirmText] = useState('');
   const [resetAcknowledged, setResetAcknowledged] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -67,7 +64,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     try {
       const res = await forgotPasswordAction(targetEmail);
       if (res.success) {
-        setEmailResetSuccess(`Tautan atur ulang kata sandi telah dikirim ke ${targetEmail}. Silakan periksa kotak masuk atau spam email Anda.`);
+        setEmailResetSuccess(`Tautan atur ulang kata sandi telah dikirim ke ${targetEmail}. Silakan periksa kotak masuk atau folder spam email Anda.`);
       } else {
         setEmailResetError(res.error || 'Gagal mengirim email reset password.');
       }
@@ -75,43 +72,6 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       setEmailResetError(err instanceof Error ? err.message : 'Terjadi kesalahan saat mengirim email reset.');
     } finally {
       setEmailResetLoading(false);
-    }
-  };
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (newPassword.length < 6) {
-      setError('Password baru minimal harus 6 karakter.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('Password baru dan konfirmasi password tidak cocok.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error('Pengguna tidak terdeteksi. Silakan login kembali.');
-      }
-      await updatePassword(currentUser, newPassword);
-      setSuccess('Password berhasil diperbarui!');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err: unknown) {
-      console.error(err);
-      if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'auth/requires-recent-login') {
-        setError('Sesi Anda sudah lama aktif. Harap gunakan tombol "Kirim Link Reset Password ke Email" di atas untuk memperbarui password.');
-      } else {
-        setError(err instanceof Error ? err.message : 'Gagal memperbarui password.');
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -146,13 +106,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
-      setError('Ketik DELETE untuk menghapus akun.');
+      setDeleteError('Ketik DELETE untuk menghapus akun.');
       return;
     }
 
-    setLoading(true);
-    setError('');
-    setSuccess('');
+    setDeleteLoading(true);
+    setDeleteError(null);
 
     try {
       const currentUser = auth.currentUser;
@@ -177,8 +136,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       window.location.href = '/login';
     } catch (err: unknown) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus akun.');
-      setLoading(false);
+      setDeleteError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus akun.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -259,106 +219,68 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       </div>
 
       {/* Keamanan & Ganti Password */}
-      <div className="brutal-card p-6 bg-white">
+      <div className="brutal-card p-6 bg-white select-none">
         <div className="flex justify-between items-start mb-6 border-b-[3px] border-black pb-4">
-          <h3 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <Key className="w-5 h-5 text-black stroke-[3px]" /> Keamanan & Ganti Password
-          </h3>
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
+              <Key className="w-5 h-5 text-black stroke-[2.5px]" /> Keamanan & Kata Sandi
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+              Atur ulang kata sandi akun melalui tautan verifikasi resmi ke email terdaftar
+            </p>
+          </div>
         </div>
 
-        {/* Email Password Reset Section (Recommended & Secure) */}
-        <div className="p-4 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-6 max-w-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <Mail className="w-4 h-4 text-black stroke-[2.5px]" />
-            <span className="text-xs font-black uppercase tracking-wider text-black">
-              Kirim Tautan Reset Password ke Email
-            </span>
+        <div className="p-4 sm:p-5 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] max-w-xl space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 border-[2px] border-black bg-[#FFE066] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+              <ShieldCheck className="w-5 h-5 text-black stroke-[2.5px]" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-black">
+                Tautan Atur Ulang Terenkripsi
+              </p>
+              <p className="text-xs text-neutral-600 font-medium leading-relaxed mt-1">
+                Demi keamanan akun dan mencegah pembajakan, pembaruan password wajib melalui tautan khusus yang dikirimkan ke email akun Anda:
+              </p>
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border-[1.5px] border-black text-xs font-black text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+                <Mail className="w-3.5 h-3.5" />
+                <span>{user.email}</span>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-neutral-600 mb-3 font-medium leading-relaxed">
-            Untuk keamanan akun dan menghindari kendala sesi login lama, tautan atur ulang kata sandi akan dikirimkan langsung ke alamat email terdaftar akun Anda (<strong>{user.email}</strong>).
-          </p>
 
           {emailResetError && (
-            <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider mb-3">
+            <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider">
               ❌ {emailResetError}
             </div>
           )}
           {emailResetSuccess && (
-            <div className="p-3 bg-emerald-100 border-[2px] border-black text-emerald-800 font-bold text-xs uppercase tracking-wider mb-3">
+            <div className="p-3 bg-emerald-100 border-[2px] border-black text-emerald-800 font-bold text-xs uppercase tracking-wider">
               ✅ {emailResetSuccess}
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleSendResetEmail}
-            disabled={emailResetLoading}
-            className="w-full sm:w-auto px-4 py-2.5 bg-[#FFE066] hover:bg-[#FFD633] text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
-          >
-            {emailResetLoading ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
-                MENGIRIM LINK...
-              </>
-            ) : (
-              <>
-                <Mail className="w-3.5 h-3.5 text-black stroke-[2.5px]" />
-                KIRIM LINK RESET PASSWORD KE EMAIL
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Direct Password Form */}
-        <div className="pt-2 border-t-[2px] border-neutral-200 max-w-md">
-          <p className="text-[11px] font-black uppercase text-neutral-500 mb-4 tracking-wider">
-            Atau Ubah Password Langsung (Memerlukan Sesi Login Baru)
-          </p>
-
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider">
-                ❌ {error}
-              </div>
-            )}
-            {success && (
-              <div className="p-3 bg-emerald-100 border-[2px] border-black text-emerald-800 font-bold text-xs uppercase tracking-wider">
-                ✅ {success}
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-black">Password Baru</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2.5 border-[3px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all font-bold text-sm"
-                placeholder="MINIMAL 6 KARAKTER"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase text-black">Konfirmasi Password Baru</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full p-2.5 border-[3px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all font-bold text-sm"
-                placeholder="ULANGI PASSWORD BARU"
-                required
-              />
-            </div>
-
+          <div className="pt-2">
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 brutal-btn font-black text-xs uppercase tracking-wider disabled:opacity-50 cursor-pointer"
+              type="button"
+              onClick={handleSendResetEmail}
+              disabled={emailResetLoading}
+              className="w-full sm:w-auto px-5 py-3 bg-[#FFE066] hover:bg-[#FFD633] text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
-              {loading ? 'MEMPROSES...' : 'PERBARUI PASSWORD'}
+              {emailResetLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  MENGIRIM TAUTAN...
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 text-black stroke-[2.5px]" />
+                  KIRIM TAUTAN RESET PASSWORD KE EMAIL
+                </>
+              )}
             </button>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -523,6 +445,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <p className="text-xs text-neutral-600 font-bold mt-1 uppercase tracking-wider">
                 Menghapus akun akan menghilangkan semua transaksi, saldo, target tabungan, dan data lainnya secara permanen. Ketik DELETE dan masukkan password untuk konfirmasi.
               </p>
+              {deleteError && (
+                <div className="mt-3 p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider">
+                  ❌ {deleteError}
+                </div>
+              )}
               <div className="mt-3 grid gap-2">
                 <input
                   value={deleteConfirmText}
@@ -540,10 +467,10 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </div>
               <button 
                 onClick={handleDeleteAccount}
-                disabled={loading || deleteConfirmText !== 'DELETE'}
+                disabled={deleteLoading || deleteConfirmText !== 'DELETE'}
                 className="mt-3 px-4 py-2 border-[2px] border-black bg-white text-red-650 rounded-none text-xs font-black hover:bg-neutral-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50"
               >
-                {loading ? 'MENGHAPUS...' : 'Hapus Akun Saya'}
+                {deleteLoading ? 'MENGHAPUS...' : 'Hapus Akun Saya'}
               </button>
             </div>
           </div>
