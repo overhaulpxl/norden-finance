@@ -73,6 +73,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [pinModalError, setPinModalError] = useState<string | null>(null);
   const [pinModalLoading, setPinModalLoading] = useState(false);
   const [pinActionSuccess, setPinActionSuccess] = useState<string | null>(null);
+  const [pinActionError, setPinActionError] = useState<string | null>(null);
 
   useEffect(() => {
     isBiometricSupported().then(setBiometricDeviceSupport);
@@ -139,8 +140,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   };
 
   const handleToggleBiometrics = async () => {
+    setPinActionError(null);
     if (!pinActive) {
-      alert('Aktifkan PIN 4-digit terlebih dahulu sebelum menyalakan biometrik.');
+      triggerHaptic('warning');
+      setPinActionError('Aktifkan PIN 4-digit terlebih dahulu sebelum menyalakan biometrik.');
+      setTimeout(() => setPinActionError(null), 5000);
       return;
     }
 
@@ -155,7 +159,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         setTimeout(() => setPinActionSuccess(null), 4000);
       } else {
         triggerHaptic('warning');
-        alert('Gagal mendaftarkan biometrik perangkat atau dibatalkan.');
+        setPinActionError('Gagal mendaftarkan biometrik perangkat atau dibatalkan.');
+        setTimeout(() => setPinActionError(null), 5000);
       }
     } else {
       localStorage.setItem(`norden_biometric_enabled_${user.id}`, 'false');
@@ -429,6 +434,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         {pinActionSuccess && (
           <div className="mb-4 p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
             {pinActionSuccess}
+          </div>
+        )}
+
+        {pinActionError && (
+          <div className="mb-4 p-3 border-[2px] border-black bg-red-100 text-red-900 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
+            {pinActionError}
           </div>
         )}
 

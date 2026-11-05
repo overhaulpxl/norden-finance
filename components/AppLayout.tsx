@@ -26,6 +26,7 @@ const CommandPaletteModal = dynamic(() => import('./CommandPaletteModal'), {
 import { useLanguage } from '../lib/i18n';
 import { useHideBalance } from '../lib/HideBalanceContext';
 import { registerServiceWorker } from '../lib/pwa';
+import { triggerHaptic } from '../lib/haptics';
 
 function PanelSkeleton({ className = '' }: { className?: string }) {
   return (
@@ -201,6 +202,7 @@ export default function AppLayout({
   }, []);
 
   const handleTabChange = (tab: typeof activeTab) => {
+    triggerHaptic('selection');
     setActiveTab(tab);
     setSidebarOpen(false);
   };
@@ -251,14 +253,14 @@ export default function AppLayout({
         <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
       </div>
 
-      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 min-w-0">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
         <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4 select-none">
           {/* Mobile hamburger & brand */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
               aria-label="Buka menu navigasi"
-              className="lg:hidden rounded-none border-[2px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_#000] transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 shrink-0"
+              className="lg:hidden rounded-none border-[2px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_#000] transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 shrink-0 cursor-pointer"
             >
               <Menu className="w-5 h-5 text-slate-800" />
             </button>
@@ -275,7 +277,7 @@ export default function AppLayout({
             {/* Quick Command / Search Palette Trigger */}
             <button
               type="button"
-              onClick={() => setShowCommandPalette(true)}
+              onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
               title="Cari menu, aksi cepat, atau transaksi (⌘K)"
               className="p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white hover:bg-neutral-50 text-black flex items-center gap-1.5"
             >
@@ -288,7 +290,7 @@ export default function AppLayout({
             {/* Hide / Show Balance Toggle Button */}
             <button
               type="button"
-              onClick={toggleHideBalance}
+              onClick={() => { triggerHaptic('light'); toggleHideBalance(); }}
               title={isBalanceHidden ? t('btn_show_balance') : t('btn_hide_balance')}
               className={`p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
                 isBalanceHidden ? 'bg-amber-100 text-black' : 'bg-white text-black'
@@ -495,7 +497,10 @@ export default function AppLayout({
           <div className="relative -top-4 flex flex-col items-center justify-center px-2">
             <button
               type="button"
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                triggerHaptic('medium');
+                setShowModal(true);
+              }}
               aria-label="Catat Transaksi"
               className="w-13 h-13 rounded-full bg-[#FFE066] hover:bg-[#FFD633] text-black border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
             >

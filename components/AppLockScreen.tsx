@@ -33,6 +33,8 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
     if (typeof window === 'undefined') return false;
     return isBiometricEnabled(userId);
   });
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
 
   // Sync lock state
   useEffect(() => {
@@ -148,10 +150,19 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
 
   if (!locked) return null;
 
-  const handleSignOutEmergency = async () => {
-    if (confirm('Lupa PIN? Anda akan dialihkan keluar (sign out) untuk mengamankan akun Anda.')) {
+  const handleSignOutEmergency = () => {
+    triggerHaptic('medium');
+    setShowEmergencyModal(true);
+  };
+
+  const handleConfirmSignOut = async () => {
+    setEmergencyLoading(true);
+    try {
       await signOut(auth);
       window.location.href = '/login';
+    } catch {
+      setEmergencyLoading(false);
+      setShowEmergencyModal(false);
     }
   };
 
@@ -264,6 +275,40 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
           </button>
         </div>
       </div>
+
+      {showEmergencyModal && (
+        <div className="fixed inset-0 z-60 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border-[3px] border-black p-5 max-w-sm w-full shadow-[6px_6px_0px_0px_#000] space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-[#FFE066] border-[2px] border-black shadow-[2px_2px_0px_0px_#000]">
+                <LogOut className="w-4 h-4 text-black stroke-[2.5px]" />
+              </div>
+              <h3 className="font-black text-sm uppercase tracking-wider text-black">Keluar Dari Akun?</h3>
+            </div>
+            <p className="text-xs text-neutral-700 font-bold leading-relaxed">
+              Lupa PIN? Anda akan dialihkan keluar (sign out) untuk mengamankan data keuangan Anda.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowEmergencyModal(false)}
+                className="brutal-btn-light px-3 py-1.5 text-xs font-black uppercase cursor-pointer"
+                disabled={emergencyLoading}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSignOut}
+                className="brutal-btn px-4 py-1.5 text-xs font-black uppercase bg-red-500 text-white hover:bg-red-600 cursor-pointer"
+                disabled={emergencyLoading}
+              >
+                {emergencyLoading ? 'Keluar...' : 'Ya, Keluar Akun'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

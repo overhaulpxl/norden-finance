@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { submitPaymentRequest } from '../actions/payments';
 import { MVP_FEATURES } from '../../lib/constants';
 import { formatCurrency } from '../../lib/format';
+import { compressReceiptImage } from '../../lib/imageCompression';
 
 interface UpgradeClientProps {
   profile: {
@@ -115,8 +116,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
     setUploading(true);
 
     try {
+      const compressedFile = await compressReceiptImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82 });
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFile);
       const uploadResponse = await fetch('/api/upload/payment-proof', {
         method: 'POST',
         body: formData,

@@ -189,6 +189,13 @@ export default function AdminClient({
   const [resetModalUser, setResetModalUser] = useState<UserProfileItem | null>(null);
   const [resetConfirmText, setResetConfirmText] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [confirmActionModal, setConfirmActionModal] = useState<{
+    title: string;
+    message: string;
+    confirmLabel: string;
+    variant?: 'primary' | 'danger';
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
   
   const [error, setError] = useState(initialError || '');
   const [success, setSuccess] = useState('');
@@ -201,30 +208,40 @@ export default function AdminClient({
     yearlyPrice: Number(yearlyPrice) || DEFAULT_YEARLY_PRICE,
   };
 
-  const handleApprove = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menyetujui pembayaran ini?')) return;
-    setLoadingId(id);
-    setError('');
-    setSuccess('');
+  const handleApprove = (id: string) => {
+    const request = requests.find(r => r.id === id);
+    setConfirmActionModal({
+      title: 'Setujui Pembayaran?',
+      message: request 
+        ? `Apakah Anda yakin ingin menyetujui pembayaran dari ${request.fullName || request.userId} sebesar ${formatCurrency(request.amount)} dan meningkatkan akun ke PRO?`
+        : 'Apakah Anda yakin ingin menyetujui pembayaran ini?',
+      confirmLabel: 'Ya, Setujui',
+      variant: 'primary',
+      onConfirm: async () => {
+        setLoadingId(id);
+        setError('');
+        setSuccess('');
 
-    try {
-      const res = await approvePaymentRequest(id);
-      if (res.success) {
-        setSuccess('Pembayaran berhasil disetujui dan pengguna ditingkatkan ke PRO.');
-        setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
-        
-        const request = requests.find(r => r.id === id);
-        if (request) {
-          setUsers(prev => prev.map(u => u.userId === request.userId ? { ...u, plan: 'pro' } : u));
+        try {
+          const res = await approvePaymentRequest(id);
+          if (res.success) {
+            setSuccess('Pembayaran berhasil disetujui dan pengguna ditingkatkan ke PRO.');
+            setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+            
+            const targetReq = requests.find(r => r.id === id);
+            if (targetReq) {
+              setUsers(prev => prev.map(u => u.userId === targetReq.userId ? { ...u, plan: 'pro' } : u));
+            }
+          } else {
+            setError(res.error || 'Gagal menyetujui pembayaran.');
+          }
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem.');
+        } finally {
+          setLoadingId(null);
         }
-      } else {
-        setError(res.error || 'Gagal menyetujui pembayaran.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan sistem.');
-    } finally {
-      setLoadingId(null);
-    }
+      },
+    });
   };
 
   const handleRejectSubmit = async (e: React.FormEvent) => {
@@ -313,27 +330,34 @@ export default function AdminClient({
     }
   };
 
-  const handleToggleRole = async (targetUserId: string, currentRole: 'user' | 'admin') => {
+  const handleToggleRole = (targetUserId: string, currentRole: 'user' | 'admin') => {
     const nextRole = currentRole === 'admin' ? 'user' : 'admin';
-    if (!confirm(`Apakah Anda yakin ingin mengubah role pengguna ini menjadi ${nextRole.toUpperCase()}?`)) return;
+    const targetUser = users.find(u => u.userId === targetUserId);
+    setConfirmActionModal({
+      title: `Ubah Role Menjadi ${nextRole.toUpperCase()}?`,
+      message: `Apakah Anda yakin ingin mengubah hak akses "${targetUser?.fullName || targetUserId}" menjadi ${nextRole.toUpperCase()}?`,
+      confirmLabel: `Ubah ke ${nextRole.toUpperCase()}`,
+      variant: nextRole === 'admin' ? 'primary' : 'danger',
+      onConfirm: async () => {
+        setLoadingId(targetUserId);
+        setError('');
+        setSuccess('');
 
-    setLoadingId(targetUserId);
-    setError('');
-    setSuccess('');
-
-    try {
-      const res = await updateUserRoleManually(targetUserId, nextRole);
-      if (res.success) {
-        setSuccess(`Role pengguna berhasil diubah menjadi ${nextRole.toUpperCase()}.`);
-        setUsers(prev => prev.map(u => u.userId === targetUserId ? { ...u, role: nextRole } : u));
-      } else {
-        setError(res.error || 'Gagal mengubah role pengguna.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan sistem.');
-    } finally {
-      setLoadingId(null);
-    }
+        try {
+          const res = await updateUserRoleManually(targetUserId, nextRole);
+          if (res.success) {
+            setSuccess(`Role pengguna berhasil diubah menjadi ${nextRole.toUpperCase()}.`);
+            setUsers(prev => prev.map(u => u.userId === targetUserId ? { ...u, role: nextRole } : u));
+          } else {
+            setError(res.error || 'Gagal mengubah role pengguna.');
+          }
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem.');
+        } finally {
+          setLoadingId(null);
+        }
+      },
+    });
   };
 
   const openDeleteModal = (targetUser: UserProfileItem) => {
@@ -1620,6 +1644,43 @@ export default function AdminClient({
                 {loadingId === planModalUserId ? 'MEMPROSES...' : 'SIMPAN PERUBAHAN'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Generic Action Confirmation Modal */}
+      {confirmActionModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border-[3px] border-black p-6 max-w-md w-full shadow-[6px_6px_0px_0px_#000] space-y-4 animate-in zoom-in-95">
+            <h3 className="font-black text-base uppercase tracking-wider text-black">
+              {confirmActionModal.title}
+            </h3>
+            <p className="text-xs text-neutral-700 font-bold leading-relaxed">
+              {confirmActionModal.message}
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmActionModal(null)}
+                className="brutal-btn-light px-3 py-1.5 text-xs font-black uppercase cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const action = confirmActionModal.onConfirm;
+                  setConfirmActionModal(null);
+                  await action();
+                }}
+                className={`brutal-btn px-4 py-1.5 text-xs font-black uppercase cursor-pointer ${
+                  confirmActionModal.variant === 'danger'
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-[#FFE066] text-black hover:bg-[#FFD700]'
+                }`}
+              >
+                {confirmActionModal.confirmLabel}
+              </button>
+            </div>
           </div>
         </div>
       )}

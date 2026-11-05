@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Send, Loader2, Camera, RotateCcw } from 'lucide-react';
 import { processInput, addExplicitTransaction, deleteTransaction } from '../app/actions';
+import { compressReceiptImage } from '../lib/imageCompression';
 
 interface ReceiptScan {
   amount: number;
@@ -64,8 +65,9 @@ export default function QuickInput() {
     setMessage(null);
 
     try {
+      const compressedFile = await compressReceiptImage(file);
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', compressedFile);
 
       const res = await fetch('/api/scan-receipt', {
         method: 'POST',
