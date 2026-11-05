@@ -11,6 +11,7 @@ import { compressReceiptImage } from '../lib/imageCompression';
 import { triggerHaptic } from '../lib/haptics';
 import { triggerUndoToast } from '../lib/undoToast';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
+import { enqueueOfflineTransaction } from '../lib/offlineQueue';
 
 const QUICK_AMOUNT_INCREMENTS = [
   { label: '+10rb', value: 10000 },
@@ -206,6 +207,18 @@ export default function QuickInputModal({
     setInput('');
     setLoading(true);
 
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      triggerHaptic('success');
+      enqueueOfflineTransaction({ type: 'smart', input: userMsgText });
+      setChatMessages(prev => [...prev, {
+        id: Math.random().toString(),
+        sender: 'ai',
+        text: '💾 [Offline Mode] Transaksi disimpan di memori HP. Otomatis disinkronkan ke server saat internet kembali.',
+      }]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const isAcceptedReceipt = receiptScan && userMsgText === receiptScan.suggestedText;
       const res = isAcceptedReceipt
@@ -276,12 +289,22 @@ export default function QuickInputModal({
         txId
       }]);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Terjadi kesalahan sistem.';
-      setChatMessages(prev => [...prev, {
-        id: Math.random().toString(),
-        sender: 'ai',
-        text: `❌ Error: ${message}`
-      }]);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        enqueueOfflineTransaction({ type: 'smart', input: userMsgText });
+        triggerHaptic('success');
+        setChatMessages(prev => [...prev, {
+          id: Math.random().toString(),
+          sender: 'ai',
+          text: '💾 [Offline Mode] Koneksi terputus. Transaksi diamankan di memori HP dan otomatis disinkronkan saat online.',
+        }]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Terjadi kesalahan sistem.';
+        setChatMessages(prev => [...prev, {
+          id: Math.random().toString(),
+          sender: 'ai',
+          text: `❌ Error: ${message}`
+        }]);
+      }
     } finally {
       setLoading(false);
     }
@@ -413,28 +436,91 @@ export default function QuickInputModal({
     }
     const tagsArray = mTags.split(' ').map(t => t.replace('#', '').trim()).filter(Boolean);
 
-    if (mType === 'transfer') {
-      res = await addTransferTransaction(amount, currentMethod, currentToMethod, mNote, tagsArray);
-    } else {
-      if (isRecurring) {
-        res = await addRecurringTransaction({
-          type: mType,
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      triggerHaptic('success');
+      if (mType === 'transfer') {
+        enqueueOfflineTransaction({
+          type: 'transfer',
           amount,
-          category: mCategory,
-          method: currentMethod,
+          fromWallet: currentMethod,
+          toWallet: currentToMethod,
           note: mNote,
-          tags: tagsArray
+          tags: tagsArray,
         });
       } else {
-        res = await addExplicitTransaction({
-          type: mType,
-          amount,
-          category: mCategory,
-          method: currentMethod,
-          note: mNote,
-          tags: tagsArray
+        enqueueOfflineTransaction({
+          type: 'explicit',
+          data: {
+            type: mType,
+            amount,
+            category: mCategory,
+            method: currentMethod,
+            note: mNote,
+            tags: tagsArray,
+          },
         });
       }
+      setMAmount(''); setMCategory(''); setMNote(''); setMTags(''); setMToMethod(''); setIsRecurring(false);
+      setMessage({ type: 'success', text: '💾 Disimpan di memori HP! Otomatis disinkronkan saat online.' });
+      setLoading(false);
+      scheduleClose();
+      return;
+    }
+
+    try {
+      if (mType === 'transfer') {
+        res = await addTransferTransaction(amount, currentMethod, currentToMethod, mNote, tagsArray);
+      } else {
+        if (isRecurring) {
+          res = await addRecurringTransaction({
+            type: mType,
+            amount,
+            category: mCategory,
+            method: currentMethod,
+            note: mNote,
+            tags: tagsArray
+          });
+        } else {
+          res = await addExplicitTransaction({
+            type: mType,
+            amount,
+            category: mCategory,
+            method: currentMethod,
+            note: mNote,
+            tags: tagsArray
+          });
+        }
+      }
+    } catch {
+      // Offline fallback if network dropped mid-call
+      triggerHaptic('success');
+      if (mType === 'transfer') {
+        enqueueOfflineTransaction({
+          type: 'transfer',
+          amount,
+          fromWallet: currentMethod,
+          toWallet: currentToMethod,
+          note: mNote,
+          tags: tagsArray,
+        });
+      } else {
+        enqueueOfflineTransaction({
+          type: 'explicit',
+          data: {
+            type: mType,
+            amount,
+            category: mCategory,
+            method: currentMethod,
+            note: mNote,
+            tags: tagsArray,
+          },
+        });
+      }
+      setMAmount(''); setMCategory(''); setMNote(''); setMTags(''); setMToMethod(''); setIsRecurring(false);
+      setMessage({ type: 'success', text: '💾 Disimpan di memori HP! Otomatis disinkronkan saat terhubung kembali.' });
+      setLoading(false);
+      scheduleClose();
+      return;
     }
 
     if (res.success) {

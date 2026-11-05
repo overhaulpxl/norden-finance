@@ -5,6 +5,7 @@ import { Send, Loader2, Camera, RotateCcw } from 'lucide-react';
 import { processInput, addExplicitTransaction, deleteTransaction } from '../app/actions';
 import { compressReceiptImage } from '../lib/imageCompression';
 import { useLanguage } from '../lib/i18n';
+import { enqueueOfflineTransaction } from '../lib/offlineQueue';
 
 interface ReceiptScan {
   amount: number;
@@ -111,46 +112,110 @@ export default function QuickInput() {
     setMessage(null);
 
     const currentInput = input.trim();
-    const res = receiptScan && currentInput === receiptScan.suggestedText
-      ? await addExplicitTransaction({
-          type: 'keluar',
-          amount: receiptScan.amount,
-          category: 'Belanja',
-          wallet: 'cash',
-          note: receiptScan.merchant || receiptScan.note || 'Receipt',
-          tags: ['receipt'],
-          receiptMerchant: receiptScan.merchant,
-          receiptItems: receiptScan.items,
-          receiptDate: receiptScan.date,
-        })
-      : await processInput(currentInput);
-    if (res.success) {
-      const transactionId = 'transactionId' in res && typeof res.transactionId === 'string'
-        ? res.transactionId
-        : null;
-      const action = 'action' in res ? res.action : undefined;
-      const walletName = 'walletName' in res && typeof res.walletName === 'string'
-        ? res.walletName
-        : 'wallet';
+    const isAcceptedReceipt = receiptScan && currentInput === receiptScan.suggestedText;
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      if (isAcceptedReceipt && receiptScan) {
+        enqueueOfflineTransaction({
+          type: 'explicit',
+          data: {
+            type: 'keluar',
+            amount: receiptScan.amount,
+            category: 'Belanja',
+            wallet: 'cash',
+            note: receiptScan.merchant || receiptScan.note || 'Receipt',
+            tags: ['receipt'],
+            receiptMerchant: receiptScan.merchant,
+            receiptItems: receiptScan.items,
+            receiptDate: receiptScan.date,
+          },
+        });
+      } else {
+        enqueueOfflineTransaction({ type: 'smart', input: currentInput });
+      }
 
       setInput('');
       setReceiptScan(null);
-      if (transactionId) {
-        setMessage({ type: 'success', text: 'Transaksi berhasil ditambahkan.' });
-        startUndoWindow(transactionId);
-      } else if (action === 'balance_update') {
-        setMessage({ type: 'success', text: `Saldo ${walletName} diperbarui.` });
-        setUndoTxId(null);
-      } else {
-        setMessage({ type: 'success', text: 'Tersimpan.' });
-        setUndoTxId(null);
-      }
+      setMessage({
+        type: 'success',
+        text: lang === 'id' ? '💾 Disimpan offline di HP. Otomatis disinkronkan saat terhubung internet.' : '💾 Saved offline. Will sync when back online.',
+      });
       setTimeout(() => setMessage(null), 5000);
-    } else {
-      setMessage({ type: 'error', text: res.error || 'Gagal menyimpan' });
+      setLoading(false);
+      return;
     }
-    
-    setLoading(false);
+
+    try {
+      const res = isAcceptedReceipt
+        ? await addExplicitTransaction({
+            type: 'keluar',
+            amount: receiptScan.amount,
+            category: 'Belanja',
+            wallet: 'cash',
+            note: receiptScan.merchant || receiptScan.note || 'Receipt',
+            tags: ['receipt'],
+            receiptMerchant: receiptScan.merchant,
+            receiptItems: receiptScan.items,
+            receiptDate: receiptScan.date,
+          })
+        : await processInput(currentInput);
+
+      if (res.success) {
+        const transactionId = 'transactionId' in res && typeof res.transactionId === 'string'
+          ? res.transactionId
+          : null;
+        const action = 'action' in res ? res.action : undefined;
+        const walletName = 'walletName' in res && typeof res.walletName === 'string'
+          ? res.walletName
+          : 'wallet';
+
+        setInput('');
+        setReceiptScan(null);
+        if (transactionId) {
+          setMessage({ type: 'success', text: lang === 'id' ? 'Transaksi berhasil ditambahkan.' : 'Transaction successfully added.' });
+          startUndoWindow(transactionId);
+        } else if (action === 'balance_update') {
+          setMessage({ type: 'success', text: lang === 'id' ? `Saldo ${walletName} diperbarui.` : `${walletName} balance updated.` });
+          setUndoTxId(null);
+        } else {
+          setMessage({ type: 'success', text: lang === 'id' ? 'Tersimpan.' : 'Saved.' });
+          setUndoTxId(null);
+        }
+        setTimeout(() => setMessage(null), 5000);
+      } else {
+        setMessage({ type: 'error', text: res.error || (lang === 'id' ? 'Gagal menyimpan' : 'Failed to save') });
+      }
+    } catch {
+      // Offline fallback on dropped connection
+      if (isAcceptedReceipt && receiptScan) {
+        enqueueOfflineTransaction({
+          type: 'explicit',
+          data: {
+            type: 'keluar',
+            amount: receiptScan.amount,
+            category: 'Belanja',
+            wallet: 'cash',
+            note: receiptScan.merchant || receiptScan.note || 'Receipt',
+            tags: ['receipt'],
+            receiptMerchant: receiptScan.merchant,
+            receiptItems: receiptScan.items,
+            receiptDate: receiptScan.date,
+          },
+        });
+      } else {
+        enqueueOfflineTransaction({ type: 'smart', input: currentInput });
+      }
+
+      setInput('');
+      setReceiptScan(null);
+      setMessage({
+        type: 'success',
+        text: lang === 'id' ? '💾 Koneksi terputus. Disimpan offline dan disinkronkan nanti.' : '💾 Connection lost. Saved offline and will sync later.',
+      });
+      setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
