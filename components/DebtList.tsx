@@ -184,7 +184,14 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
 
       <div className="flex gap-6 mb-6 border-b-[3px] border-black">
         {(['active', 'settled', 'all'] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`text-sm pb-3 border-b-[3px] transition-all font-black uppercase tracking-wider mb-[-3px] cursor-pointer ${filter === f ? 'border-black text-black' : 'border-transparent text-neutral-400 hover:text-black'}`}>
+          <button 
+            key={f} 
+            onClick={() => {
+              triggerHaptic('selection');
+              setFilter(f);
+            }} 
+            className={`text-sm pb-3 border-b-[3px] transition-all font-black uppercase tracking-wider mb-[-3px] cursor-pointer ${filter === f ? 'border-black text-black' : 'border-transparent text-neutral-400 hover:text-black'}`}
+          >
             {f === 'active' ? 'Active' : f === 'settled' ? 'Settled' : 'All'}
           </button>
         ))}

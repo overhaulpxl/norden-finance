@@ -250,7 +250,7 @@ export default function AppLayout({
         lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
+        <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { triggerHaptic('medium'); setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
       </div>
 
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
@@ -303,7 +303,7 @@ export default function AppLayout({
             <div className="flex border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white text-[11px] font-black uppercase tracking-wider overflow-hidden">
               <button
                 type="button"
-                onClick={() => setLang('id')}
+                onClick={() => { triggerHaptic('selection'); setLang('id'); }}
                 className={`px-2 py-1.5 transition-colors cursor-pointer ${
                   lang === 'id' ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-500 hover:text-black'
                 }`}
@@ -312,7 +312,7 @@ export default function AppLayout({
               </button>
               <button
                 type="button"
-                onClick={() => setLang('en')}
+                onClick={() => { triggerHaptic('selection'); setLang('en'); }}
                 className={`px-2 py-1.5 transition-colors cursor-pointer border-l-[1.5px] border-black ${
                   lang === 'en' ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-500 hover:text-black'
                 }`}
@@ -346,7 +346,7 @@ export default function AppLayout({
             <NotificationCenter />
 
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
               className="brutal-btn px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0"
               title="Catat transaksi baru"
             >
