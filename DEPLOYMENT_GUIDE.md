@@ -159,7 +159,7 @@ git push -u origin main
 | `FIREBASE_ADMIN_PROJECT_ID` | *Dari Service Account JSON* | Project ID dari Firebase Admin |
 | `FIREBASE_ADMIN_CLIENT_EMAIL` | *Dari Service Account JSON* | Email Client Firebase Admin |
 | `FIREBASE_ADMIN_PRIVATE_KEY` | *Dari Service Account JSON* | Key lengkap dengan tanda kutip & `\n` |
-| `GEMINI_API_KEY` | *Dari Langkah 3* | API Key Google Gemini |
+| `GEMINI_API_KEY` | *(Opsional)* | API Key Google Gemini (opsional, sistem menggunakan local smart parser default) |
 | `CRON_SECRET` | *Minimal 32 karakter acak* | Secret token untuk otorisasi Vercel Cron jobs |
 | `NEXT_PUBLIC_APP_URL` | `https://nordenfinance.site` | URL domain production Anda |
 
