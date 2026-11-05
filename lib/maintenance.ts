@@ -71,7 +71,7 @@ export function assertRawQueryAllowed(queryArgs: unknown): void {
   if (typeof queryArgs === 'string') {
     sqlString = queryArgs;
   } else if (queryArgs && typeof queryArgs === 'object') {
-    const q = queryArgs as any;
+    const q = queryArgs as { strings?: unknown[]; text?: unknown; sql?: unknown };
     if (Array.isArray(q.strings)) {
       sqlString = q.strings.join(' ? ');
     } else if (typeof q.text === 'string') {

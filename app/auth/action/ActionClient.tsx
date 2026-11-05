@@ -155,7 +155,14 @@ export default function ActionClient() {
     if (!restoredEmail || sendingReset) return;
     setSendingReset(true);
     try {
-      await sendPasswordResetEmail(auth, restoredEmail);
+      const origin =
+        typeof window !== 'undefined' && window.location.origin
+          ? window.location.origin
+          : 'https://www.nordenfinance.site';
+      await sendPasswordResetEmail(auth, restoredEmail, {
+        url: `${origin}/auth/action`,
+        handleCodeInApp: false,
+      });
       setPasswordResetSent(true);
     } catch (err) {
       setRecoverError(

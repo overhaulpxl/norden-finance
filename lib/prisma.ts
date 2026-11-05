@@ -44,10 +44,10 @@ function createExtendedClient() {
 
   // Guard interactive transactions so tx closures also enforce maintenance freeze
   const originalTransaction = extended.$transaction.bind(extended);
-  const guardedTransaction = (async (...args: any[]) => {
+  const guardedTransaction = (async (...args: unknown[]) => {
     if (typeof args[0] === 'function') {
-      const userCallback = args[0];
-      return originalTransaction(async (tx: any) => {
+      const userCallback = args[0] as (tx: unknown) => unknown;
+      return originalTransaction(async (tx: object) => {
         const guardedTx = new Proxy(tx, {
           get(target, prop, receiver) {
             const orig = Reflect.get(target, prop, receiver);
@@ -73,21 +73,21 @@ function createExtendedClient() {
               };
             }
             if (prop === '$queryRaw' || prop === '$queryRawUnsafe') {
-              return (queryArgs: any) => {
+              return (queryArgs: unknown) => {
                 assertRawQueryAllowed(queryArgs);
-                return orig.call(target, queryArgs);
+                return (orig as (arg: unknown) => unknown).call(target, queryArgs);
               };
             }
             return orig;
           },
         });
         return userCallback(guardedTx);
-      }, args[1]);
+      }, args[1] as Parameters<typeof originalTransaction>[1]);
     }
-    return (originalTransaction as any)(...args);
+    return (originalTransaction as unknown as (...a: unknown[]) => unknown)(...args);
   }) as typeof extended.$transaction;
 
-  (extended as any).$transaction = guardedTransaction;
+  (extended as { $transaction: typeof guardedTransaction }).$transaction = guardedTransaction;
 
   return extended;
 }
