@@ -8,6 +8,7 @@ import { Clock, Check, Loader2, CreditCard, AlertCircle } from 'lucide-react';
 import { addExplicitTransaction, payPaylaterInstallment, toggleDebtSettled } from '../app/actions';
 import { useHideBalance } from '../lib/HideBalanceContext';
 import { triggerHaptic } from '../lib/haptics';
+import { useLanguage } from '../lib/i18n';
 
 interface UpcomingBillsProps {
   subscriptions?: AppSubscription[];
@@ -34,6 +35,7 @@ export default function UpcomingBills({
   balances = [],
 }: UpcomingBillsProps) {
   const router = useRouter();
+  const { lang, t } = useLanguage();
   const { maskBalance } = useHideBalance();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [successId, setSuccessId] = useState<string | null>(null);
@@ -63,10 +65,14 @@ export default function UpcomingBills({
         id: `sub_${s.id}`,
         sourceType: 'subscription',
         title: s.name,
-        subtitle: `Langganan • ${s.method || 'Semua Dompet'}`,
+        subtitle: `${lang === 'id' ? 'Langganan' : 'Subscription'} • ${s.method || (lang === 'id' ? 'Semua Dompet' : 'All Wallets')}`,
         amount: s.amount,
         daysRemaining: days,
-        dueDateLabel: days === 0 ? 'Hari ini' : days === 1 ? 'Besok' : `${days} hari lagi`,
+        dueDateLabel: days === 0 
+          ? (lang === 'id' ? 'Hari ini' : 'Today') 
+          : days === 1 
+          ? (lang === 'id' ? 'Besok' : 'Tomorrow') 
+          : `${days} ${lang === 'id' ? 'hari lagi' : 'days left'}`,
         method: s.method || defaultWalletName,
       });
     });
@@ -86,10 +92,16 @@ export default function UpcomingBills({
         id: `pay_${p.id}`,
         sourceType: 'paylater',
         title: `${p.platform}: ${p.itemName}`,
-        subtitle: `Cicilan ke-${p.monthsPaid + 1}/${p.tenorMonths}`,
+        subtitle: lang === 'id' ? `Cicilan ke-${p.monthsPaid + 1}/${p.tenorMonths}` : `Installment ${p.monthsPaid + 1}/${p.tenorMonths}`,
         amount: p.installmentAmount,
         daysRemaining: days,
-        dueDateLabel: days === 0 ? 'Hari ini' : days === 1 ? 'Besok' : days < 0 ? 'Jatuh tempo' : `${days} hari lagi`,
+        dueDateLabel: days === 0 
+          ? (lang === 'id' ? 'Hari ini' : 'Today') 
+          : days === 1 
+          ? (lang === 'id' ? 'Besok' : 'Tomorrow') 
+          : days < 0 
+          ? (lang === 'id' ? 'Jatuh tempo' : 'Overdue') 
+          : `${days} ${lang === 'id' ? 'hari lagi' : 'days left'}`,
         method: defaultWalletName,
       });
     });
@@ -101,11 +113,11 @@ export default function UpcomingBills({
       bills.push({
         id: `debt_${d.id}`,
         sourceType: 'debt',
-        title: `Hutang ke ${d.person}`,
-        subtitle: d.note ? `Catatan: ${d.note}` : 'Utang belum lunas',
+        title: lang === 'id' ? `Hutang ke ${d.person}` : `Debt to ${d.person}`,
+        subtitle: d.note ? `${lang === 'id' ? 'Catatan' : 'Note'}: ${d.note}` : (lang === 'id' ? 'Utang belum lunas' : 'Unsettled debt'),
         amount: d.amount,
         daysRemaining: 7, // General upcoming priority
-        dueDateLabel: 'Perlu dilunasi',
+        dueDateLabel: lang === 'id' ? 'Perlu dilunasi' : 'Due for payoff',
         method: defaultWalletName,
       });
     });
@@ -157,14 +169,14 @@ export default function UpcomingBills({
       <div className="flex justify-between items-center mb-4 border-b-[3px] border-black pb-3">
         <div>
           <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <Clock className="w-5 h-5 text-black stroke-[2.5px]" /> Tagihan Mendatang (Upcoming Bills)
+            <Clock className="w-5 h-5 text-black stroke-[2.5px]" /> {t('bills_title')}
           </h3>
           <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide mt-0.5">
-            Pengingat jatuh tempo langganan, cicilan, dan utang
+            {t('bills_subtitle')}
           </p>
         </div>
         <span className="px-2 py-0.5 border border-black bg-[#FFE066] text-black font-black text-[10px] uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000]">
-          {bills.length} Tagihan
+          {bills.length} {t('bills_count_label')}
         </span>
       </div>
 
@@ -177,9 +189,9 @@ export default function UpcomingBills({
 
       {displayBills.length === 0 ? (
         <div className="text-center py-6 border-2 border-dashed border-black p-4 bg-[#FAF9F5]">
-          <p className="text-xs font-black text-black uppercase tracking-wider">Semua Tagihan Aman!</p>
+          <p className="text-xs font-black text-black uppercase tracking-wider">{t('bills_empty_title')}</p>
           <p className="text-[11px] font-bold text-neutral-500 mt-1 uppercase tracking-wide">
-            Tidak ada cicilan atau langganan aktif yang mendekati jatuh tempo.
+            {t('bills_empty_desc')}
           </p>
         </div>
       ) : (
@@ -239,10 +251,10 @@ export default function UpcomingBills({
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : isSuccess ? (
                       <>
-                        <Check className="w-3.5 h-3.5 stroke-[3px]" /> Tercatat
+                        <Check className="w-3.5 h-3.5 stroke-[3px]" /> {t('bills_paid_label')}
                       </>
                     ) : (
-                      'Bayar & Catat'
+                      t('bills_pay_btn')
                     )}
                   </button>
                 </div>

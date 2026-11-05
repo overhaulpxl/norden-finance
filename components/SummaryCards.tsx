@@ -3,9 +3,11 @@
 import { Transaction, Balance } from '../types';
 import { formatRupiah } from '../lib/format';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { useLanguage } from '../lib/i18n';
 
 export default function SummaryCards({ transactions, balances }: { transactions: Transaction[], balances: Balance[] }) {
   const { maskBalance } = useHideBalance();
+  const { lang } = useLanguage();
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -25,10 +27,10 @@ export default function SummaryCards({ transactions, balances }: { transactions:
   const selisih = totalSaldoReal - saldoBersih;
 
   const cards = [
-    { title: 'Saldo Real', amount: totalSaldoReal },
-    { title: 'Pemasukan', amount: totalMasuk },
-    { title: 'Pengeluaran', amount: totalKeluar },
-    { title: 'Saldo Bersih', amount: saldoBersih },
+    { title: lang === 'id' ? 'Saldo Real' : 'Actual Balance', amount: totalSaldoReal },
+    { title: lang === 'id' ? 'Pemasukan' : 'Income', amount: totalMasuk },
+    { title: lang === 'id' ? 'Pengeluaran' : 'Expense', amount: totalKeluar },
+    { title: lang === 'id' ? 'Saldo Bersih' : 'Net Cashflow', amount: saldoBersih },
   ];
 
   return (
@@ -44,7 +46,11 @@ export default function SummaryCards({ transactions, balances }: { transactions:
       
       {selisih !== 0 && (
         <div className="text-xs text-neutral-800 font-bold flex items-center gap-2 border-[2px] border-black p-3 bg-red-50 rounded-none shadow-[2px_2px_0px_0px_#000]">
-          <span>Selisih <strong className="text-red-600 font-black">{maskBalance(formatRupiah(Math.abs(selisih)))}</strong> antara catatan dan saldo asli.</span>
+          <span>
+            {lang === 'id' ? 'Selisih ' : 'Discrepancy '}
+            <strong className="text-red-600 font-black">{maskBalance(formatRupiah(Math.abs(selisih)))}</strong>
+            {lang === 'id' ? ' antara catatan dan saldo asli.' : ' between records and actual balance.'}
+          </span>
         </div>
       )}
     </div>

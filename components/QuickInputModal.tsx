@@ -342,7 +342,7 @@ export default function QuickInputModal({
     setChatMessages(prev => [...prev, {
       id: Math.random().toString(),
       sender: 'user',
-      text: '📷 [Mengunggah struk belanja...]'
+      text: `📷 [Lampiran struk: ${file.name}]`
     }]);
 
     try {
@@ -358,29 +358,37 @@ export default function QuickInputModal({
       });
       const data = await res.json();
 
-      if (data.error) throw new Error(data.error);
+      if (data.error && !data.suggestedText) throw new Error(data.error);
 
-      const suggestedText = `${data.amount} ${data.note || data.merchant || 'receipt'} cash`;
-      setReceiptScan({
-        amount: data.amount,
-        merchant: data.merchant,
-        note: data.note,
-        date: data.date,
-        items: data.items,
-        suggestedText,
-      });
-      setChatMessages(prev => [...prev, {
-        id: Math.random().toString(),
-        sender: 'ai',
-        text: `🔍 Struk berhasil dibaca! Kami mendeteksi nominal ${formatCurrency(data.amount)} untuk "${data.note}". Silakan kirim pesan di bawah untuk mencatatnya:`,
-      }]);
-      setInput(suggestedText);
+      if (data.amount && data.amount > 0) {
+        const suggestedText = data.suggestedText || `${data.amount} ${data.note || data.merchant || 'belanja'} cash`;
+        setReceiptScan({
+          amount: data.amount,
+          merchant: data.merchant,
+          note: data.note,
+          date: data.date,
+          items: data.items,
+          suggestedText,
+        });
+        setChatMessages(prev => [...prev, {
+          id: Math.random().toString(),
+          sender: 'ai',
+          text: `🔍 Auto-parser mendeteksi nominal ${formatCurrency(data.amount)} untuk "${data.note || 'Belanja'}". Silakan kirim pesan atau sesuaikan:`,
+        }]);
+        setInput(suggestedText);
+      } else {
+        setChatMessages(prev => [...prev, {
+          id: Math.random().toString(),
+          sender: 'ai',
+          text: `📷 Foto struk "${file.name}" tersimpan! Silakan ketik nominal & keterangan di Smart Input (contoh: "makan 45rb gopay" atau "50rb bca"), lalu tekan Kirim:`
+        }]);
+      }
     } catch (error: unknown) {
-      const text = error instanceof Error ? error.message : 'Gagal scan struk';
+      const text = error instanceof Error ? error.message : 'Gagal memproses struk';
       setChatMessages(prev => [...prev, {
         id: Math.random().toString(),
         sender: 'ai',
-        text: `❌ Gagal membaca struk: ${text}`
+        text: `📷 Foto struk terlampir. ${text}. Silakan gunakan Smart Input di bawah untuk mencatat transaksi.`
       }]);
     } finally {
       setScanning(false);

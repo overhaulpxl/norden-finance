@@ -2,9 +2,12 @@
 
 import { Transaction, Balance, Debt } from '../types';
 import { useMemo } from 'react';
+import { useLanguage } from '../lib/i18n';
 
 export default function HealthScore({ transactions, balances, debts }: { transactions: Transaction[], balances: Balance[], debts: Debt[] }) {
-  const { score, label, message, colorClass } = useMemo(() => {
+  const { t } = useLanguage();
+
+  const { score, labelKey, messageKey, colorClass } = useMemo(() => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
@@ -45,33 +48,33 @@ export default function HealthScore({ transactions, balances, debts }: { transac
 
     const finalScore = Math.max(0, Math.min(100, Math.round(savingsScore + emergencyScore + debtScore)));
 
-    let finalLabel = '';
-    let finalMessage = '';
+    let finalLabelKey: 'health_very_healthy' | 'health_good' | 'health_warning' | 'health_critical' = 'health_very_healthy';
+    let finalMessageKey: 'health_msg_very_healthy' | 'health_msg_good' | 'health_msg_warning' | 'health_msg_critical' = 'health_msg_very_healthy';
     let color = 'text-black';
 
     if (finalScore >= 80) {
-      finalLabel = 'Sangat Sehat';
-      finalMessage = 'Keuangan aman. Pertahankan gaya hidup ini.';
+      finalLabelKey = 'health_very_healthy';
+      finalMessageKey = 'health_msg_very_healthy';
       color = 'text-emerald-700';
     } else if (finalScore >= 60) {
-      finalLabel = 'Cukup Baik';
-      finalMessage = 'Perlu tingkatkan tabungan darurat atau kurangi pengeluaran.';
+      finalLabelKey = 'health_good';
+      finalMessageKey = 'health_msg_good';
       color = 'text-blue-700';
     } else if (finalScore >= 40) {
-      finalLabel = 'Waspada';
-      finalMessage = 'Pengeluaran hampir melebihi batas aman. Hati-hati utang.';
+      finalLabelKey = 'health_warning';
+      finalMessageKey = 'health_msg_warning';
       color = 'text-amber-700';
     } else {
-      finalLabel = 'Kritis';
-      finalMessage = 'Segera pangkas pengeluaran non-esensial dan lunasi utang.';
+      finalLabelKey = 'health_critical';
+      finalMessageKey = 'health_msg_critical';
       color = 'text-red-700';
     }
 
     if (income === 0 && totalBalance === 0 && expense === 0) {
-      return { score: 0, label: 'Belum Ada Data', message: 'Mulai catat transaksi pertama Anda.', colorClass: 'text-neutral-400' };
+      return { score: 0, labelKey: 'health_no_data' as const, messageKey: 'health_msg_no_data' as const, colorClass: 'text-neutral-400' };
     }
 
-    return { score: finalScore, label: finalLabel, message: finalMessage, colorClass: color };
+    return { score: finalScore, labelKey: finalLabelKey, messageKey: finalMessageKey, colorClass: color };
   }, [transactions, balances, debts]);
 
   return (
@@ -100,11 +103,11 @@ export default function HealthScore({ transactions, balances, debts }: { transac
         </div>
       </div>
       <div>
-        <h3 className="text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">Skor Kesehatan Finansial</h3>
+        <h3 className="text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">{t('health_score_title')}</h3>
         <div className="flex items-center gap-1.5 mb-0.5">
-          <span className={`text-base font-black uppercase tracking-wider ${colorClass}`}>{label}</span>
+          <span className={`text-base font-black uppercase tracking-wider ${colorClass}`}>{t(labelKey)}</span>
         </div>
-        <p className="text-xs text-neutral-600 font-bold leading-relaxed">{message}</p>
+        <p className="text-xs text-neutral-600 font-bold leading-relaxed">{t(messageKey)}</p>
       </div>
     </div>
   );

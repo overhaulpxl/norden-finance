@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { BellRing, CalendarCheck2, CheckCircle2, Flame, Trophy } from 'lucide-react';
 import { Achievement, AppSubscription, Balance, Budget, EmergencyFundPlan, SavingGoal, Transaction } from '../types';
 import { formatRupiah } from '../lib/format';
+import { useLanguage } from '../lib/i18n';
 
 function dayKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -86,6 +87,7 @@ export default function MomentumCenter({
   achievements: Achievement[];
   trialEndsAt?: string | null;
 }) {
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [referenceDate, setReferenceDate] = useState<Date | null>(null);
 
@@ -109,10 +111,10 @@ export default function MomentumCenter({
           <div>
             <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black">
               <Flame className="h-5 w-5 stroke-[3px]" />
-              Momentum Center
+              {t('momentum_title')}
             </h3>
             <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500">
-              Streak, achievement, dan pengingat pintar.
+              {t('momentum_subtitle')}
             </p>
           </div>
         </div>
@@ -245,10 +247,10 @@ export default function MomentumCenter({
         <div>
           <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black">
             <Flame className="h-5 w-5 stroke-[3px]" />
-            Momentum Center
+            {t('momentum_title')}
           </h3>
           <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500">
-            Streak, achievement, dan pengingat pintar.
+            {t('momentum_subtitle')}
           </p>
         </div>
       </div>
@@ -257,18 +259,18 @@ export default function MomentumCenter({
         <div className="border-[2px] border-black bg-[#fef08a] p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black">
             <CalendarCheck2 className="h-3.5 w-3.5" />
-            Current
+            {t('momentum_current')}
           </p>
           <p className="mt-1 text-2xl font-black text-black">{streaks.current}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">hari streak</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">{t('momentum_streak_label')}</p>
         </div>
         <div className="border-[2px] border-black bg-[#bbf7d0] p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black">
             <Trophy className="h-3.5 w-3.5" />
-            Best
+            {t('momentum_best')}
           </p>
           <p className="mt-1 text-2xl font-black text-black">{streaks.best}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">hari terbaik</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">{t('momentum_best_label')}</p>
         </div>
       </div>
 

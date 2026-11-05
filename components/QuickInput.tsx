@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Send, Loader2, Camera, RotateCcw } from 'lucide-react';
 import { processInput, addExplicitTransaction, deleteTransaction } from '../app/actions';
 import { compressReceiptImage } from '../lib/imageCompression';
+import { useLanguage } from '../lib/i18n';
 
 interface ReceiptScan {
   amount: number;
@@ -15,6 +16,7 @@ interface ReceiptScan {
 }
 
 export default function QuickInput() {
+  const { lang } = useLanguage();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -75,22 +77,26 @@ export default function QuickInput() {
       });
       const data = await res.json();
 
-      if (data.error) throw new Error(data.error);
+      if (data.error && !data.suggestedText) throw new Error(data.error);
 
-      const suggestedText = `${data.amount} ${data.note || data.merchant || 'receipt'} cash`;
-      setReceiptScan({
-        amount: data.amount,
-        merchant: data.merchant,
-        note: data.note,
-        date: data.date,
-        items: data.items,
-        suggestedText,
-      });
-      setInput(suggestedText);
-      setMessage({ type: 'success', text: 'Struk berhasil dibaca! Silakan cek dan pilih metode (default: cash).' });
+      if (data.amount && data.amount > 0) {
+        const suggestedText = data.suggestedText || `${data.amount} ${data.note || data.merchant || 'belanja'} cash`;
+        setReceiptScan({
+          amount: data.amount,
+          merchant: data.merchant,
+          note: data.note,
+          date: data.date,
+          items: data.items,
+          suggestedText,
+        });
+        setInput(suggestedText);
+        setMessage({ type: 'success', text: `Auto-parser mendeteksi ${data.amount}. Silakan tinjau dan kirim.` });
+      } else {
+        setMessage({ type: 'success', text: `Foto struk "${file.name}" terlampir. Ketik nominal di Smart Input (contoh: "kopi 25rb cash").` });
+      }
     } catch (error: unknown) {
       const text = error instanceof Error ? error.message : 'Gagal scan struk';
-      setMessage({ type: 'error', text });
+      setMessage({ type: 'error', text: `Lampiran tersimpan. Silakan ketik nominal manual: ${text}` });
     } finally {
       setScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -149,7 +155,9 @@ export default function QuickInput() {
 
   return (
     <div className="brutal-card p-6 bg-white">
-      <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Catat Cepat (AI)</h2>
+      <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">
+        {lang === 'id' ? 'Catat Cepat (Smart Input)' : 'Quick Input (Smart Input)'}
+      </h2>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <input 
           type="file" 
@@ -164,7 +172,7 @@ export default function QuickInput() {
           onClick={() => fileInputRef.current?.click()}
           disabled={loading || scanning}
           className="brutal-btn-light px-4 flex items-center justify-center rounded-lg"
-          title="Scan Struk"
+          title={lang === 'id' ? 'Scan Struk' : 'Scan Receipt'}
         >
           {scanning ? <Loader2 className="w-4 h-4 animate-spin text-slate-500" /> : <Camera className="w-4 h-4 text-slate-600" />}
         </button>
@@ -172,7 +180,7 @@ export default function QuickInput() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Cth: 10k middleman bni #jasa"
+          placeholder={lang === 'id' ? 'Cth: kopi 25rb gopay' : 'E.g.: 25k coffee cash'}
           className="flex-1 brutal-input px-4 py-3 text-xs font-semibold"
           disabled={loading || scanning}
         />

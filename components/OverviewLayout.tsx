@@ -317,31 +317,31 @@ export default function OverviewLayout({
           <div key={id} className="brutal-card p-6 flex flex-col bg-white border-[3px] border-black">
             <div className="flex justify-between items-center mb-5 border-b-[3px] border-black pb-4">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider">Aktivitas Transaksi Terbaru</h3>
-                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide mt-0.5">Catatan pengeluaran, pemasukan, dan transfer terakhir</p>
+                <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider">{t('recent_tx_title')}</h3>
+                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide mt-0.5">{t('recent_tx_subtitle')}</p>
               </div>
               {onNewTransaction && (
                 <button
                   onClick={onNewTransaction}
                   className="px-3 py-1.5 border-[2px] border-black bg-[#FFE066] text-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 >
-                  + Tambah
+                  {lang === 'id' ? '+ Tambah' : '+ Add'}
                 </button>
               )}
             </div>
 
             {recentTransactions.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-black p-6 bg-[#FAF9F5]">
-                <p className="text-sm font-black text-black uppercase tracking-wider">Belum Ada Transaksi Tercatat</p>
+                <p className="text-sm font-black text-black uppercase tracking-wider">{t('recent_tx_empty_title')}</p>
                 <p className="text-xs font-bold text-neutral-500 mt-1 uppercase tracking-wide">
-                  Mulai catat transaksi pertama Anda dengan Smart Input atau formulir cepat.
+                  {t('recent_tx_empty_desc')}
                 </p>
                 {onNewTransaction && (
                   <button
                     onClick={onNewTransaction}
                     className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
                   >
-                    + Catat Transaksi Pertama
+                    {t('recent_tx_empty_btn')}
                   </button>
                 )}
               </div>
@@ -441,7 +441,7 @@ export default function OverviewLayout({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
-          <span>{isCustomizing ? 'Selesai & Simpan' : 'Atur Tata Letak'}</span>
+          <span>{isCustomizing ? t('btn_done_save') : t('btn_customize_layout')}</span>
         </button>
       </div>
 
@@ -455,12 +455,12 @@ export default function OverviewLayout({
       {isCustomizing && (
         <div className="brutal-card p-6 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">
           <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-3">
-            <h3 className="text-sm font-black uppercase tracking-wider text-black">Kustomisasi Tata Letak Dashboard</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-black">{t('layout_customize_title')}</h3>
             <button 
               onClick={handleResetLayout}
               className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
             >
-              Kembalikan Default
+              {t('btn_reset_default')}
             </button>
           </div>
           
@@ -479,7 +479,7 @@ export default function OverviewLayout({
                         onClick={() => handleToggleTopWidget(widget.id)}
                         className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'}`}
                       >
-                        {widget.visible ? 'Tampil' : 'Sembunyi'}
+                        {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
                         disabled={index === 0}
@@ -502,14 +502,16 @@ export default function OverviewLayout({
             </div>
             
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">Widget Konten Dashboard</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">
+                {lang === 'id' ? 'Widget Konten Dashboard' : 'Dashboard Content Widgets'}
+              </h4>
               <div className="space-y-2">
                 {columnWidgets.map((widget, index) => (
                   <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black bg-[#FAF9F5] text-xs font-bold uppercase">
                     <div className="flex flex-col gap-0.5">
                       <span className="font-black text-black">{widget.name}</span>
                       <span className="text-[9px] text-neutral-400 tracking-wider">
-                        KOLOM: {widget.column === 'left' ? 'KIRI' : 'KANAN'}
+                        {lang === 'id' ? 'KOLOM:' : 'COLUMN:'} {widget.column === 'left' ? (lang === 'id' ? 'KIRI' : 'LEFT') : (lang === 'id' ? 'KANAN' : 'RIGHT')}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -517,7 +519,7 @@ export default function OverviewLayout({
                         onClick={() => handleToggleColumnWidget(widget.id)}
                         className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'}`}
                       >
-                        {widget.visible ? 'Tampil' : 'Sembunyi'}
+                        {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
                         disabled={index === 0}
@@ -536,7 +538,7 @@ export default function OverviewLayout({
                       <button 
                         onClick={() => handleSwitchColumnWidget(widget.id)}
                         className="px-2 py-1 border border-black bg-[#bfdbfe]"
-                        title="Pindah kolom"
+                        title={lang === 'id' ? 'Pindah kolom' : 'Switch column'}
                       >
                         ⇆
                       </button>
@@ -651,11 +653,11 @@ export default function OverviewLayout({
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-black stroke-[2.5px]" />
               <h3 className="text-sm sm:text-base font-black text-black uppercase tracking-wider">
-                Catat Transaksi Instan (Smart Input)
+                {t('banner_smart_input_title')}
               </h3>
             </div>
             <p className="text-xs font-bold text-neutral-800 leading-relaxed">
-              Ketik cepat: <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">kopi 25k gopay</span>, <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">gaji 5jt bca</span>, atau <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">transfer bca ke dana 100k</span>.
+              {lang === 'id' ? 'Ketik cepat:' : 'Quick type:'} <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">kopi 25k gopay</span>, <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">gaji 5jt bca</span>, {lang === 'id' ? 'atau' : 'or'} <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">transfer bca ke dana 100k</span>.
             </p>
           </div>
 
@@ -663,7 +665,7 @@ export default function OverviewLayout({
             onClick={onNewTransaction}
             className="brutal-btn px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-black text-white border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
           >
-            + Catat Sekarang
+            {t('banner_smart_input_btn')}
           </button>
         </div>
       )}

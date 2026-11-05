@@ -256,7 +256,7 @@ export default function AppLayout({
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
         <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4 select-none">
           {/* Mobile hamburger & brand */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <button
               onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
               aria-label="Buka menu navigasi"
@@ -267,7 +267,7 @@ export default function AppLayout({
             <div className="lg:hidden shrink-0">
               <BrandLogo variant="icon" priority className="h-7 w-7" />
             </div>
-            <h2 className="text-lg sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black truncate">
+            <h2 className="text-base sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black truncate">
               {tabTitle}
             </h2>
           </div>
@@ -278,12 +278,12 @@ export default function AppLayout({
             <button
               type="button"
               onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
-              title="Cari menu, aksi cepat, atau transaksi (⌘K)"
+              title="Cari menu, aksi cepat, atau transaksi (Ctrl+K)"
               className="p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white hover:bg-neutral-50 text-black flex items-center gap-1.5"
             >
               <Search className="w-4 h-4 stroke-[2.5px]" />
-              <kbd className="hidden md:inline-block px-1 py-0 border border-black bg-[#FAF9F5] text-[9px] font-black uppercase">
-                ⌘K
+              <kbd className="hidden md:inline-block px-1.5 py-0.5 border border-black bg-[#FAF9F5] text-[10px] font-mono font-black tracking-tight leading-none shadow-[1px_1px_0px_0px_#000]">
+                Ctrl K
               </kbd>
             </button>
 
@@ -347,11 +347,10 @@ export default function AppLayout({
 
             <button
               onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
-              className="brutal-btn px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0"
+              className="brutal-btn px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex"
               title="Catat transaksi baru"
             >
-              <span className="hidden sm:inline">{t('btn_new_transaction')}</span>
-              <span className="sm:hidden font-black">{t('btn_new_tx_short')}</span>
+              <span>{t('btn_new_transaction')}</span>
             </button>
           </div>
         </header>

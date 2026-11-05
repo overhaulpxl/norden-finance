@@ -7,6 +7,7 @@ import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { useHideBalance } from '../lib/HideBalanceContext';
 import { triggerHaptic } from '../lib/haptics';
+import { useLanguage } from '../lib/i18n';
 
 interface BudgetManagerProps {
   budgets: Budget[];
@@ -16,6 +17,7 @@ interface BudgetManagerProps {
 
 export default function BudgetManager({ budgets, transactions }: BudgetManagerProps) {
   const { maskBalance } = useHideBalance();
+  const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
@@ -95,7 +97,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
     <div className="brutal-card p-6 bg-white select-none">
       <div className="flex justify-between items-center mb-6 border-b-[3px] border-black pb-4">
         <h3 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-          🎯 Budget Kategori
+          🎯 {t('budget_title')}
         </h3>
         <button 
           onClick={() => {
@@ -104,7 +106,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
           }} 
           className="brutal-btn-light text-xs px-4 py-2 cursor-pointer"
         >
-          {showForm ? 'Batal' : 'Atur Budget'}
+          {showForm ? t('btn_cancel') : t('budget_manage')}
         </button>
       </div>
 
@@ -120,7 +122,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
             {error && <p className="text-xs font-black text-red-650 uppercase tracking-wider">{error}</p>}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Kategori</label>
+                <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">{t('budget_category')}</label>
                 <select 
                   value={category} 
                   onChange={e => setCategory(e.target.value)}
@@ -137,7 +139,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">Limit Bulanan (Rp)</label>
+                <label className="block text-xs font-black text-black uppercase mb-1 tracking-widest">{t('budget_limit')}</label>
                 <input 
                   type="text" 
                   inputMode="numeric"
@@ -150,7 +152,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
               </div>
             </div>
             <button type="submit" className="w-full brutal-btn py-2 text-xs font-black uppercase tracking-wider cursor-pointer">
-              Simpan Budget
+              {t('budget_save')}
             </button>
           </form>
         )}
@@ -160,8 +162,8 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
             <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
               <span className="text-lg font-black text-black">📊</span>
             </div>
-            <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada budget bulanan</p>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Atur budget per kategori untuk membatasi pengeluaran Anda tiap bulan.</p>
+            <p className="text-sm font-black text-black uppercase tracking-wider">{t('budget_empty_title')}</p>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">{t('budget_empty_desc')}</p>
             <button
               onClick={() => {
                 setShowForm(true);
@@ -169,7 +171,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
               }}
               className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
             >
-              + Atur Budget Baru
+              {t('budget_add_new')}
             </button>
           </div>
         ) : (
