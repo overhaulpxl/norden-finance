@@ -6,6 +6,8 @@ import { addSubscription, toggleSubscriptionActive, deleteSubscription } from '.
 import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Trash2, Calendar, CheckSquare, Square } from 'lucide-react';
 import WalletSelect from './WalletSelect';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 interface SubscriptionManagerProps {
   subscriptions: AppSubscription[];
@@ -14,6 +16,7 @@ interface SubscriptionManagerProps {
 }
 
 export default function SubscriptionManager({ subscriptions, balances = [] }: SubscriptionManagerProps) {
+  const { maskBalance } = useHideBalance();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -66,6 +69,7 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
 
     const res = await addSubscription({ name: name.trim(), amount: amtNum, billingDay: dayNum, method });
     if (res.success) {
+      triggerHaptic('success');
       setName('');
       setAmount('');
       setBillingDay('');
@@ -74,12 +78,14 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
       setSuccess('Langganan berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menyimpan langganan');
     }
   }
 
   async function handleToggle(id: string) {
     setSuccess(null);
+    triggerHaptic('light');
     await toggleSubscriptionActive(id);
     setSuccess('Status langganan berhasil diperbarui!');
     setTimeout(() => setSuccess(null), 5000);
@@ -92,9 +98,11 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
     setDeleting(false);
     setConfirmDeleteId(null);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Langganan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menghapus langganan');
     }
   }
@@ -125,7 +133,7 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
       {/* Summary Box */}
       <div className="p-4 bg-white border-[3px] border-black rounded-none mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <p className="text-xs font-black text-neutral-500 uppercase tracking-widest">Total Biaya Bulanan</p>
-        <p className="text-2xl font-black text-black mt-1 tracking-wider">{formatRupiah(totalCost)}</p>
+        <p className="text-2xl font-black text-black mt-1 tracking-wider">{maskBalance(formatRupiah(totalCost))}</p>
       </div>
 
       {showForm && (
@@ -223,7 +231,7 @@ export default function SubscriptionManager({ subscriptions, balances = [] }: Su
                 <div>
                   <h4 className="text-sm font-black text-black uppercase tracking-wider">{s.name}</h4>
                   <p className="text-xs text-neutral-500 font-bold mt-0.5 uppercase tracking-wider">
-                    {formatRupiah(s.amount)} / bulan • {s.method.toUpperCase()}
+                    {maskBalance(formatRupiah(s.amount))} / bulan • {s.method.toUpperCase()}
                   </p>
                   {s.isActive && (
                     <p className="text-[10px] font-black text-emerald-800 flex items-center gap-1 mt-1 uppercase tracking-widest">

@@ -6,6 +6,8 @@ import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format
 import { Loader2, TrendingUp } from 'lucide-react';
 import { addSavingGoal, updateSavingGoal, deleteSavingGoal } from '../app/actions';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 interface SavingGoalsProps {
   goals: SavingGoal[];
@@ -122,6 +124,7 @@ function buildGoalProjection(goal: SavingGoal, monthlySavings: MonthlySavingPoin
 }
 
 export default function SavingGoals({ goals, transactions = [] }: SavingGoalsProps) {
+  const { maskBalance } = useHideBalance();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
@@ -141,11 +144,14 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
     setSuccess(null);
     const res = await addSavingGoal(name.trim(), amount);
     if (res.success) { 
+      triggerHaptic('success');
       setName(''); 
       setTargetAmount(''); 
       setShowForm(false); 
       setSuccess('Target tabungan berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      triggerHaptic('warning');
     }
     setLoading(false);
   };
@@ -156,10 +162,13 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
     setSuccess(null);
     const res = await updateSavingGoal(id, { currentAmount: amount });
     if (res.success) {
+      triggerHaptic('success');
       setEditingId(null); 
       setEditAmount(''); 
       setSuccess('Progres target tabungan berhasil diperbarui!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      triggerHaptic('warning');
     }
     setLoading(false);
   };
@@ -171,8 +180,11 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
     setDeleting(false);
     setConfirmDeleteId(null);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Target tabungan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      triggerHaptic('warning');
     }
   };
 
@@ -235,8 +247,8 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                   <div>
                     <h4 className="font-black text-lg text-black uppercase tracking-wider">{goal.title}</h4>
                     <p className="text-sm font-black text-neutral-600 mt-1">
-                      {formatRupiah(goal.currentAmount)} / <span className="text-black">{formatRupiah(goal.targetAmount)}</span>
-                      {remaining > 0 && <span className="text-neutral-400 font-bold"> • {formatRupiah(remaining)} left</span>}
+                      {maskBalance(formatRupiah(goal.currentAmount))} / <span className="text-black">{maskBalance(formatRupiah(goal.targetAmount))}</span>
+                      {remaining > 0 && <span className="text-neutral-400 font-bold"> • {maskBalance(formatRupiah(remaining))} left</span>}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -306,7 +318,7 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                     <div className="grid grid-cols-2 gap-2 text-right sm:min-w-[220px]">
                       <div className="border-[2px] border-black bg-white p-2 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                         <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Rata-rata</p>
-                        <p className="text-xs font-black text-black">{formatRupiah(projection.avgMonthlySaving)}/bln</p>
+                        <p className="text-xs font-black text-black">{maskBalance(formatRupiah(projection.avgMonthlySaving))}/bln</p>
                       </div>
                       <div className="border-[2px] border-black bg-white p-2 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                         <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500">Estimasi</p>

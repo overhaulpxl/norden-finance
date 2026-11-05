@@ -5,8 +5,11 @@ import { Debt, DebtType } from '../types';
 import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Loader2, Trash2 } from 'lucide-react';
 import { addDebt, toggleDebtSettled, deleteDebt } from '../app/actions';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 export default function DebtList({ debts }: { debts: Debt[] }) {
+  const { maskBalance } = useHideBalance();
   const [showForm, setShowForm] = useState(false);
   const [formType, setFormType] = useState<DebtType>('piutang');
   const [person, setPerson] = useState('');
@@ -47,6 +50,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
     });
     
     if (res.success) {
+      triggerHaptic('success');
       setPerson('');
       setAmount('');
       setNote('');
@@ -56,6 +60,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
       setSuccess('Catatan berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menyimpan');
     }
     setLoading(false);
@@ -65,6 +70,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
     setSuccess(null);
     const res = await toggleDebtSettled(id);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Status utang/piutang berhasil diperbarui!');
       setTimeout(() => setSuccess(null), 5000);
     }
@@ -77,9 +83,11 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
     setDeleting(false);
     setConfirmDeleteId(null);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Catatan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menghapus catatan');
     }
   };
@@ -123,11 +131,11 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
       <div className="grid grid-cols-2 gap-4 mb-8 bg-white border-[3px] border-black rounded-none p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <div>
           <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1">Piutang (Diberikan)</p>
-          <p className="text-lg font-black text-emerald-700 tracking-wide">{formatRupiah(totalPiutang)}</p>
+          <p className="text-lg font-black text-emerald-700 tracking-wide">{maskBalance(formatRupiah(totalPiutang))}</p>
         </div>
         <div>
           <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1">Hutang (Diterima)</p>
-          <p className="text-lg font-black text-red-650 tracking-wide">{formatRupiah(totalHutang)}</p>
+          <p className="text-lg font-black text-red-650 tracking-wide">{maskBalance(formatRupiah(totalHutang))}</p>
         </div>
       </div>
 
@@ -208,7 +216,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
                   <span className={`text-base font-black uppercase tracking-wider block mb-0.5 ${d.isSettled ? 'text-neutral-400 line-through' : 'text-black'}`}>{d.person}</span>
                   {d.note && <span className="text-xs font-bold text-neutral-500 block capitalize">{d.note}</span>}
                 </div>
-                <span className={`text-base font-black tracking-wider ${d.isSettled ? 'text-neutral-400' : d.type === 'hutang' ? 'text-red-600' : 'text-emerald-700'}`}>{formatRupiah(d.amount)}</span>
+                <span className={`text-base font-black tracking-wider ${d.isSettled ? 'text-neutral-400' : d.type === 'hutang' ? 'text-red-600' : 'text-emerald-700'}`}>{maskBalance(formatRupiah(d.amount))}</span>
               </div>
               
               {d.tenorMonths && (

@@ -6,8 +6,11 @@ import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format
 import { addPaylater, payPaylaterInstallment, deletePaylater } from '../app/actions';
 import { Plus, Trash2, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 export default function PaylaterList({ paylaters, balances = [] }: { paylaters: Paylater[]; balances?: Balance[] }) {
+  const { maskBalance } = useHideBalance();
   const [showAdd, setShowAdd] = useState(false);
   const [itemName, setItemName] = useState('');
   const [platform, setPlatform] = useState('');
@@ -46,6 +49,7 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
     setLoading(true);
     const res = await addPaylater(itemName.trim(), platform.trim(), amount, tenor);
     if (res.success) {
+      triggerHaptic('success');
       setShowAdd(false);
       setItemName('');
       setPlatform('');
@@ -54,6 +58,7 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
       setSuccess('Cicilan paylater berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menyimpan cicilan paylater.');
     }
     setLoading(false);
@@ -61,6 +66,7 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
 
   const handlePay = async (id: string) => {
     if (!currentPayMethod.trim()) {
+      triggerHaptic('warning');
       setError('Pilih dompet / metode pembayaran terlebih dahulu.');
       return;
     }
@@ -69,11 +75,13 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
     setError(null);
     const res = await payPaylaterInstallment(id, currentPayMethod);
     if (res.success) {
+      triggerHaptic('success');
       setPayingId(null);
       setPayMethod('');
       setSuccess('Pembayaran cicilan berhasil dicatat!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal membayar cicilan.');
     }
     setLoading(false);
@@ -87,9 +95,11 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
     setLoading(false);
     setConfirmDeleteId(null);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Cicilan paylater berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menghapus cicilan paylater.');
     }
   };
@@ -227,10 +237,10 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
                 <div className="flex justify-between items-end mb-2">
                   <div>
                     <p className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Cicilan bulanan</p>
-                    <p className="font-black text-black text-lg tracking-wider">{formatRupiah(p.installmentAmount)}</p>
+                    <p className="font-black text-black text-lg tracking-wider">{maskBalance(formatRupiah(p.installmentAmount))}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Total: {formatRupiah(p.totalAmount)}</p>
+                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Total: {maskBalance(formatRupiah(p.totalAmount))}</p>
                   </div>
                 </div>
 

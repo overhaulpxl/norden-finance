@@ -5,6 +5,8 @@ import { Budget, Transaction } from '../types';
 import { addBudget, deleteBudget } from '../app/actions';
 import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { Trash2, AlertTriangle } from 'lucide-react';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 interface BudgetManagerProps {
   budgets: Budget[];
@@ -13,6 +15,7 @@ interface BudgetManagerProps {
 }
 
 export default function BudgetManager({ budgets, transactions }: BudgetManagerProps) {
+  const { maskBalance } = useHideBalance();
   const [showForm, setShowForm] = useState(false);
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
@@ -60,12 +63,14 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
 
     const res = await addBudget(category, limitNum);
     if (res.success) {
+      triggerHaptic('success');
       setCategory('');
       setLimit('');
       setShowForm(false);
       setSuccess('Budget bulanan berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menambahkan budget');
     }
   }
@@ -77,9 +82,11 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
     setDeleting(false);
     setConfirmDeleteId(null);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Budget bulanan berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
     } else {
+      triggerHaptic('warning');
       setError(res.error || 'Gagal menghapus budget');
     }
   }
@@ -211,8 +218,8 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
                 </div>
 
                 <div className="flex justify-between items-end text-xs font-black text-black mt-2 tracking-wider">
-                  <span>{formatRupiah(b.spending)}</span>
-                  <span className="text-neutral-500 font-bold uppercase">Limit: {formatRupiah(b.monthlyLimit)}</span>
+                  <span>{maskBalance(formatRupiah(b.spending))}</span>
+                  <span className="text-neutral-500 font-bold uppercase">Limit: {maskBalance(formatRupiah(b.monthlyLimit))}</span>
                 </div>
 
                 {/* Progress bar container */}

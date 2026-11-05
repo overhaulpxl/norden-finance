@@ -6,8 +6,11 @@ import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format
 import { addWishlistItem, deleteWishlistItem, markWishlistBought } from '../app/actions';
 import { Loader2, Trash2, ExternalLink, Clock } from 'lucide-react';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
+import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 export default function Wishlist({ items, balances = [] }: { items: WishlistItem[]; balances?: Balance[] }) {
+  const { maskBalance } = useHideBalance();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [url, setUrl] = useState('');
@@ -31,12 +34,15 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
 
     const res = await addWishlistItem(name.trim(), numericAmount, url.trim() || undefined);
     if (res.success) {
+      triggerHaptic('success');
       setName('');
       setAmount('');
       setUrl('');
       setShowForm(false);
       setSuccess('Wishlist berhasil ditambahkan!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      triggerHaptic('warning');
     }
     setLoading(false);
   };
@@ -46,8 +52,11 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
     setSuccess(null);
     const res = await markWishlistBought(id, currentSelectedMethod);
     if (res.success) {
+      triggerHaptic('success');
       setSuccess('Wishlist berhasil dibeli dan transaksi dicatat!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      triggerHaptic('warning');
     }
     setLoading(false);
   };
@@ -59,8 +68,11 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
     setDeleting(false);
     setConfirmDeleteId(null);
     if (res.success) {
+      triggerHaptic('medium');
       setSuccess('Wishlist berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
+    } else {
+      triggerHaptic('warning');
     }
   };
 
@@ -157,7 +169,7 @@ export default function Wishlist({ items, balances = [] }: { items: WishlistItem
                       </a>
                     )}
                   </div>
-                  <span className={`text-base font-black tracking-wider ${item.status === 'bought' ? 'text-neutral-400' : 'text-black'}`}>{formatRupiah(item.amount)}</span>
+                  <span className={`text-base font-black tracking-wider ${item.status === 'bought' ? 'text-neutral-400' : 'text-black'}`}>{maskBalance(formatRupiah(item.amount))}</span>
                 </div>
 
                 {item.status === 'bought' ? (
