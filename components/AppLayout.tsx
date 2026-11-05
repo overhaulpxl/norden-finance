@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement } from '../types';
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
-import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus } from 'lucide-react';
+import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search } from 'lucide-react';
 const WelcomeToast = dynamic(() => import('./WelcomeToast'), {
   ssr: false,
 });
@@ -18,6 +18,9 @@ const GlobalUndoToast = dynamic(() => import('./GlobalUndoToast'), {
   ssr: false,
 });
 const NetworkStatusIndicator = dynamic(() => import('./NetworkStatusIndicator'), {
+  ssr: false,
+});
+const CommandPaletteModal = dynamic(() => import('./CommandPaletteModal'), {
   ssr: false,
 });
 import { useLanguage } from '../lib/i18n';
@@ -155,6 +158,19 @@ export default function AppLayout({
   const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history' | 'automation' | 'reports' | 'settings' | 'help'>('overview');
   const [showModal, setShowModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+
+  // Global Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -228,6 +244,19 @@ export default function AppLayout({
 
           {/* Header Actions */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Quick Command / Search Palette Trigger */}
+            <button
+              type="button"
+              onClick={() => setShowCommandPalette(true)}
+              title="Cari menu, aksi cepat, atau transaksi (⌘K)"
+              className="p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white hover:bg-neutral-50 text-black flex items-center gap-1.5"
+            >
+              <Search className="w-4 h-4 stroke-[2.5px]" />
+              <kbd className="hidden md:inline-block px-1 py-0 border border-black bg-[#FAF9F5] text-[9px] font-black uppercase">
+                ⌘K
+              </kbd>
+            </button>
+
             {/* Hide / Show Balance Toggle Button */}
             <button
               type="button"
@@ -475,6 +504,18 @@ export default function AppLayout({
           balances={balances}
           onClose={() => setShowModal(false)}
           onSuccess={() => router.refresh()}
+        />
+      )}
+
+      {showCommandPalette && (
+        <CommandPaletteModal
+          isOpen={showCommandPalette}
+          onClose={() => setShowCommandPalette(false)}
+          onNavigate={(tab) => handleTabChange(tab as typeof activeTab)}
+          onNewTransaction={() => setShowModal(true)}
+          transactions={transactions}
+          balances={balances}
+          userId={user.id}
         />
       )}
     </div>
