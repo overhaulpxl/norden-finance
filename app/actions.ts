@@ -44,6 +44,9 @@ export async function addTransferTransaction(amount: number, fromWallet: string,
 export async function deleteTransaction(id: string) {
   return transactions.deleteTransaction(id);
 }
+export async function restoreTransaction(id: string) {
+  return transactions.restoreTransaction(id);
+}
 export async function updateTransaction(
   id: string,
   data: {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { completeOnboarding } from '../actions';
 import { Loader2, Wallet, ArrowRight, ShieldCheck } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
+import { formatRupiahInput, parseRupiahInput } from '../../lib/format';
 
 export default function OnboardingClient({
   initialName,
@@ -33,7 +34,7 @@ export default function OnboardingClient({
 
     setLoading(true);
 
-    const numericBalance = parseInt(openingBalance.replace(/\D/g, ''), 10) || 0;
+    const numericBalance = parseRupiahInput(openingBalance);
 
     const result = await completeOnboarding({
       fullName: fullName.trim(),
@@ -130,10 +131,10 @@ export default function OnboardingClient({
                 id="onboarding-balance"
                 type="text"
                 value={openingBalance}
-                onChange={(event) => setOpeningBalance(event.target.value)}
+                onChange={(event) => setOpeningBalance(formatRupiahInput(event.target.value))}
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold"
                 inputMode="numeric"
-                placeholder="CONTOH: 500000"
+                placeholder="CONTOH: 500.000"
               />
               <p className="text-[10px] font-bold text-neutral-500 mt-1">Menjadi saldo awal dompet dan dasar hitung kekayaan bersih.</p>
             </div>

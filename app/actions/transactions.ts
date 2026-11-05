@@ -532,6 +532,57 @@ export async function deleteTransaction(id: string) {
 }
 
 /**
+ * Restore a deleted transaction.
+ */
+export async function restoreTransaction(id: string) {
+  try {
+    const { user } = await requireUser('basic');
+    const userId = user.uid;
+
+    const tx = await prisma.transaction.findFirst({
+      where: { id, userId, deletedAt: { not: null } },
+    });
+
+    if (!tx) throw new Error('Transaksi tidak ditemukan');
+
+    await prisma.$transaction(async (db) => {
+      if (tx.type === 'transfer') {
+        if (tx.walletId) {
+          await db.balance.update({
+            where: { id: tx.walletId },
+            data: { currentBalance: { decrement: tx.amount } },
+          });
+        }
+        if (tx.transferToWalletId) {
+          await db.balance.update({
+            where: { id: tx.transferToWalletId },
+            data: { currentBalance: { increment: tx.amount } },
+          });
+        }
+      } else if (tx.walletId) {
+        const amountChange = tx.type === 'masuk' ? tx.amount : -tx.amount;
+        await db.balance.update({
+          where: { id: tx.walletId },
+          data: { currentBalance: { increment: amountChange } },
+        });
+      }
+
+      await db.transaction.update({
+        where: { id },
+        data: { deletedAt: null },
+      });
+    });
+
+    await createAuditLog(userId, 'RESTORE_TRANSACTION', 'transaction', id);
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal memulihkan transaksi';
+    return { success: false, error: message };
+  }
+}
+
+/**
  * Update a transaction.
  */
 export async function updateTransaction(

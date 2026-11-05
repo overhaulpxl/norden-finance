@@ -59,6 +59,12 @@ const UpcomingBills = dynamic(() => import('./UpcomingBills'), {
   ssr: false,
   loading: () => <WidgetSkeleton />,
 });
+const QuickStartGuide = dynamic(() => import('./QuickStartGuide'), {
+  ssr: false,
+});
+const WeeklyInsightBanner = dynamic(() => import('./WeeklyInsightBanner'), {
+  ssr: false,
+});
 
 interface OverviewProps {
   transactions: Transaction[];
@@ -617,6 +623,20 @@ export default function OverviewLayout({
             return null;
           })}
       </div>
+
+      {/* Quick Start Guide for New Onboarding Users */}
+      <QuickStartGuide
+        balances={balances}
+        transactions={transactions}
+        onNewTransaction={onNewTransaction}
+        userId={user.id}
+      />
+
+      {/* Weekly Smart Spending Insight Banner */}
+      <WeeklyInsightBanner
+        transactions={transactions}
+        userId={user.id}
+      />
 
       {/* Smart Input & Quick Entry Callout Banner */}
       {onNewTransaction && (

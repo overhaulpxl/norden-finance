@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
@@ -7,6 +7,17 @@ import { forgotPasswordAction } from '../app/authActions';
 import Link from 'next/link';
 import { MVP_FEATURES } from '../lib/constants';
 import { formatCurrency } from '../lib/format';
+import {
+  isPinSet,
+  isBiometricEnabled,
+  setPinData,
+  removePinData,
+  lockApp,
+  hashPin,
+  isBiometricSupported,
+  registerBiometrics,
+} from '../lib/appLock';
+import { triggerHaptic } from '../lib/haptics';
 
 interface SettingsProps {
   user: {
@@ -44,6 +55,116 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [emailResetLoading, setEmailResetLoading] = useState(false);
   const [emailResetSuccess, setEmailResetSuccess] = useState<string | null>(null);
   const [emailResetError, setEmailResetError] = useState<string | null>(null);
+
+  // App Lock states
+  const [pinActive, setPinActive] = useState<boolean>(() => isPinSet(user.id));
+  const [biometricActive, setBiometricActive] = useState<boolean>(() => isBiometricEnabled(user.id));
+  const [biometricDeviceSupport, setBiometricDeviceSupport] = useState(false);
+
+  // PIN modal states
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [pinModalMode, setPinModalMode] = useState<'setup' | 'change' | 'remove'>('setup');
+  const [currentPinInput, setCurrentPinInput] = useState('');
+  const [newPinInput, setNewPinInput] = useState('');
+  const [confirmPinInput, setConfirmPinInput] = useState('');
+  const [pinModalError, setPinModalError] = useState<string | null>(null);
+  const [pinModalLoading, setPinModalLoading] = useState(false);
+  const [pinActionSuccess, setPinActionSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    isBiometricSupported().then(setBiometricDeviceSupport);
+  }, []);
+
+  const openPinModal = (mode: 'setup' | 'change' | 'remove') => {
+    setPinModalMode(mode);
+    setCurrentPinInput('');
+    setNewPinInput('');
+    setConfirmPinInput('');
+    setPinModalError(null);
+    setPinModalOpen(true);
+  };
+
+  const handleSavePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPinModalError(null);
+
+    // Verify current PIN if in change or remove mode
+    if (pinModalMode === 'change' || pinModalMode === 'remove') {
+      if (currentPinInput.length !== 4) {
+        setPinModalError('PIN saat ini harus 4 digit angka.');
+        return;
+      }
+      const hashedCurrent = await hashPin(currentPinInput, user.id);
+      const storedHash = localStorage.getItem(`norden_pin_hash_${user.id}`);
+      if (hashedCurrent !== storedHash) {
+        triggerHaptic('warning');
+        setPinModalError('PIN saat ini tidak cocok.');
+        return;
+      }
+
+      if (pinModalMode === 'remove') {
+        removePinData(user.id);
+        setPinActive(false);
+        setBiometricActive(false);
+        setPinModalOpen(false);
+        triggerHaptic('success');
+        setPinActionSuccess('Kunci PIN 4-digit berhasil dinonaktifkan.');
+        setTimeout(() => setPinActionSuccess(null), 4000);
+        return;
+      }
+    }
+
+    // Setup or Change mode: validate new PIN
+    if (!/^\d{4}$/.test(newPinInput)) {
+      setPinModalError('PIN baru harus tepat 4 digit angka (0-9).');
+      return;
+    }
+    if (newPinInput !== confirmPinInput) {
+      setPinModalError('Konfirmasi PIN baru tidak cocok.');
+      return;
+    }
+
+    setPinModalLoading(true);
+    const newHash = await hashPin(newPinInput, user.id);
+    setPinData(user.id, newHash, biometricActive);
+    setPinActive(true);
+    setPinModalLoading(false);
+    setPinModalOpen(false);
+    triggerHaptic('success');
+    setPinActionSuccess(pinModalMode === 'change' ? 'PIN 4-digit berhasil diperbarui!' : 'Kunci PIN 4-digit berhasil diaktifkan!');
+    setTimeout(() => setPinActionSuccess(null), 4000);
+  };
+
+  const handleToggleBiometrics = async () => {
+    if (!pinActive) {
+      alert('Aktifkan PIN 4-digit terlebih dahulu sebelum menyalakan biometrik.');
+      return;
+    }
+
+    if (!biometricActive) {
+      // Register
+      const success = await registerBiometrics(user.id, user.email);
+      if (success) {
+        localStorage.setItem(`norden_biometric_enabled_${user.id}`, 'true');
+        setBiometricActive(true);
+        triggerHaptic('success');
+        setPinActionSuccess('Biometrik (Face ID / Sidik Jari) berhasil diaktifkan!');
+        setTimeout(() => setPinActionSuccess(null), 4000);
+      } else {
+        triggerHaptic('warning');
+        alert('Gagal mendaftarkan biometrik perangkat atau dibatalkan.');
+      }
+    } else {
+      localStorage.setItem(`norden_biometric_enabled_${user.id}`, 'false');
+      setBiometricActive(false);
+      triggerHaptic('light');
+    }
+  };
+
+  const handleLockNow = () => {
+    triggerHaptic('medium');
+    lockApp(user.id);
+  };
   const monthlyPrice = pricingPlans.monthly?.price ?? null;
   const yearlyPrice = pricingPlans.yearly?.price ?? null;
   const yearlySavingsPercent = monthlyPrice && yearlyPrice
@@ -283,6 +404,226 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           </div>
         </div>
       </div>
+
+      {/* Kunci Layar PIN (4 Digit) & Biometrik */}
+      <div className="brutal-card p-6 bg-white select-none">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-[3px] border-black pb-4 gap-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
+              <Lock className="w-5 h-5 text-black stroke-[2.5px]" /> Kunci Layar PIN & Biometrik
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+              Lindungi privasi saldo dan catatan transaksi saat HP dibuka orang lain
+            </p>
+          </div>
+          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+            pinActive ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 text-neutral-600'
+          }`}>
+            {pinActive ? '✓ Kunci PIN Aktif' : 'Nonaktif'}
+          </span>
+        </div>
+
+        {pinActionSuccess && (
+          <div className="mb-4 p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
+            {pinActionSuccess}
+          </div>
+        )}
+
+        <div className="p-4 sm:p-5 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] max-w-xl space-y-4">
+          <div className="flex items-start gap-3">
+            <div className={`p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+              pinActive ? 'bg-[#bbf7d0]' : 'bg-[#FFE066]'
+            }`}>
+              <Lock className="w-5 h-5 text-black stroke-[2.5px]" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-black uppercase tracking-wider text-black">
+                {pinActive ? 'Proteksi 4-Digit PIN Sedang Berjalan' : 'Proteksi Layar Belum Terpasang'}
+              </p>
+              <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+                {pinActive
+                  ? 'Aplikasi akan otomatis meminta PIN 4-digit setiap kali dibuka atau kembali dari latar belakang (background).'
+                  : 'Aktifkan PIN untuk mencegah orang lain melihat saldo dan mutasi rekening saat meminjam ponsel Anda.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            {!pinActive ? (
+              <button
+                type="button"
+                onClick={() => openPinModal('setup')}
+                className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> + Pasang PIN 4-Digit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleLockNow}
+                  className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+                  title="Uji kunci layar sekarang juga"
+                >
+                  <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> Uji Kunci Sekarang
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openPinModal('change')}
+                  className="px-3.5 py-2.5 bg-white hover:bg-neutral-100 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                >
+                  Ganti PIN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openPinModal('remove')}
+                  className="px-3.5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                >
+                  Hapus PIN
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Biometrics Toggle Row */}
+          {pinActive && (
+            <div className="border-t-[1.5px] border-black pt-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Fingerprint className="w-4 h-4 text-black stroke-[2.5px]" />
+                <div>
+                  <p className="text-xs font-black uppercase text-black">Buka Cepat Biometrik (Face ID / Sidik Jari)</p>
+                  <p className="text-[10px] text-neutral-500 font-bold">
+                    {biometricDeviceSupport ? 'Didukung perangkat Anda (WebAuthn Platform)' : 'Akan menggunakan sensor biometrik perangkat jika tersedia'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleBiometrics}
+                className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border-[2px] border-black shadow-[2px_2px_0px_0px_#000] cursor-pointer ${
+                  biometricActive ? 'bg-[#bbf7d0] text-black' : 'bg-white text-neutral-600'
+                }`}
+              >
+                {biometricActive ? '✓ Nyala' : 'Mati'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* PIN Setup / Change Modal */}
+      {pinModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border-[3px] border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_#000] space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center border-b-2 border-black pb-3">
+              <h4 className="font-black text-sm uppercase tracking-wider text-black flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                {pinModalMode === 'setup' ? 'Pasang PIN 4-Digit' : pinModalMode === 'change' ? 'Ubah PIN Keamanan' : 'Nonaktifkan PIN'}
+              </h4>
+              <button
+                type="button"
+                onClick={() => setPinModalOpen(false)}
+                className="p-1 text-neutral-400 hover:text-black border border-transparent hover:border-black cursor-pointer"
+              >
+                <X className="w-4 h-4 stroke-[2.5px]" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePin} className="space-y-3">
+              {pinModalError && (
+                <div className="p-2.5 bg-red-100 border-[2px] border-black text-red-700 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>{pinModalError}</span>
+                </div>
+              )}
+
+              {(pinModalMode === 'change' || pinModalMode === 'remove') && (
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-black mb-1">
+                    PIN Saat Ini (4 Digit)
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="••••"
+                    value={currentPinInput}
+                    onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white"
+                    required
+                    autoFocus
+                  />
+                </div>
+              )}
+
+              {pinModalMode !== 'remove' && (
+                <>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-black mb-1">
+                      {pinModalMode === 'change' ? 'PIN Baru (4 Digit)' : 'Masukkan PIN (4 Digit Angka)'}
+                    </label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={newPinInput}
+                      onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white"
+                      required
+                      autoFocus={pinModalMode === 'setup'}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-black mb-1">
+                      Ulangi / Konfirmasi PIN Baru
+                    </label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={confirmPinInput}
+                      onChange={(e) => setConfirmPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPinModalOpen(false)}
+                  className="px-4 py-2 border-[2px] border-black bg-white hover:bg-neutral-100 text-xs font-black uppercase tracking-wider cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={pinModalLoading}
+                  className={`px-5 py-2 border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer disabled:opacity-50 ${
+                    pinModalMode === 'remove'
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-[#FFE066] hover:bg-yellow-300 text-black'
+                  }`}
+                >
+                  {pinModalLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
+                  ) : pinModalMode === 'remove' ? (
+                    'Hapus PIN'
+                  ) : (
+                    'Simpan PIN'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Plan Info */}
       <div className="brutal-card p-6 bg-white">

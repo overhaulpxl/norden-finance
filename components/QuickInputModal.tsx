@@ -9,6 +9,7 @@ import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { compressReceiptImage } from '../lib/imageCompression';
 import { triggerHaptic } from '../lib/haptics';
+import { triggerUndoToast } from '../lib/undoToast';
 
 interface ChatMessage {
   id: string;
@@ -170,6 +171,16 @@ export default function QuickInputModal({
           ? res.error
           : 'Format input tidak dikenali.';
         aiText = `❌ Gagal mencatat: ${errorText}`;
+      }
+
+      if (txId) {
+        triggerUndoToast({
+          message: aiText.replace(/^[✅❌]\s*/, ''),
+          onUndo: async () => {
+            await deleteTransaction(txId);
+            refreshAfterMutation();
+          },
+        });
       }
 
       setChatMessages(prev => [...prev, {
@@ -348,6 +359,13 @@ export default function QuickInputModal({
       if (transactionId) {
         setUndoTxId(transactionId);
         setMessage({ type: 'success', text: 'Transaksi berhasil ditambahkan.' });
+        triggerUndoToast({
+          message: `Transaksi berhasil dicatat.`,
+          onUndo: async () => {
+            await deleteTransaction(transactionId);
+            refreshAfterMutation();
+          },
+        });
         scheduleClose();
       } else if (action === 'balance_update') {
         setUndoTxId(null);

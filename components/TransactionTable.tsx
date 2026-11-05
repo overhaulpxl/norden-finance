@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Balance, Transaction } from '../types';
 import { formatRupiah, formatTanggal, formatMethodName } from '../lib/format';
 import { Search, Trash2, Edit2, Check, X, Download, ArrowDownRight, ArrowUpRight, ArrowRightLeft, RotateCcw, Loader2 } from 'lucide-react';
-import { updateTransaction, deleteTransaction, addExplicitTransaction } from '../app/actions';
+import { updateTransaction, deleteTransaction, addExplicitTransaction, restoreTransaction } from '../app/actions';
 import WalletSelect from './WalletSelect';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
 import { triggerHaptic } from '../lib/haptics';
+import { triggerUndoToast } from '../lib/undoToast';
 
 export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
   const router = useRouter();
@@ -148,6 +149,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
 
   const handleDelete = async (id: string) => {
     if (pendingMutationId) return;
+    const targetTx = transactions.find((t) => t.id === id);
     setError(null);
     setSuccess(null);
     setPendingMutationId(id);
@@ -162,6 +164,21 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
       triggerHaptic('medium');
       setSuccess('Transaksi berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
+
+      // Trigger floating undo notification
+      triggerUndoToast({
+        message: `Transaksi "${targetTx?.category?.name || 'Lain-lain'}" (${formatRupiah(targetTx?.amount || 0)}) telah dihapus.`,
+        onUndo: async () => {
+          await restoreTransaction(id);
+          setDeletedTransactionIds((current) => {
+            const next = new Set(current);
+            next.delete(id);
+            return next;
+          });
+          router.refresh();
+        },
+      });
+
       router.refresh();
     } else {
       setError(res.error || 'Gagal menghapus transaksi');
@@ -196,6 +213,18 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
       triggerHaptic('success');
       setSuccess(`Transaksi "${tx.category?.name || 'Lain-lain'}" berhasil dicatat untuk hari ini!`);
       setTimeout(() => setSuccess(null), 4000);
+
+      const newTxId = 'transactionId' in res && typeof res.transactionId === 'string' ? res.transactionId : null;
+      if (newTxId) {
+        triggerUndoToast({
+          message: `Transaksi "${tx.category?.name || 'Lain-lain'}" (${formatRupiah(tx.amount)}) berhasil dicatat ulang.`,
+          onUndo: async () => {
+            await deleteTransaction(newTxId);
+            router.refresh();
+          },
+        });
+      }
+
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat mengulangi transaksi');

@@ -8,7 +8,15 @@ import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
 import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus } from 'lucide-react';
-import WelcomeToast from './WelcomeToast';
+const WelcomeToast = dynamic(() => import('./WelcomeToast'), {
+  ssr: false,
+});
+const AppLockScreen = dynamic(() => import('./AppLockScreen'), {
+  ssr: false,
+});
+const GlobalUndoToast = dynamic(() => import('./GlobalUndoToast'), {
+  ssr: false,
+});
 import { useLanguage } from '../lib/i18n';
 import { useHideBalance } from '../lib/HideBalanceContext';
 
@@ -174,7 +182,9 @@ export default function AppLayout({
 
   return (
     <div className="flex min-h-screen bg-[#FAF9F5]" style={{ backgroundImage: 'radial-gradient(#d1d1d1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
+      <AppLockScreen userId={user.id} userEmail={user.email} />
       <WelcomeToast userId={user.id} fullName={user.fullName} />
+      <GlobalUndoToast />
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
