@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Balance, Transaction } from '../types';
 import { formatRupiah, formatTanggal, formatMethodName } from '../lib/format';
-import { Search, Trash2, Edit2, Check, X, Download, ArrowDownRight, ArrowUpRight, ArrowRightLeft } from 'lucide-react';
-import { updateTransaction, deleteTransaction } from '../app/actions';
+import { Search, Trash2, Edit2, Check, X, Download, ArrowDownRight, ArrowUpRight, ArrowRightLeft, RotateCcw, Loader2 } from 'lucide-react';
+import { updateTransaction, deleteTransaction, addExplicitTransaction } from '../app/actions';
 import WalletSelect from './WalletSelect';
 
 export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
@@ -163,6 +163,39 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
       setError(res.error || 'Gagal menghapus transaksi');
     }
     setPendingMutationId(null);
+  };
+
+  const [repeatingId, setRepeatingId] = useState<string | null>(null);
+
+  const handleRepeat = async (tx: Transaction) => {
+    if (pendingMutationId || repeatingId) return;
+    setError(null);
+    setSuccess(null);
+    setRepeatingId(tx.id);
+
+    try {
+      const res = await addExplicitTransaction({
+        type: tx.type,
+        amount: tx.amount,
+        category: tx.category?.name || 'Lain-lain',
+        wallet: tx.wallet?.name || 'Cash',
+        note: tx.note ? `${tx.note} (Ulang)` : 'Transaksi Diulang',
+        transactionDate: new Date().toISOString(),
+        tags: tx.tags || [],
+      });
+
+      if (!res.success) {
+        throw new Error(res.error || 'Gagal mengulangi transaksi');
+      }
+
+      setSuccess(`Transaksi "${tx.category?.name || 'Lain-lain'}" berhasil dicatat untuk hari ini!`);
+      setTimeout(() => setSuccess(null), 4000);
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat mengulangi transaksi');
+    } finally {
+      setRepeatingId(null);
+    }
   };
 
   const isFilterActive = searchQuery !== '' || filterMonth !== 'all' || filterType !== 'all' || filterCategory !== 'all' || filterMethod !== 'all' || filterTag !== 'all';
@@ -390,6 +423,18 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                     </>
                   ) : (
                     <>
+                      <button
+                        onClick={() => handleRepeat(t)}
+                        disabled={repeatingId === t.id}
+                        className="p-1.5 text-neutral-600 hover:text-black hover:bg-[#FFE066] rounded-none transition-colors cursor-pointer disabled:opacity-40"
+                        title="Ulangi transaksi ini untuk hari ini (1-Klik)"
+                      >
+                        {repeatingId === t.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        )}
+                      </button>
                       <button onClick={() => { setEditingId(t.id); setEditAmount(t.amount.toString()); setEditNote(t.note || ''); setEditMethod(t.wallet?.name || ''); setEditTags((t.tags || []).map(tag => `#${tag}`).join(' ')); }} className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-none transition-colors cursor-pointer" title="Edit transaksi"><Edit2 className="w-3.5 h-3.5" /></button>
                       <button onClick={() => setDeletingId(t.id)} className="p-1.5 text-neutral-600 hover:text-red-650 hover:bg-red-50 rounded-none transition-colors cursor-pointer" title="Hapus transaksi"><Trash2 className="w-3.5 h-3.5" /></button>
                     </>

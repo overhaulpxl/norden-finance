@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal, Achievement } from '../types';
+import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal, Achievement, Paylater } from '../types';
 import { formatRupiah } from '../lib/format';
-import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale, Sparkles, SlidersHorizontal, Calendar } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale, Sparkles, SlidersHorizontal, Calendar, Coins } from 'lucide-react';
 import { addCustomNotification } from '../app/actions/notifications';
 import { useLanguage } from '../lib/i18n';
 import { useHideBalance } from '../lib/HideBalanceContext';
@@ -54,6 +54,10 @@ const MomentumCenter = dynamic(() => import('./MomentumCenter'), {
   ssr: false,
   loading: () => <WidgetSkeleton />,
 });
+const UpcomingBills = dynamic(() => import('./UpcomingBills'), {
+  ssr: false,
+  loading: () => <WidgetSkeleton />,
+});
 
 interface OverviewProps {
   transactions: Transaction[];
@@ -63,6 +67,7 @@ interface OverviewProps {
   savingGoals: SavingGoal[];
   budgets: Budget[];
   subscriptions: AppSubscription[];
+  paylaters?: Paylater[];
   emergencyFundPlan: EmergencyFundPlan | null;
   achievements: Achievement[];
   user: {
@@ -78,11 +83,13 @@ interface OverviewProps {
 
 const DEFAULT_TOP_WIDGETS = [
   { id: 'total-balance', name: 'Total Saldo', visible: true },
+  { id: 'safe-to-spend', name: 'Safe-to-Spend Harian', visible: true },
   { id: 'net-worth', name: 'Kekayaan Bersih', visible: true },
   { id: 'health-score', name: 'Kesehatan Finansial', visible: true },
 ];
 
 const DEFAULT_WIDGETS = [
+  { id: 'upcoming-bills', name: 'Tagihan Mendatang', visible: true, column: 'left' as const },
   { id: 'recent-transactions', name: 'Transaksi Terbaru', visible: true, column: 'left' as const },
   { id: 'expense-chart', name: 'Distribusi Pengeluaran', visible: true, column: 'left' as const },
   { id: 'monthly-recap', name: 'Rekap Bulanan', visible: true, column: 'left' as const },
@@ -114,6 +121,7 @@ export default function OverviewLayout({
   debts, 
   budgets,
   subscriptions,
+  paylaters = [],
   emergencyFundPlan,
   savingGoals,
   achievements,
@@ -157,6 +165,28 @@ export default function OverviewLayout({
       net: income - expense,
     };
   }, [transactions, currentMonth, currentYear]);
+
+  // Safe-to-Spend Calculation: Sisa budget bulan ini ÷ sisa hari dalam bulan
+  const daysInMonth = useMemo(() => new Date(currentYear, currentMonth + 1, 0).getDate(), [currentYear, currentMonth]);
+  const remainingDays = useMemo(() => Math.max(1, daysInMonth - now.getDate() + 1), [daysInMonth, now]);
+
+  const totalMonthlyBudgetLimit = useMemo(() => {
+    return budgets.reduce((sum, b) => sum + (b.monthlyLimit || 0), 0);
+  }, [budgets]);
+
+  const remainingBudget = useMemo(() => {
+    if (totalMonthlyBudgetLimit > 0) {
+      return Math.max(0, totalMonthlyBudgetLimit - monthlyFlow.expense);
+    }
+    if (monthlyFlow.income > monthlyFlow.expense) {
+      return monthlyFlow.income - monthlyFlow.expense;
+    }
+    return Math.max(0, totalBalance);
+  }, [totalMonthlyBudgetLimit, monthlyFlow, totalBalance]);
+
+  const safeToSpendDaily = useMemo(() => {
+    return Math.round(remainingBudget / remainingDays);
+  }, [remainingBudget, remainingDays]);
 
   // Get recent 6 transactions sorted by date
   const recentTransactions = useMemo(() => [...transactions].sort((a, b) =>
@@ -262,6 +292,16 @@ export default function OverviewLayout({
 
   const renderColumnWidget = (id: string) => {
     switch (id) {
+      case 'upcoming-bills':
+        return (
+          <UpcomingBills
+            key={id}
+            subscriptions={subscriptions}
+            paylaters={paylaters}
+            debts={debts}
+            balances={balances}
+          />
+        );
       case 'recent-transactions':
         return (
           <div key={id} className="brutal-card p-6 flex flex-col bg-white border-[3px] border-black">
@@ -499,7 +539,7 @@ export default function OverviewLayout({
       )}
 
       {/* Hero Financial Summary Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
         {topWidgets
           .filter(w => w.visible)
           .map(w => {
@@ -519,6 +559,29 @@ export default function OverviewLayout({
                     </span>
                     <span className="text-[#bbf7d0] uppercase tracking-wide font-black">
                       {lang === 'id' ? 'Arus Kas: ' : 'Cashflow: '}{monthlyFlow.net >= 0 ? '+' : ''}{maskBalance(formatRupiah(monthlyFlow.net))}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+            if (w.id === 'safe-to-spend') {
+              return (
+                <div key={w.id} className="brutal-card p-6 bg-[#FAF9F5] text-black flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
+                  <div>
+                    <p className="text-xs font-black text-black uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Coins className="w-4 h-4 stroke-[2.5px] text-amber-600" /> {lang === 'id' ? 'Aman Dibelanjakan Hari Ini' : 'Safe to Spend Today'}
+                    </p>
+                    <h2 className="text-3xl xl:text-4xl font-black truncate text-black">
+                      {maskBalance(formatRupiah(safeToSpendDaily))}
+                    </h2>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-2 border-black flex justify-between items-center text-[10px] sm:text-[11px] font-bold">
+                    <span className="text-neutral-600 uppercase tracking-wide">
+                      {lang === 'id' ? `Sisa ${remainingDays} Hari` : `${remainingDays} Days Left`}
+                    </span>
+                    <span className="text-black uppercase tracking-wide font-black truncate ml-2">
+                      {lang === 'id' ? 'Sisa: ' : 'Rem.: '}{maskBalance(formatRupiah(remainingBudget))}
                     </span>
                   </div>
                 </div>

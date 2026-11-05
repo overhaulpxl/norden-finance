@@ -7,6 +7,7 @@ import { processInput, addExplicitTransaction, addTransferTransaction, addRecurr
 import { Balance } from '../types';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/format';
+import { compressReceiptImage } from '../lib/imageCompression';
 
 interface ChatMessage {
   id: string;
@@ -243,8 +244,11 @@ export default function QuickInputModal({
     }]);
 
     try {
+      // Compress image client-side to ensure it fits serverless payload limits (~300KB)
+      const compressedFile = await compressReceiptImage(file);
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', compressedFile);
 
       const res = await fetch('/api/scan-receipt', {
         method: 'POST',

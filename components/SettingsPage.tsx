@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck } from 'lucide-react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
@@ -475,6 +475,76 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Pusat Bantuan & Kontak Dukungan (App Store & Play Store Support Requirement) */}
+      <div className="brutal-card p-6 bg-white select-none">
+        <div className="flex justify-between items-start mb-4 border-b-[3px] border-black pb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-black stroke-[2.5px]" /> Pusat Bantuan & Layanan Pelanggan
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+              Kendala transaksi, verifikasi akun, atau pertanyaan seputar langganan Pro
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <a
+            href="https://wa.me/6287882924651?text=Halo%20Norden%20Finance,%20saya%20butuh%20bantuan%20terkait%20akun%20atau%20kendala%20aplikasi."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-4 border-[2px] border-black bg-[#FAF9F5] hover:bg-[#bbf7d0] transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 group"
+          >
+            <div className="p-2 border-[1.5px] border-black bg-[#2ECC71] text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
+              <MessageCircle className="w-5 h-5 text-black stroke-[2.5px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black">
+                <span>WhatsApp Admin Resmi</span>
+                <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black" />
+              </div>
+              <p className="text-xs text-neutral-600 font-bold mt-1">
+                Respon cepat Senin - Minggu (08.00 - 21.00 WIB)
+              </p>
+              <span className="text-[11px] font-mono font-black text-neutral-800 underline mt-1.5 block">
+                +62 878-8292-4651
+              </span>
+            </div>
+          </a>
+
+          <a
+            href="mailto:support@nordenfinance.site?subject=Bantuan%20Akun%20Norden%20Finance"
+            className="p-4 border-[2px] border-black bg-[#FAF9F5] hover:bg-[#bfdbfe] transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 group"
+          >
+            <div className="p-2 border-[1.5px] border-black bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
+              <Mail className="w-5 h-5 text-black stroke-[2.5px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black">
+                <span>Email Dukungan Resmi</span>
+                <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black" />
+              </div>
+              <p className="text-xs text-neutral-600 font-bold mt-1">
+                Untuk pertanyaan teknis, kendala data, dan verifikasi akun
+              </p>
+              <span className="text-[11px] font-mono font-black text-neutral-800 underline mt-1.5 block">
+                support@nordenfinance.site
+              </span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      {/* App Version & Build Footer */}
+      <div className="pt-2 pb-6 text-center select-none">
+        <p className="text-xs font-black uppercase tracking-widest text-black">
+          Norden Finance v1.2.0 • Build 2026
+        </p>
+        <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mt-1">
+          Aplikasi Manajemen Keuangan Pribadi & PWA Standalone • Terenkripsi
+        </p>
       </div>
     </div>
   );

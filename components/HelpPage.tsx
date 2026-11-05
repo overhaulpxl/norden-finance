@@ -13,6 +13,9 @@ import {
   Star,
   Trophy,
   Wallet,
+  MessageCircle,
+  Mail,
+  ExternalLink,
 } from 'lucide-react';
 import { submitFeedback } from '../app/actions';
 
@@ -348,6 +351,53 @@ export default function HelpPage() {
         <p className="max-w-2xl text-sm font-bold leading-relaxed text-neutral-600">
           Tutorial singkat untuk mencatat transaksi, mengatur wallet, membaca laporan, dan mengelola billing tanpa bahasa teknis.
         </p>
+      </div>
+
+      {/* Support Direct Contacts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <a
+          href="https://wa.me/6287882924651?text=Halo%20Norden%20Finance,%20saya%20butuh%20bantuan%20terkait%20akun%20atau%20kendala%20aplikasi."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-4 border-[3px] border-black bg-white hover:bg-[#bbf7d0] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 group"
+        >
+          <div className="p-2.5 border-[2px] border-black bg-[#2ECC71] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+            <MessageCircle className="w-5 h-5 text-black stroke-[2.5px]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black">
+              <span>Chat WhatsApp Admin</span>
+              <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black" />
+            </div>
+            <p className="text-xs text-neutral-600 font-bold mt-1">
+              Bantuan langsung Senin - Minggu (08.00 - 21.00 WIB)
+            </p>
+            <span className="text-xs font-mono font-black text-black underline mt-1.5 block">
+              +62 878-8292-4651
+            </span>
+          </div>
+        </a>
+
+        <a
+          href="mailto:support@nordenfinance.site?subject=Bantuan%20Akun%20Norden%20Finance"
+          className="p-4 border-[3px] border-black bg-white hover:bg-[#bfdbfe] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 group"
+        >
+          <div className="p-2.5 border-[2px] border-black bg-[#FFE066] text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+            <Mail className="w-5 h-5 text-black stroke-[2.5px]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black">
+              <span>Email Support</span>
+              <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black" />
+            </div>
+            <p className="text-xs text-neutral-600 font-bold mt-1">
+              Bantuan kendala teknis, akun, dan verifikasi
+            </p>
+            <span className="text-xs font-mono font-black text-black underline mt-1.5 block">
+              support@nordenfinance.site
+            </span>
+          </div>
+        </a>
       </div>
 
       <div className="space-y-5">

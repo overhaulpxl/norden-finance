@@ -300,6 +300,7 @@ export default function AppLayout({
               savingGoals={savingGoals}
               budgets={budgets}
               subscriptions={subscriptions}
+              paylaters={paylaters}
               emergencyFundPlan={emergencyFundPlan}
               achievements={achievements}
               onNewTransaction={() => setShowModal(true)}
