@@ -8,6 +8,7 @@ import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale, Sparkles, 
 import { addCustomNotification } from '../app/actions/notifications';
 import { useLanguage } from '../lib/i18n';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { getCategoryEmoji } from '../lib/categoryEmoji';
 
 function WidgetSkeleton({ className = '' }: { className?: string }) {
   return (
@@ -350,8 +351,9 @@ export default function OverviewLayout({
                          <ArrowUpRight className="w-4 h-4 stroke-[3px]" />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-black text-black uppercase tracking-wider truncate">
-                          {t.category?.name || 'Lain-lain'}
+                        <p className="text-xs sm:text-sm font-black text-black uppercase tracking-wider truncate flex items-center gap-1.5">
+                          <span className="text-sm shrink-0 select-none">{getCategoryEmoji(t.category?.name)}</span>
+                          <span className="truncate">{t.category?.name || 'Lain-lain'}</span>
                         </p>
                         <p className="text-[11px] font-bold text-neutral-500 truncate mt-0.5">
                           {t.note || t.wallet?.name || 'Lain-lain'}

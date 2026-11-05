@@ -7,6 +7,7 @@ import { formatRupiah } from '../lib/format';
 import { Clock, Check, Loader2, CreditCard, AlertCircle } from 'lucide-react';
 import { addExplicitTransaction, payPaylaterInstallment, toggleDebtSettled } from '../app/actions';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 interface UpcomingBillsProps {
   subscriptions?: AppSubscription[];
@@ -140,9 +141,11 @@ export default function UpcomingBills({
       }
 
       setSuccessId(bill.id);
+      triggerHaptic('success');
       router.refresh();
       setTimeout(() => setSuccessId(null), 3000);
     } catch (err: unknown) {
+      triggerHaptic('warning');
       setErrorMsg(err instanceof Error ? err.message : 'Gagal memproses pembayaran');
     } finally {
       setProcessingId(null);

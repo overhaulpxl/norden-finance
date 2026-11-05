@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Balance } from '../types';
 import { formatRupiah, formatMethodName, formatRupiahInput, parseRupiahInput } from '../lib/format';
-import { ArchiveRestore, Loader2, Trash2 } from 'lucide-react';
+import { ArchiveRestore, Loader2, Trash2, ArrowRightLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { updateBalance, deleteBalance, restoreBalance } from '../app/actions';
+import { updateBalance, deleteBalance, restoreBalance, addTransferTransaction } from '../app/actions';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { triggerHaptic } from '../lib/haptics';
 
 export default function BalanceCards({ balances }: { balances: Balance[] }) {
   const router = useRouter();
@@ -20,6 +21,15 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
+
+  // Transfer states
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [transferFrom, setTransferFrom] = useState('');
+  const [transferTo, setTransferTo] = useState('');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferNote, setTransferNote] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
+
   const localBalances = [
     ...Object.values(balanceOverrides).filter((override) => !balances.some((balance) => balance.id === override.id)),
     ...balances.map((balance) => balanceOverrides[balance.id] || balance),
@@ -88,6 +98,51 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
     }
   };
 
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const source = transferFrom || activeBalances[0]?.name || '';
+    const target = transferTo || activeBalances[1]?.name || activeBalances[0]?.name || '';
+
+    if (!source || !target || !transferAmount) return;
+    if (source.toLowerCase() === target.toLowerCase()) {
+      setError('Dompet asal dan tujuan tidak boleh sama.');
+      return;
+    }
+
+    setTransferLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    const numAmount = parseRupiahInput(transferAmount);
+    if (numAmount <= 0) {
+      setError('Nominal transfer harus lebih dari 0.');
+      setTransferLoading(false);
+      return;
+    }
+
+    const res = await addTransferTransaction(
+      numAmount,
+      source,
+      target,
+      transferNote.trim() || undefined
+    );
+
+    setTransferLoading(false);
+
+    if (res.success) {
+      triggerHaptic('success');
+      setSuccess(`Transfer ${formatRupiah(numAmount)} dari ${source} ke ${target} berhasil dicatat!`);
+      setIsTransferring(false);
+      setTransferAmount('');
+      setTransferNote('');
+      setTimeout(() => setSuccess(null), 5000);
+      router.refresh();
+    } else {
+      triggerHaptic('warning');
+      setError(res.error || 'Gagal memproses transfer antar dompet');
+    }
+  };
+
   return (
     <div className="brutal-card p-6 bg-white select-none space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-[3px] border-black pb-4 gap-3">
@@ -95,15 +150,30 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
           <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider">Dompet & Rekening Keuangan</h3>
           <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-0.5">Kelola rekening bank, e-wallet, dan uang tunai harian Anda</p>
         </div>
-        <button
-          onClick={() => {
-            setIsEditing(!isEditing);
-            if (isEditing) setEditingId(undefined);
-          }}
-          className="brutal-btn-accent text-xs px-4 py-2 cursor-pointer shrink-0"
-        >
-          {isEditing ? 'Batal' : '+ Tambah / Atur Dompet'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={() => {
+              setIsTransferring(!isTransferring);
+              if (isEditing) setIsEditing(false);
+            }}
+            disabled={activeBalances.length < 2}
+            className="px-3.5 py-2 border-[2px] border-black bg-[#bfdbfe] hover:bg-blue-200 text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+            title={activeBalances.length < 2 ? 'Butuh minimal 2 dompet untuk transfer' : 'Transfer saldo atau top-up antar dompet'}
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5 stroke-[2.5px]" />
+            <span>{isTransferring ? 'Tutup Transfer' : 'Transfer Antar Dompet'}</span>
+          </button>
+          <button
+            onClick={() => {
+              setIsEditing(!isEditing);
+              if (isEditing) setEditingId(undefined);
+              if (isTransferring) setIsTransferring(false);
+            }}
+            className="brutal-btn-accent text-xs px-4 py-2 cursor-pointer"
+          >
+            {isEditing ? 'Batal' : '+ Tambah Dompet'}
+          </button>
+        </div>
       </div>
 
       {success && (
@@ -116,6 +186,102 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
         <div className="p-3 border-[2px] border-black bg-red-100 text-red-700 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
           ❌ {error}
         </div>
+      )}
+
+      {/* Transfer / Top-Up Antar Dompet Form */}
+      {isTransferring && (
+        <form onSubmit={handleTransfer} className="p-5 border-[3px] border-black bg-[#e0f2fe] space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2 border-b-2 border-black pb-2">
+            <ArrowRightLeft className="w-4 h-4 stroke-[2.5px] text-black" />
+            <h4 className="text-xs font-black uppercase tracking-wider text-black">
+              Transfer Saldo / Top-Up Antar Rekening & Dompet
+            </h4>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-black mb-1">
+                Dari Dompet (Asal)
+              </label>
+              <select
+                value={transferFrom || (activeBalances[0]?.name ?? '')}
+                onChange={(e) => setTransferFrom(e.target.value)}
+                className="w-full brutal-input px-3 py-2 text-xs font-black uppercase bg-white cursor-pointer"
+                required
+              >
+                {activeBalances.map((b) => (
+                  <option key={b.id} value={b.name}>
+                    {b.name} ({maskBalance(formatRupiah(b.currentBalance))})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-black mb-1">
+                Ke Dompet (Tujuan)
+              </label>
+              <select
+                value={transferTo || (activeBalances[1]?.name ?? activeBalances[0]?.name ?? '')}
+                onChange={(e) => setTransferTo(e.target.value)}
+                className="w-full brutal-input px-3 py-2 text-xs font-black uppercase bg-white cursor-pointer"
+                required
+              >
+                {activeBalances.map((b) => (
+                  <option key={b.id} value={b.name}>
+                    {b.name} ({maskBalance(formatRupiah(b.currentBalance))})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-black mb-1">
+                Nominal Transfer (Rp)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Rp 100.000"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(formatRupiahInput(e.target.value))}
+                className="w-full brutal-input px-3 py-2 text-xs font-bold bg-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-black mb-1">
+                Catatan (Opsional)
+              </label>
+              <input
+                type="text"
+                placeholder="Contoh: Top-up GoPay bulanan"
+                value={transferNote}
+                onChange={(e) => setTransferNote(e.target.value)}
+                className="w-full brutal-input px-3 py-2 text-xs font-bold uppercase bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setIsTransferring(false)}
+              className="px-4 py-2 border-[2px] border-black bg-white hover:bg-neutral-100 text-xs font-black uppercase tracking-wider cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={transferLoading}
+              className="brutal-btn px-6 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {transferLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Kirim Transfer'}
+            </button>
+          </div>
+        </form>
       )}
 
       {isEditing && (

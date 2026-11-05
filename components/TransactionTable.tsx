@@ -7,6 +7,8 @@ import { formatRupiah, formatTanggal, formatMethodName } from '../lib/format';
 import { Search, Trash2, Edit2, Check, X, Download, ArrowDownRight, ArrowUpRight, ArrowRightLeft, RotateCcw, Loader2 } from 'lucide-react';
 import { updateTransaction, deleteTransaction, addExplicitTransaction } from '../app/actions';
 import WalletSelect from './WalletSelect';
+import { getCategoryEmoji } from '../lib/categoryEmoji';
+import { triggerHaptic } from '../lib/haptics';
 
 export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
   const router = useRouter();
@@ -134,6 +136,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         }));
       }
       setEditingId(null);
+      triggerHaptic('success');
       setSuccess('Transaksi berhasil diperbarui!');
       setTimeout(() => setSuccess(null), 5000);
       router.refresh();
@@ -156,6 +159,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         return next;
       });
       setDeletingId(null);
+      triggerHaptic('medium');
       setSuccess('Transaksi berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
       router.refresh();
@@ -166,6 +170,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
   };
 
   const [repeatingId, setRepeatingId] = useState<string | null>(null);
+  const [activeDetailTx, setActiveDetailTx] = useState<Transaction | null>(null);
 
   const handleRepeat = async (tx: Transaction) => {
     if (pendingMutationId || repeatingId) return;
@@ -188,6 +193,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         throw new Error(res.error || 'Gagal mengulangi transaksi');
       }
 
+      triggerHaptic('success');
       setSuccess(`Transaksi "${tx.category?.name || 'Lain-lain'}" berhasil dicatat untuk hari ini!`);
       setTimeout(() => setSuccess(null), 4000);
       router.refresh();
@@ -323,7 +329,15 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         ) : (
           filtered.map((t) => (
             <div key={t.id} className="border-[2px] border-black rounded-none p-3.5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 group transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-              <div className="flex items-start sm:items-center gap-3 min-w-0">
+              <div
+                className="flex items-start sm:items-center gap-3 min-w-0 flex-1 cursor-pointer sm:cursor-default"
+                onClick={() => {
+                  if (editingId !== t.id && deletingId !== t.id) {
+                    setActiveDetailTx(t);
+                    triggerHaptic('light');
+                  }
+                }}
+              >
                 <div className={`p-2 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] shrink-0 ${
                   t.type === 'masuk' ? 'bg-[#bbf7d0] text-black' :
                   t.type === 'transfer' ? 'bg-[#bfdbfe] text-black' :
@@ -335,7 +349,8 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-sm shrink-0 select-none">{getCategoryEmoji(t.category?.name)}</span>
                     <h4 className="font-black text-xs sm:text-sm text-black uppercase tracking-wider truncate">
                       {t.category?.name || 'Lain-lain'}
                     </h4>
@@ -445,6 +460,134 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
           ))
         )}
       </div>
+
+      {/* Mobile Bottom Sheet for Transaction Detail */}
+      {activeDetailTx && (
+        <div className="fixed inset-0 z-50 sm:hidden flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setActiveDetailTx(null)}
+          />
+
+          {/* Sheet panel */}
+          <div className="relative bg-white border-t-[3px] border-black p-5 shadow-[0_-10px_30px_rgba(0,0,0,0.2)] rounded-none animate-in slide-in-from-bottom duration-200 z-10 space-y-4 max-h-[85vh] overflow-y-auto safe-bottom">
+            {/* Sheet Handle */}
+            <div className="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto -mt-1 mb-2" />
+
+            <div className="flex items-center justify-between border-b-2 border-black pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl select-none">{getCategoryEmoji(activeDetailTx.category?.name)}</span>
+                <div>
+                  <h3 className="font-black text-sm uppercase tracking-wider text-black">
+                    {activeDetailTx.category?.name || 'Lain-lain'}
+                  </h3>
+                  <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide">
+                    {activeDetailTx.type === 'masuk' ? 'Pemasukan' : activeDetailTx.type === 'transfer' ? 'Transfer' : 'Pengeluaran'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveDetailTx(null)}
+                className="p-1.5 border border-black bg-neutral-100 hover:bg-neutral-200 text-black cursor-pointer"
+              >
+                <X className="w-4 h-4 stroke-[2.5px]" />
+              </button>
+            </div>
+
+            {/* Amount */}
+            <div className="p-4 bg-[#FAF9F5] border-[2px] border-black text-center">
+              <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">
+                Total Transaksi
+              </span>
+              <h2 className={`text-2xl font-black ${
+                activeDetailTx.type === 'masuk' ? 'text-emerald-700' :
+                activeDetailTx.type === 'transfer' ? 'text-blue-700' :
+                'text-black'
+              }`}>
+                {activeDetailTx.type === 'masuk' ? '+' : activeDetailTx.type === 'transfer' ? '' : '-'}{formatRupiah(activeDetailTx.amount)}
+              </h2>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 gap-2.5 text-xs font-bold">
+              <div className="p-2.5 border border-black bg-white">
+                <span className="text-[10px] text-neutral-500 uppercase block font-black">Dompet</span>
+                <span className="text-black font-black uppercase truncate block mt-0.5">
+                  {formatMethodName(activeDetailTx.wallet?.name || 'Lain-lain')}
+                </span>
+              </div>
+              <div className="p-2.5 border border-black bg-white">
+                <span className="text-[10px] text-neutral-500 uppercase block font-black">Tanggal</span>
+                <span className="text-black font-black truncate block mt-0.5">
+                  {formatTanggal(activeDetailTx.transactionDate)}
+                </span>
+              </div>
+              <div className="p-2.5 border border-black bg-white col-span-2">
+                <span className="text-[10px] text-neutral-500 uppercase block font-black">Catatan</span>
+                <span className="text-black font-bold block mt-0.5">
+                  {activeDetailTx.note || '-'}
+                </span>
+              </div>
+              {(activeDetailTx.tags || []).length > 0 && (
+                <div className="p-2.5 border border-black bg-white col-span-2">
+                  <span className="text-[10px] text-neutral-500 uppercase block font-black mb-1">Tag</span>
+                  <div className="flex flex-wrap gap-1">
+                    {(activeDetailTx.tags || []).map((t) => (
+                      <span key={t} className="px-1.5 py-0.5 bg-[#e0f2fe] border border-black text-[9px] font-black uppercase">
+                        #{t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <button
+                onClick={() => {
+                  const tx = activeDetailTx;
+                  setActiveDetailTx(null);
+                  handleRepeat(tx);
+                }}
+                className="py-3 px-2 border-[2px] border-black bg-[#FFE066] hover:bg-yellow-300 text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4 stroke-[2.5px]" />
+                <span className="text-[10px]">Ulangi</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const tx = activeDetailTx;
+                  setActiveDetailTx(null);
+                  setEditingId(tx.id);
+                  setEditAmount(tx.amount.toString());
+                  setEditNote(tx.note || '');
+                  setEditMethod(tx.wallet?.name || '');
+                  setEditTags((tx.tags || []).map(tag => `#${tag}`).join(' '));
+                }}
+                className="py-3 px-2 border-[2px] border-black bg-white hover:bg-neutral-100 text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
+              >
+                <Edit2 className="w-4 h-4 stroke-[2.5px]" />
+                <span className="text-[10px]">Ubah</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const tx = activeDetailTx;
+                  setActiveDetailTx(null);
+                  setDeletingId(tx.id);
+                }}
+                className="py-3 px-2 border-[2px] border-black bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4 stroke-[2.5px]" />
+                <span className="text-[10px]">Hapus</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Balance } from '../types';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { compressReceiptImage } from '../lib/imageCompression';
+import { triggerHaptic } from '../lib/haptics';
 
 interface ChatMessage {
   id: string;
@@ -137,6 +138,7 @@ export default function QuickInputModal({
       let txId: string | null = null;
 
       if (res.success && isAcceptedReceipt) {
+        triggerHaptic('success');
         refreshAfterMutation();
         const formattedAmount = formatCurrency(receiptScan.amount);
         aiText = `Receipt saved for ${receiptScan.merchant || receiptScan.note || 'belanja'} sebesar ${formattedAmount}.`;
@@ -145,6 +147,7 @@ export default function QuickInputModal({
         }
         setReceiptScan(null);
       } else if (res.success && 'result' in res && res.result) {
+        triggerHaptic('success');
         refreshAfterMutation();
         const amountVal = res.result.amount;
         const formattedAmount = formatCurrency(amountVal);
@@ -162,6 +165,7 @@ export default function QuickInputModal({
           }
         }
       } else {
+        triggerHaptic('warning');
         const errorText = !res.success && 'error' in res && typeof res.error === 'string'
           ? res.error
           : 'Format input tidak dikenali.';
@@ -226,6 +230,7 @@ export default function QuickInputModal({
     setLoading(false);
 
     if (res.success) {
+      triggerHaptic('medium');
       refreshAfterMutation();
       setTimeout(onClose, 1200);
     }
@@ -328,6 +333,7 @@ export default function QuickInputModal({
     }
 
     if (res.success) {
+      triggerHaptic('success');
       refreshAfterMutation();
       const transactionId = 'transactionId' in res && typeof res.transactionId === 'string'
         ? res.transactionId
@@ -353,6 +359,7 @@ export default function QuickInputModal({
         setTimeout(onClose, 1500);
       }
     } else {
+      triggerHaptic('warning');
       setMessage({ type: 'error', text: res.error || 'Gagal menyimpan' });
     }
 
