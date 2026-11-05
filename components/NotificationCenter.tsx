@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, X, Check, Trash2, ShieldAlert, Trophy, CreditCard, CalendarCheck, Zap, Star, Flame, AlertCircle } from 'lucide-react';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, clearAllNotifications } from '../app/actions/notifications';
+import { triggerHaptic } from '../lib/haptics';
 
 interface Notification {
   id: string;
@@ -18,6 +19,7 @@ export default function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const fetchNotifications = async () => {
     try {
@@ -48,6 +50,7 @@ export default function NotificationCenter() {
 
   const handleMarkAsRead = async (id: string) => {
     try {
+      triggerHaptic('light');
       await markNotificationAsRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
@@ -58,6 +61,7 @@ export default function NotificationCenter() {
 
   const handleMarkAllAsRead = async () => {
     try {
+      triggerHaptic('success');
       setLoading(true);
       await markAllNotificationsAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -71,10 +75,12 @@ export default function NotificationCenter() {
 
   const handleClearAll = async () => {
     try {
+      triggerHaptic('medium');
       setLoading(true);
       await clearAllNotifications();
       setNotifications([]);
       setUnreadCount(0);
+      setConfirmClear(false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -114,7 +120,9 @@ export default function NotificationCenter() {
       {/* Bell Trigger Button */}
       <button
         onClick={() => {
+          triggerHaptic('light');
           setIsOpen(true);
+          setConfirmClear(false);
           fetchNotifications();
         }}
         className="relative border-[2.5px] border-black bg-white p-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer rounded-none flex items-center justify-center"
@@ -157,21 +165,49 @@ export default function NotificationCenter() {
 
               {/* Actions toolbar */}
               {notifications.length > 0 && (
-                <div className="px-5 py-2.5 border-b-[2px] border-black bg-white/70 flex justify-between gap-2">
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    disabled={loading || unreadCount === 0}
-                    className="flex-1 py-1.5 border-[2.5px] border-black bg-[#bbf7d0] hover:bg-[#a6ecbd] text-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    Tandai Semua Dibaca
-                  </button>
-                  <button
-                    onClick={handleClearAll}
-                    disabled={loading}
-                    className="py-1.5 px-3 border-[2.5px] border-black bg-red-100 hover:bg-red-200 text-red-700 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus
-                  </button>
+                <div className="px-5 py-2.5 border-b-[2px] border-black bg-white/70 flex justify-between gap-2 items-center">
+                  {confirmClear ? (
+                    <div className="w-full flex items-center justify-between gap-2 animate-in fade-in">
+                      <span className="text-[10px] font-black uppercase text-red-600">Hapus semua notifikasi?</span>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmClear(false)}
+                          className="px-2.5 py-1 border-[2px] border-black bg-neutral-200 text-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearAll}
+                          disabled={loading}
+                          className="px-2.5 py-1 border-[2px] border-black bg-red-500 text-white text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000] cursor-pointer disabled:opacity-50"
+                        >
+                          Ya, Hapus
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        disabled={loading || unreadCount === 0}
+                        className="flex-1 py-1.5 border-[2.5px] border-black bg-[#bbf7d0] hover:bg-[#a6ecbd] text-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+                      >
+                        Tandai Semua Dibaca
+                      </button>
+                      <button
+                        onClick={() => {
+                          triggerHaptic('light');
+                          setConfirmClear(true);
+                        }}
+                        disabled={loading}
+                        className="py-1.5 px-3 border-[2.5px] border-black bg-red-100 hover:bg-red-200 text-red-700 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Hapus
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 
