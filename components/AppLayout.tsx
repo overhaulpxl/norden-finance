@@ -17,6 +17,9 @@ const AppLockScreen = dynamic(() => import('./AppLockScreen'), {
 const GlobalUndoToast = dynamic(() => import('./GlobalUndoToast'), {
   ssr: false,
 });
+const NetworkStatusIndicator = dynamic(() => import('./NetworkStatusIndicator'), {
+  ssr: false,
+});
 import { useLanguage } from '../lib/i18n';
 import { useHideBalance } from '../lib/HideBalanceContext';
 
@@ -185,6 +188,7 @@ export default function AppLayout({
       <AppLockScreen userId={user.id} userEmail={user.email} />
       <WelcomeToast userId={user.id} fullName={user.fullName} />
       <GlobalUndoToast />
+      <NetworkStatusIndicator />
 
       {/* Mobile Overlay */}
       {sidebarOpen && (

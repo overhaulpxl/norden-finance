@@ -338,6 +338,64 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         </div>
       </div>
 
+      {/* Quick Filter Chips for Mobile / 1-Tap Switching */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => {
+            setFilterType('all');
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
+            filterType === 'all' ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'
+          }`}
+        >
+          Semua ({transactions.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setFilterType('keluar');
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+            filterType === 'keluar' ? 'bg-[#fecaca] text-black ring-2 ring-black' : 'bg-white text-black hover:bg-neutral-100'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-red-600 shrink-0" />
+          <span>Pengeluaran ({transactions.filter((t) => t.type === 'keluar').length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setFilterType('masuk');
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+            filterType === 'masuk' ? 'bg-[#bbf7d0] text-black ring-2 ring-black' : 'bg-white text-black hover:bg-neutral-100'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
+          <span>Pemasukan ({transactions.filter((t) => t.type === 'masuk').length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setFilterType('transfer');
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+            filterType === 'transfer' ? 'bg-[#bfdbfe] text-black ring-2 ring-black' : 'bg-white text-black hover:bg-neutral-100'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
+          <span>Transfer ({transactions.filter((t) => t.type === 'transfer').length})</span>
+        </button>
+      </div>
+
       <div className="space-y-2.5">
         {filtered.length === 0 ? (
           <div className="text-center py-12 bg-white border-[3px] border-black border-dashed rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-6 space-y-3">

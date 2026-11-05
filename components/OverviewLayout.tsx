@@ -65,6 +65,9 @@ const QuickStartGuide = dynamic(() => import('./QuickStartGuide'), {
 const WeeklyInsightBanner = dynamic(() => import('./WeeklyInsightBanner'), {
   ssr: false,
 });
+const PWAInstallBanner = dynamic(() => import('./PWAInstallBanner'), {
+  ssr: false,
+});
 
 interface OverviewProps {
   transactions: Transaction[];
@@ -637,6 +640,9 @@ export default function OverviewLayout({
         transactions={transactions}
         userId={user.id}
       />
+
+      {/* PWA Mobile App Installation Prompt */}
+      <PWAInstallBanner />
 
       {/* Smart Input & Quick Entry Callout Banner */}
       {onNewTransaction && (

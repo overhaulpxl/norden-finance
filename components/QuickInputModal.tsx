@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Send, Loader2, Camera, X, RotateCcw, Sparkles } from 'lucide-react';
+import { Send, Loader2, Camera, X, RotateCcw, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { processInput, addExplicitTransaction, addTransferTransaction, addRecurringTransaction, deleteTransaction } from '../app/actions';
 import { Balance } from '../types';
@@ -52,6 +52,65 @@ export default function QuickInputModal({
   ]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Voice Input states
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      triggerHaptic('light');
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'id-ID';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        triggerHaptic('medium');
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onresult = (event: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join('');
+        setInput(transcript);
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+        triggerHaptic('warning');
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        triggerHaptic('light');
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
 
   // Manual mode states
   const [mType, setMType] = useState<'masuk' | 'keluar' | 'transfer'>('keluar');
@@ -515,12 +574,28 @@ export default function QuickInputModal({
                   {scanning ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : <Camera className="w-4 h-4 text-black stroke-[2.5px]" />}
                 </button>
 
-                <div className="flex-1 flex border-[2.5px] border-black bg-white p-1 shadow-[2.5px_2.5px_0px_0px_#000] items-center">
+                {speechSupported && (
+                  <button
+                    type="button"
+                    onClick={toggleVoiceInput}
+                    disabled={loading || scanning}
+                    className={`p-3 border-[2.5px] border-black shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer flex items-center justify-center rounded-none ${
+                      isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-black hover:bg-neutral-50'
+                    }`}
+                    title={isListening ? 'Sedang merekam suara... Ketuk untuk berhenti' : 'Bicara untuk mencatat transaksi (Input Suara)'}
+                  >
+                    {isListening ? <MicOff className="w-4 h-4 stroke-[2.5px]" /> : <Mic className="w-4 h-4 stroke-[2.5px]" />}
+                  </button>
+                )}
+
+                <div className={`flex-1 flex border-[2.5px] border-black p-1 shadow-[2.5px_2.5px_0px_0px_#000] items-center ${
+                  isListening ? 'bg-red-50 border-red-600' : 'bg-white'
+                }`}>
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Beli makan siang 15k cash..."
+                    placeholder={isListening ? 'Mendengarkan suara Anda... (Bicara sekarang)' : 'Beli makan siang 15k cash...'}
                     className="flex-1 text-[10px] font-bold text-black pl-2 focus:outline-none placeholder-neutral-400"
                     disabled={loading}
                   />

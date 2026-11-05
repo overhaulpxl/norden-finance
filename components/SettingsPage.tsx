@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X } from 'lucide-react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2 } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
@@ -18,6 +18,7 @@ import {
   registerBiometrics,
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
+import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
 
 interface SettingsProps {
   user: {
@@ -60,6 +61,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [pinActive, setPinActive] = useState<boolean>(() => isPinSet(user.id));
   const [biometricActive, setBiometricActive] = useState<boolean>(() => isBiometricEnabled(user.id));
   const [biometricDeviceSupport, setBiometricDeviceSupport] = useState(false);
+  const [pwaInstalled, setPwaInstalled] = useState<boolean>(() => isPwaInstalled());
+  const [isIos] = useState<boolean>(() => isIosDevice());
 
   // PIN modal states
   const [pinModalOpen, setPinModalOpen] = useState(false);
@@ -875,6 +878,66 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </span>
             </div>
           </a>
+        </div>
+      </div>
+
+      {/* Status Aplikasi PWA & Pemasangan */}
+      <div className="brutal-card p-6 bg-white select-none">
+        <div className="flex justify-between items-start mb-4 border-b-[3px] border-black pb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-black stroke-[2.5px]" /> Mode Aplikasi Mobile (PWA)
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+              Pasang aplikasi langsung ke layar utama HP tanpa App Store untuk akses offline cepat
+            </p>
+          </div>
+          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+            pwaInstalled ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 text-neutral-700'
+          }`}>
+            {pwaInstalled ? '✓ Terpasang (Standalone)' : 'Mode Browser Web'}
+          </span>
+        </div>
+
+        <div className="p-4 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_#000] space-y-3">
+          <div className="flex items-start gap-3">
+            <div className={`p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+              pwaInstalled ? 'bg-[#bbf7d0]' : 'bg-[#FFE066]'
+            }`}>
+              {pwaInstalled ? <CheckCircle2 className="w-5 h-5 text-emerald-800 stroke-[2.5px]" /> : <Smartphone className="w-5 h-5 text-black stroke-[2.5px]" />}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-black uppercase tracking-wider text-black">
+                {pwaInstalled ? 'Norden Berjalan Sebagai Aplikasi Penuh' : 'Pasang di Layar Utama (Home Screen)'}
+              </p>
+              <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+                {pwaInstalled
+                  ? 'Aplikasi berjalan dalam mode standalone layar penuh, terisolasi dari tab peramban dan hemat konsumsi memori.'
+                  : isIos
+                  ? 'Di iPhone/iPad Safari: Ketuk tombol Share ⎋ di bawah, lalu pilih "Tambah ke Layar Utama" (Add to Home Screen).'
+                  : 'Klik tombol di bawah untuk memasang Norden Finance langsung ke beranda Android atau komputer Anda.'}
+              </p>
+            </div>
+          </div>
+
+          {!pwaInstalled && !isIos && (
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={async () => {
+                  triggerHaptic('medium');
+                  const outcome = await promptPwaInstall();
+                  if (outcome === 'accepted') {
+                    setPwaInstalled(true);
+                  }
+                }}
+                className="px-4 py-2 bg-black hover:bg-neutral-800 text-white border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5 stroke-[2.5px]" />
+                <span>Pasang Aplikasi Sekarang</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
