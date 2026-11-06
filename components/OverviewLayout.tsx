@@ -454,9 +454,9 @@ export default function OverviewLayout({
 
       {/* Layout Customizer Panel */}
       {isCustomizing && (
-        <div className="brutal-card p-6 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-3">
-            <h3 className="text-sm font-black uppercase tracking-wider text-black">{t('layout_customize_title')}</h3>
+        <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200 text-black dark:text-white">
+          <div className="flex justify-between items-center mb-6 border-b-2 border-black dark:border-neutral-700 pb-3">
+            <h3 className="text-sm font-black uppercase tracking-wider text-black dark:text-white">{t('layout_customize_title')}</h3>
             <button 
               onClick={handleResetLayout}
               className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
@@ -467,10 +467,10 @@ export default function OverviewLayout({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">Kartu Metrik Utama (Atas)</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">Kartu Metrik Utama (Atas)</h4>
               <div className="space-y-2">
                 {topWidgets.map((widget, index) => (
-                  <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black bg-[#FAF9F5] text-xs font-bold uppercase">
+                  <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 text-xs font-bold uppercase text-black dark:text-white">
                     <span className="flex items-center gap-2">
                       <span className="text-neutral-400 font-mono">#{index + 1}</span>
                       {widget.name}
@@ -478,21 +478,21 @@ export default function OverviewLayout({
                     <div className="flex items-center gap-1.5">
                       <button 
                         onClick={() => handleToggleTopWidget(widget.id)}
-                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'}`}
+                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] text-black' : 'bg-[#fecaca] text-black'}`}
                       >
                         {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
                         disabled={index === 0}
                         onClick={() => handleMoveTopWidget(index, 'up')}
-                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↑
                       </button>
                       <button 
                         disabled={index === topWidgets.length - 1}
                         onClick={() => handleMoveTopWidget(index, 'down')}
-                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↓
                       </button>
@@ -503,14 +503,14 @@ export default function OverviewLayout({
             </div>
             
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 mb-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
                 {lang === 'id' ? 'Widget Konten Dashboard' : 'Dashboard Content Widgets'}
               </h4>
               <div className="space-y-2">
                 {columnWidgets.map((widget, index) => (
-                  <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black bg-[#FAF9F5] text-xs font-bold uppercase">
+                  <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 text-xs font-bold uppercase text-black dark:text-white">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-black text-black">{widget.name}</span>
+                      <span className="font-black text-black dark:text-white">{widget.name}</span>
                       <span className="text-[9px] text-neutral-400 tracking-wider">
                         {lang === 'id' ? 'KOLOM:' : 'COLUMN:'} {widget.column === 'left' ? (lang === 'id' ? 'KIRI' : 'LEFT') : (lang === 'id' ? 'KANAN' : 'RIGHT')}
                       </span>
@@ -518,27 +518,27 @@ export default function OverviewLayout({
                     <div className="flex items-center gap-1.5">
                       <button 
                         onClick={() => handleToggleColumnWidget(widget.id)}
-                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'}`}
+                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] text-black' : 'bg-[#fecaca] text-black'}`}
                       >
                         {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
                         disabled={index === 0}
                         onClick={() => handleMoveColumnWidget(index, 'up')}
-                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↑
                       </button>
                       <button 
                         disabled={index === columnWidgets.length - 1}
                         onClick={() => handleMoveColumnWidget(index, 'down')}
-                        className="px-2 py-1 border border-black bg-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↓
                       </button>
                       <button 
                         onClick={() => handleSwitchColumnWidget(widget.id)}
-                        className="px-2 py-1 border border-black bg-[#bfdbfe]"
+                        className="px-2 py-1 border border-black bg-[#bfdbfe] text-black"
                         title={lang === 'id' ? 'Pindah kolom' : 'Switch column'}
                       >
                         ⇆
@@ -559,7 +559,7 @@ export default function OverviewLayout({
           .map(w => {
             if (w.id === 'total-balance') {
               return (
-                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-black text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
+                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-black dark:bg-neutral-900 text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[3px_3px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-[#bbf7d0] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                       <Wallet className="w-4 h-4 stroke-[2.5px]" /> {lang === 'id' ? 'Total Saldo Dompet' : 'Total Wallet Balance'}
@@ -580,10 +580,10 @@ export default function OverviewLayout({
             }
             if (w.id === 'safe-to-spend') {
               return (
-                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
+                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-[#FAF9F5] dark:bg-neutral-900 text-black dark:text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[3px_3px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Coins className="w-4 h-4 stroke-[2.5px] text-amber-600" /> {lang === 'id' ? 'Aman Dibelanjakan Hari Ini' : 'Safe to Spend Today'}
+                      <Coins className="w-4 h-4 stroke-[2.5px] text-amber-600 dark:text-amber-400" /> {lang === 'id' ? 'Aman Dibelanjakan Hari Ini' : 'Safe to Spend Today'}
                     </p>
                     <h2 className="text-2xl sm:text-3xl font-black truncate text-black dark:text-white">
                       {maskBalance(formatRupiah(safeToSpendDaily))}
@@ -603,12 +603,12 @@ export default function OverviewLayout({
             }
             if (w.id === 'net-worth') {
               return (
-                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-800 text-black dark:text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
+                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[3px_3px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                       <Scale className="w-4 h-4 stroke-[2.5px]" /> {t('card_net_worth')}
                     </p>
-                    <h2 className={`text-2xl sm:text-3xl font-black truncate ${netWorth >= 0 ? 'text-black dark:text-white' : 'text-red-600'}`}>
+                    <h2 className={`text-2xl sm:text-3xl font-black truncate ${netWorth >= 0 ? 'text-black dark:text-white' : 'text-red-600 dark:text-red-400'}`}>
                       {maskBalance(formatRupiah(netWorth))}
                     </h2>
                   </div>

@@ -230,7 +230,7 @@ export default function AppLayout({
   }[activeTab];
 
   return (
-    <div className="flex min-h-screen bg-[#FAF9F5]" style={{ backgroundImage: 'radial-gradient(#d1d1d1 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}>
+    <div className="flex min-h-screen norden-canvas text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black">
       <AppLockScreen userId={user.id} userEmail={user.email} />
       <WelcomeToast userId={user.id} fullName={user.fullName} />
       <GlobalUndoToast />
@@ -331,7 +331,7 @@ export default function AppLayout({
 
               {/* Level and PRO badge (Desktop only) */}
               <div className="hidden sm:flex items-center gap-2">
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] ${levelInfo.color}`}>
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-black ${levelInfo.color}`}>
                   Lvl {levelInfo.level}: {levelInfo.name}
                 </span>
                 {user.effectivePlan === 'PRO_ACTIVE' && (
@@ -388,7 +388,7 @@ export default function AppLayout({
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-md shadow-[1px_1px_0px_0px_#000] ${levelInfo.color}`}>
+              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-md shadow-[1px_1px_0px_0px_#000] text-black ${levelInfo.color}`}>
                 Lvl {levelInfo.level}
               </span>
               {user.effectivePlan === 'PRO_ACTIVE' && (
@@ -446,7 +446,7 @@ export default function AppLayout({
 
           {activeTab === 'history' && (
             <div className="space-y-6">
-              <div className="brutal-card p-4 sm:p-6 bg-white">
+              <div className="brutal-card p-4 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700">
                 <TransactionTable transactions={transactions} balances={balances} />
               </div>
               <FinancialTimeline transactions={transactions} />
@@ -533,7 +533,7 @@ export default function AppLayout({
           )}
 
           {activeTab === 'help' && (
-            <div className="brutal-card p-4 sm:p-6 bg-white">
+            <div className="brutal-card p-4 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700">
               <HelpPage />
             </div>
           )}

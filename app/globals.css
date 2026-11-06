@@ -43,8 +43,20 @@
   }
 
   .dark body {
-    background: #121212;
+    background: #0e0e11;
     color: #f8fafc;
+  }
+
+  .norden-canvas {
+    background-color: #FAF9F5;
+    background-image: radial-gradient(#d4d4d8 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
+
+  .dark .norden-canvas {
+    background-color: #0e0e11;
+    background-image: radial-gradient(#26262b 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
   }
 
   /* Map old slate classes to neutral/black for backwards compatibility if any remain */

@@ -69,7 +69,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
     : null;
 
   return (
-    <aside className="w-64 bg-[#FAF9F5] text-black border-r-[3px] border-black h-screen fixed left-0 top-0 flex flex-col pt-6 pb-6 z-10 select-none">
+    <aside className="w-64 bg-[#FAF9F5] dark:bg-[#121215] text-black dark:text-white border-r-[3px] border-black dark:border-neutral-800 h-screen fixed left-0 top-0 flex flex-col pt-6 pb-6 z-10 select-none">
       {/* Logo */}
       <div className="px-6 mb-8">
         <BrandLogo variant="horizontal" priority className="h-12 w-auto" />
@@ -79,7 +79,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       <div className="px-6 mb-8">
         <button 
           onClick={onNewTransaction}
-          className="w-full border-2 border-black dark:border-neutral-700 font-black uppercase text-xs py-3 shadow-[2.5px_2.5px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all rounded-xl cursor-pointer flex items-center justify-center gap-2"
+          className="w-full border-2 border-black dark:border-neutral-700 font-black uppercase text-xs py-3 shadow-[2.5px_2.5px_0px_0px_#000] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all rounded-xl cursor-pointer flex items-center justify-center gap-2"
           style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
         >
           <Plus className="w-4 h-4 stroke-[3px]" />
@@ -135,7 +135,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       {/* Trial Banner */}
       {user.plan === 'trial' && trialDaysLeft !== null && (
         <div className="px-4 mb-3">
-          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] text-center">
+          <div className="p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.1)] text-center">
             <p className="text-[10px] font-black text-[#FF6B6B] uppercase tracking-wider">Trial</p>
             <p className="text-sm font-black text-black dark:text-white mt-0.5">
               {lang === 'id' ? `${trialDaysLeft} hari tersisa` : `${trialDaysLeft} days left`}
@@ -163,22 +163,22 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
 
       {/* User Profile */}
       <div className="px-4 mt-auto">
-        <div className="p-3 border-2 border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 shadow-[2.5px_2.5px_0px_0px_#000] flex flex-col gap-2">
+        <div className="p-3 border-2 border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-900 shadow-[2.5px_2.5px_0px_0px_#000] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.1)] flex flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg border-2 border-black bg-[#2ECC71] flex items-center justify-center text-black font-black text-xs shrink-0">
+            <div className="w-8 h-8 rounded-lg border-2 border-black dark:border-neutral-600 bg-[#2ECC71] flex items-center justify-center text-black font-black text-xs shrink-0">
               {user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-black dark:text-white truncate leading-tight uppercase tracking-wider">{user.fullName || 'User'}</p>
               <p className="text-[8px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide truncate mt-0.5">Lvl {levelInfo.level}: {levelInfo.name}</p>
-              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border border-black inline-block mt-1 leading-none ${
+              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border border-black dark:border-neutral-700 inline-block mt-1 leading-none ${
                 user.effectivePlan === 'PRO_ACTIVE'
                   ? 'bg-[#FFE066] text-black'
                   : user.effectivePlan === 'PRO_PENDING'
                   ? 'bg-amber-200 text-black'
                   : user.effectivePlan === 'TRIAL'
                   ? 'bg-[#bbf7d0] text-black'
-                  : 'bg-neutral-200 text-neutral-700'
+                  : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200'
               }`}>
                 {user.effectivePlan === 'PRO_ACTIVE'
                   ? 'PRO 👑'
@@ -193,7 +193,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
           <button 
             onClick={handleLogout}
             disabled={isPending}
-            className={`w-full flex items-center justify-center gap-1.5 py-1.5 border-[2px] border-black rounded-none text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 mt-1 cursor-pointer bg-black text-white hover:bg-neutral-800`}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 mt-1 cursor-pointer bg-black text-white hover:bg-neutral-800 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
           >
             <LogOut className="w-3.5 h-3.5 stroke-[2.5px]" />
             {isPending

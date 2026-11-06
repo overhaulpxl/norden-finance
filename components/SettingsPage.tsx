@@ -565,19 +565,19 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] max-w-xl space-y-4">
+        <div className="p-4 sm:p-5 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl max-w-xl space-y-4 text-black dark:text-white">
           <div className="flex items-start gap-3">
-            <div className="p-2 border-[2px] border-black bg-[#FFE066] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+            <div className="p-2 border-2 border-black bg-[#FFE066] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-lg shrink-0">
               <ShieldCheck className="w-5 h-5 text-black stroke-[2.5px]" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-black">
+              <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 Tautan Atur Ulang Terenkripsi
               </p>
-              <p className="text-xs text-neutral-600 font-medium leading-relaxed mt-1">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed mt-1">
                 Demi keamanan akun dan mencegah pembajakan, pembaruan password wajib melalui tautan khusus yang dikirimkan ke email akun Anda:
               </p>
-              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border-[1.5px] border-black text-xs font-black text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 rounded-md text-xs font-black text-black dark:text-white shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                 <Mail className="w-3.5 h-3.5" />
                 <span>{user.email}</span>
               </div>
@@ -648,18 +648,18 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           </div>
         )}
 
-        <div className="p-4 sm:p-5 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] max-w-xl space-y-4">
+        <div className="p-4 sm:p-5 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl max-w-xl space-y-4 text-black dark:text-white">
           <div className="flex items-start gap-3">
-            <div className={`p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+            <div className={`p-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 ${
               pinActive ? 'bg-[#bbf7d0]' : 'bg-[#FFE066]'
             }`}>
               <Lock className="w-5 h-5 text-black stroke-[2.5px]" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-black uppercase tracking-wider text-black">
+              <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 {pinActive ? 'Proteksi 4-Digit PIN Sedang Berjalan' : 'Proteksi Layar Belum Terpasang'}
               </p>
-              <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {pinActive
                   ? 'Aplikasi akan otomatis meminta PIN 4-digit setiap kali dibuka atau kembali dari latar belakang (background).'
                   : 'Aktifkan PIN untuk mencegah orang lain melihat saldo dan mutasi rekening saat meminjam ponsel Anda.'}
@@ -1055,20 +1055,20 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             href="https://wa.me/6287882924651?text=Halo%20Norden%20Finance,%20saya%20butuh%20bantuan%20terkait%20akun%20atau%20kendala%20aplikasi."
             target="_blank"
             rel="noopener noreferrer"
-            className="p-4 border-[2px] border-black bg-[#FAF9F5] hover:bg-[#bbf7d0] transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 group"
+            className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 hover:bg-[#bbf7d0] dark:hover:bg-neutral-700 transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl flex items-start gap-3 group text-black dark:text-white"
           >
-            <div className="p-2 border-[1.5px] border-black bg-[#2ECC71] text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
+            <div className="p-2 border-2 border-black bg-[#2ECC71] text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] rounded-lg shrink-0">
               <MessageCircle className="w-5 h-5 text-black stroke-[2.5px]" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black">
+              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black dark:text-white">
                 <span>WhatsApp Admin Resmi</span>
-                <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black" />
+                <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black dark:group-hover:text-white" />
               </div>
-              <p className="text-xs text-neutral-600 font-bold mt-1">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold mt-1">
                 Respon cepat Senin - Minggu (08.00 - 21.00 WIB)
               </p>
-              <span className="text-[11px] font-mono font-black text-neutral-800 underline mt-1.5 block">
+              <span className="text-[11px] font-mono font-black text-neutral-800 dark:text-neutral-200 underline mt-1.5 block">
                 +62 878-8292-4651
               </span>
             </div>
@@ -1076,20 +1076,20 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
           <a
             href="mailto:support@nordenfinance.site?subject=Bantuan%20Akun%20Norden%20Finance"
-            className="p-4 border-[2px] border-black bg-[#FAF9F5] hover:bg-[#bfdbfe] transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 group"
+            className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 hover:bg-[#bfdbfe] dark:hover:bg-neutral-700 transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl flex items-start gap-3 group text-black dark:text-white"
           >
-            <div className="p-2 border-[1.5px] border-black bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0">
+            <div className="p-2 border-2 border-black bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] rounded-lg shrink-0">
               <Mail className="w-5 h-5 text-black stroke-[2.5px]" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black">
+              <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black dark:text-white">
                 <span>Email Dukungan Resmi</span>
-                <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black" />
+                <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black dark:group-hover:text-white" />
               </div>
-              <p className="text-xs text-neutral-600 font-bold mt-1">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold mt-1">
                 Untuk pertanyaan teknis, kendala data, dan verifikasi akun
               </p>
-              <span className="text-[11px] font-mono font-black text-neutral-800 underline mt-1.5 block">
+              <span className="text-[11px] font-mono font-black text-neutral-800 dark:text-neutral-200 underline mt-1.5 block">
                 support@nordenfinance.site
               </span>
             </div>
@@ -1098,24 +1098,24 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       </div>
 
       {/* Status Aplikasi PWA & Pemasangan */}
-      <div className="brutal-card p-6 bg-white select-none">
-        <div className="flex justify-between items-start mb-4 border-b-[3px] border-black pb-3">
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white rounded-2xl shadow-[4px_4px_0px_0px_#000]">
+        <div className="flex justify-between items-start mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
           <div>
-            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-black stroke-[2.5px]" /> Mode Aplikasi Mobile (PWA)
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Mode Aplikasi Mobile (PWA)
             </h3>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
               Pasang aplikasi langsung ke layar utama HP tanpa App Store untuk akses offline cepat
             </p>
           </div>
-          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
-            pwaInstalled ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 text-neutral-700'
+          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+            pwaInstalled ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
           }`}>
             {pwaInstalled ? '✓ Terpasang (Standalone)' : 'Mode Browser Web'}
           </span>
         </div>
 
-        <div className="p-4 border-[2px] border-black bg-[#FAF9F5] shadow-[3px_3px_0px_0px_#000] space-y-3">
+        <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-3 text-black dark:text-white">
           <div className="flex items-start gap-3">
             <div className={`p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
               pwaInstalled ? 'bg-[#bbf7d0]' : 'bg-[#FFE066]'

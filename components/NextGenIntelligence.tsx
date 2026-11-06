@@ -643,7 +643,7 @@ export default function NextGenIntelligence({
                 <SmallMetric label="Tagihan rutin" value={formatRupiah(analysis.upcomingSubscriptions)} tone="bg-[#bfdbfe]" />
                 <SmallMetric label="Cicilan paylater" value={formatRupiah(analysis.upcomingPaylater)} tone="bg-[#fef08a]" />
               </div>
-              <div className="mt-4 border-[2px] border-black bg-[#FAF9F5] p-3 text-xs font-bold text-neutral-700">
+              <div className="mt-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-3 text-xs font-bold text-neutral-700 dark:text-neutral-300 rounded-xl">
                 Prediksi dihitung dari saldo aktif, rata-rata harian, tagihan subscription, dan cicilan paylater yang belum lunas.
               </div>
             </div>
@@ -848,12 +848,12 @@ export default function NextGenIntelligence({
                     <SmallMetric label="Total pemasukan" value={formatRupiah(analysis.replayMonth.income)} tone="bg-[#bfdbfe]" />
                     <SmallMetric label="Total pengeluaran" value={formatRupiah(analysis.replayMonth.expense)} tone="bg-[#fecaca]" />
                   </div>
-                  <div className="border-[2px] border-black bg-[#FAF9F5] p-3">
-                    <p className="text-xs font-black uppercase tracking-wider text-black">Sorotan</p>
-                    <p className="mt-1 text-xs font-bold text-neutral-700">
+                  <div className="border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-3 rounded-xl text-black dark:text-white">
+                    <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Sorotan</p>
+                    <p className="mt-1 text-xs font-bold text-neutral-700 dark:text-neutral-300">
                       Transaksi terbesar: {analysis.largestTransaction ? `${analysis.largestTransaction.note || analysis.largestTransaction.category?.name || 'Transaksi'} (${formatRupiah(analysis.largestTransaction.amount)})` : 'Belum ada'}.
                     </p>
-                    <p className="mt-1 text-xs font-bold text-neutral-700">
+                    <p className="mt-1 text-xs font-bold text-neutral-700 dark:text-neutral-300">
                       Bulan terbaik: {analysis.bestMonth ? `${analysis.bestMonth.label}, surplus ${formatRupiah(analysis.bestMonth.net)}` : 'Belum ada'}.
                     </p>
                   </div>
