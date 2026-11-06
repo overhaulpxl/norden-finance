@@ -37,9 +37,9 @@ export default function WalletSelect({
       required={required}
       disabled={isDisabled}
     >
-      <option value="">{isDisabled ? 'Tambah wallet dulu' : placeholder}</option>
+      <option value="" className="bg-white dark:bg-neutral-800 text-black dark:text-white">{isDisabled ? 'Tambah wallet dulu' : placeholder}</option>
       {activeWallets.map((wallet) => (
-        <option key={wallet.id} value={wallet.name}>
+        <option key={wallet.id} value={wallet.name} className="bg-white dark:bg-neutral-800 text-black dark:text-white">
           {formatMethodName(wallet.name)}
         </option>
       ))}

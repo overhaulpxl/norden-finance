@@ -12,12 +12,12 @@ import { getCategoryEmoji } from '../lib/categoryEmoji';
 
 function WidgetSkeleton({ className = '' }: { className?: string }) {
   return (
-    <div className={`brutal-card bg-white border-[3px] border-black p-6 ${className}`}>
-      <div className="h-4 w-36 bg-neutral-200 border-2 border-black animate-pulse" />
+    <div className={`brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-6 ${className}`}>
+      <div className="h-4 w-36 bg-neutral-200 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 animate-pulse" />
       <div className="mt-5 grid grid-cols-3 gap-3">
-        <div className="h-16 bg-neutral-100 border-2 border-neutral-200 animate-pulse" />
-        <div className="h-16 bg-neutral-100 border-2 border-neutral-200 animate-pulse" />
-        <div className="h-16 bg-neutral-100 border-2 border-neutral-200 animate-pulse" />
+        <div className="h-16 bg-neutral-100 dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 animate-pulse" />
+        <div className="h-16 bg-neutral-100 dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 animate-pulse" />
+        <div className="h-16 bg-neutral-100 dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 animate-pulse" />
       </div>
     </div>
   );

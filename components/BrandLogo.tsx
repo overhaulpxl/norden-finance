@@ -4,9 +4,10 @@ type BrandLogoProps = {
   variant?: 'icon' | 'horizontal';
   className?: string;
   priority?: boolean;
+  theme?: 'auto' | 'light' | 'dark';
 };
 
-export default function BrandLogo({ variant = 'horizontal', className = '', priority = false }: BrandLogoProps) {
+export default function BrandLogo({ variant = 'horizontal', className = '', priority = false, theme = 'auto' }: BrandLogoProps) {
   const isIcon = variant === 'icon';
 
   if (isIcon) {
@@ -16,6 +17,34 @@ export default function BrandLogo({ variant = 'horizontal', className = '', prio
         alt="Norden Finance"
         width={697}
         height={697}
+        priority={priority}
+        unoptimized
+        className={`object-contain ${className}`}
+      />
+    );
+  }
+
+  if (theme === 'light') {
+    return (
+      <Image
+        src="/brand/norden-horizontal.png?v=5"
+        alt="Norden Finance logo"
+        width={523}
+        height={191}
+        priority={priority}
+        unoptimized
+        className={`object-contain ${className}`}
+      />
+    );
+  }
+
+  if (theme === 'dark') {
+    return (
+      <Image
+        src="/brand/norden-horizontal-dark.png?v=5"
+        alt="Norden Finance logo"
+        width={523}
+        height={191}
         priority={priority}
         unoptimized
         className={`object-contain ${className}`}

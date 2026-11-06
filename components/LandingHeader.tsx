@@ -69,7 +69,7 @@ export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps
     <header className="sticky top-4 z-50 px-4 sm:px-6 max-w-7xl mx-auto pointer-events-none select-none">
       <div className="relative bg-white/95 backdrop-blur-md border-[3px] border-black px-4 sm:px-6 py-3.5 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between rounded-none pointer-events-auto">
         <Link href="#home" onClick={(event) => handleSectionClick(event, '#home')} aria-label="Norden Finance home">
-          <BrandLogo variant="horizontal" priority className="h-10 sm:h-11 w-auto hover-wiggle" />
+          <BrandLogo variant="horizontal" priority theme="light" className="h-10 sm:h-11 w-auto hover-wiggle" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 lg:gap-10 font-black text-xs text-black uppercase tracking-wider">

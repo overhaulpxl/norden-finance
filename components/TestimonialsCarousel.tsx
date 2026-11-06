@@ -24,25 +24,25 @@ function TestimonialCard({
   expanded: boolean;
 }) {
   return (
-    <div className="brutal-card p-6 bg-white border-[3px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between min-h-[260px]">
+    <div className="brutal-card p-6 bg-white dark:bg-neutral-900 text-black dark:text-white border-2 border-black dark:border-neutral-700 rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between min-h-[260px]">
       <div>
         <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]" aria-label={`${testimonial.rating} dari 5 bintang`}>
           {Array.from({ length: 5 }).map((_, index) => (
             <Star
               key={index}
               className={`w-4 h-4 stroke-black stroke-[2px] star-spin-hover ${
-                index < testimonial.rating ? 'fill-current' : 'fill-white text-neutral-300'
+                index < testimonial.rating ? 'fill-current' : 'fill-white dark:fill-neutral-800 text-neutral-300 dark:text-neutral-600'
               }`}
             />
           ))}
         </div>
-        <p className={`text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed mb-6 ${expanded ? '' : 'line-clamp-5'}`}>
+        <p className={`text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 font-bold leading-relaxed mb-6 ${expanded ? '' : 'line-clamp-5'}`}>
           &quot;{testimonial.message}&quot;
         </p>
       </div>
-      <div className="border-t-[2px] border-black pt-4">
-        <p className="font-black text-xs text-black uppercase">{testimonial.name}</p>
-        <p className="text-[10px] font-bold text-neutral-500 uppercase">{testimonial.label}</p>
+      <div className="border-t-2 border-black dark:border-neutral-700 pt-4">
+        <p className="font-black text-xs text-black dark:text-white uppercase">{testimonial.name}</p>
+        <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase">{testimonial.label}</p>
       </div>
     </div>
   );
@@ -173,7 +173,7 @@ export default function TestimonialsCarousel({
             <button
               type="button"
               onClick={goPrevious}
-              className="h-11 w-11 inline-flex items-center justify-center bg-white border-[3px] border-black text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFE066] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
+              className="h-11 w-11 inline-flex items-center justify-center bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 text-black dark:text-white shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFE066] dark:hover:bg-neutral-750 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
               aria-label="Testimoni sebelumnya"
             >
               <ArrowLeft className="w-4 h-4 stroke-[3px]" />
@@ -181,7 +181,7 @@ export default function TestimonialsCarousel({
             <button
               type="button"
               onClick={goNext}
-              className="h-11 w-11 inline-flex items-center justify-center bg-white border-[3px] border-black text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFE066] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
+              className="h-11 w-11 inline-flex items-center justify-center bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 text-black dark:text-white shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFE066] dark:hover:bg-neutral-750 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
               aria-label="Testimoni berikutnya"
             >
               <ArrowRight className="w-4 h-4 stroke-[3px]" />

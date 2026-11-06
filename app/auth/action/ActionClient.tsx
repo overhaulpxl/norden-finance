@@ -174,7 +174,7 @@ export default function ActionClient() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FAF9F5] p-4 text-black selection:bg-black selection:text-[#FFE066] select-none">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden norden-canvas p-4 py-12 text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black select-none">
       <style>{`
         .bg-paper-dots {
           background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
@@ -194,15 +194,15 @@ export default function ActionClient() {
         {/* CASE 1: Missing or Unknown Mode                                 */}
         {/* ------------------------------------------------------------- */}
         {(!mode || !oobCode || !['verifyEmail', 'resetPassword', 'recoverEmail'].includes(mode)) && (
-          <section className="brutal-card border-[3px] border-black bg-white p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
-            <div className="mb-4 inline-flex border-[2.5px] border-black bg-red-100 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-              <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700" />
+          <section className="brutal-card border-[3px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center text-black dark:text-white">
+            <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+              <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700 dark:text-red-300" />
             </div>
 
-            <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+            <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
               {!mode || !oobCode ? 'Tautan Tidak Lengkap' : 'Aksi Tidak Dikenal'}
             </h1>
-            <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+            <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
               {!mode || !oobCode
                 ? 'Tautan autentikasi ini tidak memiliki parameter aksi yang valid. Pastikan Anda membuka tautan lengkap dari email Anda.'
                 : `Aksi autentikasi "${mode}" tidak didukung oleh sistem.`}
@@ -217,7 +217,7 @@ export default function ActionClient() {
               </Link>
               <Link
                 href="/"
-                className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+                className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-750 hover:translate-x-[1px] hover:translate-y-[1px]"
               >
                 <Home className="w-4 h-4" /> Ke Beranda
               </Link>
@@ -229,16 +229,16 @@ export default function ActionClient() {
         {/* CASE 2: Mode = verifyEmail                                      */}
         {/* ------------------------------------------------------------- */}
         {mode === 'verifyEmail' && oobCode && (
-          <section className="brutal-card border-[3px] border-black bg-white p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
+          <section className="brutal-card border-[3px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center text-black dark:text-white">
             {verifyStatus === 'verifying' && (
               <>
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
                   <Loader2 className="h-8 w-8 stroke-[3px] text-black animate-spin" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Memverifikasi Email...
                 </h1>
-                <p className="text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   Mohon tunggu sebentar, kami sedang memvalidasi akun Anda.
                 </p>
               </>
@@ -246,13 +246,13 @@ export default function ActionClient() {
 
             {verifyStatus === 'success' && (
               <>
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#bbf7d0] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-                  <CheckCircle2 className="h-8 w-8 stroke-[3px] text-emerald-950" />
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                  <CheckCircle2 className="h-8 w-8 stroke-[3px] text-emerald-950 dark:text-emerald-300" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Email Berhasil Diverifikasi
                 </h1>
-                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   Alamat email akun Norden Finance Anda telah terverifikasi. Seluruh fitur pencatatan dan pengelolaan keuangan siap digunakan.
                 </p>
                 <div className="space-y-3">
@@ -264,7 +264,7 @@ export default function ActionClient() {
                   </Link>
                   <Link
                     href="/login"
-                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-750 hover:translate-x-[1px] hover:translate-y-[1px]"
                   >
                     <LogIn className="w-4 h-4" /> Halaman Masuk
                   </Link>
@@ -274,13 +274,13 @@ export default function ActionClient() {
 
             {verifyStatus === 'error' && (
               <>
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-red-100 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-                  <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700" />
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                  <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700 dark:text-red-300" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Verifikasi Gagal
                 </h1>
-                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {verifyError || 'Tautan verifikasi email tidak valid atau telah kadaluarsa.'}
                 </p>
                 <div className="space-y-3">
@@ -292,7 +292,7 @@ export default function ActionClient() {
                   </Link>
                   <Link
                     href="/login"
-                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-750 hover:translate-x-[1px] hover:translate-y-[1px]"
                   >
                     <LogIn className="w-4 h-4" /> Kembali ke Halaman Masuk
                   </Link>
@@ -306,16 +306,16 @@ export default function ActionClient() {
         {/* CASE 3: Mode = resetPassword                                    */}
         {/* ------------------------------------------------------------- */}
         {mode === 'resetPassword' && oobCode && (
-          <section className="brutal-card border-[3px] border-black bg-white p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <section className="brutal-card border-[3px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black dark:text-white">
             {resetStep === 'verifying_code' && (
               <div className="text-center">
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
                   <Loader2 className="h-8 w-8 stroke-[3px] text-black animate-spin" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Memvalidasi Tautan...
                 </h1>
-                <p className="text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   Sedang memeriksa kode pemulihan kata sandi Anda.
                 </p>
               </div>
@@ -323,20 +323,20 @@ export default function ActionClient() {
 
             {(resetStep === 'ready' || resetStep === 'submitting') && (
               <div>
-                <div className="border-b-[2.5px] border-black pb-3 mb-5">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border-[2px] border-black bg-[#FFE066] text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-2">
+                <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border-[2px] border-black bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-2">
                     <KeyRound className="w-3.5 h-3.5" /> Pemulihan Akun
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-black text-black uppercase tracking-wider">
+                  <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
                     Atur Ulang Kata Sandi
                   </h1>
-                  <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-0.5">
+                  <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
                     {accountEmail ? `Untuk akun: ${accountEmail}` : 'Masukkan kata sandi baru untuk akun Anda'}
                   </p>
                 </div>
 
                 {formError && (
-                  <div className="mb-5 p-3.5 bg-red-100 border-[2px] border-black text-red-800 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+                  <div className="mb-5 p-3.5 bg-red-100 dark:bg-red-950/70 border-[2px] border-black dark:border-neutral-700 text-red-800 dark:text-red-200 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
                     {formError}
                   </div>
                 )}
@@ -345,7 +345,7 @@ export default function ActionClient() {
                   <div>
                     <label
                       htmlFor="action-new-password"
-                      className="block text-xs font-black text-black uppercase tracking-wider mb-1.5"
+                      className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5"
                     >
                       Kata Sandi Baru
                     </label>
@@ -358,12 +358,12 @@ export default function ActionClient() {
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Minimal 8 karakter"
                         autoComplete="new-password"
-                        className="w-full brutal-input px-3 py-2.5 pr-10 text-xs font-bold"
+                        className="w-full brutal-input px-3 py-2.5 pr-10 text-xs font-bold bg-white dark:bg-neutral-800 text-black dark:text-white border-2 border-black dark:border-neutral-700"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-black cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer"
                         aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -374,7 +374,7 @@ export default function ActionClient() {
                   <div>
                     <label
                       htmlFor="action-confirm-password"
-                      className="block text-xs font-black text-black uppercase tracking-wider mb-1.5"
+                      className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5"
                     >
                       Konfirmasi Kata Sandi Baru
                     </label>
@@ -386,7 +386,7 @@ export default function ActionClient() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Ketik ulang kata sandi baru"
                       autoComplete="new-password"
-                      className="w-full brutal-input px-3 py-2.5 text-xs font-bold"
+                      className="w-full brutal-input px-3 py-2.5 text-xs font-bold bg-white dark:bg-neutral-800 text-black dark:text-white border-2 border-black dark:border-neutral-700"
                     />
                   </div>
 
@@ -409,13 +409,13 @@ export default function ActionClient() {
 
             {resetStep === 'success' && (
               <div className="text-center">
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#bbf7d0] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-                  <CheckCircle2 className="h-8 w-8 stroke-[3px] text-emerald-950" />
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                  <CheckCircle2 className="h-8 w-8 stroke-[3px] text-emerald-950 dark:text-emerald-300" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Kata Sandi Diperbarui
                 </h1>
-                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   Kata sandi baru Anda telah aktif. Silakan masuk menggunakan kredensial baru Anda.
                 </p>
                 <div className="space-y-3">
@@ -431,13 +431,13 @@ export default function ActionClient() {
 
             {resetStep === 'error' && (
               <div className="text-center">
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-red-100 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-                  <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700" />
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                  <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700 dark:text-red-300" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Tautan Reset Tidak Valid
                 </h1>
-                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {resetError || 'Tautan atur ulang kata sandi ini tidak valid atau telah kadaluarsa.'}
                 </p>
                 <div className="space-y-3">
@@ -449,7 +449,7 @@ export default function ActionClient() {
                   </Link>
                   <Link
                     href="/login"
-                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-750 hover:translate-x-[1px] hover:translate-y-[1px]"
                   >
                     <LogIn className="w-4 h-4" /> Kembali ke Halaman Masuk
                   </Link>
@@ -463,16 +463,16 @@ export default function ActionClient() {
         {/* CASE 4: Mode = recoverEmail                                    */}
         {/* ------------------------------------------------------------- */}
         {mode === 'recoverEmail' && oobCode && (
-          <section className="brutal-card border-[3px] border-black bg-white p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
+          <section className="brutal-card border-[3px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center text-black dark:text-white">
             {recoverStatus === 'recovering' && (
               <>
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
                   <Loader2 className="h-8 w-8 stroke-[3px] text-black animate-spin" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Memulihkan Alamat Email...
                 </h1>
-                <p className="text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   Sedang mengembalikan alamat email asli akun Anda.
                 </p>
               </>
@@ -480,28 +480,28 @@ export default function ActionClient() {
 
             {recoverStatus === 'success' && (
               <>
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#bfdbfe] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-                  <ShieldCheck className="h-8 w-8 stroke-[3px] text-black" />
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#bfdbfe] dark:bg-blue-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                  <ShieldCheck className="h-8 w-8 stroke-[3px] text-black dark:text-blue-300" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Email Asli Dipulihkan
                 </h1>
-                <p className="mb-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="mb-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   Alamat email akun Norden Finance Anda telah berhasil dikembalikan ke:{' '}
-                  <span className="text-black font-black underline">{restoredEmail || 'email awal'}</span>.
+                  <span className="text-black dark:text-white font-black underline">{restoredEmail || 'email awal'}</span>.
                 </p>
 
-                <div className="mb-6 border-[2px] border-black bg-amber-50 p-3.5 text-left shadow-[2px_2px_0px_0px_#000]">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-amber-900 mb-1 flex items-center gap-1.5">
+                <div className="mb-6 border-[2px] border-black dark:border-neutral-700 bg-amber-50 dark:bg-amber-950/70 p-3.5 text-left shadow-[2px_2px_0px_0px_#000]">
+                  <p className="text-[11px] font-black uppercase tracking-wider text-amber-900 dark:text-amber-200 mb-1 flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5" /> Pemberitahuan Keamanan
                   </p>
-                  <p className="text-xs font-bold text-amber-950 leading-relaxed">
+                  <p className="text-xs font-bold text-amber-950 dark:text-amber-300 leading-relaxed">
                     Jika Anda tidak pernah meminta perubahan email sebelumnya, akun Anda kemungkinan diakses pihak lain. Sangat disarankan untuk segera mereset kata sandi Anda.
                   </p>
                 </div>
 
                 {passwordResetSent ? (
-                  <div className="mb-5 p-3.5 bg-[#bbf7d0] border-[2px] border-black text-emerald-950 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+                  <div className="mb-5 p-3.5 bg-[#bbf7d0] dark:bg-emerald-950/70 border-[2px] border-black dark:border-neutral-700 text-emerald-950 dark:text-emerald-200 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
                     Tautan atur ulang kata sandi telah dikirimkan ke email Anda.
                   </div>
                 ) : (
@@ -524,7 +524,7 @@ export default function ActionClient() {
                     </button>
                     <Link
                       href="/login"
-                      className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+                      className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-750 hover:translate-x-[1px] hover:translate-y-[1px]"
                     >
                       <LogIn className="w-4 h-4" /> Masuk ke Akun
                     </Link>
@@ -535,13 +535,13 @@ export default function ActionClient() {
 
             {recoverStatus === 'error' && (
               <>
-                <div className="mb-4 inline-flex border-[2.5px] border-black bg-red-100 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-                  <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700" />
+                <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/70 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+                  <AlertTriangle className="h-8 w-8 stroke-[3px] text-red-700 dark:text-red-300" />
                 </div>
-                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+                <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
                   Pemulihan Email Gagal
                 </h1>
-                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+                <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {recoverError || 'Tautan pemulihan email ini tidak valid atau telah kadaluarsa.'}
                 </p>
                 <div className="space-y-3">
@@ -553,7 +553,7 @@ export default function ActionClient() {
                   </Link>
                   <Link
                     href="/"
-                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+                    className="flex items-center justify-center gap-2 w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-750 hover:translate-x-[1px] hover:translate-y-[1px]"
                   >
                     <Home className="w-4 h-4" /> Kembali ke Beranda
                   </Link>

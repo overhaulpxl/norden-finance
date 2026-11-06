@@ -106,24 +106,24 @@ export default function MomentumCenter({
 
   if (!mounted || !referenceDate) {
     return (
-      <section className="brutal-card bg-white p-6 select-none animate-pulse">
-        <div className="mb-6 flex items-start justify-between gap-4 border-b-[3px] border-black pb-4">
+      <section className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-6 select-none animate-pulse text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+        <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black dark:border-neutral-700 pb-4">
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black">
+            <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black dark:text-white">
               <Flame className="h-5 w-5 stroke-[3px]" />
               {t('momentum_title')}
             </h3>
-            <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500">
+            <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               {t('momentum_subtitle')}
             </p>
           </div>
         </div>
         <div className="mb-5 grid grid-cols-2 gap-3">
-          <div className="h-20 border-[2px] border-black bg-neutral-100"></div>
-          <div className="h-20 border-[2px] border-black bg-neutral-100"></div>
+          <div className="h-20 border-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800"></div>
+          <div className="h-20 border-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800"></div>
         </div>
-        <div className="mb-5 h-40 border-[2px] border-black bg-neutral-100"></div>
-        <div className="h-40 border-[2px] border-black bg-neutral-100"></div>
+        <div className="mb-5 h-40 border-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800"></div>
+        <div className="h-40 border-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800"></div>
       </section>
     );
   }
@@ -242,55 +242,55 @@ export default function MomentumCenter({
   }
 
   return (
-    <section className="brutal-card bg-white p-6 select-none">
-      <div className="mb-6 flex items-start justify-between gap-4 border-b-[3px] border-black pb-4">
+    <section className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-6 select-none text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+      <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black dark:border-neutral-700 pb-4">
         <div>
-          <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black">
+          <h3 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-black dark:text-white">
             <Flame className="h-5 w-5 stroke-[3px]" />
             {t('momentum_title')}
           </h3>
-          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500">
+          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
             {t('momentum_subtitle')}
           </p>
         </div>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3">
-        <div className="border-[2px] border-black bg-[#fef08a] p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black">
+        <div className="border-2 border-black dark:border-neutral-700 bg-[#fef08a] dark:bg-amber-950/70 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black dark:text-amber-200">
+          <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black dark:text-amber-300">
             <CalendarCheck2 className="h-3.5 w-3.5" />
             {t('momentum_current')}
           </p>
-          <p className="mt-1 text-2xl font-black text-black">{streaks.current}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">{t('momentum_streak_label')}</p>
+          <p className="mt-1 text-2xl font-black text-black dark:text-white">{streaks.current}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">{t('momentum_streak_label')}</p>
         </div>
-        <div className="border-[2px] border-black bg-[#bbf7d0] p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black">
+        <div className="border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/70 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black dark:text-emerald-200">
+          <p className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-black dark:text-emerald-300">
             <Trophy className="h-3.5 w-3.5" />
             {t('momentum_best')}
           </p>
-          <p className="mt-1 text-2xl font-black text-black">{streaks.best}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">{t('momentum_best_label')}</p>
+          <p className="mt-1 text-2xl font-black text-black dark:text-white">{streaks.best}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">{t('momentum_best_label')}</p>
         </div>
       </div>
 
       <div className="mb-5">
-        <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-black">Achievements</h4>
+        <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-black dark:text-white">Achievements</h4>
         <div className="space-y-2">
           {achievements.map((achievement) => (
-            <div key={achievement.label} className="flex items-center justify-between gap-3 border-[2px] border-black bg-white p-3">
+            <div key={achievement.label} className="flex items-center justify-between gap-3 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 shadow-[1.5px_1.5px_0px_0px_#000]">
               <div className="flex min-w-0 items-center gap-2">
-                <CheckCircle2 className={`h-4 w-4 flex-shrink-0 stroke-[3px] ${achievement.complete ? 'text-emerald-700' : 'text-neutral-300'}`} />
-                <span className="truncate text-[11px] font-black uppercase tracking-wider text-black">{achievement.label}</span>
+                <CheckCircle2 className={`h-4 w-4 flex-shrink-0 stroke-[3px] ${achievement.complete ? 'text-emerald-700 dark:text-emerald-400' : 'text-neutral-300 dark:text-neutral-600'}`} />
+                <span className="truncate text-[11px] font-black uppercase tracking-wider text-black dark:text-white">{achievement.label}</span>
               </div>
-              <span className="flex-shrink-0 text-[10px] font-black uppercase tracking-widest text-neutral-500">{achievement.detail}</span>
+              <span className="flex-shrink-0 text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">{achievement.detail}</span>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <h4 className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-black">
+        <h4 className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-black dark:text-white">
           <BellRing className="h-4 w-4 stroke-[3px]" />
           Smart Reminders
         </h4>
@@ -298,12 +298,16 @@ export default function MomentumCenter({
           {reminders.slice(0, 5).map((reminder) => (
             <div
               key={`${reminder.title}-${reminder.detail}`}
-              className={`border-[2px] border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                reminder.tone === 'warning' ? 'bg-[#fecaca]' : reminder.tone === 'success' ? 'bg-[#bbf7d0]' : 'bg-[#dbeafe]'
+              className={`border-2 border-black dark:border-neutral-700 p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                reminder.tone === 'warning'
+                  ? 'bg-[#fecaca] dark:bg-red-950/70 text-black dark:text-red-200'
+                  : reminder.tone === 'success'
+                  ? 'bg-[#bbf7d0] dark:bg-emerald-950/70 text-black dark:text-emerald-200'
+                  : 'bg-[#dbeafe] dark:bg-blue-950/70 text-black dark:text-blue-200'
               }`}
             >
-              <p className="text-[11px] font-black uppercase tracking-wider text-black">{reminder.title}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-neutral-700">{reminder.detail}</p>
+              <p className="text-[11px] font-black uppercase tracking-wider">{reminder.title}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wide opacity-80">{reminder.detail}</p>
             </div>
           ))}
         </div>

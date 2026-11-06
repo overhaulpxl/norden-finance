@@ -25,14 +25,14 @@ function EndpointBox({
 }) {
   return (
     <div className="mt-3 space-y-3">
-      <div className="min-h-20 border-[2px] border-black bg-black p-3 font-mono text-[11px] font-bold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] break-all">
+      <div className="min-h-20 border-2 border-black dark:border-neutral-700 bg-black dark:bg-neutral-950 p-3 font-mono text-[11px] font-bold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] break-all">
         {endpoint}
       </div>
       <button
         type="button"
         disabled={disabled}
         onClick={onCopy}
-        className="inline-flex min-h-10 items-center gap-2 border-[2px] border-black bg-[#FFE066] px-3 py-2 text-xs font-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex min-h-10 items-center gap-2 border-2 border-black dark:border-neutral-700 bg-[#FFE066] px-3 py-2 text-xs font-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         {copied ? 'Tersalin' : 'Salin URL'}
@@ -61,16 +61,16 @@ function GuideCard({
   onCopy: () => void;
 }) {
   return (
-    <section className="border-[3px] border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:p-6">
-      <div className="mb-5 flex items-center gap-4 border-b-[3px] border-black pb-4">
-        <div className="border-[2px] border-black bg-[#f3f4f6] p-2.5 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+    <section className="border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-black dark:text-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:p-6">
+      <div className="mb-5 flex items-center gap-4 border-b-2 border-black dark:border-neutral-700 pb-4">
+        <div className="border-2 border-black dark:border-neutral-700 bg-[#f3f4f6] dark:bg-neutral-800 p-2.5 text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           {icon}
         </div>
-        <h3 className="text-base font-black uppercase tracking-wider text-black">{title}</h3>
+        <h3 className="text-base font-black uppercase tracking-wider text-black dark:text-white">{title}</h3>
       </div>
 
       {description && (
-        <p className="mb-5 border-[2px] border-black bg-[#f3f4f6] p-4 text-sm font-bold leading-relaxed text-neutral-700">
+        <p className="mb-5 border-2 border-black dark:border-neutral-700 bg-[#f3f4f6] dark:bg-neutral-800 p-4 text-sm font-bold leading-relaxed text-neutral-700 dark:text-neutral-300">
           {description}
         </p>
       )}
@@ -78,12 +78,12 @@ function GuideCard({
       <ol className="space-y-5">
         {steps.map((step, index) => (
           <li key={step.title} className="flex gap-4">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center border-[2px] border-black bg-black text-xs font-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-black dark:border-neutral-700 bg-black dark:bg-neutral-800 text-xs font-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {index + 1}
             </span>
             <div className="min-w-0 flex-1 pt-1">
-              <p className="text-sm font-black text-black">{step.title}</p>
-              <div className="mt-1 text-sm font-semibold leading-relaxed text-neutral-700">{step.body}</div>
+              <p className="text-sm font-black text-black dark:text-white">{step.title}</p>
+              <div className="mt-1 text-sm font-semibold leading-relaxed text-neutral-700 dark:text-neutral-300">{step.body}</div>
               {step.title === 'Masukkan endpoint Norden' && (
                 <EndpointBox endpoint={endpoint} copied={copied} disabled={copyDisabled} onCopy={onCopy} />
               )}
@@ -212,8 +212,8 @@ export default function Integrations() {
     <div className="max-w-7xl select-none space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="mb-2 text-2xl font-black uppercase tracking-wider text-black">Integrasi Mobile Shortcuts & NFC</h2>
-          <p className="max-w-2xl text-sm font-bold leading-relaxed text-neutral-600">
+          <h2 className="mb-2 text-2xl font-black uppercase tracking-wider text-black dark:text-white">Integrasi Mobile Shortcuts & NFC</h2>
+          <p className="max-w-2xl text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
             Catat transaksi dari Siri, widget Android, atau stiker NFC. Endpoint di halaman ini sudah memakai token pribadi, sehingga bisa dipakai dari shortcut mobile tanpa cookie browser.
           </p>
         </div>
@@ -221,22 +221,22 @@ export default function Integrations() {
           type="button"
           onClick={resetToken}
           disabled={isPending || isLoading}
-          className="inline-flex min-h-11 items-center justify-center gap-2 border-[3px] border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-[#FFE066] disabled:cursor-not-allowed disabled:opacity-50 lg:self-start"
+          className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-2 text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-[#FFE066] dark:hover:bg-neutral-750 disabled:cursor-not-allowed disabled:opacity-50 lg:self-start cursor-pointer"
         >
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
           Reset Token
         </button>
       </div>
 
-      <div className="border-[3px] border-black bg-[#bbf7d0] p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black dark:text-emerald-200">
         <div className="flex items-start gap-3">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-black" />
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-black dark:text-emerald-300" />
           <div className="min-w-0">
-            <p className="text-sm font-black text-black">Endpoint pribadi aktif</p>
-            <p className="mt-1 text-sm font-semibold leading-relaxed text-emerald-950">
+            <p className="text-sm font-black text-black dark:text-emerald-100">Endpoint pribadi aktif</p>
+            <p className="mt-1 text-sm font-semibold leading-relaxed text-emerald-950 dark:text-emerald-200">
               Gunakan URL ini hanya di perangkat Anda. Reset token akan membuat semua shortcut lama tidak bisa dipakai sampai URL baru dipasang.
             </p>
-            <div className="mt-3 flex items-center gap-2 text-xs font-bold text-emerald-950">
+            <div className="mt-3 flex items-center gap-2 text-xs font-bold text-emerald-950 dark:text-emerald-200">
               <Link2 className="h-4 w-4 shrink-0" />
               <span className="break-all">{isLoading ? 'Memuat endpoint aman...' : displayEndpoint}</span>
             </div>
@@ -245,7 +245,7 @@ export default function Integrations() {
       </div>
 
       {error && (
-        <div className="border-[3px] border-black bg-red-100 p-4 text-sm font-bold text-red-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border-2 border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/80 p-4 text-sm font-bold text-red-900 dark:text-red-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{error}</span>

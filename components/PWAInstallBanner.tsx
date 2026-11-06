@@ -47,10 +47,10 @@ export default function PWAInstallBanner() {
   };
 
   return (
-    <div className="border-[3px] border-black bg-[#FFE066] p-4 shadow-[4px_4px_0px_0px_#000] relative select-none animate-in fade-in duration-200">
+    <div className="border-2 border-black dark:border-neutral-700 bg-[#FFE066] p-4 shadow-[4px_4px_0px_0px_#000] relative select-none animate-in fade-in duration-200 text-black">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="p-2 border-[2px] border-black bg-white shadow-[2px_2px_0px_0px_#000] shrink-0">
+          <div className="p-2 border-2 border-black bg-white shadow-[2px_2px_0px_0px_#000] shrink-0">
             <Smartphone className="w-5 h-5 text-black stroke-[2.5px]" />
           </div>
 
@@ -71,7 +71,7 @@ export default function PWAInstallBanner() {
               <button
                 type="button"
                 onClick={handleInstallClick}
-                className="px-3.5 py-2 bg-black hover:bg-neutral-800 active:bg-neutral-900 text-white border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-black hover:bg-neutral-800 active:bg-neutral-900 text-white border-2 border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-1.5 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 stroke-[2.5px]" />
                 <span>
@@ -98,11 +98,11 @@ export default function PWAInstallBanner() {
 
       {/* iOS Safari Step-by-Step Instructions */}
       {showIosGuide && (
-        <div className="mt-4 p-3.5 border-[2px] border-black bg-white space-y-2 text-xs font-bold shadow-[2px_2px_0px_0px_#000] animate-in fade-in slide-in-from-top-1">
-          <p className="font-black text-black uppercase tracking-wider">
+        <div className="mt-4 p-3.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-black dark:text-white space-y-2 text-xs font-bold shadow-[2px_2px_0px_0px_#000] animate-in fade-in slide-in-from-top-1">
+          <p className="font-black text-black dark:text-white uppercase tracking-wider">
             {lang === 'id' ? 'Cara Pasang di Safari iOS:' : 'How to Install on iOS Safari:'}
           </p>
-          <ol className="list-decimal list-inside space-y-1.5 text-neutral-800">
+          <ol className="list-decimal list-inside space-y-1.5 text-neutral-800 dark:text-neutral-200">
             <li className="flex items-center gap-1.5">
               <span>{lang === 'id' ? '1. Ketuk tombol ' : '1. Tap the '}<strong>{lang === 'id' ? 'Bagikan (Share)' : 'Share'}</strong></span>
               <Share className="w-3.5 h-3.5 inline stroke-[2.5px]" />

@@ -294,7 +294,7 @@ export default function LandingPage() {
               <div className="reveal">
                 <div className="brutal-card p-6 sm:p-8 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000] space-y-5">
                   <div className="bg-[#FAF9F5] border-[2px] border-black p-8 flex items-center justify-center">
-                    <BrandLogo variant="icon" className="w-32 h-auto" />
+                    <BrandLogo variant="icon" theme="light" className="w-32 h-auto" />
                   </div>
                   <div>
                     <h3 className="text-lg font-black uppercase tracking-wider text-black mb-3">Makna Lambang Norden</h3>
@@ -563,7 +563,7 @@ export default function LandingPage() {
 
             {/* Col 1: Brand & Bio */}
             <div className="space-y-3">
-              <BrandLogo variant="horizontal" className="h-9 w-auto" />
+              <BrandLogo variant="horizontal" theme="light" className="h-9 w-auto" />
               <p className="text-[11px] font-bold text-neutral-600 leading-relaxed lowercase first-letter:uppercase">
                 Personal finance operating system untuk mencatat, melacak, dan mengarahkan keuangan pribadi Anda secara rapi.
               </p>

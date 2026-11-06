@@ -573,7 +573,7 @@ export default function AdminClient({
             <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Kembali ke Dasbor
           </Link>
           <h1 className="text-2xl font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <BrandLogo variant="icon" className="h-9 w-9 shrink-0" /> Panel Admin Norden
+            <BrandLogo variant="icon" theme="light" className="h-9 w-9 shrink-0" /> Panel Admin Norden
           </h1>
         </div>
 

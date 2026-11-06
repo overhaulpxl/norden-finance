@@ -318,11 +318,39 @@ function downloadSharePng({ data, background }: { data: WrappedShareData; backgr
   image.src = url;
 }
 
-function SmallMetric({ label, value, tone = 'white' }: { label: string; value: string; tone?: string }) {
+function SmallMetric({ label, value, tone = 'bg-white' }: { label: string; value: string; tone?: string }) {
+  let toneClass = 'bg-white dark:bg-neutral-800 text-black dark:text-white';
+  let labelClass = 'text-neutral-600 dark:text-neutral-400';
+  let valueClass = 'text-black dark:text-white';
+
+  if (tone === 'bg-[#bbf7d0]') {
+    toneClass = 'bg-[#bbf7d0] dark:bg-emerald-950/70 text-black dark:text-emerald-200';
+    labelClass = 'text-neutral-700 dark:text-emerald-300';
+    valueClass = 'text-black dark:text-emerald-100';
+  } else if (tone === 'bg-[#fecaca]') {
+    toneClass = 'bg-[#fecaca] dark:bg-red-950/70 text-black dark:text-red-200';
+    labelClass = 'text-neutral-700 dark:text-red-300';
+    valueClass = 'text-black dark:text-red-100';
+  } else if (tone === 'bg-[#bfdbfe]') {
+    toneClass = 'bg-[#bfdbfe] dark:bg-blue-950/70 text-black dark:text-blue-200';
+    labelClass = 'text-neutral-700 dark:text-blue-300';
+    valueClass = 'text-black dark:text-blue-100';
+  } else if (tone === 'bg-[#fef08a]') {
+    toneClass = 'bg-[#fef08a] dark:bg-amber-950/70 text-black dark:text-amber-200';
+    labelClass = 'text-neutral-700 dark:text-amber-300';
+    valueClass = 'text-black dark:text-amber-100';
+  } else if (tone.includes('bg-black')) {
+    toneClass = 'bg-black dark:bg-neutral-950 text-white';
+    labelClass = 'text-neutral-400';
+    valueClass = 'text-white';
+  } else if (tone !== 'bg-white' && tone !== 'white') {
+    toneClass = tone;
+  }
+
   return (
-    <div className={`border-[2px] border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${tone}`}>
-      <p className="text-[10px] font-black uppercase tracking-widest text-neutral-600">{label}</p>
-      <p className="mt-1 text-sm font-black text-black">{value}</p>
+    <div className={`border-2 border-black dark:border-neutral-700 p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${toneClass}`}>
+      <p className={`text-[10px] font-black uppercase tracking-widest ${labelClass}`}>{label}</p>
+      <p className={`mt-1 text-sm font-black ${valueClass}`}>{value}</p>
     </div>
   );
 }
@@ -566,14 +594,14 @@ export default function NextGenIntelligence({
       </div>
 
       {/* Sub-tab Navigation */}
-      <div className="flex flex-wrap gap-2 border-b-[3px] border-black pb-2">
+      <div className="flex flex-wrap gap-2 border-b-2 border-black dark:border-neutral-700 pb-2">
         <button
           type="button"
           onClick={() => setActiveSubTab('trends')}
-          className={`px-4 py-2 border-[2.5px] border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-4 py-2 border-2 border-black dark:border-neutral-700 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
             activeSubTab === 'trends'
               ? 'bg-[#FFE066] text-black shadow-[3px_3px_0px_0px_#000] -translate-x-[1px] -translate-y-[1px]'
-              : 'bg-white text-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_0px_#000]'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-750 shadow-[1.5px_1.5px_0px_0px_#000]'
           }`}
         >
           Tren & Arus Kas
@@ -581,10 +609,10 @@ export default function NextGenIntelligence({
         <button
           type="button"
           onClick={() => setActiveSubTab('habits')}
-          className={`px-4 py-2 border-[2.5px] border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-4 py-2 border-2 border-black dark:border-neutral-700 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
             activeSubTab === 'habits'
               ? 'bg-[#FFE066] text-black shadow-[3px_3px_0px_0px_#000] -translate-x-[1px] -translate-y-[1px]'
-              : 'bg-white text-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_0px_#000]'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-750 shadow-[1.5px_1.5px_0px_0px_#000]'
           }`}
         >
           Alokasi & Kebiasaan
@@ -592,10 +620,10 @@ export default function NextGenIntelligence({
         <button
           type="button"
           onClick={() => setActiveSubTab('wrapped')}
-          className={`px-4 py-2 border-[2.5px] border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+          className={`px-4 py-2 border-2 border-black dark:border-neutral-700 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
             activeSubTab === 'wrapped'
               ? 'bg-[#FFE066] text-black shadow-[3px_3px_0px_0px_#000] -translate-x-[1px] -translate-y-[1px]'
-              : 'bg-white text-black hover:bg-neutral-50 shadow-[1.5px_1.5px_0px_0px_#000]'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-750 shadow-[1.5px_1.5px_0px_0px_#000]'
           }`}
         >
           Rangkuman & Berbagi
@@ -606,9 +634,9 @@ export default function NextGenIntelligence({
       {activeSubTab === 'trends' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <TrendingUp className="h-4 w-4 stroke-[3px]" />
                   Financial Journey (Net Worth)
                 </h4>
@@ -630,9 +658,9 @@ export default function NextGenIntelligence({
               </div>
             </div>
 
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Wallet className="h-4 w-4 stroke-[3px]" />
                   Proyeksi Arus Kas (30 Hari)
                 </h4>
@@ -649,9 +677,9 @@ export default function NextGenIntelligence({
             </div>
           </div>
 
-          <div className="brutal-card bg-white p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+          <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+            <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                 <LineChartIcon className="h-4 w-4 stroke-[3px]" />
                 Tren Pertumbuhan Finansial (6 Bulan Terakhir)
               </h4>
@@ -677,19 +705,19 @@ export default function NextGenIntelligence({
       {activeSubTab === 'habits' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <PiggyBank className="h-4 w-4 stroke-[3px]" />
                   Alokasi Ideal 50/30/20
                 </h4>
               </div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-neutral-600">Pendapatan bulanan</label>
+              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-400">Pendapatan bulanan</label>
               <input
                 value={allocatorIncome}
                 onChange={(event) => setAllocatorIncome(event.target.value)}
                 placeholder={analysis.avgIncome ? `Saran: ${Math.round(analysis.avgIncome)}` : 'Masukkan nominal pendapatan'}
-                className="brutal-input mb-4 text-xs font-bold"
+                className="brutal-input mb-4 text-xs font-bold bg-white dark:bg-neutral-800 text-black dark:text-white border-2 border-black dark:border-neutral-700"
                 inputMode="numeric"
               />
               <div className="mb-4 grid grid-cols-3 gap-2">
@@ -700,32 +728,32 @@ export default function NextGenIntelligence({
               <button onClick={handleCreateAllocatorBudgets} className="brutal-btn w-full text-xs">
                 Buat Pos Anggaran 50/30/20
               </button>
-              {allocatorStatus && <p className="mt-3 text-xs font-bold text-black">{allocatorStatus}</p>}
+              {allocatorStatus && <p className="mt-3 text-xs font-bold text-black dark:text-white">{allocatorStatus}</p>}
             </div>
 
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <BarChart3 className="h-4 w-4 stroke-[3px]" />
                   Prediksi Risiko Anggaran (Budget Forecast)
                 </h4>
               </div>
               {analysis.budgetForecasts.length === 0 ? (
-                <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
+                <div className="border-2 border-dashed border-black dark:border-neutral-700 p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 rounded-xl">
                   Buat anggaran kategori untuk melihat proyeksi akhir bulan.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {analysis.budgetForecasts.slice(0, 4).map((budget) => (
-                    <div key={budget.name} className={`border-[2px] border-black p-3 ${budget.risk >= 1 ? 'bg-[#fecaca]' : budget.risk >= 0.8 ? 'bg-[#fef08a]' : 'bg-white'}`}>
+                    <div key={budget.name} className={`border-2 border-black dark:border-neutral-700 p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${budget.risk >= 1 ? 'bg-[#fecaca] dark:bg-red-950/70 text-black dark:text-red-200' : budget.risk >= 0.8 ? 'bg-[#fef08a] dark:bg-amber-950/70 text-black dark:text-amber-200' : 'bg-white dark:bg-neutral-800 text-black dark:text-white'}`}>
                       <div className="mb-2 flex items-center justify-between gap-3">
-                        <p className="text-xs font-black uppercase tracking-wider text-black">{budget.name}</p>
-                        <p className="text-xs font-black text-black">{Math.round(budget.risk * 100)}%</p>
+                        <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{budget.name}</p>
+                        <p className="text-xs font-black text-black dark:text-white">{Math.round(budget.risk * 100)}%</p>
                       </div>
-                      <div className="h-3 border-[2px] border-black bg-white">
-                        <div className="h-full bg-black" style={{ width: `${Math.min(budget.risk * 100, 100)}%` }} />
+                      <div className="h-3 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900">
+                        <div className="h-full bg-black dark:bg-white" style={{ width: `${Math.min(budget.risk * 100, 100)}%` }} />
                       </div>
-                      <p className="mt-2 text-[11px] font-bold text-neutral-700">
+                      <p className="mt-2 text-[11px] font-bold text-neutral-700 dark:text-neutral-300">
                         Terpakai {formatRupiah(budget.spent)}, prediksi {formatRupiah(budget.forecast)}, limit {formatRupiah(budget.limit)}.
                       </p>
                     </div>
@@ -736,9 +764,9 @@ export default function NextGenIntelligence({
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Activity className="h-4 w-4 stroke-[3px]" />
                   Pola Kebiasaan Finansial
                 </h4>
@@ -751,32 +779,32 @@ export default function NextGenIntelligence({
               </div>
             </div>
 
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Repeat className="h-4 w-4 stroke-[3px]" />
                   Evaluasi Langganan Rutin
                 </h4>
               </div>
               {analysis.subscriptionInsights.length === 0 ? (
-                <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
+                <div className="border-2 border-dashed border-black dark:border-neutral-700 p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 rounded-xl">
                   Catat subscription untuk mendeteksi tagihan berulang yang jarang terpakai.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {analysis.subscriptionInsights.slice(0, 3).map((subscription) => (
-                    <div key={subscription.id} className={`border-[2px] border-black p-3 ${subscription.risk ? 'bg-[#fecaca]' : 'bg-white'}`}>
+                    <div key={subscription.id} className={`border-2 border-black dark:border-neutral-700 p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${subscription.risk ? 'bg-[#fecaca] dark:bg-red-950/70 text-black dark:text-red-200' : 'bg-white dark:bg-neutral-800 text-black dark:text-white'}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-xs font-black uppercase tracking-wider text-black">{subscription.name}</p>
-                          <p className="mt-1 text-[11px] font-bold text-neutral-700">
+                          <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{subscription.name}</p>
+                          <p className="mt-1 text-[11px] font-bold text-neutral-700 dark:text-neutral-300">
                             {formatRupiah(subscription.amount)}/bulan, {subscription.relatedCount} transaksi terkait dalam 90 hari.
                           </p>
                         </div>
-                        {subscription.risk && <AlertTriangle className="h-4 w-4 flex-shrink-0 stroke-[3px] text-black" />}
+                        {subscription.risk && <AlertTriangle className="h-4 w-4 flex-shrink-0 stroke-[3px] text-black dark:text-red-300" />}
                       </div>
                       {subscription.risk && (
-                        <p className="mt-2 text-[11px] font-black text-black">Pertimbangkan apakah langganan ini masih dibutuhkan.</p>
+                        <p className="mt-2 text-[11px] font-black text-black dark:text-red-200">Pertimbangkan apakah langganan ini masih dibutuhkan.</p>
                       )}
                     </div>
                   ))}
@@ -785,22 +813,22 @@ export default function NextGenIntelligence({
             </div>
           </div>
 
-          <div className="brutal-card bg-white p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+          <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+            <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                 <Flag className="h-4 w-4 stroke-[3px]" />
                 Tantangan Disiplin Harian (Missions)
               </h4>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {analysis.missions.map((mission) => (
-                <div key={mission.title} className={`border-[2px] border-black p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${mission.done ? 'bg-[#bbf7d0]' : 'bg-white'}`}>
+                <div key={mission.title} className={`border-2 border-black dark:border-neutral-700 p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${mission.done ? 'bg-[#bbf7d0] dark:bg-emerald-950/70 text-black dark:text-emerald-200' : 'bg-white dark:bg-neutral-800 text-black dark:text-white'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-wider text-black">{mission.title}</p>
-                      <p className="mt-1 text-[11px] font-bold text-neutral-600 leading-snug">{mission.detail}</p>
+                      <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{mission.title}</p>
+                      <p className="mt-1 text-[11px] font-bold text-neutral-600 dark:text-neutral-400 leading-snug">{mission.detail}</p>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-black shrink-0">{mission.reward} XP</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-black dark:text-white shrink-0">{mission.reward} XP</span>
                   </div>
                 </div>
               ))}
@@ -813,9 +841,9 @@ export default function NextGenIntelligence({
       {activeSubTab === 'wrapped' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Target className="h-4 w-4 stroke-[3px]" />
                   Rangkuman Bulanan ({LONG_MONTH_FORMAT.format(today)})
                 </h4>
@@ -829,15 +857,15 @@ export default function NextGenIntelligence({
               </div>
             </div>
 
-            <div className="brutal-card bg-white p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+            <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+              <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <CalendarDays className="h-4 w-4 stroke-[3px]" />
                   Kilas Balik Transaksi (Replay)
                 </h4>
               </div>
               {analysis.replayTransactions.length === 0 ? (
-                <div className="border-[3px] border-dashed border-black p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500">
+                <div className="border-2 border-dashed border-black dark:border-neutral-700 p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 rounded-xl">
                   Replay bulanan akan muncul setelah ada mutasi transaksi tercatat.
                 </div>
               ) : (
@@ -862,9 +890,9 @@ export default function NextGenIntelligence({
             </div>
           </div>
 
-          <div className="brutal-card bg-white p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between border-b-[3px] border-black pb-3">
-              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black">
+          <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 sm:p-6 text-black dark:text-white shadow-[3px_3px_0px_0px_#000]">
+            <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+              <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                 <Share2 className="h-4 w-4 stroke-[3px]" />
                 Kartu Berbagi Visual (Share Card)
               </h4>
@@ -872,21 +900,21 @@ export default function NextGenIntelligence({
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-[1fr_260px] items-start">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black uppercase text-neutral-600 mb-1 tracking-wider">Template Kartu</label>
-                  <select value={shareTemplate} onChange={(event) => setShareTemplate(event.target.value)} className="brutal-input text-xs font-black uppercase">
+                  <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">Template Kartu</label>
+                  <select value={shareTemplate} onChange={(event) => setShareTemplate(event.target.value)} className="brutal-input text-xs font-black uppercase bg-white dark:bg-neutral-800 text-black dark:text-white border-2 border-black dark:border-neutral-700">
                     {shareTemplates.map((template) => (
                       <option key={template} value={template}>{template}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase text-neutral-600 mb-1 tracking-wider">Warna Latar</label>
+                  <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">Warna Latar</label>
                   <div className="flex gap-2">
                     {CARD_COLORS.map((color) => (
                       <button
                         key={color}
                         onClick={() => setShareBackground(color)}
-                        className={`h-9 w-9 border-[2px] border-black ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
+                        className={`h-9 w-9 border-2 border-black dark:border-neutral-700 ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
                         style={{ backgroundColor: color }}
                         aria-label={`Pilih warna ${color}`}
                       />
@@ -911,7 +939,7 @@ export default function NextGenIntelligence({
                 </div>
               </div>
               <div className="mx-auto w-full max-w-[260px]">
-                <div className="aspect-[9/16] overflow-hidden border-[3px] border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="aspect-[9/16] overflow-hidden border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                   <img src={wrappedPreviewSvg} alt="Preview Monthly Wrapped Norden Finance" className="h-full w-full object-cover" />
                 </div>
               </div>

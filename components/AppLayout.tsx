@@ -30,12 +30,12 @@ import { triggerHaptic } from '../lib/haptics';
 
 function PanelSkeleton({ className = '' }: { className?: string }) {
   return (
-    <div className={`brutal-card bg-white border-[3px] border-black p-6 ${className}`}>
-      <div className="h-4 w-40 bg-neutral-200 border-2 border-black animate-pulse" />
+    <div className={`brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-6 ${className}`}>
+      <div className="h-4 w-40 bg-neutral-200 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 animate-pulse" />
       <div className="mt-5 space-y-3">
-        <div className="h-3 w-full bg-neutral-100 border border-neutral-200 animate-pulse" />
-        <div className="h-3 w-5/6 bg-neutral-100 border border-neutral-200 animate-pulse" />
-        <div className="h-3 w-2/3 bg-neutral-100 border border-neutral-200 animate-pulse" />
+        <div className="h-3 w-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 animate-pulse" />
+        <div className="h-3 w-5/6 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 animate-pulse" />
+        <div className="h-3 w-2/3 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 animate-pulse" />
       </div>
     </div>
   );
