@@ -26,7 +26,7 @@ export default function BrandLogo({ variant = 'horizontal', className = '', prio
   return (
     <>
       <Image
-        src="/brand/norden-horizontal.svg?v=4"
+        src="/brand/norden-horizontal.png?v=5"
         alt="Norden Finance logo"
         width={523}
         height={191}
@@ -35,7 +35,7 @@ export default function BrandLogo({ variant = 'horizontal', className = '', prio
         className={`object-contain dark:hidden ${className}`}
       />
       <Image
-        src="/brand/norden-horizontal-dark.svg?v=4"
+        src="/brand/norden-horizontal-dark.png?v=5"
         alt="Norden Finance logo"
         width={523}
         height={191}
