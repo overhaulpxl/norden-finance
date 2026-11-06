@@ -230,14 +230,14 @@ export default function UpcomingBills({
                         {bill.dueDateLabel}
                       </span>
                     </div>
-                    <p className="text-[10px] font-bold text-neutral-500 truncate mt-0.5">
+                    <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
                       {bill.subtitle}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                  <span className="font-black text-xs sm:text-sm text-black tracking-wider">
+                  <span className="font-black text-xs sm:text-sm text-black dark:text-white tracking-wider">
                     {maskBalance(formatRupiah(bill.amount))}
                   </span>
 

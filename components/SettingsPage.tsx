@@ -297,21 +297,21 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   return (
     <div className="space-y-8 max-w-3xl select-none">
       {/* Profile Card */}
-      <div className="brutal-card p-6 bg-white">
-        <div className="flex justify-between items-start mb-6 border-b-[3px] border-black pb-4">
-          <h3 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <User className="w-5 h-5 text-black stroke-[3px]" /> Profil Akun
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white">
+        <div className="flex justify-between items-start mb-6 border-b-2 border-black dark:border-neutral-700 pb-4">
+          <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <User className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> Profil Akun
           </h3>
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-white border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="w-14 h-14 rounded-none border-[3px] border-black bg-black flex items-center justify-center text-white font-black text-xl flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-center gap-4 p-4 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="w-14 h-14 rounded-none border-2 border-black dark:border-neutral-700 bg-black dark:bg-white flex items-center justify-center text-white dark:text-black font-black text-xl flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-lg font-black text-black uppercase tracking-wider">{user.fullName || 'User'}</p>
-              <p className="text-sm text-neutral-500 font-bold uppercase tracking-wider">{user.email}</p>
+              <p className="text-lg font-black text-black dark:text-white uppercase tracking-wider">{user.fullName || 'User'}</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-wider">{user.email}</p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
                   user.effectivePlan === 'PRO_ACTIVE'
@@ -338,17 +338,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 border-[2px] border-black text-center rounded-none bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-2xl font-black text-black tracking-wider">{stats.transactionCount}</p>
-              <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mt-1">Transaksi</p>
+            <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-white dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-2xl font-black text-black dark:text-white tracking-wider">{stats.transactionCount}</p>
+              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">Transaksi</p>
             </div>
-            <div className="p-4 border-[2px] border-black text-center rounded-none bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-2xl font-black text-black tracking-wider">{stats.walletCount}</p>
-              <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mt-1">Dompet</p>
+            <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-white dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-2xl font-black text-black dark:text-white tracking-wider">{stats.walletCount}</p>
+              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">Dompet</p>
             </div>
-            <div className="p-4 border-[2px] border-black text-center rounded-none bg-[#f3f4f6] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-2xl font-black text-black">∞</p>
-              <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mt-1">Limit/Bulan</p>
+            <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-[#f3f4f6] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+              <p className="text-2xl font-black text-black dark:text-white">∞</p>
+              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">Limit/Bulan</p>
             </div>
           </div>
         </div>
@@ -553,13 +553,13 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       </div>
 
       {/* Keamanan & Ganti Password */}
-      <div className="brutal-card p-6 bg-white select-none">
-        <div className="flex justify-between items-start mb-6 border-b-[3px] border-black pb-4">
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white">
+        <div className="flex justify-between items-start mb-6 border-b-2 border-black dark:border-neutral-700 pb-4">
           <div>
-            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-              <Key className="w-5 h-5 text-black stroke-[2.5px]" /> Keamanan & Kata Sandi
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Key className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Keamanan & Kata Sandi
             </h3>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
               Atur ulang kata sandi akun melalui tautan verifikasi resmi ke email terdaftar
             </p>
           </div>
@@ -619,31 +619,31 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       </div>
 
       {/* Kunci Layar PIN (4 Digit) & Biometrik */}
-      <div className="brutal-card p-6 bg-white select-none">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-[3px] border-black pb-4 gap-3">
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-black dark:border-neutral-700 pb-4 gap-3">
           <div>
-            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-              <Lock className="w-5 h-5 text-black stroke-[2.5px]" /> Kunci Layar PIN & Biometrik
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Lock className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Kunci Layar PIN & Biometrik
             </h3>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
               Lindungi privasi saldo dan catatan transaksi saat HP dibuka orang lain
             </p>
           </div>
-          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
-            pinActive ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 text-neutral-600'
+          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+            pinActive ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}>
             {pinActive ? '✓ Kunci PIN Aktif' : 'Nonaktif'}
           </span>
         </div>
 
         {pinActionSuccess && (
-          <div className="mb-4 p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
+          <div className="mb-4 p-3 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
             {pinActionSuccess}
           </div>
         )}
 
         {pinActionError && (
-          <div className="mb-4 p-3 border-[2px] border-black bg-red-100 text-red-900 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
+          <div className="mb-4 p-3 border-2 border-black dark:border-neutral-700 bg-red-100 text-red-900 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
             {pinActionError}
           </div>
         )}
@@ -673,7 +673,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <button
                 type="button"
                 onClick={() => openPinModal('setup')}
-                className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> + Pasang PIN 4-Digit
               </button>
@@ -682,7 +682,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 <button
                   type="button"
                   onClick={handleLockNow}
-                  className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
                   title="Uji kunci layar sekarang juga"
                 >
                   <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> Uji Kunci Sekarang
@@ -690,14 +690,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 <button
                   type="button"
                   onClick={() => openPinModal('change')}
-                  className="px-3.5 py-2.5 bg-white hover:bg-neutral-100 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                  className="px-3.5 py-2.5 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-black dark:text-white border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
                 >
                   Ganti PIN
                 </button>
                 <button
                   type="button"
                   onClick={() => openPinModal('remove')}
-                  className="px-3.5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                  className="px-3.5 py-2.5 bg-red-100 dark:bg-red-950/80 hover:bg-red-200 text-red-700 dark:text-red-200 border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
                 >
                   Hapus PIN
                 </button>
@@ -707,12 +707,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
           {/* Biometrics Toggle Row */}
           {pinActive && (
-            <div className="border-t-[1.5px] border-black pt-3 flex items-center justify-between gap-3">
+            <div className="border-t-2 border-black dark:border-neutral-700 pt-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Fingerprint className="w-4 h-4 text-black stroke-[2.5px]" />
+                <Fingerprint className="w-4 h-4 text-black dark:text-white stroke-[2.5px]" />
                 <div>
-                  <p className="text-xs font-black uppercase text-black">Buka Cepat Biometrik (Face ID / Sidik Jari)</p>
-                  <p className="text-[10px] text-neutral-500 font-bold">
+                  <p className="text-xs font-black uppercase text-black dark:text-white">Buka Cepat Biometrik (Face ID / Sidik Jari)</p>
+                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-bold">
                     {biometricDeviceSupport ? 'Didukung perangkat Anda (WebAuthn Platform)' : 'Akan menggunakan sensor biometrik perangkat jika tersedia'}
                   </p>
                 </div>
@@ -720,8 +720,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <button
                 type="button"
                 onClick={handleToggleBiometrics}
-                className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border-[2px] border-black shadow-[2px_2px_0px_0px_#000] cursor-pointer ${
-                  biometricActive ? 'bg-[#bbf7d0] text-black' : 'bg-white text-neutral-600'
+                className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] cursor-pointer ${
+                  biometricActive ? 'bg-[#bbf7d0] text-black' : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
                 }`}
               >
                 {biometricActive ? '✓ Nyala' : 'Mati'}
@@ -733,17 +733,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
       {/* PIN Setup / Change Modal */}
       {pinModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border-[3px] border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_#000] space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center border-b-2 border-black pb-3">
-              <h4 className="font-black text-sm uppercase tracking-wider text-black flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_#000] space-y-4 animate-in zoom-in-95 duration-200 text-black dark:text-white">
+            <div className="flex justify-between items-center border-b-2 border-black dark:border-neutral-700 pb-3">
+              <h4 className="font-black text-sm uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 {pinModalMode === 'setup' ? 'Pasang PIN 4-Digit' : pinModalMode === 'change' ? 'Ubah PIN Keamanan' : 'Nonaktifkan PIN'}
               </h4>
               <button
                 type="button"
                 onClick={() => setPinModalOpen(false)}
-                className="p-1 text-neutral-400 hover:text-black border border-transparent hover:border-black cursor-pointer"
+                className="p-1 text-neutral-400 hover:text-black dark:hover:text-white border border-transparent hover:border-black cursor-pointer"
               >
                 <X className="w-4 h-4 stroke-[2.5px]" />
               </button>
@@ -751,7 +751,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
             <form onSubmit={handleSavePin} className="space-y-3">
               {pinModalError && (
-                <div className="p-2.5 bg-red-100 border-[2px] border-black text-red-700 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                <div className="p-2.5 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4 shrink-0" />
                   <span>{pinModalError}</span>
                 </div>
@@ -759,7 +759,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
               {(pinModalMode === 'change' || pinModalMode === 'remove') && (
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-black mb-1">
+                  <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
                     PIN Saat Ini (4 Digit)
                   </label>
                   <input
@@ -769,7 +769,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                     placeholder="••••"
                     value={currentPinInput}
                     onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white"
+                    className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white dark:bg-neutral-800"
                     required
                     autoFocus
                   />
@@ -779,7 +779,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               {pinModalMode !== 'remove' && (
                 <>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-black mb-1">
+                    <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
                       {pinModalMode === 'change' ? 'PIN Baru (4 Digit)' : 'Masukkan PIN (4 Digit Angka)'}
                     </label>
                     <input
@@ -789,14 +789,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                       placeholder="••••"
                       value={newPinInput}
                       onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white"
+                      className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white dark:bg-neutral-800"
                       required
                       autoFocus={pinModalMode === 'setup'}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-black mb-1">
+                    <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
                       Ulangi / Konfirmasi PIN Baru
                     </label>
                     <input
@@ -806,7 +806,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                       placeholder="••••"
                       value={confirmPinInput}
                       onChange={(e) => setConfirmPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white"
+                      className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white dark:bg-neutral-800"
                       required
                     />
                   </div>
@@ -817,14 +817,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 <button
                   type="button"
                   onClick={() => setPinModalOpen(false)}
-                  className="px-4 py-2 border-[2px] border-black bg-white hover:bg-neutral-100 text-xs font-black uppercase tracking-wider cursor-pointer"
+                  className="px-4 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-black dark:text-white text-xs font-black uppercase tracking-wider cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={pinModalLoading}
-                  className={`px-5 py-2 border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer disabled:opacity-50 ${
+                  className={`px-5 py-2 border-2 border-black dark:border-neutral-700 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer disabled:opacity-50 ${
                     pinModalMode === 'remove'
                       ? 'bg-red-600 hover:bg-red-700 text-white'
                       : 'bg-[#FFE066] hover:bg-yellow-300 text-black'
@@ -845,69 +845,69 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       )}
 
       {/* Plan Info */}
-      <div className="brutal-card p-6 bg-white">
-        <div className="flex justify-between items-start mb-6 border-b-[3px] border-black pb-4">
-          <h3 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <Crown className="w-5 h-5 text-black stroke-[3px]" /> Paket Langganan
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white">
+        <div className="flex justify-between items-start mb-6 border-b-2 border-black dark:border-neutral-700 pb-4">
+          <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <Crown className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> Paket Langganan
           </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Trial / Current */}
-          <div className={`p-6 border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
-            !isPro ? (user.effectivePlan === 'FREE_BASIC' ? 'bg-[#e5e5e5]' : 'bg-[#fef08a]') : 'bg-white'
+          <div className={`p-6 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+            !isPro ? (user.effectivePlan === 'FREE_BASIC' ? 'bg-[#e5e5e5] text-black' : 'bg-[#fef08a] text-black') : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
           }`}>
             <div className="flex items-center gap-2 mb-4">
-              <Zap className="w-5 h-5 text-black stroke-[3px]" />
-              <h4 className="text-base font-black text-black uppercase tracking-wider">
+              <Zap className="w-5 h-5 stroke-[3px]" />
+              <h4 className="text-base font-black uppercase tracking-wider">
                 {user.effectivePlan === 'FREE_BASIC' ? 'Free Basic' : 'Trial Plan'}
               </h4>
             </div>
-            <p className="text-3xl font-black text-black mb-1 tracking-wider">Rp 0</p>
-            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">
+            <p className="text-3xl font-black mb-1 tracking-wider">Rp 0</p>
+            <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-4 uppercase tracking-wider">
               {user.effectivePlan === 'FREE_BASIC'
                 ? 'Pencatatan keuangan dasar tanpa batas waktu'
                 : `${trialDays} hari gratis akses penuh`}
             </p>
             <ul className="space-y-2">
               {allFeatures.slice(0, 6).map((f, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm font-bold text-black uppercase tracking-wider">
-                  <Check className="w-4 h-4 text-emerald-800 stroke-[3px] flex-shrink-0" /> {f}
+                <li key={i} className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                  <Check className="w-4 h-4 text-emerald-800 dark:text-emerald-400 stroke-[3px] flex-shrink-0" /> {f}
                 </li>
               ))}
             </ul>
             {!isPro && (
-              <div className="mt-6 p-2 bg-white text-black text-center text-xs font-black uppercase tracking-widest rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mt-6 p-2 bg-white dark:bg-neutral-900 text-black dark:text-white text-center text-xs font-black uppercase tracking-widest rounded-none border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 ✓ Paket Aktif
               </div>
             )}
           </div>
 
           {/* Pro Plan */}
-          <div className={`p-6 border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
-            isPro ? 'bg-[#bbf7d0]' : 'bg-white'
+          <div className={`p-6 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+            isPro ? 'bg-[#bbf7d0] text-black' : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
           }`}>
             <div className="flex items-center gap-2 mb-4">
-              <Crown className="w-5 h-5 text-black stroke-[3px]" />
-              <h4 className="text-base font-black text-black uppercase tracking-wider">Pro Plan</h4>
+              <Crown className="w-5 h-5 stroke-[3px]" />
+              <h4 className="text-base font-black uppercase tracking-wider">Pro Plan</h4>
             </div>
-            <p className="text-3xl font-black text-black mb-1 tracking-wider">
+            <p className="text-3xl font-black mb-1 tracking-wider">
               {monthlyPrice !== null ? formatCurrency(monthlyPrice) : 'Tidak tersedia'}
             </p>
-            <p className="text-xs font-bold text-neutral-600 mb-4 uppercase tracking-wider">
+            <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-4 uppercase tracking-wider">
               {yearlyPrice
                 ? `atau ${formatCurrency(yearlyPrice)} / tahun${yearlySavingsPercent ? ` (hemat ${yearlySavingsPercent}%)` : ''}`
                 : 'Paket tahunan sedang dinonaktifkan'}
             </p>
             <ul className="space-y-2">
               {allFeatures.map((f, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm font-bold text-black uppercase tracking-wider">
-                  <Check className="w-4 h-4 text-emerald-800 stroke-[3px] flex-shrink-0" /> {f}
+                <li key={i} className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                  <Check className="w-4 h-4 text-emerald-800 dark:text-emerald-400 stroke-[3px] flex-shrink-0" /> {f}
                 </li>
               ))}
             </ul>
             {isPro ? (
-              <div className="mt-6 p-2 bg-white text-black text-center text-xs font-black uppercase tracking-widest rounded-none border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="mt-6 p-2 bg-white dark:bg-neutral-900 text-black dark:text-white text-center text-xs font-black uppercase tracking-widest rounded-none border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 {user.effectivePlan === 'PRO_PENDING' ? '⏳ Menunggu Verifikasi Admin' : '✓ Paket Aktif'}
               </div>
             ) : (
@@ -922,42 +922,42 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
 
       {/* Data & Storage */}
-      <div className="brutal-card p-6 bg-white space-y-6">
-        <div className="flex justify-between items-start border-b-[3px] border-black pb-4">
-          <h3 className="text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <Database className="w-5 h-5 text-black stroke-[3px]" /> Data & Penyimpanan
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white space-y-6">
+        <div className="flex justify-between items-start border-b-2 border-black dark:border-neutral-700 pb-4">
+          <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <Database className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> Data & Penyimpanan
           </h3>
         </div>
-        <p className="text-sm text-neutral-600 font-bold uppercase tracking-wide">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-wide">
           Semua data keuangan Anda disimpan secara aman di cloud menggunakan Firebase dan PostgreSQL. 
           Data diamankan menggunakan otentikasi Firebase dan otorisasi Prisma.
         </p>
 
         {/* Reset Financial Data Card */}
-        <div className="p-5 bg-amber-50 border-[3px] border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-5 bg-amber-50 dark:bg-amber-950/40 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black dark:text-white">
           <div className="flex items-start gap-3">
-            <RotateCcw className="w-6 h-6 text-amber-700 flex-shrink-0 mt-0.5 stroke-[2.5px]" />
+            <RotateCcw className="w-6 h-6 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5 stroke-[2.5px]" />
             <div className="flex-1 space-y-3">
               <div>
-                <h4 className="text-sm font-black text-black uppercase tracking-wider">Reset Workspace Keuangan</h4>
-                <p className="text-xs text-neutral-700 font-bold mt-1 leading-relaxed">
+                <h4 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">Reset Workspace Keuangan</h4>
+                <p className="text-xs text-neutral-700 dark:text-neutral-300 font-bold mt-1 leading-relaxed">
                   Menghapus seluruh catatan transaksi, dompet, saldo, budget, target tabungan, utang, paylater, tagihan, dan reminder.
                 </p>
-                <p className="text-xs text-emerald-800 font-black mt-1">
+                <p className="text-xs text-emerald-800 dark:text-emerald-400 font-black mt-1">
                   ✓ Akun, profil, masa trial / langganan Pro, bukti pembayaran, dan riwayat login Anda TETAP AMAN dan TIDAK BERUBAH.
                 </p>
-                <p className="text-[11px] text-neutral-500 font-bold mt-1">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-bold mt-1">
                   💡 Disarankan mengunduh cadangan catatan via menu <strong>Data Dashboard (Export CSV / PDF)</strong> sebelum melakukan reset.
                 </p>
               </div>
 
               {resetError && (
-                <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider">
+                <div className="p-3 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 font-bold text-xs uppercase tracking-wider">
                   ❌ {resetError}
                 </div>
               )}
               {resetSuccess && (
-                <div className="p-3 bg-emerald-100 border-[2px] border-black text-emerald-800 font-bold text-xs uppercase tracking-wider">
+                <div className="p-3 bg-emerald-100 dark:bg-emerald-950/80 border-2 border-black dark:border-neutral-700 text-emerald-800 dark:text-emerald-200 font-bold text-xs uppercase tracking-wider">
                   ✅ {resetSuccess}
                 </div>
               )}
@@ -970,7 +970,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                     onChange={(e) => setResetAcknowledged(e.target.checked)}
                     className="w-4 h-4 border-2 border-black rounded-none cursor-pointer"
                   />
-                  <span className="text-xs font-bold text-black uppercase tracking-wider">
+                  <span className="text-xs font-bold text-black dark:text-white uppercase tracking-wider">
                     Saya paham data transaksi & dompet akan dihapus permanen
                   </span>
                 </label>
@@ -987,7 +987,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <button
                 onClick={handleResetFinancialData}
                 disabled={resetLoading || resetConfirmText !== 'RESET KEUANGAN' || !resetAcknowledged}
-                className="mt-2 px-4 py-2.5 border-[2px] border-black bg-[#FFE066] text-black rounded-none text-xs font-black hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                className="mt-2 px-4 py-2.5 border-2 border-black dark:border-neutral-700 bg-[#FFE066] text-black rounded-none text-xs font-black hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <RotateCcw className="w-4 h-4 stroke-[3px]" />
                 {resetLoading ? 'MEMPROSES RESET...' : 'Reset Data Keuangan'}
@@ -997,16 +997,16 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         </div>
 
         {/* Zona Bahaya (Account Deletion) */}
-        <div className="p-4 bg-white border-[3px] border-red-650 rounded-none shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">
+        <div className="p-4 bg-white dark:bg-neutral-900 border-2 border-red-650 rounded-none shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] text-black dark:text-white">
           <div className="flex items-start gap-3">
             <Trash2 className="w-5 h-5 text-red-650 flex-shrink-0 mt-0.5 stroke-[2.5px]" />
             <div>
               <h4 className="text-sm font-black text-red-650 uppercase tracking-wider">Zona Bahaya</h4>
-              <p className="text-xs text-neutral-600 font-bold mt-1 uppercase tracking-wider">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold mt-1 uppercase tracking-wider">
                 Menghapus akun akan menghilangkan semua transaksi, saldo, target tabungan, dan data lainnya secara permanen. Ketik DELETE dan masukkan password untuk konfirmasi.
               </p>
               {deleteError && (
-                <div className="mt-3 p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider">
+                <div className="mt-3 p-3 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 font-bold text-xs uppercase tracking-wider">
                   ❌ {deleteError}
                 </div>
               )}
@@ -1028,7 +1028,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <button 
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading || deleteConfirmText !== 'DELETE'}
-                className="mt-3 px-4 py-2 border-[2px] border-black bg-white text-red-650 rounded-none text-xs font-black hover:bg-neutral-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                className="mt-3 px-4 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-red-650 dark:text-red-400 rounded-none text-xs font-black hover:bg-neutral-50 dark:hover:bg-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50"
               >
                 {deleteLoading ? 'MENGHAPUS...' : 'Hapus Akun Saya'}
               </button>
@@ -1038,13 +1038,13 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       </div>
 
       {/* Pusat Bantuan & Kontak Dukungan (App Store & Play Store Support Requirement) */}
-      <div className="brutal-card p-6 bg-white select-none">
-        <div className="flex justify-between items-start mb-4 border-b-[3px] border-black pb-3">
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white">
+        <div className="flex justify-between items-start mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
           <div>
-            <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-black stroke-[2.5px]" /> Pusat Bantuan & Layanan Pelanggan
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Pusat Bantuan & Layanan Pelanggan
             </h3>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
               Kendala transaksi, verifikasi akun, atau pertanyaan seputar langganan Pro
             </p>
           </div>

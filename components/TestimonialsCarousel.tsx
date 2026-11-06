@@ -31,7 +31,7 @@ function TestimonialCard({
             <Star
               key={index}
               className={`w-4 h-4 stroke-black stroke-[2px] star-spin-hover ${
-                index < testimonial.rating ? 'fill-current' : 'fill-white text-neutral-250'
+                index < testimonial.rating ? 'fill-current' : 'fill-white text-neutral-300'
               }`}
             />
           ))}

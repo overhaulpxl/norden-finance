@@ -561,7 +561,7 @@ export default function AdminClient({
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 select-none">
+    <div className="max-w-6xl mx-auto space-y-8 select-none text-black">
       
       {/* Navigation & Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -887,7 +887,7 @@ export default function AdminClient({
           {/* Search bar */}
           <div className="flex gap-2 max-w-md">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-3.5 text-neutral-450 stroke-[2.5px]" />
+              <Search className="w-4 h-4 absolute left-3 top-3.5 text-neutral-400 stroke-[2.5px]" />
               <input
                 type="text"
                 placeholder="CARI NAMA ATAU UID PENGGUNA..."
@@ -1034,7 +1034,7 @@ export default function AdminClient({
                         </span>
                       </td>
                       <td className="p-3 text-neutral-600">
-                        {log.entity} {log.entityId && <span className="font-mono text-[9px] text-neutral-450">({log.entityId})</span>}
+                        {log.entity} {log.entityId && <span className="font-mono text-[9px] text-neutral-400">({log.entityId})</span>}
                       </td>
                     </tr>
                   ))}
@@ -1306,7 +1306,7 @@ export default function AdminClient({
               <div className="flex flex-col md:flex-row gap-6 items-start">
                 <div className="flex-shrink-0 bg-white p-3 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
                   {qrisImage ? (
-                    <img src={qrisImage} alt="QRIS Merchant" className="max-w-[150px] max-h-[150px] object-contain border-[1px] border-neutral-250" />
+                    <img src={qrisImage} alt="QRIS Merchant" className="max-w-[150px] max-h-[150px] object-contain border-[1px] border-neutral-300" />
                   ) : (
                     <div className="w-[140px] h-[140px] flex items-center justify-center border-[2px] border-dashed border-neutral-300 text-[10px] font-black text-neutral-400 uppercase">
                       Default QRIS SVG

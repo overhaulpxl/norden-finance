@@ -5,6 +5,8 @@
 @theme {
   --color-border: var(--color-slate-200);
   --color-background: oklch(0.985 0.006 235);
+  --color-neutral-750: #333333;
+  --color-neutral-850: #1e1e1e;
 }
 
 @layer base {

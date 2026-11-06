@@ -366,7 +366,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-3">QRIS Norden Merchant</p>
                   {paymentSettings.qris_image ? (
                     <div className="bg-white p-3 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
-                      <img src={paymentSettings.qris_image} alt="QRIS Norden Merchant" className="max-w-[160px] max-h-[160px] object-contain border-[1px] border-neutral-250" />
+                      <img src={paymentSettings.qris_image} alt="QRIS Norden Merchant" className="max-w-[160px] max-h-[160px] object-contain border-[1px] border-neutral-300" />
                       <span className="text-[9px] font-black text-black tracking-widest mt-2 uppercase">SCAN QRIS MERCHANT</span>
                     </div>
                   ) : (
