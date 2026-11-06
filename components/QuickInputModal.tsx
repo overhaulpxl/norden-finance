@@ -37,15 +37,23 @@ import { enqueueOfflineTransaction } from '../lib/offlineQueue';
 import { parseBankNotificationText } from '../lib/smartClipboard';
 import MobileNumpad from './MobileNumpad';
 import SplitBillCalculator from './SplitBillCalculator';
+import { useLanguage } from '../lib/i18n';
 
-const QUICK_AMOUNT_INCREMENTS = [
+const QUICK_AMOUNT_INCREMENTS_ID = [
   { label: '+10rb', value: 10000 },
   { label: '+20rb', value: 20000 },
   { label: '+50rb', value: 50000 },
   { label: '+100rb', value: 100000 },
 ];
 
-const QUICK_EXPENSE_CATEGORIES = [
+const QUICK_AMOUNT_INCREMENTS_EN = [
+  { label: '+10k', value: 10000 },
+  { label: '+20k', value: 20000 },
+  { label: '+50k', value: 50000 },
+  { label: '+100k', value: 100000 },
+];
+
+const QUICK_EXPENSE_CATEGORIES_ID = [
   'Makan',
   'Transport',
   'Belanja',
@@ -55,13 +63,32 @@ const QUICK_EXPENSE_CATEGORIES = [
   'Kesehatan',
 ];
 
-const QUICK_INCOME_CATEGORIES = [
+const QUICK_EXPENSE_CATEGORIES_EN = [
+  'Food',
+  'Transport',
+  'Shopping',
+  'Bills',
+  'Coffee',
+  'Entertainment',
+  'Health',
+];
+
+const QUICK_INCOME_CATEGORIES_ID = [
   'Gaji',
   'Bonus',
   'Freelance',
   'Dividen',
   'Penjualan',
   'Hadiah',
+];
+
+const QUICK_INCOME_CATEGORIES_EN = [
+  'Salary',
+  'Bonus',
+  'Freelance',
+  'Dividend',
+  'Sales',
+  'Gift',
 ];
 
 interface ChatMessage {
@@ -89,16 +116,20 @@ export default function QuickInputModal({
   onClose: () => void;
   onSuccess?: () => void;
 }) {
+  const { lang } = useLanguage();
   const router = useRouter();
   const [mode, setMode] = useState<ModalTab>('quick');
 
   // Quick/Chat mode states
   const [input, setInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'init',
       sender: 'ai',
-      text: 'Halo! Saya Norden AI Parser. Silakan ketik transaksi Anda seperti chat biasa (contoh: "makan soto 15k cash" atau "saldo gopay 200k"). Saya akan mencatatnya ke database Anda secara otomatis.',
+      text:
+        lang === 'en'
+          ? 'Hello! I am Norden AI Parser. Type your transaction in natural language (e.g. "dinner 15k cash" or "gopay balance 200k"). I will automatically record it to your database.'
+          : 'Halo! Saya Norden AI Parser. Silakan ketik transaksi Anda seperti chat biasa (contoh: "makan soto 15k cash" atau "saldo gopay 200k"). Saya akan mencatatnya ke database Anda secara otomatis.',
     },
   ]);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -130,7 +161,7 @@ export default function QuickInputModal({
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = 'id-ID';
+      recognition.lang = lang === 'en' ? 'en-US' : 'id-ID';
       recognition.continuous = false;
       recognition.interimResults = false;
 
@@ -179,7 +210,7 @@ export default function QuickInputModal({
   const [receiptImageName, setReceiptImageName] = useState<string | null>(null);
   const [receiptMerchant, setReceiptMerchant] = useState('');
   const [receiptWallet, setReceiptWallet] = useState('');
-  const [receiptCategory, setReceiptCategory] = useState('Belanja');
+  const [receiptCategory, setReceiptCategory] = useState(lang === 'en' ? 'Shopping' : 'Belanja');
   const [receiptCompressing, setReceiptCompressing] = useState(false);
   const [receiptRows, setReceiptRows] = useState<ReceiptRowItem[]>([
     { id: '1', name: '', qty: '1', price: '' },
@@ -233,12 +264,18 @@ export default function QuickInputModal({
     triggerHaptic('selection');
     try {
       if (typeof navigator === 'undefined' || !navigator.clipboard) {
-        setMessage({ type: 'error', text: 'Clipboard tidak didukung pada browser ini.' });
+        setMessage({
+          type: 'error',
+          text: lang === 'en' ? 'Clipboard not supported in this browser.' : 'Clipboard tidak didukung pada browser ini.',
+        });
         return;
       }
       const text = await navigator.clipboard.readText();
       if (!text || !text.trim()) {
-        setMessage({ type: 'error', text: 'Clipboard kosong. Salin teks SMS / WA transaksi dulu.' });
+        setMessage({
+          type: 'error',
+          text: lang === 'en' ? 'Clipboard is empty. Copy SMS / WA transaction notification first.' : 'Clipboard kosong. Salin teks SMS / WA transaksi dulu.',
+        });
         return;
       }
 
@@ -260,18 +297,27 @@ export default function QuickInputModal({
 
         setMessage({
           type: 'success',
-          text: `📋 Notifikasi Bank terdeteksi: ${parsed.type === 'masuk' ? 'Pemasukan' : 'Pengeluaran'} ${formatRupiah(parsed.amount)} (${parsed.merchant || parsed.category})`,
+          text:
+            lang === 'en'
+              ? `📋 Bank notification detected: ${parsed.type === 'masuk' ? 'Income' : 'Expense'} ${formatRupiah(parsed.amount)} (${parsed.merchant || parsed.category})`
+              : `📋 Notifikasi Bank terdeteksi: ${parsed.type === 'masuk' ? 'Pemasukan' : 'Pengeluaran'} ${formatRupiah(parsed.amount)} (${parsed.merchant || parsed.category})`,
         });
       } else {
         triggerHaptic('warning');
         setMessage({
           type: 'error',
-          text: 'Teks di clipboard tidak terdeteksi sebagai notifikasi bank/e-wallet.',
+          text:
+            lang === 'en'
+              ? 'Clipboard text not recognized as a bank/e-wallet notification.'
+              : 'Teks di clipboard tidak terdeteksi sebagai notifikasi bank/e-wallet.',
         });
       }
     } catch {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Gagal membaca clipboard. Berikan izin akses clipboard.' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'Failed to read clipboard. Please grant clipboard permissions.' : 'Gagal membaca clipboard. Berikan izin akses clipboard.',
+      });
     }
   };
 
@@ -298,7 +344,10 @@ export default function QuickInputModal({
         {
           id: Math.random().toString(),
           sender: 'ai',
-          text: '💾 [Offline Mode] Transaksi disimpan di memori HP. Otomatis disinkronkan ke server saat internet kembali.',
+          text:
+            lang === 'en'
+              ? '💾 [Offline Mode] Transaction saved locally. Will sync to server automatically when back online.'
+              : '💾 [Offline Mode] Transaksi disimpan di memori HP. Otomatis disinkronkan ke server saat internet kembali.',
         },
       ]);
       setLoading(false);
@@ -317,12 +366,18 @@ export default function QuickInputModal({
         const formattedAmount = formatCurrency(amountVal);
 
         if (res.action === 'balance_update') {
-          aiText = `✅ Saldo ${res.walletName} berhasil diperbarui menjadi ${formattedAmount}.`;
+          aiText =
+            lang === 'en'
+              ? `✅ ${res.walletName} balance updated to ${formattedAmount}.`
+              : `✅ Saldo ${res.walletName} berhasil diperbarui menjadi ${formattedAmount}.`;
         } else {
-          const item = res.result.note && res.result.note !== '-' ? res.result.note : 'Transaksi';
+          const item = res.result.note && res.result.note !== '-' ? res.result.note : (lang === 'en' ? 'Transaction' : 'Transaksi');
           const wallet = res.walletName || 'Cash';
-          const category = res.result.category || 'Lain-lain';
-          aiText = `✅ Berhasil mencatat ${item} sebesar ${formattedAmount} via ${wallet} (${category}).`;
+          const category = res.result.category || (lang === 'en' ? 'Other' : 'Lain-lain');
+          aiText =
+            lang === 'en'
+              ? `✅ Recorded ${item} for ${formattedAmount} via ${wallet} (${category}).`
+              : `✅ Berhasil mencatat ${item} sebesar ${formattedAmount} via ${wallet} (${category}).`;
         }
 
         if ('transactionId' in res && typeof res.transactionId === 'string') {
@@ -330,7 +385,10 @@ export default function QuickInputModal({
         }
       } else {
         triggerHaptic('warning');
-        aiText = `❌ Maaf, saya kurang paham. Coba ketik seperti: "makan 20rb cash" atau "gaji 5jt bca".\n\nDetail error: ${res.error || 'Format tidak dikenali'}`;
+        aiText =
+          lang === 'en'
+            ? `❌ Sorry, I didn't catch that. Try typing: "coffee 20k cash" or "salary 5m bca".\n\nError details: ${res.error || 'Unrecognized format'}`
+            : `❌ Maaf, saya kurang paham. Coba ketik seperti: "makan 20rb cash" atau "gaji 5jt bca".\n\nDetail error: ${res.error || 'Format tidak dikenali'}`;
       }
 
       setChatMessages((prev) => [
@@ -349,7 +407,7 @@ export default function QuickInputModal({
         {
           id: Math.random().toString(),
           sender: 'ai',
-          text: '❌ Terjadi kesalahan saat memproses input Anda.',
+          text: lang === 'en' ? '❌ An error occurred while processing your input.' : '❌ Terjadi kesalahan saat memproses input Anda.',
         },
       ]);
     } finally {
@@ -366,13 +424,13 @@ export default function QuickInputModal({
       setChatMessages((prev) =>
         prev.map((m) =>
           m.id === messageId
-            ? { ...m, text: `${m.text}\n\n↩️ [Transaksi telah dibatalkan]`, txId: null }
+            ? { ...m, text: `${m.text}\n\n↩️ [${lang === 'en' ? 'Transaction has been undone' : 'Transaksi telah dibatalkan'}]`, txId: null }
             : m
         )
       );
     } else {
       triggerHaptic('warning');
-      alert(res.error || 'Gagal membatalkan transaksi.');
+      alert(res.error || (lang === 'en' ? 'Failed to undo transaction.' : 'Gagal membatalkan transaksi.'));
     }
   };
 
@@ -393,11 +451,17 @@ export default function QuickInputModal({
       triggerHaptic('success');
       setMessage({
         type: 'success',
-        text: `📷 Foto struk "${file.name}" terlampir. Isi rincian cepat di bawah.`,
+        text:
+          lang === 'en'
+            ? `📷 Receipt photo "${file.name}" attached. Fill in quick details below.`
+            : `📷 Foto struk "${file.name}" terlampir. Isi rincian cepat di bawah.`,
       });
     } catch {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Gagal mengompresi gambar struk.' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'Failed to compress receipt image.' : 'Gagal mengompresi gambar struk.',
+      });
     } finally {
       setReceiptCompressing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -448,7 +512,10 @@ export default function QuickInputModal({
   const handleSaveReceiptSheet = async () => {
     if (receiptSubtotal <= 0) {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Isi harga minimal satu item pada struk.' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'Fill in price for at least one item.' : 'Isi harga minimal satu item pada struk.',
+      });
       return;
     }
 
@@ -464,9 +531,11 @@ export default function QuickInputModal({
       const res = await addExplicitTransaction({
         type: 'keluar',
         amount: receiptSubtotal,
-        category: receiptCategory || 'Belanja',
+        category: receiptCategory || (lang === 'en' ? 'Shopping' : 'Belanja'),
         wallet,
-        note: receiptMerchant.trim() ? `Struk: ${receiptMerchant.trim()}` : 'Struk Belanja (Opsi B)',
+        note: receiptMerchant.trim()
+          ? (lang === 'en' ? `Receipt: ${receiptMerchant.trim()}` : `Struk: ${receiptMerchant.trim()}`)
+          : (lang === 'en' ? 'Receipt Shopping (Option B)' : 'Struk Belanja (Opsi B)'),
         tags: ['receipt', 'option-b'],
         receiptMerchant: receiptMerchant.trim() || undefined,
         receiptItems: validRows,
@@ -480,7 +549,10 @@ export default function QuickInputModal({
           const createdId = res.transactionId;
           setUndoTxId(createdId);
           triggerUndoToast({
-            message: `Struk ${formatRupiah(receiptSubtotal)} dicatat`,
+            message:
+              lang === 'en'
+                ? `Receipt ${formatRupiah(receiptSubtotal)} recorded`
+                : `Struk ${formatRupiah(receiptSubtotal)} dicatat`,
             onUndo: async () => {
               await deleteTransaction(createdId);
               refreshAfterMutation();
@@ -489,7 +561,10 @@ export default function QuickInputModal({
         }
         setMessage({
           type: 'success',
-          text: `✅ Struk ${receiptMerchant || 'Belanja'} (${formatRupiah(receiptSubtotal)}) berhasil disimpan!`,
+          text:
+            lang === 'en'
+              ? `✅ Receipt ${receiptMerchant || 'Shopping'} (${formatRupiah(receiptSubtotal)}) saved!`
+              : `✅ Struk ${receiptMerchant || 'Belanja'} (${formatRupiah(receiptSubtotal)}) berhasil disimpan!`,
         });
         setReceiptRows([
           { id: '1', name: '', qty: '1', price: '' },
@@ -500,11 +575,17 @@ export default function QuickInputModal({
         scheduleClose();
       } else {
         triggerHaptic('warning');
-        setMessage({ type: 'error', text: res.error || 'Gagal menyimpan transaksi struk.' });
+        setMessage({
+          type: 'error',
+          text: res.error || (lang === 'en' ? 'Failed to save receipt transaction.' : 'Gagal menyimpan transaksi struk.'),
+        });
       }
     } catch {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Terjadi kesalahan sistem saat menyimpan.' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'System error while saving.' : 'Terjadi kesalahan sistem saat menyimpan.',
+      });
     } finally {
       setLoading(false);
     }
@@ -514,12 +595,15 @@ export default function QuickInputModal({
   const handleTransferReceiptToManual = () => {
     triggerHaptic('selection');
     setMAmount(formatRupiahInput(receiptSubtotal.toString()));
-    setMNote(receiptMerchant ? `Struk: ${receiptMerchant}` : 'Struk Belanja');
-    setMCategory(receiptCategory || 'Belanja');
+    setMNote(receiptMerchant ? (lang === 'en' ? `Receipt: ${receiptMerchant}` : `Struk: ${receiptMerchant}`) : (lang === 'en' ? 'Receipt Shopping' : 'Struk Belanja'));
+    setMCategory(receiptCategory || (lang === 'en' ? 'Shopping' : 'Belanja'));
     setMode('manual');
     setMessage({
       type: 'success',
-      text: `Total struk ${formatRupiah(receiptSubtotal)} dipindahkan ke Formulir Manual.`,
+      text:
+        lang === 'en'
+          ? `Receipt total ${formatRupiah(receiptSubtotal)} moved to Manual Form.`
+          : `Total struk ${formatRupiah(receiptSubtotal)} dipindahkan ke Formulir Manual.`,
     });
   };
 
@@ -532,19 +616,28 @@ export default function QuickInputModal({
     const amount = parseRupiahInput(mAmount);
     if (!amount || amount <= 0) {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Nominal harus lebih dari 0' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'Amount must be greater than 0' : 'Nominal harus lebih dari 0',
+      });
       return;
     }
 
     if (mType === 'transfer' && (!currentMethod || !currentToMethod)) {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Pilih dompet asal dan dompet tujuan transfer' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'Select source and destination wallets for transfer' : 'Pilih dompet asal dan dompet tujuan transfer',
+      });
       return;
     }
 
     if (mType === 'transfer' && currentMethod.toLowerCase() === currentToMethod.toLowerCase()) {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: 'Dompet asal dan tujuan tidak boleh sama' });
+      setMessage({
+        type: 'error',
+        text: lang === 'en' ? 'Source and destination wallets cannot be the same' : 'Dompet asal dan tujuan tidak boleh sama',
+      });
       return;
     }
 
@@ -593,7 +686,7 @@ export default function QuickInputModal({
       setIsRecurring(false);
       setMessage({
         type: 'success',
-        text: '💾 Disimpan di memori HP! Otomatis disinkronkan saat online.',
+        text: lang === 'en' ? '💾 Saved to local memory! Automatically syncs when back online.' : '💾 Disimpan di memori HP! Otomatis disinkronkan saat online.',
       });
       setLoading(false);
       scheduleClose();
@@ -620,12 +713,12 @@ export default function QuickInputModal({
             amount,
             category: mCategory,
             method: currentMethod,
-            note: mNote || `Rutin: ${mCategory}`,
+            note: mNote || (lang === 'en' ? `Routine: ${mCategory}` : `Rutin: ${mCategory}`),
           });
         }
       }
     } catch {
-      res = { success: false, error: 'Koneksi gagal. Coba lagi.' };
+      res = { success: false, error: lang === 'en' ? 'Connection failed. Try again.' : 'Koneksi gagal. Coba lagi.' };
     }
 
     if (res.success) {
@@ -643,7 +736,7 @@ export default function QuickInputModal({
         const createdId = res.transactionId;
         setUndoTxId(createdId);
         triggerUndoToast({
-          message: `${mType === 'masuk' ? 'Pemasukan' : mType === 'transfer' ? 'Transfer' : 'Pengeluaran'} ${formatRupiah(amount)}`,
+          message: `${mType === 'masuk' ? (lang === 'en' ? 'Income' : 'Pemasukan') : mType === 'transfer' ? 'Transfer' : (lang === 'en' ? 'Expense' : 'Pengeluaran')} ${formatRupiah(amount)}`,
           onUndo: async () => {
             await deleteTransaction(createdId);
             refreshAfterMutation();
@@ -651,11 +744,14 @@ export default function QuickInputModal({
         });
       }
 
-      setMessage({ type: 'success', text: 'Transaksi berhasil disimpan!' });
+      setMessage({
+        type: 'success',
+        text: lang === 'en' ? 'Transaction saved successfully!' : 'Transaksi berhasil disimpan!',
+      });
       scheduleClose();
     } else {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: res.error || 'Gagal menyimpan' });
+      setMessage({ type: 'error', text: res.error || (lang === 'en' ? 'Failed to save' : 'Gagal menyimpan') });
     }
 
     setLoading(false);
@@ -673,10 +769,16 @@ export default function QuickInputModal({
     if (res.success) {
       triggerHaptic('success');
       refreshAfterMutation();
-      setMessage({ type: 'success', text: 'Transaksi berhasil dibatalkan.' });
+      setMessage({
+        type: 'success',
+        text: lang === 'en' ? 'Transaction undone successfully.' : 'Transaksi berhasil dibatalkan.',
+      });
     } else {
       triggerHaptic('warning');
-      setMessage({ type: 'error', text: res.error || 'Gagal membatalkan transaksi.' });
+      setMessage({
+        type: 'error',
+        text: res.error || (lang === 'en' ? 'Failed to undo transaction.' : 'Gagal membatalkan transaksi.'),
+      });
     }
 
     setLoading(false);
@@ -710,7 +812,7 @@ export default function QuickInputModal({
               <Sparkles className="w-4 h-4 stroke-[2.5px]" />
             </div>
             <h2 className="font-black text-sm sm:text-base uppercase tracking-wider text-black dark:text-white">
-              Catat Transaksi
+              {lang === 'en' ? 'Record Transaction' : 'Catat Transaksi'}
             </h2>
           </div>
 
@@ -718,11 +820,11 @@ export default function QuickInputModal({
             <button
               type="button"
               onClick={handleSmartClipboard}
-              title="Tempel dari Notifikasi Bank / SMS"
+              title={lang === 'en' ? 'Paste from Bank Notification / SMS' : 'Tempel dari Notifikasi Bank / SMS'}
               className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50"
             >
               <ClipboardPaste className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Tempel Bank</span>
+              <span className="hidden sm:inline">{lang === 'en' ? 'Paste Bank' : 'Tempel Bank'}</span>
             </button>
 
             <button
@@ -731,7 +833,7 @@ export default function QuickInputModal({
                 triggerHaptic('light');
                 onClose();
               }}
-              aria-label="Tutup modal"
+              aria-label={lang === 'en' ? 'Close modal' : 'Tutup modal'}
               className="p-1.5 text-neutral-500 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-black"
             >
               <X className="w-5 h-5 stroke-[2.5px]" />
@@ -759,7 +861,7 @@ export default function QuickInputModal({
             }
           >
             <Sparkles className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
-            <span>AI Cepat</span>
+            <span>{lang === 'en' ? 'Quick AI' : 'AI Cepat'}</span>
           </button>
 
           <button
@@ -780,7 +882,7 @@ export default function QuickInputModal({
             }
           >
             <FileText className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
-            <span>Formulir</span>
+            <span>{lang === 'en' ? 'Manual Form' : 'Formulir'}</span>
           </button>
 
           <button
@@ -801,7 +903,7 @@ export default function QuickInputModal({
             }
           >
             <Camera className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
-            <span>Struk (B)</span>
+            <span>{lang === 'en' ? 'Receipt (B)' : 'Struk (B)'}</span>
           </button>
 
           <button
@@ -845,7 +947,7 @@ export default function QuickInputModal({
                       <span
                         className={`text-[9px] font-black block mb-0.5 uppercase ${msg.sender === 'user' ? 'text-neutral-700' : 'text-[#4B6DFE]'}`}
                       >
-                        {msg.sender === 'user' ? 'Anda' : 'Norden AI'}
+                        {msg.sender === 'user' ? (lang === 'en' ? 'You' : 'Anda') : 'Norden AI'}
                       </span>
                       <p className="text-[11px] font-bold leading-snug whitespace-pre-line">
                         {msg.text}
@@ -857,7 +959,7 @@ export default function QuickInputModal({
                           onClick={() => handleUndoChat(msg.txId!, msg.id)}
                           className="mt-2 text-[9px] font-black text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                         >
-                          <RotateCcw className="w-3 h-3 stroke-[2.5px]" /> Batal / Undo
+                          <RotateCcw className="w-3 h-3 stroke-[2.5px]" /> {lang === 'en' ? 'Undo' : 'Batal / Undo'}
                         </button>
                       )}
                     </div>
@@ -868,7 +970,7 @@ export default function QuickInputModal({
                   <div className="self-start bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 p-2.5 max-w-[85%] rounded-xl shadow-[2px_2px_0px_0px_#000] flex gap-1.5 items-center z-10 text-black dark:text-white">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span className="text-[9px] font-black uppercase tracking-widest">
-                      Mencatat...
+                      {lang === 'en' ? 'Recording...' : 'Mencatat...'}
                     </span>
                   </div>
                 )}
@@ -879,27 +981,27 @@ export default function QuickInputModal({
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
-                  onClick={() => handleSend('kopi starbucks 55k bca')}
+                  onClick={() => handleSend(lang === 'en' ? 'starbucks coffee 55k bca' : 'kopi starbucks 55k bca')}
                   className="bg-white dark:bg-neutral-800 border border-black dark:border-neutral-700 text-[10px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] rounded-lg cursor-pointer"
                   disabled={loading}
                 >
-                  ☕ Kopi 55k BCA
+                  {lang === 'en' ? '☕ Coffee 55k BCA' : '☕ Kopi 55k BCA'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleSend('gaji masuk 12jt bca')}
+                  onClick={() => handleSend(lang === 'en' ? 'salary 12m bca' : 'gaji masuk 12jt bca')}
                   className="bg-white dark:bg-neutral-800 border border-black dark:border-neutral-700 text-[10px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] rounded-lg cursor-pointer"
                   disabled={loading}
                 >
-                  💼 Gaji 12jt BCA
+                  {lang === 'en' ? '💼 Salary 12m BCA' : '💼 Gaji 12jt BCA'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleSend('gojek 22rb cash')}
+                  onClick={() => handleSend(lang === 'en' ? 'uber 22k cash' : 'gojek 22rb cash')}
                   className="bg-white dark:bg-neutral-800 border border-black dark:border-neutral-700 text-[10px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] rounded-lg cursor-pointer"
                   disabled={loading}
                 >
-                  🚗 Gojek 22rb Cash
+                  {lang === 'en' ? '🚗 Ride 22k Cash' : '🚗 Gojek 22rb Cash'}
                 </button>
               </div>
 
@@ -924,7 +1026,7 @@ export default function QuickInputModal({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={loading || receiptCompressing}
                   className="p-2.5 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center rounded-xl"
-                  title="Lampirkan Struk (Opsi B)"
+                  title={lang === 'en' ? 'Attach Receipt (Option B)' : 'Lampirkan Struk (Opsi B)'}
                 >
                   {receiptCompressing ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -945,8 +1047,8 @@ export default function QuickInputModal({
                     }`}
                     title={
                       isListening
-                        ? 'Sedang merekam suara... Ketuk untuk berhenti'
-                        : 'Bicara untuk mencatat transaksi'
+                        ? (lang === 'en' ? 'Recording voice... Tap to stop' : 'Sedang merekam suara... Ketuk untuk berhenti')
+                        : (lang === 'en' ? 'Speak to record transaction' : 'Bicara untuk mencatat transaksi')
                     }
                   >
                     {isListening ? (
@@ -967,7 +1069,9 @@ export default function QuickInputModal({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={
-                      isListening ? 'Mendengarkan suara Anda...' : 'Beli makan siang 15k cash...'
+                      isListening
+                        ? (lang === 'en' ? 'Listening to your voice...' : 'Mendengarkan suara Anda...')
+                        : (lang === 'en' ? 'e.g. lunch 15k cash...' : 'Beli makan siang 15k cash...')
                     }
                     className="flex-1 text-xs font-bold pl-2 bg-transparent focus:outline-none placeholder-neutral-400 text-black dark:text-white"
                     disabled={loading}
@@ -1005,7 +1109,7 @@ export default function QuickInputModal({
                       : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
                   }`}
                 >
-                  Pengeluaran
+                  {lang === 'en' ? 'Expense' : 'Pengeluaran'}
                 </button>
                 <button
                   type="button"
@@ -1019,7 +1123,7 @@ export default function QuickInputModal({
                       : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
                   }`}
                 >
-                  Pemasukan
+                  {lang === 'en' ? 'Income' : 'Pemasukan'}
                 </button>
                 <button
                   type="button"
@@ -1042,7 +1146,7 @@ export default function QuickInputModal({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
-                      Nominal (Rp)
+                      {lang === 'en' ? 'Amount (Rp)' : 'Nominal (Rp)'}
                     </label>
                     <button
                       type="button"
@@ -1050,13 +1154,13 @@ export default function QuickInputModal({
                       className="text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white flex items-center gap-1 cursor-pointer"
                     >
                       <Smartphone className="w-3 h-3" />
-                      <span>{showNumpad ? 'Tutup Numpad' : 'Keypad Touch'}</span>
+                      <span>{showNumpad ? (lang === 'en' ? 'Close Numpad' : 'Tutup Numpad') : (lang === 'en' ? 'Touch Keypad' : 'Keypad Touch')}</span>
                     </button>
                   </div>
                   <input
                     type="text"
                     inputMode="numeric"
-                    placeholder="Contoh: 50.000"
+                    placeholder={lang === 'en' ? 'e.g. 50,000' : 'Contoh: 50.000'}
                     value={mAmount}
                     onChange={(e) => setMAmount(formatRupiahInput(e.target.value))}
                     className="w-full brutal-input text-xs font-bold"
@@ -1066,7 +1170,7 @@ export default function QuickInputModal({
 
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    {mType === 'transfer' ? 'Dari Wallet' : 'Wallet'}
+                    {mType === 'transfer' ? (lang === 'en' ? 'From Wallet' : 'Dari Wallet') : 'Wallet'}
                   </label>
                   <WalletSelect
                     wallets={balances}
@@ -1093,9 +1197,9 @@ export default function QuickInputModal({
               {!showNumpad && (
                 <div className="flex flex-wrap items-center gap-1.5 -mt-1">
                   <span className="text-[9px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mr-0.5">
-                    Tambah:
+                    {lang === 'en' ? 'Add:' : 'Tambah:'}
                   </span>
-                  {QUICK_AMOUNT_INCREMENTS.map((chip) => (
+                  {(lang === 'en' ? QUICK_AMOUNT_INCREMENTS_EN : QUICK_AMOUNT_INCREMENTS_ID).map((chip) => (
                     <button
                       key={chip.label}
                       type="button"
@@ -1121,7 +1225,7 @@ export default function QuickInputModal({
               {mType === 'transfer' ? (
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    Ke Wallet Tujuan
+                    {lang === 'en' ? 'To Destination Wallet' : 'Ke Wallet Tujuan'}
                   </label>
                   <WalletSelect
                     wallets={balances}
@@ -1135,43 +1239,46 @@ export default function QuickInputModal({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
-                      Kategori
+                      {lang === 'en' ? 'Category' : 'Kategori'}
                     </label>
-                    <span className="text-[9px] font-bold text-neutral-500 dark:text-neutral-400">Pilih cepat atau ketik</span>
+                    <span className="text-[9px] font-bold text-neutral-500 dark:text-neutral-400">
+                      {lang === 'en' ? 'Quick pick or type' : 'Pilih cepat atau ketik'}
+                    </span>
                   </div>
                   <input
                     type="text"
-                    placeholder="e.g. makan, transport"
+                    placeholder={lang === 'en' ? 'e.g. food, transport' : 'e.g. makan, transport'}
                     value={mCategory}
                     onChange={(e) => setMCategory(e.target.value)}
                     className="w-full brutal-input text-xs font-bold"
                     required
                   />
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                    {(mType === 'masuk' ? QUICK_INCOME_CATEGORIES : QUICK_EXPENSE_CATEGORIES).map(
-                      (cat) => {
-                        const isSelected = mCategory.toLowerCase().trim() === cat.toLowerCase();
-                        const emoji = getCategoryEmoji(cat);
-                        return (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => {
-                              triggerHaptic('selection');
-                              setMCategory(cat);
-                            }}
-                            className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider border border-black dark:border-neutral-700 rounded-lg shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 ${
-                              isSelected
-                                ? 'bg-[#FFE066] text-black font-black'
-                                : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
-                            }`}
-                          >
-                            <span>{emoji}</span>
-                            <span>{cat}</span>
-                          </button>
-                        );
-                      }
-                    )}
+                    {(mType === 'masuk'
+                      ? (lang === 'en' ? QUICK_INCOME_CATEGORIES_EN : QUICK_INCOME_CATEGORIES_ID)
+                      : (lang === 'en' ? QUICK_EXPENSE_CATEGORIES_EN : QUICK_EXPENSE_CATEGORIES_ID)
+                    ).map((cat) => {
+                      const isSelected = mCategory.toLowerCase().trim() === cat.toLowerCase();
+                      const emoji = getCategoryEmoji(cat);
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            triggerHaptic('selection');
+                            setMCategory(cat);
+                          }}
+                          className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider border border-black dark:border-neutral-700 rounded-lg shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 ${
+                            isSelected
+                              ? 'bg-[#FFE066] text-black font-black'
+                              : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
+                          }`}
+                        >
+                          <span>{emoji}</span>
+                          <span>{cat}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1180,11 +1287,11 @@ export default function QuickInputModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    Catatan (Opsional)
+                    {lang === 'en' ? 'Note (Optional)' : 'Catatan (Opsional)'}
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Makan siang kantor"
+                    placeholder={lang === 'en' ? 'e.g. Office lunch' : 'e.g. Makan siang kantor'}
                     value={mNote}
                     onChange={(e) => setMNote(e.target.value)}
                     className="w-full brutal-input text-xs font-bold"
@@ -1192,11 +1299,11 @@ export default function QuickInputModal({
                 </div>
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    Tag (Opsional)
+                    {lang === 'en' ? 'Tags (Optional)' : 'Tag (Opsional)'}
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. #makan #kerja"
+                    placeholder={lang === 'en' ? 'e.g. #food #work' : 'e.g. #makan #kerja'}
                     value={mTags}
                     onChange={(e) => setMTags(e.target.value)}
                     className="w-full brutal-input text-xs font-bold"
@@ -1217,7 +1324,7 @@ export default function QuickInputModal({
                     className="w-4 h-4 border-2 border-black rounded accent-black cursor-pointer"
                   />
                   <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                    Berulang tiap bulan (Tagihan / Langganan rutin)
+                    {lang === 'en' ? 'Recurring monthly (Bill / Routine subscription)' : 'Berulang tiap bulan (Tagihan / Langganan rutin)'}
                   </span>
                 </label>
               )}
@@ -1237,7 +1344,7 @@ export default function QuickInputModal({
                 ) : (
                   <Send className="w-4 h-4 stroke-[2.5px]" />
                 )}
-                <span>Simpan Transaksi</span>
+                <span>{lang === 'en' ? 'Save Transaction' : 'Simpan Transaksi'}</span>
               </button>
             </form>
           )}
@@ -1252,14 +1359,14 @@ export default function QuickInputModal({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={receiptImageThumbnail}
-                        alt="Thumbnail struk"
+                        alt={lang === 'en' ? 'Receipt thumbnail' : 'Thumbnail struk'}
                         className="w-full h-full object-cover"
                       />
                       <button
                         type="button"
                         onClick={handleRemoveReceiptImage}
                         className="absolute top-0 right-0 p-0.5 bg-red-600 text-white cursor-pointer"
-                        title="Hapus foto struk"
+                        title={lang === 'en' ? 'Delete receipt photo' : 'Hapus foto struk'}
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -1272,12 +1379,12 @@ export default function QuickInputModal({
 
                   <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
-                      {receiptImageName || 'Lampiran Struk (Opsi B)'}
+                      {receiptImageName || (lang === 'en' ? 'Receipt Attachment (Option B)' : 'Lampiran Struk (Opsi B)')}
                     </p>
                     <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-0.5">
                       {receiptImageThumbnail
-                        ? 'Foto tersimpan di memori perangkat. Rincian cepat diisi di bawah.'
-                        : 'Unggah/foto struk, lalu catat cepat 3-kolom tanpa cloud OCR.'}
+                        ? (lang === 'en' ? 'Photo saved locally on device. Fill quick details below.' : 'Foto tersimpan di memori perangkat. Rincian cepat diisi di bawah.')
+                        : (lang === 'en' ? 'Upload/take photo of receipt, then log items with 3-column sheet without cloud OCR.' : 'Unggah/foto struk, lalu catat cepat 3-kolom tanpa cloud OCR.')}
                     </p>
                   </div>
                 </div>
@@ -1302,7 +1409,7 @@ export default function QuickInputModal({
                     ) : (
                       <Camera className="w-3.5 h-3.5" />
                     )}
-                    <span>{receiptImageThumbnail ? 'Ganti Foto' : 'Ambil/Unggah Foto'}</span>
+                    <span>{receiptImageThumbnail ? (lang === 'en' ? 'Change Photo' : 'Ganti Foto') : (lang === 'en' ? 'Take/Upload Photo' : 'Ambil/Unggah Foto')}</span>
                   </button>
                 </div>
               </div>
@@ -1311,11 +1418,11 @@ export default function QuickInputModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    Nama Toko / Tempat
+                    {lang === 'en' ? 'Store / Merchant Name' : 'Nama Toko / Tempat'}
                   </label>
                   <input
                     type="text"
-                    placeholder="Contoh: Indomaret, Hokben, Apotek"
+                    placeholder={lang === 'en' ? 'e.g. Walmart, Starbucks, Pharmacy' : 'Contoh: Indomaret, Hokben, Apotek'}
                     value={receiptMerchant}
                     onChange={(e) => setReceiptMerchant(e.target.value)}
                     className="w-full brutal-input text-xs font-bold"
@@ -1323,7 +1430,7 @@ export default function QuickInputModal({
                 </div>
                 <div>
                   <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    Bayar Pakai Wallet
+                    {lang === 'en' ? 'Paid With Wallet' : 'Bayar Pakai Wallet'}
                   </label>
                   <WalletSelect
                     wallets={balances}
@@ -1338,10 +1445,10 @@ export default function QuickInputModal({
               {/* Category Quick Chips for Receipt */}
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                  Kategori Struk
+                  {lang === 'en' ? 'Receipt Category' : 'Kategori Struk'}
                 </label>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {QUICK_EXPENSE_CATEGORIES.map((cat) => (
+                  {(lang === 'en' ? QUICK_EXPENSE_CATEGORIES_EN : QUICK_EXPENSE_CATEGORIES_ID).map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -1364,23 +1471,23 @@ export default function QuickInputModal({
               {/* 3-Column Sheet Table */}
               <div className="border-2 border-black dark:border-neutral-700 rounded-xl overflow-hidden shadow-[3px_3px_0px_0px_#000] bg-white dark:bg-neutral-900">
                 <div className="px-3 py-2 bg-neutral-100 dark:bg-neutral-800 border-b-2 border-black dark:border-neutral-700 flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
-                  <span>Lembar Masuk Cepat (3 Kolom)</span>
+                  <span>{lang === 'en' ? 'Quick Entry Sheet (3 Columns)' : 'Lembar Masuk Cepat (3 Kolom)'}</span>
                   <button
                     type="button"
                     onClick={handleAddReceiptRow}
                     className="px-2 py-0.5 border border-black dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-black dark:text-white flex items-center gap-1 cursor-pointer shadow-[1px_1px_0px_0px_#000]"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>Tambah Baris</span>
+                    <span>{lang === 'en' ? 'Add Row' : 'Tambah Baris'}</span>
                   </button>
                 </div>
 
                 <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
                   <div className="grid grid-cols-[1fr_80px_110px_36px] gap-2 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-neutral-500 bg-neutral-50 dark:bg-neutral-900">
-                    <div>Nama Barang</div>
-                    <div>Qty / Ket.</div>
-                    <div>Harga (Rp)</div>
-                    <div className="text-center">Aksi</div>
+                    <div>{lang === 'en' ? 'Item Name' : 'Nama Barang'}</div>
+                    <div>{lang === 'en' ? 'Qty / Note' : 'Qty / Ket.'}</div>
+                    <div>{lang === 'en' ? 'Price (Rp)' : 'Harga (Rp)'}</div>
+                    <div className="text-center">{lang === 'en' ? 'Action' : 'Aksi'}</div>
                   </div>
 
                   {receiptRows.map((row, index) => (
@@ -1390,7 +1497,7 @@ export default function QuickInputModal({
                     >
                       <input
                         type="text"
-                        placeholder={`Barang #${index + 1}`}
+                        placeholder={lang === 'en' ? `Item #${index + 1}` : `Barang #${index + 1}`}
                         value={row.name}
                         onChange={(e) => handleUpdateReceiptRow(row.id, 'name', e.target.value)}
                         className="w-full px-2 py-1 text-xs font-bold border border-black dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white focus:outline-none"
@@ -1415,7 +1522,7 @@ export default function QuickInputModal({
                         onClick={() => handleRemoveReceiptRow(row.id)}
                         disabled={receiptRows.length <= 1}
                         className="p-1 text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
-                        title="Hapus baris"
+                        title={lang === 'en' ? 'Delete row' : 'Hapus baris'}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1426,7 +1533,7 @@ export default function QuickInputModal({
                 {/* Subtotal Footer */}
                 <div className="p-3 bg-[#FAF9F5] dark:bg-neutral-800 border-t-2 border-black dark:border-neutral-700 flex justify-between items-center">
                   <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Total Rincian Struk:
+                    {lang === 'en' ? 'Receipt Subtotal:' : 'Total Rincian Struk:'}
                   </span>
                   <span className="text-base font-black text-black dark:text-white">
                     {formatRupiah(receiptSubtotal)}
@@ -1443,7 +1550,7 @@ export default function QuickInputModal({
                   className="w-full sm:w-auto px-4 py-2.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Salin ke Formulir</span>
+                  <span>{lang === 'en' ? 'Copy to Form' : 'Salin ke Formulir'}</span>
                 </button>
 
                 <button
@@ -1461,7 +1568,11 @@ export default function QuickInputModal({
                   ) : (
                     <Check className="w-4 h-4 stroke-[3px]" />
                   )}
-                  <span>Simpan Transaksi Struk ({formatRupiah(receiptSubtotal)})</span>
+                  <span>
+                    {lang === 'en'
+                      ? `Save Receipt Transaction (${formatRupiah(receiptSubtotal)})`
+                      : `Simpan Transaksi Struk (${formatRupiah(receiptSubtotal)})`}
+                  </span>
                 </button>
               </div>
             </div>
@@ -1476,10 +1587,13 @@ export default function QuickInputModal({
                   setMode('manual');
                   setMAmount(formatRupiahInput(amount.toString()));
                   setMNote(note);
-                  setMCategory('Makan');
+                  setMCategory(lang === 'en' ? 'Food' : 'Makan');
                   setMessage({
                     type: 'success',
-                    text: `Porsi split bill ${formatRupiah(amount)} diterapkan ke Formulir Manual!`,
+                    text:
+                      lang === 'en'
+                        ? `Split bill share ${formatRupiah(amount)} applied to Manual Form!`
+                        : `Porsi split bill ${formatRupiah(amount)} diterapkan ke Formulir Manual!`,
                   });
                 }}
               />

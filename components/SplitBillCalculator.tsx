@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Users, Copy, Check, Calculator, Sparkles, Percent } from 'lucide-react';
 import { triggerHaptic } from '../lib/haptics';
 import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
+import { useLanguage } from '../lib/i18n';
 
 interface SplitBillCalculatorProps {
   onUseMyShare?: (amount: number, note: string) => void;
@@ -13,6 +14,7 @@ interface SplitBillCalculatorProps {
 const TAX_PRESETS = [0, 5, 10, 11, 12];
 
 export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }: SplitBillCalculatorProps) {
+  const { lang } = useLanguage();
   const [totalBill, setTotalBill] = useState(() => (defaultAmount > 0 ? formatRupiahInput(defaultAmount.toString()) : ''));
   const [peopleCount, setPeopleCount] = useState<number>(2);
   const [taxPercent, setTaxPercent] = useState<number>(0);
@@ -35,17 +37,30 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
 
   const handleCopySummary = async () => {
     triggerHaptic('success');
-    const titleText = billTitle.trim() ? `untuk *${billTitle.trim()}*` : '';
-    const summary = [
-      `🧾 *RINCIAN SPLIT BILL NORDEN* ${titleText}`,
-      `💰 Total Tagihan: ${formatRupiah(rawTotal)}`,
-      taxPercent > 0 ? `🏷️ Pajak/Tip (${taxPercent}%): ${formatRupiah(taxAmount)}` : null,
-      taxPercent > 0 ? `💵 Total Akhir: ${formatRupiah(grandTotal)}` : null,
-      `👥 Dibagi: ${peopleCount} orang`,
-      `👉 *Patungan per Orang: ${formatRupiah(perPersonShare)}*`,
-      ``,
-      `Dicatat via Norden Finance ⚡`,
-    ].filter(Boolean).join('\n');
+    const titleText = billTitle.trim()
+      ? (lang === 'en' ? `for *${billTitle.trim()}*` : `untuk *${billTitle.trim()}*`)
+      : '';
+    const summary = lang === 'en'
+      ? [
+          `🧾 *NORDEN SPLIT BILL BREAKDOWN* ${titleText}`.trim(),
+          `💰 Total Bill: ${formatRupiah(rawTotal)}`,
+          taxPercent > 0 ? `🏷️ Tax/Tip (${taxPercent}%): ${formatRupiah(taxAmount)}` : null,
+          taxPercent > 0 ? `💵 Grand Total: ${formatRupiah(grandTotal)}` : null,
+          `👥 Split among: ${peopleCount} people`,
+          `👉 *Share per Person: ${formatRupiah(perPersonShare)}*`,
+          ``,
+          `Recorded with Norden Finance ⚡`,
+        ].filter(Boolean).join('\n')
+      : [
+          `🧾 *RINCIAN SPLIT BILL NORDEN* ${titleText}`.trim(),
+          `💰 Total Tagihan: ${formatRupiah(rawTotal)}`,
+          taxPercent > 0 ? `🏷️ Pajak/Tip (${taxPercent}%): ${formatRupiah(taxAmount)}` : null,
+          taxPercent > 0 ? `💵 Total Akhir: ${formatRupiah(grandTotal)}` : null,
+          `👥 Dibagi: ${peopleCount} orang`,
+          `👉 *Patungan per Orang: ${formatRupiah(perPersonShare)}*`,
+          ``,
+          `Dicatat via Norden Finance ⚡`,
+        ].filter(Boolean).join('\n');
 
     try {
       await navigator.clipboard.writeText(summary);
@@ -59,7 +74,9 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
   const handleApplyMyShare = () => {
     if (onUseMyShare && perPersonShare > 0) {
       triggerHaptic('medium');
-      const note = billTitle.trim() ? `Split Bill: ${billTitle.trim()} (Porsi 1/${peopleCount})` : `Split Bill (1/${peopleCount})`;
+      const note = billTitle.trim()
+        ? (lang === 'en' ? `Split Bill: ${billTitle.trim()} (Share 1/${peopleCount})` : `Split Bill: ${billTitle.trim()} (Porsi 1/${peopleCount})`)
+        : `Split Bill (1/${peopleCount})`;
       onUseMyShare(perPersonShare, note);
     }
   };
@@ -69,7 +86,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
       <div className="flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
         <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 text-black dark:text-white">
           <Calculator className="w-4 h-4 stroke-[2.5px]" />
-          Kalkulator Split Bill (Bagi Tagihan)
+          {lang === 'en' ? 'Split Bill Calculator' : 'Kalkulator Split Bill (Bagi Tagihan)'}
         </h3>
         <span
           className="text-[9px] font-black uppercase px-2 py-0.5 border border-black rounded shadow-[1px_1px_0px_0px_#000]"
@@ -83,11 +100,11 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
         {/* Title / Description */}
         <div>
           <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-            Nama Tagihan / Acara (Opsional)
+            {lang === 'en' ? 'Bill / Event Name (Optional)' : 'Nama Tagihan / Acara (Opsional)'}
           </label>
           <input
             type="text"
-            placeholder="Contoh: Makan Malam di Sushi Tei"
+            placeholder={lang === 'en' ? 'e.g. Dinner at Sushi Tei' : 'Contoh: Makan Malam di Sushi Tei'}
             value={billTitle}
             onChange={(e) => setBillTitle(e.target.value)}
             className="w-full brutal-input text-xs font-bold"
@@ -98,7 +115,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-              Total Tagihan (Rp)
+              {lang === 'en' ? 'Total Bill (Rp)' : 'Total Tagihan (Rp)'}
             </label>
             <input
               type="text"
@@ -113,7 +130,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
           {/* People Count Counter */}
           <div>
             <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-              Jumlah Orang
+              {lang === 'en' ? 'Number of People' : 'Jumlah Orang'}
             </label>
             <div className="flex items-center gap-2">
               <button
@@ -128,7 +145,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
               </button>
               <div className="flex-1 h-10 border-2 border-black dark:border-neutral-700 rounded-xl bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white font-black text-sm flex items-center justify-center gap-1 shadow-[2px_2px_0px_0px_#000]">
                 <Users className="w-4 h-4" />
-                <span>{peopleCount} Orang</span>
+                <span>{peopleCount} {lang === 'en' ? 'People' : 'Orang'}</span>
               </div>
               <button
                 type="button"
@@ -147,7 +164,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
         {/* Tip / Tax Presets */}
         <div>
           <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
-            <Percent className="w-3 h-3" /> Pajak / Service Tip (Opsional)
+            <Percent className="w-3 h-3" /> {lang === 'en' ? 'Tax / Service Tip (Optional)' : 'Pajak / Service Tip (Opsional)'}
           </label>
           <div className="flex flex-wrap items-center gap-2">
             {TAX_PRESETS.map((p) => (
@@ -165,7 +182,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
                 }`}
                 style={taxPercent === p ? { backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' } : {}}
               >
-                {p === 0 ? 'Tanpa Pajak' : `${p}%`}
+                {p === 0 ? (lang === 'en' ? 'No Tax' : 'Tanpa Pajak') : `${p}%`}
               </button>
             ))}
           </div>
@@ -175,12 +192,12 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
         {rawTotal > 0 && (
           <div className="p-3.5 border-2 border-black dark:border-neutral-700 rounded-xl bg-[#FAF9F5] dark:bg-neutral-800/80 shadow-[2.5px_2.5px_0px_0px_#000] space-y-2 mt-2">
             <div className="flex justify-between items-center text-xs font-bold text-neutral-600 dark:text-neutral-300">
-              <span>Total Akhir Tagihan:</span>
+              <span>{lang === 'en' ? 'Grand Total:' : 'Total Akhir Tagihan:'}</span>
               <span className="font-black text-black dark:text-white">{formatRupiah(grandTotal)}</span>
             </div>
             <div className="flex justify-between items-center border-t border-neutral-300 dark:border-neutral-700 pt-2">
               <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                Bagian Tiap Orang ({peopleCount} org):
+                {lang === 'en' ? `Share per Person (${peopleCount} ppl):` : `Bagian Tiap Orang (${peopleCount} org):`}
               </span>
               <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400">
                 {formatRupiah(perPersonShare)}
@@ -198,7 +215,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
               className="w-full sm:flex-1 py-2.5 px-3 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-600 stroke-[3px]" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Tersalin ke Clipboard!' : 'Salin Teks WhatsApp'}</span>
+              <span>{copied ? (lang === 'en' ? 'Copied to Clipboard!' : 'Tersalin ke Clipboard!') : (lang === 'en' ? 'Copy WhatsApp Text' : 'Salin Teks WhatsApp')}</span>
             </button>
 
             {onUseMyShare && (
@@ -209,7 +226,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
                 style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
               >
                 <Sparkles className="w-4 h-4 stroke-[2.5px]" />
-                <span>Catat Porsi Saya</span>
+                <span>{lang === 'en' ? 'Log My Share' : 'Catat Porsi Saya'}</span>
               </button>
             )}
           </div>

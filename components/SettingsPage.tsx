@@ -5,7 +5,7 @@ import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
 import { forgotPasswordAction } from '../app/authActions';
 import Link from 'next/link';
-import { MVP_FEATURES } from '../lib/constants';
+import { MVP_FEATURES, MVP_FEATURES_EN } from '../lib/constants';
 import { formatCurrency } from '../lib/format';
 import {
   isPinSet,
@@ -102,14 +102,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     // Verify current PIN if in change or remove mode
     if (pinModalMode === 'change' || pinModalMode === 'remove') {
       if (currentPinInput.length !== 4) {
-        setPinModalError('PIN saat ini harus 4 digit angka.');
+        setPinModalError(lang === 'en' ? 'Current PIN must be 4 digits.' : 'PIN saat ini harus 4 digit angka.');
         return;
       }
       const hashedCurrent = await hashPin(currentPinInput, user.id);
       const storedHash = localStorage.getItem(`norden_pin_hash_${user.id}`);
       if (hashedCurrent !== storedHash) {
         triggerHaptic('warning');
-        setPinModalError('PIN saat ini tidak cocok.');
+        setPinModalError(lang === 'en' ? 'Current PIN does not match.' : 'PIN saat ini tidak cocok.');
         return;
       }
 
@@ -119,7 +119,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         setBiometricActive(false);
         setPinModalOpen(false);
         triggerHaptic('success');
-        setPinActionSuccess('Kunci PIN 4-digit berhasil dinonaktifkan.');
+        setPinActionSuccess(lang === 'en' ? '4-digit PIN lock disabled.' : 'Kunci PIN 4-digit berhasil dinonaktifkan.');
         setTimeout(() => setPinActionSuccess(null), 4000);
         return;
       }
@@ -127,11 +127,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
     // Setup or Change mode: validate new PIN
     if (!/^\d{4}$/.test(newPinInput)) {
-      setPinModalError('PIN baru harus tepat 4 digit angka (0-9).');
+      setPinModalError(lang === 'en' ? 'New PIN must be exactly 4 digits (0-9).' : 'PIN baru harus tepat 4 digit angka (0-9).');
       return;
     }
     if (newPinInput !== confirmPinInput) {
-      setPinModalError('Konfirmasi PIN baru tidak cocok.');
+      setPinModalError(lang === 'en' ? 'New PIN confirmation does not match.' : 'Konfirmasi PIN baru tidak cocok.');
       return;
     }
 
@@ -142,7 +142,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     setPinModalLoading(false);
     setPinModalOpen(false);
     triggerHaptic('success');
-    setPinActionSuccess(pinModalMode === 'change' ? 'PIN 4-digit berhasil diperbarui!' : 'Kunci PIN 4-digit berhasil diaktifkan!');
+    setPinActionSuccess(
+      pinModalMode === 'change'
+        ? (lang === 'en' ? '4-digit PIN updated!' : 'PIN 4-digit berhasil diperbarui!')
+        : (lang === 'en' ? '4-digit PIN lock activated!' : 'Kunci PIN 4-digit berhasil diaktifkan!')
+    );
     setTimeout(() => setPinActionSuccess(null), 4000);
   };
 
@@ -150,7 +154,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     setPinActionError(null);
     if (!pinActive) {
       triggerHaptic('warning');
-      setPinActionError('Aktifkan PIN 4-digit terlebih dahulu sebelum menyalakan biometrik.');
+      setPinActionError(lang === 'en' ? 'Enable 4-digit PIN first before turning on biometrics.' : 'Aktifkan PIN 4-digit terlebih dahulu sebelum menyalakan biometrik.');
       setTimeout(() => setPinActionError(null), 5000);
       return;
     }
@@ -162,11 +166,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         localStorage.setItem(`norden_biometric_enabled_${user.id}`, 'true');
         setBiometricActive(true);
         triggerHaptic('success');
-        setPinActionSuccess('Biometrik (Face ID / Sidik Jari) berhasil diaktifkan!');
+        setPinActionSuccess(lang === 'en' ? 'Biometrics (Face ID / Fingerprint) enabled!' : 'Biometrik (Face ID / Sidik Jari) berhasil diaktifkan!');
         setTimeout(() => setPinActionSuccess(null), 4000);
       } else {
         triggerHaptic('warning');
-        setPinActionError('Gagal mendaftarkan biometrik perangkat atau dibatalkan.');
+        setPinActionError(lang === 'en' ? 'Failed to register device biometrics or cancelled.' : 'Gagal mendaftarkan biometrik perangkat atau dibatalkan.');
         setTimeout(() => setPinActionError(null), 5000);
       }
     } else {
@@ -189,7 +193,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const handleSendResetEmail = async () => {
     const targetEmail = user.email || auth.currentUser?.email;
     if (!targetEmail) {
-      setEmailResetError('Alamat email akun tidak ditemukan.');
+      setEmailResetError(lang === 'en' ? 'Account email address not found.' : 'Alamat email akun tidak ditemukan.');
       return;
     }
 
@@ -200,20 +204,29 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     try {
       const res = await forgotPasswordAction(targetEmail);
       if (res.success) {
-        setEmailResetSuccess(`Tautan atur ulang kata sandi telah dikirim ke ${targetEmail}. Silakan periksa kotak masuk atau folder spam email Anda.`);
+        setEmailResetSuccess(
+          lang === 'en'
+            ? `Password reset link sent to ${targetEmail}. Please check your inbox or spam folder.`
+            : `Tautan atur ulang kata sandi telah dikirim ke ${targetEmail}. Silakan periksa kotak masuk atau folder spam email Anda.`
+        );
       } else {
-        setEmailResetError(res.error || 'Gagal mengirim email reset password.');
+        setEmailResetError(res.error || (lang === 'en' ? 'Failed to send password reset email.' : 'Gagal mengirim email reset password.'));
       }
     } catch (err: unknown) {
-      setEmailResetError(err instanceof Error ? err.message : 'Terjadi kesalahan saat mengirim email reset.');
+      setEmailResetError(err instanceof Error ? err.message : (lang === 'en' ? 'An error occurred while sending reset email.' : 'Terjadi kesalahan saat mengirim email reset.'));
     } finally {
       setEmailResetLoading(false);
     }
   };
 
   const handleResetFinancialData = async () => {
-    if (resetConfirmText !== 'RESET KEUANGAN' || !resetAcknowledged) {
-      setResetError('Ketik RESET KEUANGAN dan centang kotak konfirmasi terlebih dahulu.');
+    const isValidConfirm = resetConfirmText === 'RESET KEUANGAN' || resetConfirmText === 'RESET FINANCIAL';
+    if (!isValidConfirm || !resetAcknowledged) {
+      setResetError(
+        lang === 'en'
+          ? 'Type RESET FINANCIAL and check the confirmation box first.'
+          : 'Ketik RESET KEUANGAN dan centang kotak konfirmasi terlebih dahulu.'
+      );
       return;
     }
 
@@ -224,17 +237,21 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     try {
       const res = await resetUserFinancialData();
       if (res.success) {
-        setResetSuccess('Data keuangan berhasil di-reset! Workspace Anda telah bersih kembali.');
+        setResetSuccess(
+          lang === 'en'
+            ? 'Financial data successfully reset! Your workspace is fresh again.'
+            : 'Data keuangan berhasil di-reset! Workspace Anda telah bersih kembali.'
+        );
         setResetConfirmText('');
         setResetAcknowledged(false);
         setTimeout(() => {
           window.location.reload();
         }, 1500);
       } else {
-        setResetError(res.error || 'Gagal mereset data keuangan.');
+        setResetError(res.error || (lang === 'en' ? 'Failed to reset financial data.' : 'Gagal mereset data keuangan.'));
       }
     } catch (err: unknown) {
-      setResetError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem.');
+      setResetError(err instanceof Error ? err.message : (lang === 'en' ? 'System error occurred.' : 'Terjadi kesalahan sistem.'));
     } finally {
       setResetLoading(false);
     }
@@ -242,7 +259,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
-      setDeleteError('Ketik DELETE untuk menghapus akun.');
+      setDeleteError(lang === 'en' ? 'Type DELETE to delete account.' : 'Ketik DELETE untuk menghapus akun.');
       return;
     }
 
@@ -252,19 +269,19 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        throw new Error('Pengguna tidak terdeteksi. Silakan login kembali.');
+        throw new Error(lang === 'en' ? 'User not detected. Please log in again.' : 'Pengguna tidak terdeteksi. Silakan login kembali.');
       }
 
       const usesPassword = currentUser.providerData.some((provider) => provider.providerId === 'password');
       if (usesPassword) {
-        if (!deletePassword) throw new Error('Password wajib diisi untuk menghapus akun.');
+        if (!deletePassword) throw new Error(lang === 'en' ? 'Password is required to delete account.' : 'Password wajib diisi untuk menghapus akun.');
         const credential = EmailAuthProvider.credential(currentUser.email || user.email, deletePassword);
         await reauthenticateWithCredential(currentUser, credential);
       }
 
       const res = await deleteUserAccountData();
       if (!res.success) {
-        throw new Error(res.error || 'Gagal menghapus data dari database.');
+        throw new Error(res.error || (lang === 'en' ? 'Failed to delete data from database.' : 'Gagal menghapus data dari database.'));
       }
 
       await deleteUser(currentUser);
@@ -272,13 +289,13 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       window.location.href = '/login';
     } catch (err: unknown) {
       console.error(err);
-      setDeleteError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus akun.');
+      setDeleteError(err instanceof Error ? err.message : (lang === 'en' ? 'An error occurred while deleting account.' : 'Terjadi kesalahan saat menghapus akun.'));
     } finally {
       setDeleteLoading(false);
     }
   };
 
-  const allFeatures = MVP_FEATURES;
+  const allFeatures = lang === 'en' ? MVP_FEATURES_EN : MVP_FEATURES;
 
   // Calculate trial days remaining
   const trialDaysLeft = user.trialEndsAt
@@ -300,7 +317,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white">
         <div className="flex justify-between items-start mb-6 border-b-2 border-black dark:border-neutral-700 pb-4">
           <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <User className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> Profil Akun
+            <User className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> {lang === 'en' ? 'Account Profile' : 'Profil Akun'}
           </h3>
         </div>
 
@@ -325,9 +342,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   {user.effectivePlan === 'PRO_ACTIVE'
                     ? 'Pro Plan 👑'
                     : user.effectivePlan === 'PRO_PENDING'
-                    ? 'Pro (Menunggu Verifikasi ⏳)'
+                    ? (lang === 'en' ? 'Pro (Pending Verification ⏳)' : 'Pro (Menunggu Verifikasi ⏳)')
                     : user.effectivePlan === 'TRIAL'
-                    ? `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} hari)` : ''}`
+                    ? (lang === 'en' ? `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} days)` : ''}` : `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} hari)` : ''}`)
                     : 'Free Basic 🌱'}
                 </span>
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color} text-black`}>
@@ -340,15 +357,21 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           <div className="grid grid-cols-3 gap-4">
             <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-white dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-2xl font-black text-black dark:text-white tracking-wider">{stats.transactionCount}</p>
-              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">Transaksi</p>
+              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">
+                {lang === 'en' ? 'Transactions' : 'Transaksi'}
+              </p>
             </div>
             <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-white dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-2xl font-black text-black dark:text-white tracking-wider">{stats.walletCount}</p>
-              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">Dompet</p>
+              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">
+                {lang === 'en' ? 'Wallets' : 'Dompet'}
+              </p>
             </div>
             <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-[#f3f4f6] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-2xl font-black text-black dark:text-white">∞</p>
-              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">Limit/Bulan</p>
+              <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mt-1">
+                {lang === 'en' ? 'Limit/Month' : 'Limit/Bulan'}
+              </p>
             </div>
           </div>
         </div>
@@ -557,10 +580,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         <div className="flex justify-between items-start mb-6 border-b-2 border-black dark:border-neutral-700 pb-4">
           <div>
             <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Key className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Keamanan & Kata Sandi
+              <Key className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'Security & Password' : 'Keamanan & Kata Sandi'}
             </h3>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
-              Atur ulang kata sandi akun melalui tautan verifikasi resmi ke email terdaftar
+              {lang === 'en'
+                ? 'Reset account password via official verification link sent to your registered email'
+                : 'Atur ulang kata sandi akun melalui tautan verifikasi resmi ke email terdaftar'}
             </p>
           </div>
         </div>
@@ -572,10 +597,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                Tautan Atur Ulang Terenkripsi
+                {lang === 'en' ? 'Encrypted Reset Link' : 'Tautan Atur Ulang Terenkripsi'}
               </p>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed mt-1">
-                Demi keamanan akun dan mencegah pembajakan, pembaruan password wajib melalui tautan khusus yang dikirimkan ke email akun Anda:
+                {lang === 'en'
+                  ? 'For account security and theft prevention, password updates must go through a secure link sent to your email:'
+                  : 'Demi keamanan akun dan mencegah pembajakan, pembaruan password wajib melalui tautan khusus yang dikirimkan ke email akun Anda:'}
               </p>
               <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 rounded-md text-xs font-black text-black dark:text-white shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
                 <Mail className="w-3.5 h-3.5" />
@@ -605,12 +632,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               {emailResetLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-black" />
-                  MENGIRIM TAUTAN...
+                  {lang === 'en' ? 'SENDING LINK...' : 'MENGIRIM TAUTAN...'}
                 </>
               ) : (
                 <>
                   <Mail className="w-4 h-4 text-black stroke-[2.5px]" />
-                  KIRIM TAUTAN RESET PASSWORD KE EMAIL
+                  {lang === 'en' ? 'SEND PASSWORD RESET LINK TO EMAIL' : 'KIRIM TAUTAN RESET PASSWORD KE EMAIL'}
                 </>
               )}
             </button>
@@ -623,16 +650,18 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-black dark:border-neutral-700 pb-4 gap-3">
           <div>
             <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Lock className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Kunci Layar PIN & Biometrik
+              <Lock className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'PIN Screen Lock & Biometrics' : 'Kunci Layar PIN & Biometrik'}
             </h3>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
-              Lindungi privasi saldo dan catatan transaksi saat HP dibuka orang lain
+              {lang === 'en'
+                ? 'Protect balance and transaction privacy when your device is opened by others'
+                : 'Lindungi privasi saldo dan catatan transaksi saat HP dibuka orang lain'}
             </p>
           </div>
           <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] shrink-0 ${
             pinActive ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}>
-            {pinActive ? '✓ Kunci PIN Aktif' : 'Nonaktif'}
+            {pinActive ? (lang === 'en' ? '✓ PIN Lock Active' : '✓ Kunci PIN Aktif') : (lang === 'en' ? 'Disabled' : 'Nonaktif')}
           </span>
         </div>
 
@@ -657,12 +686,18 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
             <div className="space-y-1">
               <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                {pinActive ? 'Proteksi 4-Digit PIN Sedang Berjalan' : 'Proteksi Layar Belum Terpasang'}
+                {pinActive
+                  ? (lang === 'en' ? '4-Digit PIN Protection Active' : 'Proteksi 4-Digit PIN Sedang Berjalan')
+                  : (lang === 'en' ? 'Screen Protection Not Set' : 'Proteksi Layar Belum Terpasang')}
               </p>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {pinActive
-                  ? 'Aplikasi akan otomatis meminta PIN 4-digit setiap kali dibuka atau kembali dari latar belakang (background).'
-                  : 'Aktifkan PIN untuk mencegah orang lain melihat saldo dan mutasi rekening saat meminjam ponsel Anda.'}
+                  ? (lang === 'en'
+                    ? 'App will automatically prompt for 4-digit PIN every time it opens or returns from background.'
+                    : 'Aplikasi akan otomatis meminta PIN 4-digit setiap kali dibuka atau kembali dari latar belakang (background).')
+                  : (lang === 'en'
+                    ? 'Enable PIN to prevent others from seeing balance and transactions when using your phone.'
+                    : 'Aktifkan PIN untuk mencegah orang lain melihat saldo dan mutasi rekening saat meminjam ponsel Anda.')}
               </p>
             </div>
           </div>
@@ -675,7 +710,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 onClick={() => openPinModal('setup')}
                 className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
               >
-                <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> + Pasang PIN 4-Digit
+                <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? '+ Set 4-Digit PIN' : '+ Pasang PIN 4-Digit'}
               </button>
             ) : (
               <>
@@ -683,23 +718,23 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   type="button"
                   onClick={handleLockNow}
                   className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
-                  title="Uji kunci layar sekarang juga"
+                  title={lang === 'en' ? 'Test lock screen right now' : 'Uji kunci layar sekarang juga'}
                 >
-                  <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> Uji Kunci Sekarang
+                  <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? 'Test Lock Now' : 'Uji Kunci Sekarang'}
                 </button>
                 <button
                   type="button"
                   onClick={() => openPinModal('change')}
                   className="px-3.5 py-2.5 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-black dark:text-white border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
                 >
-                  Ganti PIN
+                  {lang === 'en' ? 'Change PIN' : 'Ganti PIN'}
                 </button>
                 <button
                   type="button"
                   onClick={() => openPinModal('remove')}
                   className="px-3.5 py-2.5 bg-red-100 dark:bg-red-950/80 hover:bg-red-200 text-red-700 dark:text-red-200 border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
                 >
-                  Hapus PIN
+                  {lang === 'en' ? 'Remove PIN' : 'Hapus PIN'}
                 </button>
               </>
             )}
@@ -711,9 +746,13 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <div className="flex items-center gap-2">
                 <Fingerprint className="w-4 h-4 text-black dark:text-white stroke-[2.5px]" />
                 <div>
-                  <p className="text-xs font-black uppercase text-black dark:text-white">Buka Cepat Biometrik (Face ID / Sidik Jari)</p>
+                  <p className="text-xs font-black uppercase text-black dark:text-white">
+                    {lang === 'en' ? 'Quick Biometric Unlock (Face ID / Fingerprint)' : 'Buka Cepat Biometrik (Face ID / Sidik Jari)'}
+                  </p>
                   <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-bold">
-                    {biometricDeviceSupport ? 'Didukung perangkat Anda (WebAuthn Platform)' : 'Akan menggunakan sensor biometrik perangkat jika tersedia'}
+                    {biometricDeviceSupport
+                      ? (lang === 'en' ? 'Supported on your device (WebAuthn Platform)' : 'Didukung perangkat Anda (WebAuthn Platform)')
+                      : (lang === 'en' ? 'Will use device biometric sensor if available' : 'Akan menggunakan sensor biometrik perangkat jika tersedia')}
                   </p>
                 </div>
               </div>
@@ -724,7 +763,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   biometricActive ? 'bg-[#bbf7d0] text-black' : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
                 }`}
               >
-                {biometricActive ? '✓ Nyala' : 'Mati'}
+                {biometricActive ? (lang === 'en' ? '✓ On' : '✓ Nyala') : (lang === 'en' ? 'Off' : 'Mati')}
               </button>
             </div>
           )}
@@ -738,7 +777,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             <div className="flex justify-between items-center border-b-2 border-black dark:border-neutral-700 pb-3">
               <h4 className="font-black text-sm uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
                 <Lock className="w-4 h-4" />
-                {pinModalMode === 'setup' ? 'Pasang PIN 4-Digit' : pinModalMode === 'change' ? 'Ubah PIN Keamanan' : 'Nonaktifkan PIN'}
+                {pinModalMode === 'setup'
+                  ? (lang === 'en' ? 'Set 4-Digit PIN' : 'Pasang PIN 4-Digit')
+                  : pinModalMode === 'change'
+                  ? (lang === 'en' ? 'Change Security PIN' : 'Ubah PIN Keamanan')
+                  : (lang === 'en' ? 'Disable PIN' : 'Nonaktifkan PIN')}
               </h4>
               <button
                 type="button"
@@ -760,7 +803,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               {(pinModalMode === 'change' || pinModalMode === 'remove') && (
                 <div>
                   <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
-                    PIN Saat Ini (4 Digit)
+                    {lang === 'en' ? 'Current PIN (4 Digits)' : 'PIN Saat Ini (4 Digit)'}
                   </label>
                   <input
                     type="password"
@@ -780,7 +823,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 <>
                   <div>
                     <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
-                      {pinModalMode === 'change' ? 'PIN Baru (4 Digit)' : 'Masukkan PIN (4 Digit Angka)'}
+                      {pinModalMode === 'change'
+                        ? (lang === 'en' ? 'New PIN (4 Digits)' : 'PIN Baru (4 Digit)')
+                        : (lang === 'en' ? 'Enter PIN (4 Digits)' : 'Masukkan PIN (4 Digit Angka)')}
                     </label>
                     <input
                       type="password"
@@ -797,7 +842,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
                   <div>
                     <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
-                      Ulangi / Konfirmasi PIN Baru
+                      {lang === 'en' ? 'Confirm New PIN' : 'Ulangi / Konfirmasi PIN Baru'}
                     </label>
                     <input
                       type="password"
@@ -819,7 +864,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   onClick={() => setPinModalOpen(false)}
                   className="px-4 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-black dark:text-white text-xs font-black uppercase tracking-wider cursor-pointer"
                 >
-                  Batal
+                  {lang === 'en' ? 'Cancel' : 'Batal'}
                 </button>
                 <button
                   type="submit"
@@ -833,9 +878,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   {pinModalLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
                   ) : pinModalMode === 'remove' ? (
-                    'Hapus PIN'
+                    lang === 'en' ? 'Remove PIN' : 'Hapus PIN'
                   ) : (
-                    'Simpan PIN'
+                    lang === 'en' ? 'Save PIN' : 'Simpan PIN'
                   )}
                 </button>
               </div>
@@ -848,7 +893,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white">
         <div className="flex justify-between items-start mb-6 border-b-2 border-black dark:border-neutral-700 pb-4">
           <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <Crown className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> Paket Langganan
+            <Crown className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> {lang === 'en' ? 'Subscription Plans' : 'Paket Langganan'}
           </h3>
         </div>
 
@@ -866,8 +911,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             <p className="text-3xl font-black mb-1 tracking-wider">Rp 0</p>
             <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-4 uppercase tracking-wider">
               {user.effectivePlan === 'FREE_BASIC'
-                ? 'Pencatatan keuangan dasar tanpa batas waktu'
-                : `${trialDays} hari gratis akses penuh`}
+                ? (lang === 'en' ? 'Basic financial tracking with unlimited duration' : 'Pencatatan keuangan dasar tanpa batas waktu')
+                : (lang === 'en' ? `${trialDays} days free full access` : `${trialDays} hari gratis akses penuh`)}
             </p>
             <ul className="space-y-2">
               {allFeatures.slice(0, 6).map((f, i) => (
@@ -878,7 +923,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </ul>
             {!isPro && (
               <div className="mt-6 p-2 bg-white dark:bg-neutral-900 text-black dark:text-white text-center text-xs font-black uppercase tracking-widest rounded-none border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                ✓ Paket Aktif
+                {lang === 'en' ? '✓ Active Plan' : '✓ Paket Aktif'}
               </div>
             )}
           </div>
@@ -892,12 +937,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <h4 className="text-base font-black uppercase tracking-wider">Pro Plan</h4>
             </div>
             <p className="text-3xl font-black mb-1 tracking-wider">
-              {monthlyPrice !== null ? formatCurrency(monthlyPrice) : 'Tidak tersedia'}
+              {monthlyPrice !== null ? formatCurrency(monthlyPrice) : (lang === 'en' ? 'Not available' : 'Tidak tersedia')}
             </p>
             <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-4 uppercase tracking-wider">
               {yearlyPrice
-                ? `atau ${formatCurrency(yearlyPrice)} / tahun${yearlySavingsPercent ? ` (hemat ${yearlySavingsPercent}%)` : ''}`
-                : 'Paket tahunan sedang dinonaktifkan'}
+                ? (lang === 'en'
+                    ? `or ${formatCurrency(yearlyPrice)} / year${yearlySavingsPercent ? ` (save ${yearlySavingsPercent}%)` : ''}`
+                    : `atau ${formatCurrency(yearlyPrice)} / tahun${yearlySavingsPercent ? ` (hemat ${yearlySavingsPercent}%)` : ''}`)
+                : (lang === 'en' ? 'Yearly plan currently disabled' : 'Paket tahunan sedang dinonaktifkan')}
             </p>
             <ul className="space-y-2">
               {allFeatures.map((f, i) => (
@@ -908,29 +955,30 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </ul>
             {isPro ? (
               <div className="mt-6 p-2 bg-white dark:bg-neutral-900 text-black dark:text-white text-center text-xs font-black uppercase tracking-widest rounded-none border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                {user.effectivePlan === 'PRO_PENDING' ? '⏳ Menunggu Verifikasi Admin' : '✓ Paket Aktif'}
+                {user.effectivePlan === 'PRO_PENDING'
+                  ? (lang === 'en' ? '⏳ Pending Admin Verification' : '⏳ Menunggu Verifikasi Admin')
+                  : (lang === 'en' ? '✓ Active Plan' : '✓ Paket Aktif')}
               </div>
             ) : (
               <Link href="/upgrade" className="block mt-6 w-full brutal-btn py-3 text-xs font-black uppercase tracking-widest text-center cursor-pointer">
-                Upgrade ke Pro
+                {lang === 'en' ? 'Upgrade to Pro' : 'Upgrade ke Pro'}
               </Link>
             )}
           </div>
         </div>
       </div>
 
-
-
       {/* Data & Storage */}
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white space-y-6">
         <div className="flex justify-between items-start border-b-2 border-black dark:border-neutral-700 pb-4">
           <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <Database className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> Data & Penyimpanan
+            <Database className="w-5 h-5 text-black dark:text-white stroke-[3px]" /> {lang === 'en' ? 'Data & Storage' : 'Data & Penyimpanan'}
           </h3>
         </div>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-wide">
-          Semua data keuangan Anda disimpan secara aman di cloud menggunakan Firebase dan PostgreSQL. 
-          Data diamankan menggunakan otentikasi Firebase dan otorisasi Prisma.
+          {lang === 'en'
+            ? 'All your financial data is securely stored in the cloud using Firebase and PostgreSQL. Data is protected with Firebase authentication and Prisma authorization.'
+            : 'Semua data keuangan Anda disimpan secara aman di cloud menggunakan Firebase dan PostgreSQL. Data diamankan menggunakan otentikasi Firebase dan otorisasi Prisma.'}
         </p>
 
         {/* Reset Financial Data Card */}
@@ -939,15 +987,25 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             <RotateCcw className="w-6 h-6 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5 stroke-[2.5px]" />
             <div className="flex-1 space-y-3">
               <div>
-                <h4 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">Reset Workspace Keuangan</h4>
+                <h4 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">
+                  {lang === 'en' ? 'Reset Financial Workspace' : 'Reset Workspace Keuangan'}
+                </h4>
                 <p className="text-xs text-neutral-700 dark:text-neutral-300 font-bold mt-1 leading-relaxed">
-                  Menghapus seluruh catatan transaksi, dompet, saldo, budget, target tabungan, utang, paylater, tagihan, dan reminder.
+                  {lang === 'en'
+                    ? 'Deletes all transaction records, wallets, balances, budgets, saving goals, debts, paylaters, bills, and reminders.'
+                    : 'Menghapus seluruh catatan transaksi, dompet, saldo, budget, target tabungan, utang, paylater, tagihan, dan reminder.'}
                 </p>
                 <p className="text-xs text-emerald-800 dark:text-emerald-400 font-black mt-1">
-                  ✓ Akun, profil, masa trial / langganan Pro, bukti pembayaran, dan riwayat login Anda TETAP AMAN dan TIDAK BERUBAH.
+                  {lang === 'en'
+                    ? '✓ Your account, profile, trial / Pro subscription, payment proofs, and login history REMAIN SAFE and UNCHANGED.'
+                    : '✓ Akun, profil, masa trial / langganan Pro, bukti pembayaran, dan riwayat login Anda TETAP AMAN dan TIDAK BERUBAH.'}
                 </p>
                 <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-bold mt-1">
-                  💡 Disarankan mengunduh cadangan catatan via menu <strong>Data Dashboard (Export CSV / PDF)</strong> sebelum melakukan reset.
+                  {lang === 'en' ? (
+                    <>💡 Recommended to download a backup via <strong>Data Dashboard (Export CSV / PDF)</strong> before resetting.</>
+                  ) : (
+                    <>💡 Disarankan mengunduh cadangan catatan via menu <strong>Data Dashboard (Export CSV / PDF)</strong> sebelum melakukan reset.</>
+                  )}
                 </p>
               </div>
 
@@ -971,7 +1029,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                     className="w-4 h-4 border-2 border-black rounded-none cursor-pointer"
                   />
                   <span className="text-xs font-bold text-black dark:text-white uppercase tracking-wider">
-                    Saya paham data transaksi & dompet akan dihapus permanen
+                    {lang === 'en'
+                      ? 'I understand transaction & wallet data will be permanently deleted'
+                      : 'Saya paham data transaksi & dompet akan dihapus permanen'}
                   </span>
                 </label>
 
@@ -979,7 +1039,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   value={resetConfirmText}
                   onChange={(e) => setResetConfirmText(e.target.value)}
                   className="w-full max-w-sm brutal-input text-xs font-black uppercase"
-                  placeholder="KETIK RESET KEUANGAN"
+                  placeholder={lang === 'en' ? 'TYPE RESET FINANCIAL' : 'KETIK RESET KEUANGAN'}
                   disabled={resetLoading}
                 />
               </div>
@@ -987,11 +1047,13 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <button
                 type="button"
                 onClick={handleResetFinancialData}
-                disabled={resetLoading || resetConfirmText !== 'RESET KEUANGAN' || !resetAcknowledged}
+                disabled={resetLoading || (resetConfirmText !== 'RESET KEUANGAN' && resetConfirmText !== 'RESET FINANCIAL') || !resetAcknowledged}
                 className="mt-2 px-4 py-2.5 border-2 border-black dark:border-neutral-700 bg-[#FFE066] text-black rounded-none text-xs font-black hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <RotateCcw className="w-4 h-4 stroke-[3px]" />
-                {resetLoading ? 'MEMPROSES RESET...' : 'Reset Data Keuangan'}
+                {resetLoading
+                  ? (lang === 'en' ? 'RESETTING...' : 'MEMPROSES RESET...')
+                  : (lang === 'en' ? 'Reset Financial Data' : 'Reset Data Keuangan')}
               </button>
             </div>
           </div>
@@ -1002,9 +1064,13 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           <div className="flex items-start gap-3">
             <Trash2 className="w-5 h-5 text-red-650 flex-shrink-0 mt-0.5 stroke-[2.5px]" />
             <div>
-              <h4 className="text-sm font-black text-red-650 uppercase tracking-wider">Zona Bahaya</h4>
+              <h4 className="text-sm font-black text-red-650 uppercase tracking-wider">
+                {lang === 'en' ? 'Danger Zone' : 'Zona Bahaya'}
+              </h4>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold mt-1 uppercase tracking-wider">
-                Menghapus akun akan menghilangkan semua transaksi, saldo, target tabungan, dan data lainnya secara permanen. Ketik DELETE dan masukkan password untuk konfirmasi.
+                {lang === 'en'
+                  ? 'Deleting your account will permanently remove all transactions, balances, saving goals, and other data. Type DELETE and enter your password to confirm.'
+                  : 'Menghapus akun akan menghilangkan semua transaksi, saldo, target tabungan, dan data lainnya secara permanen. Ketik DELETE dan masukkan password untuk konfirmasi.'}
               </p>
               {deleteError && (
                 <div className="mt-3 p-3 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 font-bold text-xs uppercase tracking-wider">
@@ -1016,14 +1082,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   className="w-full max-w-sm brutal-input text-xs font-black uppercase"
-                  placeholder="KETIK DELETE"
+                  placeholder={lang === 'en' ? 'TYPE DELETE' : 'KETIK DELETE'}
                 />
                 <input
                   type="password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   className="w-full max-w-sm brutal-input text-xs font-bold"
-                  placeholder="PASSWORD AKUN"
+                  placeholder={lang === 'en' ? 'ACCOUNT PASSWORD' : 'PASSWORD AKUN'}
                 />
               </div>
               <button 
@@ -1032,7 +1098,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 disabled={deleteLoading || deleteConfirmText !== 'DELETE'}
                 className="mt-3 px-4 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-red-650 dark:text-red-400 rounded-none text-xs font-black hover:bg-neutral-50 dark:hover:bg-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50"
               >
-                {deleteLoading ? 'MENGHAPUS...' : 'Hapus Akun Saya'}
+                {deleteLoading
+                  ? (lang === 'en' ? 'DELETING...' : 'MENGHAPUS...')
+                  : (lang === 'en' ? 'Delete My Account' : 'Hapus Akun Saya')}
               </button>
             </div>
           </div>
@@ -1044,10 +1112,12 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         <div className="flex justify-between items-start mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
           <div>
             <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Pusat Bantuan & Layanan Pelanggan
+              <HelpCircle className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'Help Center & Customer Support' : 'Pusat Bantuan & Layanan Pelanggan'}
             </h3>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
-              Kendala transaksi, verifikasi akun, atau pertanyaan seputar langganan Pro
+              {lang === 'en'
+                ? 'Transaction issues, account verification, or questions regarding Pro subscription'
+                : 'Kendala transaksi, verifikasi akun, atau pertanyaan seputar langganan Pro'}
             </p>
           </div>
         </div>
@@ -1064,11 +1134,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black dark:text-white">
-                <span>WhatsApp Admin Resmi</span>
+                <span>{lang === 'en' ? 'Official WhatsApp Support' : 'WhatsApp Admin Resmi'}</span>
                 <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black dark:group-hover:text-white" />
               </div>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold mt-1">
-                Respon cepat Senin - Minggu (08.00 - 21.00 WIB)
+                {lang === 'en' ? 'Fast response Monday - Sunday (08:00 - 21:00 WIB)' : 'Respon cepat Senin - Minggu (08.00 - 21.00 WIB)'}
               </p>
               <span className="text-[11px] font-mono font-black text-neutral-800 dark:text-neutral-200 underline mt-1.5 block">
                 +62 878-8292-4651
@@ -1085,11 +1155,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-black dark:text-white">
-                <span>Email Dukungan Resmi</span>
+                <span>{lang === 'en' ? 'Official Support Email' : 'Email Dukungan Resmi'}</span>
                 <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-black dark:group-hover:text-white" />
               </div>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold mt-1">
-                Untuk pertanyaan teknis, kendala data, dan verifikasi akun
+                {lang === 'en' ? 'For technical inquiries, data issues, and account verification' : 'Untuk pertanyaan teknis, kendala data, dan verifikasi akun'}
               </p>
               <span className="text-[11px] font-mono font-black text-neutral-800 dark:text-neutral-200 underline mt-1.5 block">
                 support@nordenfinance.site
@@ -1104,16 +1174,20 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         <div className="flex justify-between items-start mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
           <div>
             <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> Mode Aplikasi Mobile (PWA)
+              <Smartphone className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'Mobile App Mode (PWA)' : 'Mode Aplikasi Mobile (PWA)'}
             </h3>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
-              Pasang aplikasi langsung ke layar utama HP tanpa App Store untuk akses offline cepat
+              {lang === 'en'
+                ? 'Install the app directly to your home screen without App Store for fast offline access'
+                : 'Pasang aplikasi langsung ke layar utama HP tanpa App Store untuk akses offline cepat'}
             </p>
           </div>
           <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 ${
             pwaInstalled ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
           }`}>
-            {pwaInstalled ? '✓ Terpasang (Standalone)' : 'Mode Browser Web'}
+            {pwaInstalled
+              ? (lang === 'en' ? '✓ Installed (Standalone)' : '✓ Terpasang (Standalone)')
+              : (lang === 'en' ? 'Web Browser Mode' : 'Mode Browser Web')}
           </span>
         </div>
 
@@ -1126,14 +1200,22 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
             <div className="space-y-1">
               <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                {pwaInstalled ? 'Norden Berjalan Sebagai Aplikasi Penuh' : 'Pasang di Layar Utama (Home Screen)'}
+                {pwaInstalled
+                  ? (lang === 'en' ? 'Norden Running as Full Application' : 'Norden Berjalan Sebagai Aplikasi Penuh')
+                  : (lang === 'en' ? 'Install to Home Screen' : 'Pasang di Layar Utama (Home Screen)')}
               </p>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {pwaInstalled
-                  ? 'Aplikasi berjalan dalam mode standalone layar penuh, terisolasi dari tab peramban dan hemat konsumsi memori.'
+                  ? (lang === 'en'
+                    ? 'App runs in full screen standalone mode, isolated from browser tabs and optimized for memory consumption.'
+                    : 'Aplikasi berjalan dalam mode standalone layar penuh, terisolasi dari tab peramban dan hemat konsumsi memori.')
                   : isIos
-                  ? 'Di iPhone/iPad Safari: Ketuk tombol Share ⎋ di bawah, lalu pilih "Tambah ke Layar Utama" (Add to Home Screen).'
-                  : 'Klik tombol di bawah untuk memasang Norden Finance langsung ke beranda Android atau komputer Anda.'}
+                  ? (lang === 'en'
+                    ? 'On iPhone/iPad Safari: Tap Share button ⎋ below, then select "Add to Home Screen".'
+                    : 'Di iPhone/iPad Safari: Ketuk tombol Share ⎋ di bawah, lalu pilih "Tambah ke Layar Utama" (Add to Home Screen).')
+                  : (lang === 'en'
+                    ? 'Click button below to install Norden Finance directly to your Android home screen or computer.'
+                    : 'Klik tombol di bawah untuk memasang Norden Finance langsung ke beranda Android atau komputer Anda.')}
               </p>
             </div>
           </div>
@@ -1152,7 +1234,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 className="px-4 py-2 bg-black hover:bg-neutral-800 text-white border-[2px] border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5 stroke-[2.5px]" />
-                <span>Pasang Aplikasi Sekarang</span>
+                <span>{lang === 'en' ? 'Install App Now' : 'Pasang Aplikasi Sekarang'}</span>
               </button>
             </div>
           )}
@@ -1165,7 +1247,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           Norden Finance v1.2.0 • Build 2026
         </p>
         <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mt-1">
-          Aplikasi Manajemen Keuangan Pribadi & PWA Standalone • Terenkripsi
+          {lang === 'en'
+            ? 'Personal Finance Management App & Standalone PWA • Encrypted'
+            : 'Aplikasi Manajemen Keuangan Pribadi & PWA Standalone • Terenkripsi'}
         </p>
       </div>
     </div>

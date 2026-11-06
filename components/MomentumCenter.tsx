@@ -87,7 +87,7 @@ export default function MomentumCenter({
   achievements: Achievement[];
   trialEndsAt?: string | null;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [referenceDate, setReferenceDate] = useState<Date | null>(null);
 
@@ -139,19 +139,39 @@ export default function MomentumCenter({
   const persistedTitles = new Set(persistedAchievements.map((achievement) => achievement.title));
 
   const achievements = [
-    { label: '7 hari streak', complete: persistedTitles.has('7 Day Streak') || streaks.best >= 7, detail: `${Math.min(streaks.best, 7)}/7 hari` },
-    { label: '30 hari streak', complete: persistedTitles.has('30 Day Streak') || streaks.best >= 30, detail: `${Math.min(streaks.best, 30)}/30 hari` },
-    { label: '100 transaksi pertama', complete: persistedTitles.has('100 Transactions') || transactions.length >= 100, detail: `${Math.min(transactions.length, 100)}/100 transaksi` },
-    { label: 'Saldo Rp1.000.000', complete: persistedTitles.has('Million Balance') || totalBalance >= 1_000_000, detail: formatRupiah(Math.min(totalBalance, 1_000_000)) },
     {
-      label: 'Target tabungan tercapai',
-      complete: persistedTitles.has('Saving Goal Reached') || savingGoals.some((goal) => goal.currentAmount >= goal.targetAmount),
-      detail: savingGoals.length ? `${savingGoals.filter((goal) => goal.currentAmount >= goal.targetAmount).length}/${savingGoals.length} goal` : 'Belum ada goal',
+      label: lang === 'en' ? '7-day streak' : '7 hari streak',
+      complete: persistedTitles.has('7 Day Streak') || streaks.best >= 7,
+      detail: `${Math.min(streaks.best, 7)}/${lang === 'en' ? '7 days' : '7 hari'}`,
     },
     {
-      label: 'Dana darurat 3 bulan',
+      label: lang === 'en' ? '30-day streak' : '30 hari streak',
+      complete: persistedTitles.has('30 Day Streak') || streaks.best >= 30,
+      detail: `${Math.min(streaks.best, 30)}/${lang === 'en' ? '30 days' : '30 hari'}`,
+    },
+    {
+      label: lang === 'en' ? 'First 100 transactions' : '100 transaksi pertama',
+      complete: persistedTitles.has('100 Transactions') || transactions.length >= 100,
+      detail: `${Math.min(transactions.length, 100)}/${lang === 'en' ? '100 txs' : '100 transaksi'}`,
+    },
+    {
+      label: lang === 'en' ? 'Balance Rp1,000,000' : 'Saldo Rp1.000.000',
+      complete: persistedTitles.has('Million Balance') || totalBalance >= 1_000_000,
+      detail: formatRupiah(Math.min(totalBalance, 1_000_000)),
+    },
+    {
+      label: lang === 'en' ? 'Saving goal reached' : 'Target tabungan tercapai',
+      complete: persistedTitles.has('Saving Goal Reached') || savingGoals.some((goal) => goal.currentAmount >= goal.targetAmount),
+      detail: savingGoals.length
+        ? `${savingGoals.filter((goal) => goal.currentAmount >= goal.targetAmount).length}/${savingGoals.length} ${lang === 'en' ? 'goal' : 'goal'}`
+        : (lang === 'en' ? 'No goals yet' : 'Belum ada goal'),
+    },
+    {
+      label: lang === 'en' ? '3 months emergency fund' : 'Dana darurat 3 bulan',
       complete: persistedTitles.has('Emergency Fund 3 Months') || emergencyMonths >= 3,
-      detail: monthlyExpense > 0 ? `${emergencyMonths.toFixed(1)}/3 bulan` : 'Isi target dulu',
+      detail: monthlyExpense > 0
+        ? `${emergencyMonths.toFixed(1)}/${lang === 'en' ? '3 months' : '3 bulan'}`
+        : (lang === 'en' ? 'Set target first' : 'Isi target dulu'),
     },
   ];
 
@@ -159,24 +179,24 @@ export default function MomentumCenter({
 
   if (!hasTransactionToday) {
     reminders.push({
-      title: 'Belum ada transaksi hari ini',
-      detail: 'Catat satu transaksi agar streak tetap hidup.',
+      title: lang === 'en' ? 'No transactions today' : 'Belum ada transaksi hari ini',
+      detail: lang === 'en' ? 'Record a transaction to keep your streak alive.' : 'Catat satu transaksi agar streak tetap hidup.',
       tone: 'warning',
     });
   }
 
   if (daysSinceActivity !== null && daysSinceActivity >= 3) {
     reminders.push({
-      title: `${daysSinceActivity} hari tanpa aktivitas`,
-      detail: 'Buka quick input dan rekam transaksi terakhir Anda.',
+      title: lang === 'en' ? `${daysSinceActivity} days without activity` : `${daysSinceActivity} hari tanpa aktivitas`,
+      detail: lang === 'en' ? 'Open quick input to record your latest transactions.' : 'Buka quick input dan rekam transaksi terakhir Anda.',
       tone: 'warning',
     });
   }
 
   if (budgets.length === 0) {
     reminders.push({
-      title: 'Budget belum diatur',
-      detail: 'Buat budget kategori agar pengeluaran bulan ini punya batas.',
+      title: lang === 'en' ? 'Budget not set yet' : 'Budget belum diatur',
+      detail: lang === 'en' ? 'Set category budgets to control monthly spending.' : 'Buat budget kategori agar pengeluaran bulan ini punya batas.',
       tone: 'info',
     });
   } else {
@@ -193,8 +213,8 @@ export default function MomentumCenter({
       const ratio = budget.monthlyLimit > 0 ? spent / budget.monthlyLimit : 0;
       if (ratio >= 0.8) {
         reminders.push({
-          title: `${budget.category?.name || 'Budget'} hampir habis`,
-          detail: `${Math.round(ratio * 100)}% terpakai bulan ini.`,
+          title: lang === 'en' ? `${budget.category?.name || 'Budget'} almost exhausted` : `${budget.category?.name || 'Budget'} hampir habis`,
+          detail: lang === 'en' ? `${Math.round(ratio * 100)}% spent this month.` : `${Math.round(ratio * 100)}% terpakai bulan ini.`,
           tone: ratio >= 1 ? 'warning' : 'info',
         });
       }
@@ -207,8 +227,10 @@ export default function MomentumCenter({
       const dueIn = subscriptionDueInDays(subscription.billingDay, referenceDate);
       if (dueIn <= 3) {
         reminders.push({
-          title: `${subscription.name} jatuh tempo`,
-          detail: dueIn === 0 ? 'Tagihan hari ini.' : `Dalam ${dueIn} hari.`,
+          title: lang === 'en' ? `${subscription.name} due soon` : `${subscription.name} jatuh tempo`,
+          detail: dueIn === 0
+            ? (lang === 'en' ? 'Bill due today.' : 'Tagihan hari ini.')
+            : (lang === 'en' ? `Due in ${dueIn} days.` : `Dalam ${dueIn} hari.`),
           tone: 'info',
         });
       }
@@ -216,8 +238,8 @@ export default function MomentumCenter({
 
   if (monthlyExpense > 0 && emergencyMonths < 1) {
     reminders.push({
-      title: 'Dana darurat belum aman',
-      detail: `Coverage baru ${emergencyMonths.toFixed(1)} bulan.`,
+      title: lang === 'en' ? 'Emergency fund needs attention' : 'Dana darurat belum aman',
+      detail: lang === 'en' ? `Coverage at only ${emergencyMonths.toFixed(1)} months.` : `Coverage baru ${emergencyMonths.toFixed(1)} bulan.`,
       tone: 'warning',
     });
   }
@@ -226,8 +248,8 @@ export default function MomentumCenter({
     const daysLeft = Math.ceil((new Date(trialEndsAt).getTime() - referenceDate.getTime()) / 86_400_000);
     if (daysLeft >= 0 && daysLeft <= 3) {
       reminders.push({
-        title: 'Trial segera berakhir',
-        detail: `${daysLeft} hari tersisa untuk upgrade Pro.`,
+        title: lang === 'en' ? 'Trial ending soon' : 'Trial segera berakhir',
+        detail: lang === 'en' ? `${daysLeft} days remaining to upgrade to Pro.` : `${daysLeft} hari tersisa untuk upgrade Pro.`,
         tone: 'info',
       });
     }
@@ -235,8 +257,10 @@ export default function MomentumCenter({
 
   if (reminders.length === 0) {
     reminders.push({
-      title: 'Semua kebiasaan finansial aman',
-      detail: `Pengeluaran bulan ini ${formatRupiah(monthExpense)} dan tidak ada pengingat mendesak.`,
+      title: lang === 'en' ? 'All financial habits on track' : 'Semua kebiasaan finansial aman',
+      detail: lang === 'en'
+        ? `Monthly expense is ${formatRupiah(monthExpense)} with no urgent reminders.`
+        : `Pengeluaran bulan ini ${formatRupiah(monthExpense)} dan tidak ada pengingat mendesak.`,
       tone: 'success',
     });
   }
@@ -275,7 +299,9 @@ export default function MomentumCenter({
       </div>
 
       <div className="mb-5">
-        <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-black dark:text-white">Achievements</h4>
+        <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-black dark:text-white">
+          {lang === 'en' ? 'Achievements' : 'Pencapaian'}
+        </h4>
         <div className="space-y-2">
           {achievements.map((achievement) => (
             <div key={achievement.label} className="flex items-center justify-between gap-3 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 shadow-[1.5px_1.5px_0px_0px_#000]">
@@ -292,7 +318,7 @@ export default function MomentumCenter({
       <div>
         <h4 className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-black dark:text-white">
           <BellRing className="h-4 w-4 stroke-[3px]" />
-          Smart Reminders
+          {lang === 'en' ? 'Smart Reminders' : 'Pengingat Pintar'}
         </h4>
         <div className="space-y-2">
           {reminders.slice(0, 5).map((reminder) => (

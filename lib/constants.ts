@@ -122,3 +122,23 @@ export const MVP_FEATURES = [
   'Budget Forecast',
   'Cashflow Forecast',
 ];
+
+export const MVP_FEATURES_EN = [
+  'Unlimited transactions',
+  'Unlimited wallets',
+  'Budget per category',
+  'Subscription manager',
+  'Saving goals & debt tracker',
+  'Paylater tracker',
+  'Financial health score',
+  'No-spend calendar',
+  'Norden AI Parser',
+  'Norden AI Receipt Scanner',
+  'Norden AI Insights',
+  'PDF Monthly Report',
+  'Export CSV & JSON',
+  'Monthly Wrapped',
+  'Share Card Generator',
+  'Budget Forecast',
+  'Cashflow Forecast',
+];
