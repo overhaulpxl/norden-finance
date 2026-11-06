@@ -18,14 +18,14 @@ export default async function TermsPage() {
   const trialDays = await getTrialDays();
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-black select-none py-12 px-4 sm:px-6">
+    <div className="min-h-screen norden-canvas text-neutral-900 dark:text-neutral-100 select-none py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto space-y-6">
 
         {/* Navigation */}
         <div className="flex justify-between items-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-3.5 py-2 border-[2px] border-black bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_0px_#000] text-xs font-black uppercase tracking-wider transition-all"
+            className="inline-flex items-center gap-2 px-3.5 py-2 border-[2px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-700 shadow-[2px_2px_0px_0px_#000] text-xs font-black uppercase tracking-wider transition-all"
           >
             <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Beranda
           </Link>
@@ -33,18 +33,18 @@ export default async function TermsPage() {
         </div>
 
         {/* Content Card */}
-        <article className="brutal-card p-6 sm:p-10 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000]">
-          <div className="border-b-[3px] border-black pb-4 mb-6">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border-[2px] border-black bg-[#FFE066] text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-3">
+        <article className="brutal-card p-6 sm:p-10 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
+          <div className="border-b-[3px] border-black dark:border-neutral-700 pb-4 mb-6">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border-[2px] border-black dark:border-neutral-700 bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-3">
               <Shield className="w-3.5 h-3.5" /> Dokumen Hukum
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">Syarat dan Ketentuan Layanan</h1>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mt-1">Terakhir diperbarui: Oktober 2026</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-black dark:text-white uppercase tracking-tight">Syarat dan Ketentuan Layanan</h1>
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mt-1">Terakhir diperbarui: Oktober 2026</p>
           </div>
 
-          <div className="space-y-6 text-xs sm:text-sm font-bold text-neutral-800 leading-relaxed">
+          <div className="space-y-6 text-xs sm:text-sm font-bold text-neutral-800 dark:text-neutral-200 leading-relaxed">
             <section className="space-y-2">
-              <h2 className="text-sm font-black text-black uppercase tracking-wider">1. Pendahuluan & Sifat Layanan</h2>
+              <h2 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">1. Pendahuluan & Sifat Layanan</h2>
               <p>
                 Selamat datang di Norden Finance. Norden Finance adalah perangkat lunak pencatatan dan pengelolaan keuangan pribadi (Personal Finance Operating System).
               </p>
@@ -64,7 +64,7 @@ export default async function TermsPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-sm font-black text-black uppercase tracking-wider">3. Periode Uji Coba (Trial) dan Akses Pro</h2>
+              <h2 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">3. Periode Uji Coba (Trial) dan Akses Pro</h2>
               <p>
                 Pengguna baru berhak mendapatkan masa uji coba gratis (Trial) fitur penuh selama {trialDays} hari kalender yang dihitung sejak berhasil menyelesaikan proses onboarding pertama kali.
               </p>
@@ -77,7 +77,7 @@ export default async function TermsPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-sm font-black text-black uppercase tracking-wider">4. Pembayaran dan Verifikasi</h2>
+              <h2 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">4. Pembayaran dan Verifikasi</h2>
               <p>
                 Pembayaran dilakukan melalui transfer manual (BCA, BNI, atau QRIS) sesuai nominal paket yang berlaku. Pengguna wajib mengunggah bukti transfer yang valid dan terbaca jelas.
               </p>
@@ -87,14 +87,14 @@ export default async function TermsPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-sm font-black text-black uppercase tracking-wider">5. Pembatasan dan Penghentian Akses</h2>
+              <h2 className="text-sm font-black text-black dark:text-white uppercase tracking-wider">5. Pembatasan dan Penghentian Akses</h2>
               <p>
                 Norden Finance berhak membatasi akses, menolak permohonan pembayaran, atau menangguhkan akun pengguna yang terbukti melakukan manipulasi sistem, penyalahgunaan token shortcut, atau pelanggaran hukum yang berlaku.
               </p>
             </section>
           </div>
 
-          <div className="border-t-[2px] border-black pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="border-t-[2px] border-black dark:border-neutral-700 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <Link
               href="/"
               className="brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider w-full sm:w-auto text-center"
@@ -103,7 +103,7 @@ export default async function TermsPage() {
             </Link>
             <Link
               href="/legal/privacy"
-              className="text-xs font-bold text-neutral-600 hover:text-black underline uppercase tracking-wider"
+              className="text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white underline uppercase tracking-wider"
             >
               Lihat Kebijakan Privasi
             </Link>

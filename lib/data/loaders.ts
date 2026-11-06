@@ -174,13 +174,17 @@ export async function getUserProfile(userId: string, db: Db = prisma) {
 }
 
 export async function getTrialDays(db: Db = prisma) {
-  const [plan, setting] = await Promise.all([
-    db.plan.findFirst({ where: { type: 'trial', isActive: true } }),
-    db.setting.findUnique({ where: { key: 'trial_days' } }),
-  ]);
-  if (plan?.durationDays && plan.durationDays > 0) return plan.durationDays;
-  const parsed = Number.parseInt(setting?.value || '', 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TRIAL_DAYS;
+  try {
+    const [plan, setting] = await Promise.all([
+      db.plan.findFirst({ where: { type: 'trial', isActive: true } }),
+      db.setting.findUnique({ where: { key: 'trial_days' } }),
+    ]);
+    if (plan?.durationDays && plan.durationDays > 0) return plan.durationDays;
+    const parsed = Number.parseInt(setting?.value || '', 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TRIAL_DAYS;
+  } catch {
+    return DEFAULT_TRIAL_DAYS;
+  }
 }
 
 export async function getDashboardData(userId: string, db: Db = prisma) {
@@ -771,14 +775,23 @@ function toPricingPlanView(
 }
 
 export async function getPricingPlans(db: Db = prisma) {
-  const [plans, settings] = await Promise.all([
-    db.plan.findMany({
-      orderBy: [{ billingType: 'asc' }, { price: 'asc' }],
-    }),
-    db.setting.findMany({
-      where: { key: { in: ['trial_days', 'monthly_price', 'yearly_price'] } },
-    }),
-  ]);
+  let plans: Awaited<ReturnType<typeof db.plan.findMany>> = [];
+  let settings: Awaited<ReturnType<typeof db.setting.findMany>> = [];
+
+  try {
+    const results = await Promise.all([
+      db.plan.findMany({
+        orderBy: [{ billingType: 'asc' }, { price: 'asc' }],
+      }),
+      db.setting.findMany({
+        where: { key: { in: ['trial_days', 'monthly_price', 'yearly_price'] } },
+      }),
+    ]);
+    plans = results[0];
+    settings = results[1];
+  } catch {
+    // Fall back to default pricing when database is unreachable
+  }
   const settingsMap = new Map(settings.map((setting) => [setting.key, setting.value]));
 
   const trialPlan = plans.find((plan) => plan.type === 'trial');
@@ -842,7 +855,12 @@ export async function getPricingPlans(db: Db = prisma) {
 }
 
 export async function getPaymentSettings(db: Db = prisma) {
-  const settings = await db.setting.findMany();
+  let settings: Awaited<ReturnType<typeof db.setting.findMany>> = [];
+  try {
+    settings = await db.setting.findMany();
+  } catch {
+    // Return empty configuration when database is unreachable
+  }
   const settingsMap = new Map(settings.map((setting) => [setting.key, setting.value]));
   const bcaNumber = settingsMap.get('bca_number') || '';
   const bcaHolder = settingsMap.get('bca_holder') || '';

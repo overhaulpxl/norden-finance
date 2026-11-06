@@ -101,15 +101,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FAF9F5] p-4 py-12 text-black selection:bg-black selection:text-[#FFE066] select-none">
-      <style>{`
-        .bg-paper-dots {
-          background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
-          background-size: 24px 24px;
-        }
-      `}</style>
-      <div className="bg-paper-dots pointer-events-none absolute inset-0 opacity-80" />
-
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden norden-canvas p-4 py-12 text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black select-none">
       <main className="relative z-10 w-full max-w-md space-y-6">
         <div className="flex justify-center">
           <Link href="/" className="hover:opacity-90 transition-opacity" aria-label="Beranda Norden Finance">
@@ -117,30 +109,30 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
           </Link>
         </div>
 
-        <section className="brutal-card border-[3px] border-black bg-white p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="mb-4 inline-flex border-[2.5px] border-black bg-[#FFE066] p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+        <section className="brutal-card border-[3px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#FFE066] text-black p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
             <MailCheck className="h-6 w-6 stroke-[3px]" />
           </div>
 
-          <h1 className="mb-1 text-xl sm:text-2xl font-black uppercase tracking-wider text-black">
+          <h1 className="mb-1 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
             Periksa Email Anda
           </h1>
-          <p className="mb-5 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600">
+          <p className="mb-5 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
             Tautan verifikasi telah dikirimkan ke alamat email akun Anda. Klik tautan pada email tersebut untuk mengaktifkan akun.
           </p>
 
-          <div className="mb-5 border-[2px] border-black bg-[#FAF9F5] p-3.5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Alamat Email Terdaftar</p>
-            <p className="mt-1 break-all text-xs sm:text-sm font-black text-black">{email || 'Email akun Anda'}</p>
+          <div className="mb-5 border-[2px] border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-3.5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Alamat Email Terdaftar</p>
+            <p className="mt-1 break-all text-xs sm:text-sm font-black text-black dark:text-white">{email || 'Email akun Anda'}</p>
           </div>
 
           {message && (
-            <div className="mb-4 border-[2px] border-black bg-[#bbf7d0] p-3 text-xs font-bold text-emerald-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <div className="mb-4 border-[2px] border-black dark:border-emerald-600 bg-[#bbf7d0] dark:bg-emerald-950/40 p-3 text-xs font-bold text-emerald-950 dark:text-emerald-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {message}
             </div>
           )}
           {error && (
-            <div className="mb-4 border-[2px] border-black bg-red-100 p-3 text-xs font-bold text-red-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <div className="mb-4 border-[2px] border-black dark:border-red-600 bg-red-100 dark:bg-red-950/40 p-3 text-xs font-bold text-red-800 dark:text-red-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {error}
             </div>
           )}
@@ -150,7 +142,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
               type="button"
               onClick={resendVerificationEmail}
               disabled={loading || cooldown > 0}
-              className="flex w-full items-center justify-center gap-2 border-[2.5px] border-black bg-[#FFE066] py-3 text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-yellow-300 hover:translate-x-[1px] hover:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+              className="flex w-full items-center justify-center gap-2 border-[2.5px] border-black dark:border-neutral-700 bg-[#FFE066] py-3 text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-yellow-300 hover:translate-x-[1px] hover:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`h-4 w-4 stroke-[3px] ${loading ? 'animate-spin' : ''}`} />
               {buttonLabel}
@@ -158,7 +150,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
 
             <Link
               href="/login"
-              className="block w-full border-[2.5px] border-black bg-white py-3 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
+              className="block w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:translate-x-[1px] hover:translate-y-[1px]"
             >
               Kembali ke Halaman Login
             </Link>

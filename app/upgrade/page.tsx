@@ -54,7 +54,7 @@ export default async function UpgradePage({
   ]);
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen norden-canvas text-neutral-900 dark:text-neutral-100 p-4 sm:p-6 lg:p-8">
       <UpgradeClient 
         profile={profile} 
         initialRequests={serializedRequests} 

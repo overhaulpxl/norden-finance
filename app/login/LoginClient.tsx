@@ -47,17 +47,7 @@ export default function LoginClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden select-none">
-
-      <style>{`
-        .bg-paper-dots {
-          background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
-          background-size: 24px 24px;
-        }
-      `}</style>
-
-      {/* Grid Pattern Background Layer */}
-      <div className="absolute inset-0 bg-paper-dots pointer-events-none opacity-80 z-0" />
+    <div className="min-h-screen norden-canvas text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden select-none">
 
       <div className="w-full max-w-md relative z-10 space-y-6">
 
@@ -69,18 +59,18 @@ export default function LoginClient() {
         </div>
 
         {/* Card */}
-        <div className="brutal-card p-6 sm:p-8 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000]">
-          <div className="border-b-[2.5px] border-black pb-3 mb-5">
-            <h1 className="text-xl sm:text-2xl font-black text-black uppercase tracking-wider">
+        <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
+          <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
+            <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
               Masuk ke Norden
             </h1>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-0.5">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
               Kelola dan pantau keuangan Anda secara mandiri
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 bg-red-100 border-[2px] border-black text-red-800 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+            <div className="mb-5 p-3.5 bg-red-100 dark:bg-red-950/40 border-[2px] border-black dark:border-red-600 text-red-800 dark:text-red-300 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
               {error}
             </div>
           )}
@@ -90,7 +80,7 @@ export default function LoginClient() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full bg-white text-black border-[2.5px] border-black py-3 text-xs font-black uppercase tracking-wider flex justify-center items-center gap-2.5 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
+            className="w-full bg-white dark:bg-neutral-800 text-black dark:text-white border-[2.5px] border-black dark:border-neutral-700 py-3 text-xs font-black uppercase tracking-wider flex justify-center items-center gap-2.5 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -102,14 +92,14 @@ export default function LoginClient() {
           </button>
 
           <div className="flex items-center justify-center gap-3 my-5">
-            <div className="flex-1 h-[1.5px] bg-neutral-300" />
-            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">atau dengan email</span>
-            <div className="flex-1 h-[1.5px] bg-neutral-300" />
+            <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
+            <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">atau dengan email</span>
+            <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+              <label htmlFor="login-email" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
                 Alamat Email
               </label>
               <input
@@ -126,10 +116,10 @@ export default function LoginClient() {
 
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <label htmlFor="login-password" className="block text-xs font-black text-black uppercase tracking-wider">
+                <label htmlFor="login-password" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider">
                   Password
                 </label>
-                <Link href="/forgot-password" className="text-xs font-bold text-neutral-600 hover:text-black underline">
+                <Link href="/forgot-password" className="text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white underline">
                   Lupa password?
                 </Link>
               </div>
@@ -157,9 +147,9 @@ export default function LoginClient() {
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-xs font-bold text-neutral-500 uppercase tracking-wide">
+        <p className="text-center text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
           Belum memiliki akun?{' '}
-          <Link href="/register" className="text-black underline font-black hover:text-neutral-700">
+          <Link href="/register" className="text-black dark:text-white underline font-black hover:text-neutral-700 dark:hover:text-neutral-300">
             Daftar Akun Baru
           </Link>
         </p>

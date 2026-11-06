@@ -188,16 +188,16 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
       <div className="flex justify-between items-center">
         <Link 
           href="/dashboard" 
-          className="flex items-center gap-2 px-4 py-2 border-[2px] border-black bg-white rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-50 font-black text-xs uppercase tracking-wider transition-all"
+          className="flex items-center gap-2 px-4 py-2 border-[2px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-50 dark:hover:bg-neutral-700 font-black text-xs uppercase tracking-wider transition-all"
         >
           <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Kembali ke Dasbor
         </Link>
-        <div className={`flex items-center gap-2 border-[2px] border-black px-4 py-2 font-black text-xs uppercase tracking-wider ${
+        <div className={`flex items-center gap-2 border-[2px] border-black dark:border-neutral-700 px-4 py-2 font-black text-xs uppercase tracking-wider ${
           hasPendingRequest
             ? 'bg-amber-200 text-black'
             : isPro
             ? 'bg-[#bbf7d0] text-black'
-            : 'bg-neutral-200 text-neutral-800'
+            : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'
         }`}>
           Status: {hasPendingRequest ? 'Pro (Verifikasi Pembayaran ⏳)' : isPro ? 'Pro Active 👑' : 'Free Basic 🌱'}
         </div>
@@ -214,9 +214,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
         
         {/* Left Side: Pricing Options */}
         <div className="space-y-6">
-          <div className="brutal-card p-6 bg-white">
-            <h2 className="text-xl font-black text-black uppercase tracking-wider mb-2">Pilih Paket Norden Pro</h2>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-6">
+          <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700">
+            <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-2">Pilih Paket Norden Pro</h2>
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-6">
               Mulai kelola keuangan Anda secara profesional dengan AI Norden.
             </p>
 
@@ -225,54 +225,54 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
               {pricingPlans.monthly ? (
                 <button
                   onClick={() => setSelectedPlan('monthly')}
-                  className={`w-full p-4 border-[3px] border-black rounded-none text-left transition-all ${
+                  className={`w-full p-4 border-[3px] border-black dark:border-neutral-700 rounded-none text-left transition-all ${
                   selectedPlan === 'monthly' 
-                    ? 'bg-[#fef08a] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
-                    : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                    ? 'bg-[#fef08a] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
+                    : 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-black text-black uppercase text-sm">{pricingPlans.monthly.name}</h4>
+                    <h4 className="font-black uppercase text-sm">{pricingPlans.monthly.name}</h4>
                     {selectedPlan === 'monthly' && <span className="bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Dipilih</span>}
                   </div>
-                  <p className="text-2xl font-black text-black tracking-wide">{formatCurrency(pricingPlans.monthly.price)} <span className="text-xs font-bold text-neutral-600">/ bulan</span></p>
-                  <p className="text-[10px] font-bold text-neutral-600 mt-2 uppercase tracking-wide">Cocok untuk mencoba kenyamanan pencatatan AI.</p>
+                  <p className="text-2xl font-black tracking-wide">{formatCurrency(pricingPlans.monthly.price)} <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">/ bulan</span></p>
+                  <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mt-2 uppercase tracking-wide">Cocok untuk mencoba kenyamanan pencatatan AI.</p>
                 </button>
               ) : (
-                <div className="p-4 border-[3px] border-dashed border-black text-xs font-black uppercase text-neutral-500">Paket bulanan sedang dinonaktifkan.</div>
+                <div className="p-4 border-[3px] border-dashed border-black dark:border-neutral-700 text-xs font-black uppercase text-neutral-500">Paket bulanan sedang dinonaktifkan.</div>
               )}
 
               {/* Yearly Plan */}
               {pricingPlans.yearly ? (
                 <button
                   onClick={() => setSelectedPlan('yearly')}
-                  className={`w-full p-4 border-[3px] border-black rounded-none text-left transition-all ${
+                  className={`w-full p-4 border-[3px] border-black dark:border-neutral-700 rounded-none text-left transition-all ${
                   selectedPlan === 'yearly' 
-                    ? 'bg-[#bbf7d0] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
-                    : 'bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                    ? 'bg-[#bbf7d0] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
+                    : 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-black text-black uppercase text-sm">{pricingPlans.yearly.name}</h4>
+                    <h4 className="font-black uppercase text-sm">{pricingPlans.yearly.name}</h4>
                     {yearlySavingsPercent !== null && yearlySavingsPercent > 0 && (
                       <span className="bg-black text-yellow-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Hemat {yearlySavingsPercent}%</span>
                     )}
                   </div>
-                  <p className="text-2xl font-black text-black tracking-wide">{formatCurrency(pricingPlans.yearly.price)} <span className="text-xs font-bold text-neutral-600">/ tahun</span></p>
-                  <p className="text-[10px] font-bold text-neutral-600 mt-2 uppercase tracking-wide">Pilihan terbaik untuk disiplin keuangan jangka panjang.</p>
+                  <p className="text-2xl font-black tracking-wide">{formatCurrency(pricingPlans.yearly.price)} <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">/ tahun</span></p>
+                  <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mt-2 uppercase tracking-wide">Pilihan terbaik untuk disiplin keuangan jangka panjang.</p>
                 </button>
               ) : (
-                <div className="p-4 border-[3px] border-dashed border-black text-xs font-black uppercase text-neutral-500">Paket tahunan sedang dinonaktifkan.</div>
+                <div className="p-4 border-[3px] border-dashed border-black dark:border-neutral-700 text-xs font-black uppercase text-neutral-500">Paket tahunan sedang dinonaktifkan.</div>
               )}
             </div>
 
             {/* Plan Features */}
-            <div className="mt-8 border-t-[3px] border-black pt-6">
-              <h5 className="font-black text-black uppercase text-xs tracking-wider mb-4">Fitur yang Anda Dapatkan:</h5>
+            <div className="mt-8 border-t-[3px] border-black dark:border-neutral-700 pt-6">
+              <h5 className="font-black text-black dark:text-white uppercase text-xs tracking-wider mb-4">Fitur yang Anda Dapatkan:</h5>
               <ul className="space-y-3">
                 {planFeatures.map((feat, i) => (
-                  <li key={i} className="flex items-center gap-2 text-xs font-bold text-black uppercase tracking-wide">
-                    <Check className="w-4 h-4 text-emerald-800 stroke-[3px] flex-shrink-0" />
+                  <li key={i} className="flex items-center gap-2 text-xs font-bold text-black dark:text-neutral-200 uppercase tracking-wide">
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[3px] flex-shrink-0" />
                     {feat}
                   </li>
                 ))}
@@ -283,8 +283,8 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
 
         {/* Right Side: Payment Form */}
         <div className="space-y-6">
-          <div className="brutal-card p-6 bg-white">
-            <h3 className="text-lg font-black text-black uppercase tracking-wider mb-4">Konfirmasi Pembayaran</h3>
+          <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700">
+            <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider mb-4">Konfirmasi Pembayaran</h3>
             
             {error && (
               <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider mb-4">
@@ -309,74 +309,74 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 border-[2px] border-black font-black text-xs uppercase tracking-wider rounded-none transition-all ${
+                  className={`py-2 border-[2px] border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider rounded-none transition-all ${
                     paymentMethod === method 
-                      ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
-                      : 'bg-white text-black hover:bg-neutral-50'
+                      ? 'bg-black dark:bg-white text-white dark:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+                      : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-700'
                   }`}
                 >
                   {method}
                 </button>
               ))}
               {!paymentConfigured && (
-                <button type="button" disabled className="py-2 border-[2px] border-black font-black text-xs uppercase tracking-wider rounded-none bg-neutral-100 text-neutral-500">
+                <button type="button" disabled className="py-2 border-[2px] border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider rounded-none bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
                   Belum tersedia
                 </button>
               )}
             </div>
 
             {/* Payment Details Box */}
-            <div className="p-4 border-[2px] border-black bg-[#f3f4f6] rounded-none mb-6">
+            <div className="p-4 border-[2px] border-black dark:border-neutral-700 bg-[#f3f4f6] dark:bg-neutral-800 rounded-none mb-6">
               {paymentMethod === 'bca' && (
                 <div>
-                  <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Bank BCA</p>
+                  <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">Bank BCA</p>
                   <div className="flex items-center justify-between gap-2 mt-1">
-                    <p className="text-lg font-black text-black tracking-wider">{paymentSettings.bca_number}</p>
+                    <p className="text-lg font-black text-black dark:text-white tracking-wider">{paymentSettings.bca_number}</p>
                     <button
                       type="button"
                       onClick={() => handleCopyAccount(paymentSettings.bca_number)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black bg-white hover:bg-neutral-50 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
                     >
-                      {copiedAccount === paymentSettings.bca_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedAccount === paymentSettings.bca_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedAccount === paymentSettings.bca_number ? 'Tersalin' : 'Salin Rekening'}</span>
                     </button>
                   </div>
-                  <p className="text-xs font-bold text-neutral-600 mt-1 uppercase">A.N. {paymentSettings.bca_holder}</p>
+                  <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-1 uppercase">A.N. {paymentSettings.bca_holder}</p>
                 </div>
               )}
               {paymentMethod === 'bni' && (
                 <div>
-                  <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Bank BNI</p>
+                  <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">Bank BNI</p>
                   <div className="flex items-center justify-between gap-2 mt-1">
-                    <p className="text-lg font-black text-black tracking-wider">{paymentSettings.bni_number}</p>
+                    <p className="text-lg font-black text-black dark:text-white tracking-wider">{paymentSettings.bni_number}</p>
                     <button
                       type="button"
                       onClick={() => handleCopyAccount(paymentSettings.bni_number)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black bg-white hover:bg-neutral-50 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
                     >
-                      {copiedAccount === paymentSettings.bni_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedAccount === paymentSettings.bni_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedAccount === paymentSettings.bni_number ? 'Tersalin' : 'Salin Rekening'}</span>
                     </button>
                   </div>
-                  <p className="text-xs font-bold text-neutral-600 mt-1 uppercase">A.N. {paymentSettings.bni_holder}</p>
+                  <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-1 uppercase">A.N. {paymentSettings.bni_holder}</p>
                 </div>
               )}
               {paymentMethod === 'qris' && (
                 <div className="flex flex-col items-center justify-center py-2">
-                  <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">QRIS Norden Merchant</p>
+                  <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-3">QRIS Norden Merchant</p>
                   {paymentSettings.qris_image ? (
                     <div className="bg-white p-3 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
                       <img src={paymentSettings.qris_image} alt="QRIS Norden Merchant" className="max-w-[160px] max-h-[160px] object-contain border-[1px] border-neutral-250" />
                       <span className="text-[9px] font-black text-black tracking-widest mt-2 uppercase">SCAN QRIS MERCHANT</span>
                     </div>
                   ) : (
-                    <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide">QRIS belum dikonfigurasi admin.</p>
+                    <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">QRIS belum dikonfigurasi admin.</p>
                   )}
                 </div>
               )}
-              <div className="border-t-[1px] border-black mt-4 pt-3">
-                <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Total Pembayaran</p>
-                <p className="text-base font-black text-black tracking-wide mt-0.5">
+              <div className="border-t-[1px] border-black dark:border-neutral-700 mt-4 pt-3">
+                <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">Total Pembayaran</p>
+                <p className="text-base font-black text-black dark:text-white tracking-wide mt-0.5">
                   {hasSelectedPlan ? formatCurrency(pricingPlans[selectedPlan]!.price) : 'Paket tidak tersedia'}
                 </p>
               </div>
@@ -385,14 +385,14 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
             {/* Proof Upload Form */}
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-black">Upload Bukti Transfer</label>
+                <label className="text-xs font-black uppercase text-black dark:text-white">Upload Bukti Transfer</label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-[3px] border-dashed border-black bg-[#f9fafb] p-6 text-center cursor-pointer hover:bg-neutral-50 transition-all flex flex-col items-center justify-center"
+                  className="border-[3px] border-dashed border-black dark:border-neutral-700 bg-[#f9fafb] dark:bg-neutral-800 p-6 text-center cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all flex flex-col items-center justify-center"
                 >
                   <Upload className="w-6 h-6 text-neutral-400 mb-2 stroke-[2.5px]" />
                   {file ? (
-                    <span className="text-xs font-bold text-black truncate max-w-xs">{file.name}</span>
+                    <span className="text-xs font-bold text-black dark:text-white truncate max-w-xs">{file.name}</span>
                   ) : (
                     <span className="text-xs font-bold text-neutral-400 uppercase tracking-wide">PILIH FILE ATAU FOTO (MAX 5MB)</span>
                   )}
@@ -432,27 +432,27 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
       </div>
 
       {/* Payment Requests History */}
-      <div className="brutal-card p-6 bg-white">
-        <h3 className="text-base font-black text-black uppercase tracking-wider mb-4">Riwayat Permintaan Upgrade</h3>
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700">
+        <h3 className="text-base font-black text-black dark:text-white uppercase tracking-wider mb-4">Riwayat Permintaan Upgrade</h3>
         {requests.length === 0 ? (
-          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider py-4 text-center">Belum ada riwayat pembayaran.</p>
+          <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider py-4 text-center">Belum ada riwayat pembayaran.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse border-[2px] border-black">
+            <table className="w-full text-left border-collapse border-[2px] border-black dark:border-neutral-700">
               <thead>
-                <tr className="bg-[#f3f4f6] border-b-[2px] border-black">
-                  <th className="p-3 text-[10px] font-black uppercase text-black tracking-wider border-r-[2px] border-black">Tanggal</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black tracking-wider border-r-[2px] border-black">Paket</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black tracking-wider border-r-[2px] border-black">Metode</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black tracking-wider border-r-[2px] border-black">Total</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black tracking-wider border-r-[2px] border-black">Status</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black tracking-wider">Catatan Admin</th>
+                <tr className="bg-[#f3f4f6] dark:bg-neutral-800 border-b-[2px] border-black dark:border-neutral-700">
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Tanggal</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Paket</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Metode</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Total</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Status</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider">Catatan Admin</th>
                 </tr>
               </thead>
               <tbody>
                 {requests.map((req) => (
-                  <tr key={req.id} className="border-b-[2px] border-black last:border-b-0 hover:bg-[#fafafa] font-bold text-xs uppercase tracking-wide">
-                    <td className="p-3 border-r-[2px] border-black text-neutral-500">
+                  <tr key={req.id} className="border-b-[2px] border-black dark:border-neutral-700 last:border-b-0 hover:bg-[#fafafa] dark:hover:bg-neutral-800/60 font-bold text-xs uppercase tracking-wide">
+                    <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-neutral-500 dark:text-neutral-400">
                       {new Date(req.createdAt).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
@@ -461,12 +461,12 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                         minute: '2-digit'
                       })}
                     </td>
-                    <td className="p-3 border-r-[2px] border-black text-black">
+                    <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">
                       PRO {req.billingType === 'monthly' ? 'Bulanan' : 'Tahunan'}
                     </td>
-                    <td className="p-3 border-r-[2px] border-black text-black">{req.paymentMethod}</td>
-                    <td className="p-3 border-r-[2px] border-black text-black">{formatCurrency(req.amount)}</td>
-                    <td className="p-3 border-r-[2px] border-black">
+                    <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">{req.paymentMethod}</td>
+                    <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">{formatCurrency(req.amount)}</td>
+                    <td className="p-3 border-r-[2px] border-black dark:border-neutral-700">
                       <span className={`px-2 py-0.5 text-[10px] font-black border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
                         req.status === 'approved' ? 'bg-[#bbf7d0] text-emerald-950' :
                         req.status === 'rejected' ? 'bg-red-100 text-red-700' :
@@ -475,7 +475,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                         {req.status === 'approved' ? 'DISETUJUI' : req.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU VERIFIKASI'}
                       </span>
                     </td>
-                    <td className="p-3 text-neutral-600 normal-case italic">{req.adminNote || '-'}</td>
+                    <td className="p-3 text-neutral-600 dark:text-neutral-400 normal-case italic">{req.adminNote || '-'}</td>
                   </tr>
                 ))}
               </tbody>

@@ -51,17 +51,7 @@ export default function OnboardingClient({
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden select-none">
-
-      <style>{`
-        .bg-paper-dots {
-          background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
-          background-size: 24px 24px;
-        }
-      `}</style>
-
-      {/* Grid Pattern Background Layer */}
-      <div className="absolute inset-0 bg-paper-dots pointer-events-none opacity-80 z-0" />
+    <div className="min-h-screen norden-canvas text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden select-none">
 
       <div className="w-full max-w-md relative z-10 space-y-6">
 
@@ -71,28 +61,28 @@ export default function OnboardingClient({
         </div>
 
         {/* Setup Card */}
-        <div className="brutal-card p-6 sm:p-8 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000]">
-          <div className="border-b-[2.5px] border-black pb-3 mb-5">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border-[2px] border-black bg-[#FFE066] text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-2">
+        <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
+          <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border-[2px] border-black dark:border-neutral-700 bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-2">
               <Wallet className="w-3.5 h-3.5" /> Langkah Awal
             </span>
-            <h1 className="text-xl sm:text-2xl font-black text-black uppercase tracking-wider">
+            <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
               Setup Workspace Anda
             </h1>
-            <p className="text-xs font-bold text-neutral-500 truncate mt-0.5">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
               Akun: {email}
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 bg-red-100 border-[2px] border-black text-red-800 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+            <div className="mb-5 p-3.5 bg-red-100 dark:bg-red-950/40 border-[2px] border-black dark:border-red-600 text-red-800 dark:text-red-300 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="onboarding-fullname" className="block text-xs font-black uppercase text-black mb-1.5">
+              <label htmlFor="onboarding-fullname" className="block text-xs font-black uppercase text-black dark:text-neutral-200 mb-1.5">
                 Nama Lengkap
               </label>
               <input
@@ -104,11 +94,11 @@ export default function OnboardingClient({
                 placeholder="NAMA LENGKAP ANDA"
                 required
               />
-              <p className="text-[10px] font-bold text-neutral-500 mt-1">Digunakan untuk personalisasi dashboard dan laporan.</p>
+              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">Digunakan untuk personalisasi dashboard dan laporan.</p>
             </div>
 
             <div>
-              <label htmlFor="onboarding-wallet" className="block text-xs font-black uppercase text-black mb-1.5">
+              <label htmlFor="onboarding-wallet" className="block text-xs font-black uppercase text-black dark:text-neutral-200 mb-1.5">
                 Dompet / Rekening Pertama
               </label>
               <input
@@ -120,11 +110,11 @@ export default function OnboardingClient({
                 placeholder="CONTOH: CASH, BCA, BNI, ATAU GOPAY"
                 required
               />
-              <p className="text-[10px] font-bold text-neutral-500 mt-1">Dompet utama untuk mulai mencatat transaksi harian.</p>
+              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">Dompet utama untuk mulai mencatat transaksi harian.</p>
             </div>
 
             <div>
-              <label htmlFor="onboarding-balance" className="block text-xs font-black uppercase text-black mb-1.5">
+              <label htmlFor="onboarding-balance" className="block text-xs font-black uppercase text-black dark:text-neutral-200 mb-1.5">
                 Saldo Awal Dompet (Rp)
               </label>
               <input
@@ -136,16 +126,16 @@ export default function OnboardingClient({
                 inputMode="numeric"
                 placeholder="CONTOH: 500.000"
               />
-              <p className="text-[10px] font-bold text-neutral-500 mt-1">Menjadi saldo awal dompet dan dasar hitung kekayaan bersih.</p>
+              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">Menjadi saldo awal dompet dan dasar hitung kekayaan bersih.</p>
             </div>
 
             {/* Trial Activation Notice */}
-            <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 space-y-1">
-              <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-black">
-                <ShieldCheck className="w-4 h-4 text-emerald-700 stroke-[2.5px]" />
+            <div className="bg-[#FAF9F5] dark:bg-neutral-800 border-[2px] border-black dark:border-neutral-700 p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
+                <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400 stroke-[2.5px]" />
                 Trial 14 Hari Dimulai Setelah Setup
               </div>
-              <p className="text-[11px] font-bold text-neutral-600 leading-relaxed">
+              <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
                 Masa uji coba gratis fitur penuh 14 hari Anda akan aktif begitu tombol di bawah ditekan.
               </p>
             </div>

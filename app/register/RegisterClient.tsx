@@ -63,15 +63,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden select-none">
-      <style>{`
-        .bg-paper-dots {
-          background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
-          background-size: 24px 24px;
-        }
-      `}</style>
-
-      <div className="absolute inset-0 bg-paper-dots pointer-events-none opacity-80 z-0" />
+    <div className="min-h-screen norden-canvas text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black flex flex-col justify-center items-center p-4 py-12 relative overflow-hidden select-none">
 
       <div className="w-full max-w-md relative z-10 space-y-6">
 
@@ -83,23 +75,23 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
         </div>
 
         {/* Card */}
-        <div className="brutal-card p-6 sm:p-8 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000]">
-          <div className="border-b-[2.5px] border-black pb-3 mb-5">
-            <h1 className="text-xl sm:text-2xl font-black text-black uppercase tracking-wider">
+        <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
+          <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
+            <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
               Buat Akun Norden
             </h1>
-            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-0.5">
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
               Trial {trialDays} hari fitur penuh aktif setelah setup akun selesai
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 bg-red-100 border-[2px] border-black text-red-800 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+            <div className="mb-5 p-3.5 bg-red-100 dark:bg-red-950/40 border-[2px] border-black dark:border-red-600 text-red-800 dark:text-red-300 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
               {error}
             </div>
           )}
           {success && (
-            <div className="mb-5 p-3.5 bg-[#bbf7d0] border-[2px] border-black text-emerald-950 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+            <div className="mb-5 p-3.5 bg-[#bbf7d0] dark:bg-emerald-950/40 border-[2px] border-black dark:border-emerald-600 text-emerald-950 dark:text-emerald-300 font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
               {success}
             </div>
           )}
@@ -109,7 +101,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
             type="button"
             onClick={handleGoogleRegister}
             disabled={loading}
-            className="w-full bg-white text-black border-[2.5px] border-black py-3 text-xs font-black uppercase tracking-wider flex justify-center items-center gap-2.5 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
+            className="w-full bg-white dark:bg-neutral-800 text-black dark:text-white border-[2.5px] border-black dark:border-neutral-700 py-3 text-xs font-black uppercase tracking-wider flex justify-center items-center gap-2.5 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -121,14 +113,14 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
           </button>
 
           <div className="flex items-center justify-center gap-3 my-5">
-            <div className="flex-1 h-[1.5px] bg-neutral-300" />
-            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">atau dengan email</span>
-            <div className="flex-1 h-[1.5px] bg-neutral-300" />
+            <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
+            <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">atau dengan email</span>
+            <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="reg-fullname" className="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+              <label htmlFor="reg-fullname" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
                 Nama Lengkap
               </label>
               <input
@@ -144,7 +136,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
             </div>
 
             <div>
-              <label htmlFor="reg-email" className="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+              <label htmlFor="reg-email" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
                 Alamat Email
               </label>
               <input
@@ -160,7 +152,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
             </div>
 
             <div>
-              <label htmlFor="reg-password" className="block text-xs font-black text-black uppercase tracking-wider mb-1.5">
+              <label htmlFor="reg-password" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <input
@@ -176,30 +168,30 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
             </div>
 
             {/* Trial Info Pill */}
-            <div className="bg-[#FAF9F5] border-[2px] border-black p-3 rounded-none text-black font-bold text-xs">
-              <div className="flex items-center gap-1.5 font-black uppercase tracking-wide text-neutral-800 text-[11px] mb-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-700 stroke-[2.5px]" />
+            <div className="bg-[#FAF9F5] dark:bg-neutral-800 border-[2px] border-black dark:border-neutral-700 p-3 rounded-none text-black dark:text-white font-bold text-xs">
+              <div className="flex items-center gap-1.5 font-black uppercase tracking-wide text-neutral-800 dark:text-neutral-200 text-[11px] mb-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400 stroke-[2.5px]" />
                 Trial {trialDays} Hari Gratis
               </div>
-              <p className="text-[11px] text-neutral-600 leading-relaxed font-bold">
+              <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed font-bold">
                 Akses ke seluruh fitur Norden Pro terbuka selama 14 hari setelah setup akun pertama. Tidak membutuhkan kartu kredit.
               </p>
             </div>
 
-            <label className="flex items-start gap-2.5 text-xs font-bold text-neutral-800 cursor-pointer select-none pt-1">
+            <label className="flex items-start gap-2.5 text-xs font-bold text-neutral-800 dark:text-neutral-300 cursor-pointer select-none pt-1">
               <input
                 type="checkbox"
                 checked={acceptedLegal}
                 onChange={(event) => setAcceptedLegal(event.target.checked)}
-                className="mt-0.5 h-4 w-4 border-2 border-black rounded-none cursor-pointer"
+                className="mt-0.5 h-4 w-4 border-2 border-black dark:border-neutral-600 rounded-none cursor-pointer"
               />
               <span className="leading-snug">
                 Saya menyetujui{' '}
-                <Link href="/legal/terms" className="underline font-black text-black hover:text-neutral-700">
+                <Link href="/legal/terms" className="underline font-black text-black dark:text-white hover:text-neutral-700 dark:hover:text-neutral-300">
                   Syarat & Ketentuan
                 </Link>
                 {' '}serta{' '}
-                <Link href="/legal/privacy" className="underline font-black text-black hover:text-neutral-700">
+                <Link href="/legal/privacy" className="underline font-black text-black dark:text-white hover:text-neutral-700 dark:hover:text-neutral-300">
                   Kebijakan Privasi
                 </Link>.
               </span>
@@ -216,9 +208,9 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
           </form>
         </div>
 
-        <p className="text-center text-xs font-bold text-neutral-500 uppercase tracking-wide">
+        <p className="text-center text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
           Sudah memiliki akun?{' '}
-          <Link href="/login" className="text-black underline font-black hover:text-neutral-700">
+          <Link href="/login" className="text-black dark:text-white underline font-black hover:text-neutral-700 dark:hover:text-neutral-300">
             Masuk di sini
           </Link>
         </p>
