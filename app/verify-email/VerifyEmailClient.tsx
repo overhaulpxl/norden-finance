@@ -5,14 +5,20 @@ import Link from 'next/link';
 import { MailCheck, RefreshCw } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
 import { auth } from '../../lib/firebase';
+import { useLanguage } from '../../lib/i18n';
 
 const COOLDOWN_SECONDS = 60;
 
 export default function VerifyEmailClient({ initialEmail }: { initialEmail?: string }) {
+  const { lang } = useLanguage();
   const [email, setEmail] = useState(() => initialEmail || auth.currentUser?.email || '');
   const [cooldown, setCooldown] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('Email verifikasi telah dikirimkan. Silakan periksa kotak masuk atau spam.');
+  const [message, setMessage] = useState(() =>
+    lang === 'en'
+      ? 'Verification email has been sent. Please check your inbox or spam.'
+      : 'Email verifikasi telah dikirimkan. Silakan periksa kotak masuk atau spam.'
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,17 +40,24 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
   }, [cooldown]);
 
   const buttonLabel = useMemo(() => {
-    if (loading) return 'Mengirimkan...';
-    if (cooldown > 0) return `Kirim ulang dalam ${cooldown} detik`;
-    return 'Kirim Ulang Email Verifikasi';
-  }, [cooldown, loading]);
+    if (loading) return lang === 'en' ? 'Sending...' : 'Mengirimkan...';
+    if (cooldown > 0)
+      return lang === 'en'
+        ? `Resend in ${cooldown} seconds`
+        : `Kirim ulang dalam ${cooldown} detik`;
+    return lang === 'en' ? 'Resend Verification Email' : 'Kirim Ulang Email Verifikasi';
+  }, [cooldown, loading, lang]);
 
   async function resendVerificationEmail() {
     setError(null);
     setMessage('');
     const user = auth.currentUser;
     if (!user) {
-      setError('Sesi berakhir. Silakan login kembali untuk meminta email verifikasi baru.');
+      setError(
+        lang === 'en'
+          ? 'Session expired. Please log in again to request a new verification email.'
+          : 'Sesi berakhir. Silakan login kembali untuk meminta email verifikasi baru.'
+      );
       return;
     }
 
@@ -69,7 +82,13 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
               url: `${appUrl.replace(/\/$/, '')}/auth/verified`
             });
           } else {
-            setError(data.message || data.error || 'Gagal mengirim email verifikasi. Silakan coba lagi.');
+            setError(
+              data.message ||
+                data.error ||
+                (lang === 'en'
+                  ? 'Failed to send verification email. Please try again.'
+                  : 'Gagal mengirim email verifikasi. Silakan coba lagi.')
+            );
             if (response.status === 429 || data.code === 'RATE_LIMITED' || data.code === 'TOO_MANY_ATTEMPTS' || data.code === 'TOO_MANY_REQUESTS') {
               setCooldown(COOLDOWN_SECONDS);
             }
@@ -84,16 +103,28 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
         });
       }
 
-      setMessage('Email verifikasi baru berhasil dikirim. Periksa inbox atau spam Anda.');
+      setMessage(
+        lang === 'en'
+          ? 'A new verification email has been sent. Check your inbox or spam.'
+          : 'Email verifikasi baru berhasil dikirim. Periksa inbox atau spam Anda.'
+      );
       setCooldown(COOLDOWN_SECONDS);
     } catch (err: unknown) {
       console.error(err);
       const errMessage = err instanceof Error ? err.message : '';
       if (errMessage.includes('auth/too-many-requests')) {
-        setError('Terlalu banyak permintaan. Silakan tunggu beberapa menit sebelum mencoba lagi.');
+        setError(
+          lang === 'en'
+            ? 'Too many requests. Please wait a few minutes before trying again.'
+            : 'Terlalu banyak permintaan. Silakan tunggu beberapa menit sebelum mencoba lagi.'
+        );
         setCooldown(COOLDOWN_SECONDS);
       } else {
-        setError('Gagal mengirimkan email verifikasi. Silakan coba lagi.');
+        setError(
+          lang === 'en'
+            ? 'Failed to send verification email. Please try again.'
+            : 'Gagal mengirimkan email verifikasi. Silakan coba lagi.'
+        );
       }
     } finally {
       setLoading(false);
@@ -104,7 +135,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden norden-canvas p-4 py-12 text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black select-none">
       <main className="relative z-10 w-full max-w-md space-y-6">
         <div className="flex justify-center">
-          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label="Beranda Norden Finance">
+          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label={lang === 'en' ? 'Norden Finance Home' : 'Beranda Norden Finance'}>
             <BrandLogo variant="horizontal" priority className="h-12 sm:h-14 w-auto" />
           </Link>
         </div>
@@ -115,15 +146,21 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
           </div>
 
           <h1 className="mb-1 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
-            Periksa Email Anda
+            {lang === 'en' ? 'Check Your Email' : 'Periksa Email Anda'}
           </h1>
           <p className="mb-5 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
-            Tautan verifikasi telah dikirimkan ke alamat email akun Anda. Klik tautan pada email tersebut untuk mengaktifkan akun.
+            {lang === 'en'
+              ? 'A verification link has been sent to your account email address. Click the link in that email to activate your account.'
+              : 'Tautan verifikasi telah dikirimkan ke alamat email akun Anda. Klik tautan pada email tersebut untuk mengaktifkan akun.'}
           </p>
 
           <div className="mb-5 border-[2px] border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-3.5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Alamat Email Terdaftar</p>
-            <p className="mt-1 break-all text-xs sm:text-sm font-black text-black dark:text-white">{email || 'Email akun Anda'}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+              {lang === 'en' ? 'Registered Email Address' : 'Alamat Email Terdaftar'}
+            </p>
+            <p className="mt-1 break-all text-xs sm:text-sm font-black text-black dark:text-white">
+              {email || (lang === 'en' ? 'Your account email' : 'Email akun Anda')}
+            </p>
           </div>
 
           {message && (
@@ -152,7 +189,7 @@ export default function VerifyEmailClient({ initialEmail }: { initialEmail?: str
               href="/login"
               className="block w-full border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 text-center text-xs font-black uppercase tracking-wider text-black dark:text-white shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:translate-x-[1px] hover:translate-y-[1px]"
             >
-              Kembali ke Halaman Login
+              {lang === 'en' ? 'Back to Login' : 'Kembali ke Halaman Login'}
             </Link>
           </div>
         </section>

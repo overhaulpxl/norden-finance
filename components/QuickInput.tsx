@@ -78,7 +78,12 @@ export default function QuickInput() {
       });
     } catch (error: unknown) {
       triggerHaptic('warning');
-      const text = error instanceof Error ? error.message : 'Gagal memproses struk';
+      const text =
+        error instanceof Error
+          ? error.message
+          : lang === 'id'
+          ? 'Gagal memproses struk'
+          : 'Failed to process receipt';
       setMessage({ type: 'error', text: `${text}` });
     } finally {
       setScanning(false);
@@ -259,14 +264,15 @@ export default function QuickInput() {
               className="w-9 h-9 object-cover rounded-md border border-black shadow-[1px_1px_0px_0px_#000]"
             />
             <span className="text-[11px] font-bold truncate">
-              {receiptName || 'Struk terlampir (Opsi B)'}
+              {receiptName || (lang === 'id' ? 'Struk terlampir' : 'Receipt attached')}
             </span>
           </div>
           <button
             type="button"
             onClick={handleRemoveReceipt}
             className="p-1 text-red-600 hover:text-red-800 cursor-pointer"
-            title="Hapus lampiran struk"
+            title={lang === 'id' ? 'Hapus lampiran struk' : 'Remove receipt attachment'}
+            aria-label={lang === 'id' ? 'Hapus lampiran struk' : 'Remove receipt attachment'}
           >
             <X className="w-4 h-4" />
           </button>

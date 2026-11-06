@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
+import { useLanguage } from '../lib/i18n';
 
 export default function BackToTop() {
+  const { lang } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function BackToTop() {
           type="button"
           onClick={scrollToTop}
           className="fixed bottom-6 right-6 z-50 bg-[#FFE066] text-black border-[2.5px] border-black dark:border-neutral-700 p-3.5 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1.5px] hover:translate-y-[1.5px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer rounded-none group"
-          aria-label="Back to top"
+          aria-label={lang === 'en' ? 'Back to top' : 'Kembali ke atas'}
         >
           <ArrowUp className="w-5 h-5 stroke-[3px] group-hover:-translate-y-0.5 transition-transform duration-200" />
         </button>

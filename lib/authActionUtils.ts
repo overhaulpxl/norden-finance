@@ -29,9 +29,30 @@ export function getSafeContinueUrl(continueUrl: string | null): string {
   return '/dashboard';
 }
 
-export function mapFirebaseAuthError(error: unknown, defaultMessage: string): string {
+export function mapFirebaseAuthError(
+  error: unknown,
+  defaultMessage: string,
+  lang: 'id' | 'en' = 'id'
+): string {
   if (!error || typeof error !== 'object') return defaultMessage;
   const code = (error as { code?: string }).code || '';
+
+  if (lang === 'en') {
+    switch (code) {
+      case 'auth/expired-action-code':
+        return 'Action link has expired. Please submit a new request.';
+      case 'auth/invalid-action-code':
+        return 'Action link is invalid or has already been used.';
+      case 'auth/user-disabled':
+        return 'This user account has been disabled.';
+      case 'auth/user-not-found':
+        return 'User account was not found.';
+      case 'auth/weak-password':
+        return 'Password is too weak. Please use at least 8 characters.';
+      default:
+        return (error as { message?: string }).message || defaultMessage;
+    }
+  }
 
   switch (code) {
     case 'auth/expired-action-code':

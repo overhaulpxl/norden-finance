@@ -5,6 +5,7 @@ import { completeOnboarding } from '../actions';
 import { Loader2, Wallet, ArrowRight, ShieldCheck } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
 import { formatRupiahInput, parseRupiahInput } from '../../lib/format';
+import { useLanguage } from '../../lib/i18n';
 
 export default function OnboardingClient({
   initialName,
@@ -13,6 +14,7 @@ export default function OnboardingClient({
   initialName: string;
   email: string;
 }) {
+  const { lang } = useLanguage();
   const [fullName, setFullName] = useState(initialName);
   const [walletName, setWalletName] = useState('');
   const [openingBalance, setOpeningBalance] = useState('');
@@ -24,11 +26,15 @@ export default function OnboardingClient({
     setError('');
 
     if (!fullName.trim()) {
-      setError('Nama lengkap wajib diisi.');
+      setError(lang === 'en' ? 'Full name is required.' : 'Nama lengkap wajib diisi.');
       return;
     }
     if (!walletName.trim()) {
-      setError('Nama dompet/rekening pertama wajib diisi.');
+      setError(
+        lang === 'en'
+          ? 'First wallet/account name is required.'
+          : 'Nama dompet/rekening pertama wajib diisi.'
+      );
       return;
     }
 
@@ -46,7 +52,12 @@ export default function OnboardingClient({
     if (result.success) {
       window.location.href = '/dashboard';
     } else {
-      setError(result.error || 'Gagal menyelesaikan setup awal. Silakan coba lagi.');
+      setError(
+        result.error ||
+          (lang === 'en'
+            ? 'Failed to complete initial setup. Please try again.'
+            : 'Gagal menyelesaikan setup awal. Silakan coba lagi.')
+      );
     }
   }
 
@@ -64,13 +75,13 @@ export default function OnboardingClient({
         <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
           <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border-[2px] border-black dark:border-neutral-700 bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-2">
-              <Wallet className="w-3.5 h-3.5" /> Langkah Awal
+              <Wallet className="w-3.5 h-3.5" /> {lang === 'en' ? 'First Step' : 'Langkah Awal'}
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
-              Setup Workspace Anda
+              {lang === 'en' ? 'Setup Your Workspace' : 'Setup Workspace Anda'}
             </h1>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
-              Akun: {email}
+              {lang === 'en' ? 'Account' : 'Akun'}: {email}
             </p>
           </div>
 
@@ -83,7 +94,7 @@ export default function OnboardingClient({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="onboarding-fullname" className="block text-xs font-black uppercase text-black dark:text-neutral-200 mb-1.5">
-                Nama Lengkap
+                {lang === 'en' ? 'Full Name' : 'Nama Lengkap'}
               </label>
               <input
                 id="onboarding-fullname"
@@ -91,15 +102,19 @@ export default function OnboardingClient({
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold uppercase"
-                placeholder="NAMA LENGKAP ANDA"
+                placeholder={lang === 'en' ? 'YOUR FULL NAME' : 'NAMA LENGKAP ANDA'}
                 required
               />
-              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">Digunakan untuk personalisasi dashboard dan laporan.</p>
+              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">
+                {lang === 'en'
+                  ? 'Used for personalizing dashboard and financial reports.'
+                  : 'Digunakan untuk personalisasi dashboard dan laporan.'}
+              </p>
             </div>
 
             <div>
               <label htmlFor="onboarding-wallet" className="block text-xs font-black uppercase text-black dark:text-neutral-200 mb-1.5">
-                Dompet / Rekening Pertama
+                {lang === 'en' ? 'First Wallet / Account' : 'Dompet / Rekening Pertama'}
               </label>
               <input
                 id="onboarding-wallet"
@@ -107,15 +122,19 @@ export default function OnboardingClient({
                 value={walletName}
                 onChange={(event) => setWalletName(event.target.value)}
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold uppercase"
-                placeholder="CONTOH: CASH, BCA, BNI, ATAU GOPAY"
+                placeholder={lang === 'en' ? 'EXAMPLE: CASH, BCA, BNI, OR GOPAY' : 'CONTOH: CASH, BCA, BNI, ATAU GOPAY'}
                 required
               />
-              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">Dompet utama untuk mulai mencatat transaksi harian.</p>
+              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">
+                {lang === 'en'
+                  ? 'Primary wallet to start recording daily transactions.'
+                  : 'Dompet utama untuk mulai mencatat transaksi harian.'}
+              </p>
             </div>
 
             <div>
               <label htmlFor="onboarding-balance" className="block text-xs font-black uppercase text-black dark:text-neutral-200 mb-1.5">
-                Saldo Awal Dompet (Rp)
+                {lang === 'en' ? 'Initial Wallet Balance (Rp)' : 'Saldo Awal Dompet (Rp)'}
               </label>
               <input
                 id="onboarding-balance"
@@ -124,19 +143,25 @@ export default function OnboardingClient({
                 onChange={(event) => setOpeningBalance(formatRupiahInput(event.target.value))}
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold"
                 inputMode="numeric"
-                placeholder="CONTOH: 500.000"
+                placeholder={lang === 'en' ? 'EXAMPLE: 500,000' : 'CONTOH: 500.000'}
               />
-              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">Menjadi saldo awal dompet dan dasar hitung kekayaan bersih.</p>
+              <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-1">
+                {lang === 'en'
+                  ? 'Serves as opening balance and base for calculating net worth.'
+                  : 'Menjadi saldo awal dompet dan dasar hitung kekayaan bersih.'}
+              </p>
             </div>
 
             {/* Trial Activation Notice */}
             <div className="bg-[#FAF9F5] dark:bg-neutral-800 border-[2px] border-black dark:border-neutral-700 p-3.5 space-y-1">
               <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
                 <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400 stroke-[2.5px]" />
-                Trial 14 Hari Dimulai Setelah Setup
+                {lang === 'en' ? '14-Day Trial Begins After Setup' : 'Trial 14 Hari Dimulai Setelah Setup'}
               </div>
               <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Masa uji coba gratis fitur penuh 14 hari Anda akan aktif begitu tombol di bawah ditekan.
+                {lang === 'en'
+                  ? 'Your 14-day full-feature free trial starts as soon as you proceed.'
+                  : 'Masa uji coba gratis fitur penuh 14 hari Anda akan aktif begitu tombol di bawah ditekan.'}
               </p>
             </div>
 
@@ -146,7 +171,7 @@ export default function OnboardingClient({
               className="w-full mt-2 py-3.5 brutal-btn bg-[#FFE066] text-black border-[2.5px] border-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] hover:bg-yellow-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin text-black" />}
-              <span>{loading ? 'Menyiapkan Workspace...' : 'Mulai Pakai Norden'}</span>
+              <span>{loading ? (lang === 'en' ? 'Setting up Workspace...' : 'Menyiapkan Workspace...') : (lang === 'en' ? 'Start Using Norden' : 'Mulai Pakai Norden')}</span>
               {!loading && <ArrowRight className="w-4 h-4 stroke-[3px]" />}
             </button>
           </form>

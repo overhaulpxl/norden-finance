@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import BrandLogo from '../../../components/BrandLogo';
 import { auth } from '../../../lib/firebase';
+import { useLanguage } from '../../../lib/i18n';
 
 export default function VerifiedClient() {
+  const { lang } = useLanguage();
   const [dashboardReady, setDashboardReady] = useState(false);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function VerifiedClient() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden norden-canvas p-4 text-neutral-900 dark:text-neutral-100 selection:bg-[#FFE066] selection:text-black select-none">
       <main className="relative z-10 w-full max-w-md space-y-6">
         <div className="flex justify-center">
-          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label="Beranda Norden Finance">
+          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label={lang === 'en' ? 'Norden Finance Home' : 'Beranda Norden Finance'}>
             <BrandLogo variant="horizontal" priority className="h-12 sm:h-14 w-auto" />
           </Link>
         </div>
@@ -43,17 +45,23 @@ export default function VerifiedClient() {
           </div>
 
           <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">
-            Email Berhasil Diverifikasi
+            {lang === 'en' ? 'Email Verified Successfully' : 'Email Berhasil Diverifikasi'}
           </h1>
           <p className="mb-6 text-xs sm:text-sm font-bold leading-relaxed text-neutral-600 dark:text-neutral-400">
-            Akun Norden Finance Anda kini sudah aktif dan siap digunakan untuk mengelola keuangan Anda.
+            {lang === 'en'
+              ? 'Your Norden Finance account is now active and ready to manage your finances.'
+              : 'Akun Norden Finance Anda kini sudah aktif dan siap digunakan untuk mengelola keuangan Anda.'}
           </p>
 
           <Link
             href={dashboardReady ? '/dashboard' : '/login'}
             className="inline-flex w-full items-center justify-center gap-2 border-[2.5px] border-black dark:border-neutral-700 bg-[#FFE066] py-3.5 text-center text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] transition-all hover:bg-yellow-300 hover:translate-x-[1px] hover:translate-y-[1px]"
           >
-            <span>{dashboardReady ? 'Lanjut ke Dashboard' : 'Masuk ke Akun Anda'}</span>
+            <span>
+              {dashboardReady
+                ? (lang === 'en' ? 'Continue to Dashboard' : 'Lanjut ke Dashboard')
+                : (lang === 'en' ? 'Sign in to Your Account' : 'Masuk ke Akun Anda')}
+            </span>
             <ArrowRight className="w-4 h-4 stroke-[3px]" />
           </Link>
         </section>

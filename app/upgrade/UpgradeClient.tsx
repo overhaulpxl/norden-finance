@@ -6,9 +6,10 @@ import { useState, useRef } from 'react';
 import { ArrowLeft, Check, Upload, Loader2, Copy, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { submitPaymentRequest } from '../actions/payments';
-import { MVP_FEATURES } from '../../lib/constants';
+import { MVP_FEATURES, MVP_FEATURES_EN } from '../../lib/constants';
 import { formatCurrency } from '../../lib/format';
 import { compressReceiptImage } from '../../lib/imageCompression';
+import { useLanguage } from '../../lib/i18n';
 
 interface UpgradeClientProps {
   profile: {
@@ -56,6 +57,7 @@ interface PaymentRequestView {
 }
 
 export default function UpgradeClient({ profile, initialRequests, paymentSettings, pricingPlans, initialPlan }: UpgradeClientProps) {
+  const { lang } = useLanguage();
   const availableMethods: Array<'qris' | 'bca' | 'bni'> = [];
   if (paymentSettings.qris_active !== 'false') availableMethods.push('qris');
   if (paymentSettings.bca_active !== 'false') availableMethods.push('bca');
@@ -87,11 +89,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (selectedFile.size > 5 * 1024 * 1024) {
-        setError('Ukuran file maksimal adalah 5MB.');
+        setError(lang === 'en' ? 'Maximum file size is 5MB.' : 'Ukuran file maksimal adalah 5MB.');
         return;
       }
       if (!selectedFile.type.startsWith('image/')) {
-        setError('Bukti pembayaran harus berupa gambar.');
+        setError(lang === 'en' ? 'Payment proof must be an image.' : 'Bukti pembayaran harus berupa gambar.');
         return;
       }
       setFile(selectedFile);
@@ -105,11 +107,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
     setSuccess('');
 
     if (!file) {
-      setError('Silakan unggah bukti transfer terlebih dahulu.');
+      setError(lang === 'en' ? 'Please upload transfer proof first.' : 'Silakan unggah bukti transfer terlebih dahulu.');
       return;
     }
     if (!paymentConfigured) {
-      setError('Metode pembayaran belum dikonfigurasi admin.');
+      setError(lang === 'en' ? 'Payment method is not yet configured by admin.' : 'Metode pembayaran belum dikonfigurasi admin.');
       return;
     }
 
@@ -125,14 +127,14 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
       });
       const uploadData = await uploadResponse.json();
       if (!uploadResponse.ok || !uploadData.proofPath) {
-        throw new Error(uploadData.error || 'Gagal mengunggah bukti pembayaran.');
+        throw new Error(uploadData.error || (lang === 'en' ? 'Failed to upload payment proof.' : 'Gagal mengunggah bukti pembayaran.'));
       }
       const proofPathValue = uploadData.proofPath as string;
 
       // 3. Submit Payment Request
       const selectedPricing = pricingPlans[selectedPlan];
       if (!selectedPricing) {
-        throw new Error('Paket harga sedang tidak tersedia.');
+        throw new Error(lang === 'en' ? 'Pricing plan is currently unavailable.' : 'Paket harga sedang tidak tersedia.');
       }
       const amount = selectedPricing.price;
       const res = await submitPaymentRequest({
@@ -143,7 +145,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
       });
 
       if (res.success) {
-        setSuccess('Bukti transfer berhasil dikirim! Silakan tunggu persetujuan admin.');
+        setSuccess(
+          lang === 'en'
+            ? 'Transfer proof sent successfully! Please wait for admin approval.'
+            : 'Bukti transfer berhasil dikirim! Silakan tunggu persetujuan admin.'
+        );
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
         
@@ -161,21 +167,20 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
         };
         setRequests([newRequest, ...requests]);
       } else {
-        setError(res.error || 'Gagal mengirim pembayaran.');
+        setError(res.error || (lang === 'en' ? 'Failed to submit payment.' : 'Gagal mengirim pembayaran.'));
       }
     } catch (err: unknown) {
       console.error(err);
-      const message = err instanceof Error ? err.message : 'Terjadi kesalahan sistem.';
+      const message = err instanceof Error ? err.message : (lang === 'en' ? 'A system error occurred.' : 'Terjadi kesalahan sistem.');
       setError(message);
     } finally {
       setUploading(false);
     }
   };
 
-  const planFeatures = [
-    ...MVP_FEATURES,
-    'Prioritas bantuan pelanggan',
-  ];
+  const planFeatures = lang === 'en'
+    ? [...MVP_FEATURES_EN, 'Priority customer support']
+    : [...MVP_FEATURES, 'Prioritas bantuan pelanggan'];
   const monthlyPrice = pricingPlans.monthly?.price ?? null;
   const yearlyPrice = pricingPlans.yearly?.price ?? null;
   const yearlySavingsPercent = monthlyPrice && yearlyPrice
@@ -190,7 +195,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
           href="/dashboard" 
           className="flex items-center gap-2 px-4 py-2 border-[2px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-50 dark:hover:bg-neutral-700 font-black text-xs uppercase tracking-wider transition-all"
         >
-          <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Kembali ke Dasbor
+          <ArrowLeft className="w-4 h-4 stroke-[3px]" /> {lang === 'en' ? 'Back to Dashboard' : 'Kembali ke Dasbor'}
         </Link>
         <div className={`flex items-center gap-2 border-[2px] border-black dark:border-neutral-700 px-4 py-2 font-black text-xs uppercase tracking-wider ${
           hasPendingRequest
@@ -199,13 +204,15 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
             ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
             : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'
         }`}>
-          Status: {hasPendingRequest ? 'Pro (Verifikasi Pembayaran ⏳)' : isPro ? 'Pro Active 👑' : 'Free Basic 🌱'}
+          Status: {hasPendingRequest ? (lang === 'en' ? 'Pro (Payment Verification ⏳)' : 'Pro (Verifikasi Pembayaran ⏳)') : isPro ? 'Pro Active 👑' : 'Free Basic 🌱'}
         </div>
       </div>
 
       {hasPendingRequest && (
         <div className="p-4 bg-amber-100 dark:bg-amber-950/80 border-[3px] border-black dark:border-neutral-700 text-black dark:text-amber-200 font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-          ⏳ Bukti pembayaran Anda telah dikirim dan sedang menunggu tinjauan Admin. Akses fitur Norden Pro Anda tetap aktif selama masa verifikasi.
+          {lang === 'en'
+            ? '⏳ Your payment proof has been submitted and is awaiting Admin review. Your Norden Pro access remains active during the verification period.'
+            : '⏳ Bukti pembayaran Anda telah dikirim dan sedang menunggu tinjauan Admin. Akses fitur Norden Pro Anda tetap aktif selama masa verifikasi.'}
         </div>
       )}
 
@@ -215,9 +222,13 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
         {/* Left Side: Pricing Options */}
         <div className="space-y-6">
           <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700">
-            <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-2">Pilih Paket Norden Pro</h2>
+            <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-2">
+              {lang === 'en' ? 'Choose Norden Pro Plan' : 'Pilih Paket Norden Pro'}
+            </h2>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-6">
-              Mulai kelola keuangan Anda secara profesional dengan AI Norden.
+              {lang === 'en'
+                ? 'Start managing your finances professionally with Norden AI.'
+                : 'Mulai kelola keuangan Anda secara profesional dengan AI Norden.'}
             </p>
 
             <div className="space-y-4">
@@ -233,14 +244,31 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-black uppercase text-sm">{pricingPlans.monthly.name}</h4>
-                    {selectedPlan === 'monthly' && <span className="bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Dipilih</span>}
+                    <h4 className="font-black uppercase text-sm">
+                      {lang === 'en' ? pricingPlans.monthly.name.replace(/Bulanan/i, 'Monthly') : pricingPlans.monthly.name}
+                    </h4>
+                    {selectedPlan === 'monthly' && (
+                      <span className="bg-black text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">
+                        {lang === 'en' ? 'Selected' : 'Dipilih'}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-2xl font-black tracking-wide">{formatCurrency(pricingPlans.monthly.price)} <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">/ bulan</span></p>
-                  <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mt-2 uppercase tracking-wide">Cocok untuk mencoba kenyamanan pencatatan AI.</p>
+                  <p className="text-2xl font-black tracking-wide">
+                    {formatCurrency(pricingPlans.monthly.price)}{' '}
+                    <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">
+                      {lang === 'en' ? '/ month' : '/ bulan'}
+                    </span>
+                  </p>
+                  <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mt-2 uppercase tracking-wide">
+                    {lang === 'en'
+                      ? 'Ideal for trying out the convenience of AI expense tracking.'
+                      : 'Cocok untuk mencoba kenyamanan pencatatan AI.'}
+                  </p>
                 </button>
               ) : (
-                <div className="p-4 border-[3px] border-dashed border-black dark:border-neutral-700 text-xs font-black uppercase text-neutral-500">Paket bulanan sedang dinonaktifkan.</div>
+                <div className="p-4 border-[3px] border-dashed border-black dark:border-neutral-700 text-xs font-black uppercase text-neutral-500">
+                  {lang === 'en' ? 'Monthly plan is currently disabled.' : 'Paket bulanan sedang dinonaktifkan.'}
+                </div>
               )}
 
               {/* Yearly Plan */}
@@ -255,22 +283,39 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="font-black uppercase text-sm">{pricingPlans.yearly.name}</h4>
+                    <h4 className="font-black uppercase text-sm">
+                      {lang === 'en' ? pricingPlans.yearly.name.replace(/Tahunan/i, 'Yearly') : pricingPlans.yearly.name}
+                    </h4>
                     {yearlySavingsPercent !== null && yearlySavingsPercent > 0 && (
-                      <span className="bg-black text-yellow-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">Hemat {yearlySavingsPercent}%</span>
+                      <span className="bg-black text-yellow-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-none border-[1px] border-black">
+                        {lang === 'en' ? `Save ${yearlySavingsPercent}%` : `Hemat ${yearlySavingsPercent}%`}
+                      </span>
                     )}
                   </div>
-                  <p className="text-2xl font-black tracking-wide">{formatCurrency(pricingPlans.yearly.price)} <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">/ tahun</span></p>
-                  <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mt-2 uppercase tracking-wide">Pilihan terbaik untuk disiplin keuangan jangka panjang.</p>
+                  <p className="text-2xl font-black tracking-wide">
+                    {formatCurrency(pricingPlans.yearly.price)}{' '}
+                    <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">
+                      {lang === 'en' ? '/ year' : '/ tahun'}
+                    </span>
+                  </p>
+                  <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mt-2 uppercase tracking-wide">
+                    {lang === 'en'
+                      ? 'Best choice for long-term financial discipline.'
+                      : 'Pilihan terbaik untuk disiplin keuangan jangka panjang.'}
+                  </p>
                 </button>
               ) : (
-                <div className="p-4 border-[3px] border-dashed border-black dark:border-neutral-700 text-xs font-black uppercase text-neutral-500">Paket tahunan sedang dinonaktifkan.</div>
+                <div className="p-4 border-[3px] border-dashed border-black dark:border-neutral-700 text-xs font-black uppercase text-neutral-500">
+                  {lang === 'en' ? 'Yearly plan is currently disabled.' : 'Paket tahunan sedang dinonaktifkan.'}
+                </div>
               )}
             </div>
 
             {/* Plan Features */}
             <div className="mt-8 border-t-[3px] border-black dark:border-neutral-700 pt-6">
-              <h5 className="font-black text-black dark:text-white uppercase text-xs tracking-wider mb-4">Fitur yang Anda Dapatkan:</h5>
+              <h5 className="font-black text-black dark:text-white uppercase text-xs tracking-wider mb-4">
+                {lang === 'en' ? 'Features You Get:' : 'Fitur yang Anda Dapatkan:'}
+              </h5>
               <ul className="space-y-3">
                 {planFeatures.map((feat, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs font-bold text-black dark:text-neutral-200 uppercase tracking-wide">
@@ -286,7 +331,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
         {/* Right Side: Payment Form */}
         <div className="space-y-6">
           <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700">
-            <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider mb-4">Konfirmasi Pembayaran</h3>
+            <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-wider mb-4">
+              {lang === 'en' ? 'Payment Confirmation' : 'Konfirmasi Pembayaran'}
+            </h3>
             
             {error && (
               <div className="p-3 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase tracking-wider mb-4">
@@ -295,7 +342,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
             )}
             {!paymentConfigured && (
               <div className="p-3 bg-yellow-100 border-[2px] border-black text-yellow-900 font-bold text-xs uppercase tracking-wider mb-4">
-                Metode pembayaran belum aktif. Hubungi admin sebelum upgrade.
+                {lang === 'en'
+                  ? 'Payment methods are not active yet. Please contact admin before upgrading.'
+                  : 'Metode pembayaran belum aktif. Hubungi admin sebelum upgrade.'}
               </div>
             )}
             {success && (
@@ -322,7 +371,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
               ))}
               {!paymentConfigured && (
                 <button type="button" disabled className="py-2 border-[2px] border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider rounded-none bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
-                  Belum tersedia
+                  {lang === 'en' ? 'Not available' : 'Belum tersedia'}
                 </button>
               )}
             </div>
@@ -340,7 +389,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                       className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
                     >
                       {copiedAccount === paymentSettings.bca_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedAccount === paymentSettings.bca_number ? 'Tersalin' : 'Salin Rekening'}</span>
+                      <span>
+                        {copiedAccount === paymentSettings.bca_number
+                          ? (lang === 'en' ? 'Copied' : 'Tersalin')
+                          : (lang === 'en' ? 'Copy Account' : 'Salin Rekening')}
+                      </span>
                     </button>
                   </div>
                   <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-1 uppercase">A.N. {paymentSettings.bca_holder}</p>
@@ -357,7 +410,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                       className="inline-flex items-center gap-1 px-2.5 py-1 border-[1.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-800 text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
                     >
                       {copiedAccount === paymentSettings.bni_number ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedAccount === paymentSettings.bni_number ? 'Tersalin' : 'Salin Rekening'}</span>
+                      <span>
+                        {copiedAccount === paymentSettings.bni_number
+                          ? (lang === 'en' ? 'Copied' : 'Tersalin')
+                          : (lang === 'en' ? 'Copy Account' : 'Salin Rekening')}
+                      </span>
                     </button>
                   </div>
                   <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-1 uppercase">A.N. {paymentSettings.bni_holder}</p>
@@ -372,14 +429,20 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                       <span className="text-[9px] font-black text-black tracking-widest mt-2 uppercase">SCAN QRIS MERCHANT</span>
                     </div>
                   ) : (
-                    <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">QRIS belum dikonfigurasi admin.</p>
+                    <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+                      {lang === 'en' ? 'QRIS is not yet configured by admin.' : 'QRIS belum dikonfigurasi admin.'}
+                    </p>
                   )}
                 </div>
               )}
               <div className="border-t-[1px] border-black dark:border-neutral-700 mt-4 pt-3">
-                <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">Total Pembayaran</p>
+                <p className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
+                  {lang === 'en' ? 'Total Payment' : 'Total Pembayaran'}
+                </p>
                 <p className="text-base font-black text-black dark:text-white tracking-wide mt-0.5">
-                  {hasSelectedPlan ? formatCurrency(pricingPlans[selectedPlan]!.price) : 'Paket tidak tersedia'}
+                  {hasSelectedPlan
+                    ? formatCurrency(pricingPlans[selectedPlan]!.price)
+                    : (lang === 'en' ? 'Plan not available' : 'Paket tidak tersedia')}
                 </p>
               </div>
             </div>
@@ -387,7 +450,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
             {/* Proof Upload Form */}
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-black dark:text-white">Upload Bukti Transfer</label>
+                <label className="text-xs font-black uppercase text-black dark:text-white">
+                  {lang === 'en' ? 'Upload Transfer Proof' : 'Upload Bukti Transfer'}
+                </label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
                   className="border-[3px] border-dashed border-black dark:border-neutral-700 bg-[#f9fafb] dark:bg-neutral-800 p-6 text-center cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all flex flex-col items-center justify-center"
@@ -396,7 +461,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   {file ? (
                     <span className="text-xs font-bold text-black dark:text-white truncate max-w-xs">{file.name}</span>
                   ) : (
-                    <span className="text-xs font-bold text-neutral-400 uppercase tracking-wide">PILIH FILE ATAU FOTO (MAX 5MB)</span>
+                    <span className="text-xs font-bold text-neutral-400 uppercase tracking-wide">
+                      {lang === 'en' ? 'CHOOSE FILE OR PHOTO (MAX 5MB)' : 'PILIH FILE ATAU FOTO (MAX 5MB)'}
+                    </span>
                   )}
                   <input
                     type="file"
@@ -416,16 +483,16 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
               >
                 {uploading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> MENGIRIM...
+                    <Loader2 className="w-4 h-4 animate-spin" /> {lang === 'en' ? 'SENDING...' : 'MENGIRIM...'}
                   </>
                 ) : isPro ? (
-                  'SUDAH AKTIF PRO'
+                  lang === 'en' ? 'PRO ALREADY ACTIVE' : 'SUDAH AKTIF PRO'
                 ) : !hasSelectedPlan ? (
-                  'PAKET TIDAK TERSEDIA'
+                  lang === 'en' ? 'PLAN NOT AVAILABLE' : 'PAKET TIDAK TERSEDIA'
                 ) : !paymentConfigured ? (
-                  'PEMBAYARAN TIDAK TERSEDIA'
+                  lang === 'en' ? 'PAYMENT UNAVAILABLE' : 'PEMBAYARAN TIDAK TERSEDIA'
                 ) : (
-                  'KIRIM BUKTI PEMBAYARAN'
+                  lang === 'en' ? 'SUBMIT PAYMENT PROOF' : 'KIRIM BUKTI PEMBAYARAN'
                 )}
               </button>
             </form>
@@ -435,27 +502,43 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
 
       {/* Payment Requests History */}
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700">
-        <h3 className="text-base font-black text-black dark:text-white uppercase tracking-wider mb-4">Riwayat Permintaan Upgrade</h3>
+        <h3 className="text-base font-black text-black dark:text-white uppercase tracking-wider mb-4">
+          {lang === 'en' ? 'Upgrade Requests History' : 'Riwayat Permintaan Upgrade'}
+        </h3>
         {requests.length === 0 ? (
-          <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider py-4 text-center">Belum ada riwayat pembayaran.</p>
+          <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider py-4 text-center">
+            {lang === 'en' ? 'No payment history yet.' : 'Belum ada riwayat pembayaran.'}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse border-[2px] border-black dark:border-neutral-700">
               <thead>
                 <tr className="bg-[#f3f4f6] dark:bg-neutral-800 border-b-[2px] border-black dark:border-neutral-700">
-                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Tanggal</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Paket</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Metode</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Total</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">Status</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider">Catatan Admin</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">
+                    {lang === 'en' ? 'Date' : 'Tanggal'}
+                  </th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">
+                    {lang === 'en' ? 'Plan' : 'Paket'}
+                  </th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">
+                    {lang === 'en' ? 'Method' : 'Metode'}
+                  </th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">
+                    Total
+                  </th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider border-r-[2px] border-black dark:border-neutral-700">
+                    Status
+                  </th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black dark:text-white tracking-wider">
+                    {lang === 'en' ? 'Admin Note' : 'Catatan Admin'}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {requests.map((req) => (
                   <tr key={req.id} className="border-b-[2px] border-black dark:border-neutral-700 last:border-b-0 hover:bg-[#fafafa] dark:hover:bg-neutral-800/60 font-bold text-xs uppercase tracking-wide">
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-neutral-500 dark:text-neutral-400">
-                      {new Date(req.createdAt).toLocaleDateString('id-ID', {
+                      {new Date(req.createdAt).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
@@ -464,7 +547,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                       })}
                     </td>
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">
-                      PRO {req.billingType === 'monthly' ? 'Bulanan' : 'Tahunan'}
+                      PRO {req.billingType === 'monthly' ? (lang === 'en' ? 'Monthly' : 'Bulanan') : (lang === 'en' ? 'Yearly' : 'Tahunan')}
                     </td>
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">{req.paymentMethod}</td>
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">{formatCurrency(req.amount)}</td>
@@ -474,7 +557,11 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                         req.status === 'rejected' ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-200' :
                         'bg-[#fef08a] dark:bg-amber-950/80 text-amber-950 dark:text-amber-200'
                       }`}>
-                        {req.status === 'approved' ? 'DISETUJUI' : req.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU VERIFIKASI'}
+                        {req.status === 'approved'
+                          ? (lang === 'en' ? 'APPROVED' : 'DISETUJUI')
+                          : req.status === 'rejected'
+                          ? (lang === 'en' ? 'REJECTED' : 'DITOLAK')
+                          : (lang === 'en' ? 'PENDING VERIFICATION' : 'MENUNGGU VERIFIKASI')}
                       </span>
                     </td>
                     <td className="p-3 text-neutral-600 dark:text-neutral-400 normal-case italic">{req.adminNote || '-'}</td>

@@ -5,6 +5,7 @@ import { Send, Sparkles } from 'lucide-react';
 import { formatCurrency } from '../lib/format';
 import { parseTransaction } from '../lib/parser';
 import { CANONICAL_WALLET_DISPLAY } from '../lib/constants';
+import { useLanguage } from '../lib/i18n';
 import type { ParseResult } from '../types';
 
 interface Message {
@@ -23,19 +24,29 @@ interface Particle {
   ty: string;
 }
 
-export default function ChatSandbox() {
-  const [messages, setMessages] = useState<Message[]>([
+function getInitialMessages(l: 'id' | 'en'): Message[] {
+  return [
     {
       id: '1',
       sender: 'user',
-      text: 'Makan siang padang 35rb cash'
+      text: l === 'en' ? 'Lunch padang 35k cash' : 'Makan siang padang 35rb cash',
     },
     {
       id: '2',
       sender: 'ai',
-      text: '✅ [Simulasi] Berhasil mencatat Makan siang padang sebesar Rp 35.000. Dompet: Cash. Kategori: Makanan.'
-    }
-  ]);
+      text:
+        l === 'en'
+          ? '✅ [Simulation] Successfully recorded Lunch padang of Rp 35,000. Wallet: Cash. Category: Food.'
+          : '✅ [Simulasi] Berhasil mencatat Makan siang padang sebesar Rp 35.000. Dompet: Cash. Kategori: Makanan.',
+    },
+  ];
+}
+
+export default function ChatSandbox() {
+  const { lang } = useLanguage();
+  const initialMessages = getInitialMessages(lang);
+  const [customMessages, setCustomMessages] = useState<Message[]>([]);
+  const messages = customMessages.length > 0 ? customMessages : initialMessages;
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -73,49 +84,78 @@ export default function ChatSandbox() {
     const userMsg: Message = {
       id: Date.now().toString(),
       sender: 'user',
-      text
+      text,
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setCustomMessages((prev) => [...(prev.length > 0 ? prev : initialMessages), userMsg]);
     setInputValue('');
     setIsTyping(true);
 
     setTimeout(() => {
       const parsed = parseTransaction(text);
       let aiText = '';
-      const wallet = CANONICAL_WALLET_DISPLAY[parsed.method.toLowerCase()] || (parsed.method !== 'unknown' ? parsed.method.toUpperCase() : 'Cash');
+      const wallet =
+        CANONICAL_WALLET_DISPLAY[parsed.method.toLowerCase()] ||
+        (parsed.method !== 'unknown' ? parsed.method.toUpperCase() : 'Cash');
 
       if (!parsed.amount || parsed.amount <= 0) {
-        aiText = 'Format input belum dikenali. Coba sertakan nominal seperti "kopi 25k gopay", "gaji bca 5jt", atau "transfer bca ke dana 100k".';
+        aiText =
+          lang === 'en'
+            ? 'Input format not recognized yet. Try including an amount like "coffee 25k gopay", "salary bca 5jt", or "transfer bca to dana 100k".'
+            : 'Format input belum dikenali. Coba sertakan nominal seperti "kopi 25k gopay", "gaji bca 5jt", atau "transfer bca ke dana 100k".';
       } else if (parsed.isBalanceUpdate) {
-        aiText = `✅ [Simulasi] Saldo ${wallet} berhasil diperbarui menjadi ${formatCurrency(parsed.amount)}.`;
+        aiText =
+          lang === 'en'
+            ? `✅ [Simulation] ${wallet} balance successfully updated to ${formatCurrency(parsed.amount)}.`
+            : `✅ [Simulasi] Saldo ${wallet} berhasil diperbarui menjadi ${formatCurrency(parsed.amount)}.`;
       } else if (parsed.type === 'transfer') {
         const toWallet = parsed.transferToMethod
-          ? CANONICAL_WALLET_DISPLAY[parsed.transferToMethod.toLowerCase()] || parsed.transferToMethod.toUpperCase()
+          ? CANONICAL_WALLET_DISPLAY[parsed.transferToMethod.toLowerCase()] ||
+            parsed.transferToMethod.toUpperCase()
           : null;
-        const dest = toWallet ? `ke ${toWallet}` : 'ke dompet tujuan';
-        aiText = `✅ [Simulasi] Transfer ${formatCurrency(parsed.amount)} dari ${wallet} ${dest} berhasil diproses.`;
+        const dest =
+          lang === 'en'
+            ? toWallet
+              ? `to ${toWallet}`
+              : 'to target wallet'
+            : toWallet
+            ? `ke ${toWallet}`
+            : 'ke dompet tujuan';
+        aiText =
+          lang === 'en'
+            ? `✅ [Simulation] Transfer ${formatCurrency(parsed.amount)} from ${wallet} ${dest} processed successfully.`
+            : `✅ [Simulasi] Transfer ${formatCurrency(parsed.amount)} dari ${wallet} ${dest} berhasil diproses.`;
       } else if (parsed.type === 'masuk') {
-        const item = parsed.note && parsed.note !== '-' ? parsed.note : 'Pemasukan';
-        aiText = `✅ [Simulasi] Pemasukan ${formatCurrency(parsed.amount)} (${item}) berhasil dicatat ke ${wallet}. Kategori: ${parsed.category || 'Gaji'}.`;
+        const defaultItem = lang === 'en' ? 'Income' : 'Pemasukan';
+        const defaultCategory = lang === 'en' ? 'Salary' : 'Gaji';
+        const item = parsed.note && parsed.note !== '-' ? parsed.note : defaultItem;
+        aiText =
+          lang === 'en'
+            ? `✅ [Simulation] Income of ${formatCurrency(parsed.amount)} (${item}) recorded to ${wallet}. Category: ${parsed.category || defaultCategory}.`
+            : `✅ [Simulasi] Pemasukan ${formatCurrency(parsed.amount)} (${item}) berhasil dicatat ke ${wallet}. Kategori: ${parsed.category || defaultCategory}.`;
       } else {
-        const item = parsed.note && parsed.note !== '-' ? parsed.note : 'Pengeluaran';
-        aiText = `✅ [Simulasi] Berhasil mencatat ${item} sebesar ${formatCurrency(parsed.amount)}. Dompet: ${wallet}. Kategori: ${parsed.category || 'Lain-lain'}.`;
+        const defaultItem = lang === 'en' ? 'Expense' : 'Pengeluaran';
+        const defaultCategory = lang === 'en' ? 'Others' : 'Lain-lain';
+        const item = parsed.note && parsed.note !== '-' ? parsed.note : defaultItem;
+        aiText =
+          lang === 'en'
+            ? `✅ [Simulation] Successfully recorded ${item} of ${formatCurrency(parsed.amount)}. Wallet: ${wallet}. Category: ${parsed.category || defaultCategory}.`
+            : `✅ [Simulasi] Berhasil mencatat ${item} sebesar ${formatCurrency(parsed.amount)}. Dompet: ${wallet}. Kategori: ${parsed.category || defaultCategory}.`;
       }
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
         text: aiText,
-        parsedDetails: parsed
+        parsedDetails: parsed,
       };
 
-      setMessages(prev => [...prev, aiMsg]);
+      setCustomMessages((prev) => [...prev, aiMsg]);
       setIsTyping(false);
       if (parsed.amount > 0) {
         triggerConfetti();
       }
-    }, 800); // 800ms natural response delay
+    }, 800);
   }
 
   return (
@@ -161,7 +201,9 @@ export default function ChatSandbox() {
             )}
             <div>
               {msg.sender === 'user' ? (
-                <span className="text-[9px] font-black text-neutral-600 block mb-0.5">Anda</span>
+                <span className="text-[9px] font-black text-neutral-600 block mb-0.5">
+                  {lang === 'en' ? 'You' : 'Anda'}
+                </span>
               ) : (
                 <span className="text-[9px] font-black text-[#4B6DFE] block mb-0.5">Norden AI Parser</span>
               )}
@@ -172,7 +214,9 @@ export default function ChatSandbox() {
 
         {isTyping && (
           <div className="self-start bg-white border-[1.5px] border-black p-2 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-1.5 items-center">
-            <span className="text-[9px] font-black text-neutral-400 animate-pulse">Norden AI sedang mencatat...</span>
+            <span className="text-[9px] font-black text-neutral-400 animate-pulse">
+              {lang === 'en' ? 'Norden AI is recording...' : 'Norden AI sedang mencatat...'}
+            </span>
           </div>
         )}
         <div ref={chatEndRef} />
@@ -182,24 +226,24 @@ export default function ChatSandbox() {
       <div className="mb-2.5 flex flex-wrap gap-1.5 select-none">
         <button
           type="button"
-          onClick={() => handleSend('kopi starbucks 55k bca')}
+          onClick={() => handleSend(lang === 'en' ? 'starbucks coffee 55k bca' : 'kopi starbucks 55k bca')}
           className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
-          ☕ Kopi 55k BCA
+          {lang === 'en' ? '☕ Coffee 55k BCA' : '☕ Kopi 55k BCA'}
         </button>
         <button
           type="button"
-          onClick={() => handleSend('gaji masuk 12jt bca')}
+          onClick={() => handleSend(lang === 'en' ? 'salary received 12jt bca' : 'gaji masuk 12jt bca')}
           className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
-          💼 Gaji 12jt BCA
+          {lang === 'en' ? '💼 Salary 12jt BCA' : '💼 Gaji 12jt BCA'}
         </button>
         <button
           type="button"
-          onClick={() => handleSend('gojek 22rb cash')}
+          onClick={() => handleSend(lang === 'en' ? 'ride 22k cash' : 'gojek 22rb cash')}
           className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
-          🚗 Gojek 22rb Cash
+          {lang === 'en' ? '🚗 Ride 22k Cash' : '🚗 Gojek 22rb Cash'}
         </button>
       </div>
 
@@ -215,7 +259,7 @@ export default function ChatSandbox() {
           type="text"
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
-          placeholder="Coba ketik transaksi Anda di sini..."
+          placeholder={lang === 'en' ? 'Try typing your transaction here...' : 'Coba ketik transaksi Anda di sini...'}
           className="text-[10px] font-bold text-black pl-2 flex-1 focus:outline-none placeholder-neutral-400"
         />
         <button

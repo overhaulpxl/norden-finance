@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { forgotPasswordAction } from '../authActions';
 import BrandLogo from '../../components/BrandLogo';
 import { Loader2, ArrowLeft, KeyRound } from 'lucide-react';
+import { useLanguage } from '../../lib/i18n';
 
 export default function ForgotPasswordClient() {
+  const { lang } = useLanguage();
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -22,9 +24,18 @@ export default function ForgotPasswordClient() {
     setLoading(false);
 
     if (result.success) {
-      setMessage('Instruksi pemulihan kata sandi telah dikirimkan ke email Anda jika terdaftar.');
+      setMessage(
+        lang === 'en'
+          ? 'Password reset instructions have been sent to your email if registered.'
+          : 'Instruksi pemulihan kata sandi telah dikirimkan ke email Anda jika terdaftar.'
+      );
     } else {
-      setError(result.error || 'Gagal mengirimkan email pemulihan. Silakan coba lagi.');
+      setError(
+        result.error ||
+          (lang === 'en'
+            ? 'Failed to send recovery email. Please try again.'
+            : 'Gagal mengirimkan email pemulihan. Silakan coba lagi.')
+      );
     }
   }
 
@@ -35,7 +46,7 @@ export default function ForgotPasswordClient() {
 
         {/* Brand Header */}
         <div className="flex flex-col items-center gap-2">
-          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label="Beranda Norden Finance">
+          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label={lang === 'en' ? 'Norden Finance Home' : 'Beranda Norden Finance'}>
             <BrandLogo variant="horizontal" priority className="h-12 sm:h-14 w-auto" />
           </Link>
         </div>
@@ -44,13 +55,15 @@ export default function ForgotPasswordClient() {
         <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
           <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border-[2px] border-black dark:border-neutral-700 bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-2">
-              <KeyRound className="w-3.5 h-3.5" /> Pemulihan Akun
+              <KeyRound className="w-3.5 h-3.5" /> {lang === 'en' ? 'Account Recovery' : 'Pemulihan Akun'}
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
-              Lupa Password
+              {lang === 'en' ? 'Forgot Password' : 'Lupa Password'}
             </h1>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
-              Masukkan email yang terdaftar untuk mengatur ulang kata sandi Anda
+              {lang === 'en'
+                ? 'Enter your registered email to reset your password'
+                : 'Masukkan email yang terdaftar untuk mengatur ulang kata sandi Anda'}
             </p>
           </div>
 
@@ -68,7 +81,7 @@ export default function ForgotPasswordClient() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="reset-email" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
-                Alamat Email
+                {lang === 'en' ? 'Email Address' : 'Alamat Email'}
               </label>
               <input
                 id="reset-email"
@@ -88,7 +101,7 @@ export default function ForgotPasswordClient() {
               className="w-full mt-2 py-3.5 brutal-btn bg-[#FFE066] text-black border-[2.5px] border-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] hover:bg-yellow-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
-              {loading ? 'Mengirim...' : 'Kirim Tautan Pemulihan'}
+              {loading ? (lang === 'en' ? 'Sending...' : 'Mengirim...') : (lang === 'en' ? 'Send Recovery Link' : 'Kirim Tautan Pemulihan')}
             </button>
           </form>
 
@@ -97,7 +110,7 @@ export default function ForgotPasswordClient() {
               href="/login"
               className="inline-flex items-center gap-1.5 text-xs font-black text-black dark:text-white hover:text-neutral-700 dark:hover:text-neutral-300 underline uppercase tracking-wider"
             >
-              <ArrowLeft className="w-3.5 h-3.5 stroke-[3px]" /> Kembali ke Halaman Login
+              <ArrowLeft className="w-3.5 h-3.5 stroke-[3px]" /> {lang === 'en' ? 'Back to Login' : 'Kembali ke Halaman Login'}
             </Link>
           </div>
         </div>

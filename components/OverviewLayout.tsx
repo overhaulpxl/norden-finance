@@ -217,10 +217,16 @@ export default function OverviewLayout({
 
   const handleToggleCustomize = () => {
     if (isCustomizing) {
-      setSuccess('Tata letak dashboard berhasil disimpan!');
+      setSuccess(
+        lang === 'id'
+          ? 'Tata letak dashboard berhasil disimpan!'
+          : 'Dashboard layout saved successfully!'
+      );
       addCustomNotification(
-        'Tata letak disimpan',
-        'Anda berhasil menyesuaikan susunan widget dashboard Norden Finance Anda.',
+        lang === 'id' ? 'Tata letak disimpan' : 'Layout saved',
+        lang === 'id'
+          ? 'Anda berhasil menyesuaikan susunan widget dashboard Norden Finance Anda.'
+          : 'You successfully adjusted your Norden Finance dashboard widgets.',
         'LAYOUT_UPDATE'
       );
       setTimeout(() => setSuccess(null), 4000);
@@ -287,13 +293,39 @@ export default function OverviewLayout({
       localStorage.removeItem(`norden_top_widgets_${user.id}`);
       localStorage.removeItem(`norden_column_widgets_${user.id}`);
     }
-    setSuccess('Tata letak dashboard dikembalikan ke default!');
+    setSuccess(
+      lang === 'id'
+        ? 'Tata letak dashboard dikembalikan ke default!'
+        : 'Dashboard layout reset to default!'
+    );
     addCustomNotification(
-      'Tata letak direset',
-      'Susunan widget dashboard telah dikembalikan ke pengaturan awal pabrik.',
+      lang === 'id' ? 'Tata letak direset' : 'Layout reset',
+      lang === 'id'
+        ? 'Susunan widget dashboard telah dikembalikan ke pengaturan awal pabrik.'
+        : 'Dashboard widgets have been reset to factory defaults.',
       'LAYOUT_RESET'
     );
     setTimeout(() => setSuccess(null), 4000);
+  };
+
+  const getWidgetLabel = (id: string, defaultName: string) => {
+    if (lang === 'id') return defaultName;
+    const enMap: Record<string, string> = {
+      'total-balance': 'Total Balance',
+      'safe-to-spend': 'Daily Safe-to-Spend',
+      'net-worth': 'Net Worth',
+      'health-score': 'Financial Health',
+      'upcoming-bills': 'Upcoming Bills',
+      'recent-transactions': 'Recent Transactions',
+      'expense-chart': 'Expense Distribution',
+      'monthly-recap': 'Monthly Recap',
+      'budget-manager': 'Budget Control',
+      'momentum-center': 'Streaks & Reminders',
+      'no-spend-calendar': 'No-Spend Calendar',
+      'emergency-fund': 'Emergency Fund',
+      'subscription-manager': 'Recurring Bills',
+    };
+    return enMap[id] || defaultName;
   };
 
   const formattedMonth = useMemo(() => {
@@ -471,13 +503,15 @@ export default function OverviewLayout({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">Kartu Metrik Utama (Atas)</h4>
+              <h4 className="text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-3">
+                {lang === 'id' ? 'Kartu Metrik Utama (Atas)' : 'Main Metric Cards (Top)'}
+              </h4>
               <div className="space-y-2">
                 {topWidgets.map((widget, index) => (
                   <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 text-xs font-bold uppercase text-black dark:text-white">
                     <span className="flex items-center gap-2">
                       <span className="text-neutral-400 font-mono">#{index + 1}</span>
-                      {widget.name}
+                      {getWidgetLabel(widget.id, widget.name)}
                     </span>
                     <div className="flex items-center gap-1.5">
                       <button 
@@ -517,7 +551,7 @@ export default function OverviewLayout({
                 {columnWidgets.map((widget, index) => (
                   <div key={widget.id} className="flex items-center justify-between p-3 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 text-xs font-bold uppercase text-black dark:text-white">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-black text-black dark:text-white">{widget.name}</span>
+                      <span className="font-black text-black dark:text-white">{getWidgetLabel(widget.id, widget.name)}</span>
                       <span className="text-[9px] text-neutral-400 tracking-wider">
                         {lang === 'id' ? 'KOLOM:' : 'COLUMN:'} {widget.column === 'left' ? (lang === 'id' ? 'KIRI' : 'LEFT') : (lang === 'id' ? 'KANAN' : 'RIGHT')}
                       </span>

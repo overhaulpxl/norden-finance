@@ -1,5 +1,6 @@
 import { Balance } from '../types';
 import { formatMethodName } from '../lib/format';
+import { useLanguage } from '../lib/i18n';
 
 interface WalletSelectProps {
   wallets: Balance[];
@@ -22,12 +23,16 @@ export default function WalletSelect({
   value,
   onChange,
   className,
-  placeholder = 'Pilih Wallet',
+  placeholder,
   required = false,
   disabled = false,
 }: WalletSelectProps) {
+  const { lang } = useLanguage();
+  const defaultPlaceholder = lang === 'en' ? 'Select Wallet' : 'Pilih Wallet';
+  const effectivePlaceholder = placeholder || defaultPlaceholder;
   const activeWallets = getActiveWallets(wallets);
   const isDisabled = disabled || activeWallets.length === 0;
+  const emptyText = lang === 'en' ? 'Add wallet first' : 'Tambah wallet dulu';
 
   return (
     <select
@@ -37,7 +42,9 @@ export default function WalletSelect({
       required={required}
       disabled={isDisabled}
     >
-      <option value="" className="bg-white dark:bg-neutral-800 text-black dark:text-white">{isDisabled ? 'Tambah wallet dulu' : placeholder}</option>
+      <option value="" className="bg-white dark:bg-neutral-800 text-black dark:text-white">
+        {isDisabled ? emptyText : effectivePlaceholder}
+      </option>
       {activeWallets.map((wallet) => (
         <option key={wallet.id} value={wallet.name} className="bg-white dark:bg-neutral-800 text-black dark:text-white">
           {formatMethodName(wallet.name)}

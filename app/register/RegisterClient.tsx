@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { loginWithGoogleAction, registerAction } from '../authActions';
 import BrandLogo from '../../components/BrandLogo';
 import { Loader2, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../../lib/i18n';
 
 export default function RegisterClient({ trialDays }: { trialDays: number }) {
+  const { lang } = useLanguage();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,12 +25,16 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
     setSuccess(null);
 
     if (password.length < 8) {
-      setError('Password minimal harus 8 karakter.');
+      setError(lang === 'en' ? 'Password must be at least 8 characters.' : 'Password minimal harus 8 karakter.');
       return;
     }
 
     if (!acceptedLegal) {
-      setError('Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.');
+      setError(
+        lang === 'en'
+          ? 'You must agree to the Terms & Conditions and Privacy Policy.'
+          : 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.'
+      );
       return;
     }
 
@@ -38,13 +44,17 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
 
     setLoading(false);
     if (result.success && 'requiresEmailVerification' in result && result.requiresEmailVerification) {
-      setSuccess('Email verifikasi sudah dikirim. Periksa email Anda, lalu lakukan login.');
+      setSuccess(
+        lang === 'en'
+          ? 'Verification email sent. Please check your inbox and log in.'
+          : 'Email verifikasi sudah dikirim. Periksa email Anda, lalu lakukan login.'
+      );
       const targetEmail = 'email' in result && result.email ? result.email : email;
       router.push(`/verify-email?email=${encodeURIComponent(targetEmail)}`);
     } else if (result.success) {
       router.push('/dashboard');
     } else {
-      setError(result.error || 'Terjadi kesalahan saat pendaftaran.');
+      setError(result.error || (lang === 'en' ? 'An error occurred during registration.' : 'Terjadi kesalahan saat pendaftaran.'));
     }
   }
 
@@ -58,7 +68,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
     if (result.success) {
       router.push('/dashboard');
     } else {
-      setError(result.error || 'Gagal mendaftar dengan Google.');
+      setError(result.error || (lang === 'en' ? 'Failed to sign up with Google.' : 'Gagal mendaftar dengan Google.'));
     }
   }
 
@@ -69,7 +79,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
 
         {/* Brand Header */}
         <div className="flex flex-col items-center gap-2">
-          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label="Beranda Norden Finance">
+          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label={lang === 'en' ? 'Norden Finance Home' : 'Beranda Norden Finance'}>
             <BrandLogo variant="horizontal" priority className="h-12 sm:h-14 w-auto" />
           </Link>
         </div>
@@ -78,10 +88,12 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
         <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
           <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
             <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
-              Buat Akun Norden
+              {lang === 'en' ? 'Create Norden Account' : 'Buat Akun Norden'}
             </h1>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
-              Trial {trialDays} hari fitur penuh aktif setelah setup akun selesai
+              {lang === 'en'
+                ? `Full-feature ${trialDays}-day trial active after account setup`
+                : `Trial ${trialDays} hari fitur penuh aktif setelah setup akun selesai`}
             </p>
           </div>
 
@@ -109,19 +121,21 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
             </svg>
-            Daftar dengan Akun Google
+            {lang === 'en' ? 'Sign up with Google' : 'Daftar dengan Akun Google'}
           </button>
 
           <div className="flex items-center justify-center gap-3 my-5">
             <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
-            <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">atau dengan email</span>
+            <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
+              {lang === 'en' ? 'or with email' : 'atau dengan email'}
+            </span>
             <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="reg-fullname" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
-                Nama Lengkap
+                {lang === 'en' ? 'Full Name' : 'Nama Lengkap'}
               </label>
               <input
                 id="reg-fullname"
@@ -129,7 +143,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Nama Anda"
+                placeholder={lang === 'en' ? 'Your Name' : 'Nama Anda'}
                 autoComplete="name"
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold"
               />
@@ -137,7 +151,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
 
             <div>
               <label htmlFor="reg-email" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
-                Alamat Email
+                {lang === 'en' ? 'Email Address' : 'Alamat Email'}
               </label>
               <input
                 id="reg-email"
@@ -161,7 +175,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimal 8 karakter"
+                placeholder={lang === 'en' ? 'Minimum 8 characters' : 'Minimal 8 karakter'}
                 autoComplete="new-password"
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold"
               />
@@ -171,10 +185,12 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
             <div className="bg-[#FAF9F5] dark:bg-neutral-800 border-[2px] border-black dark:border-neutral-700 p-3 rounded-none text-black dark:text-white font-bold text-xs">
               <div className="flex items-center gap-1.5 font-black uppercase tracking-wide text-neutral-800 dark:text-neutral-200 text-[11px] mb-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400 stroke-[2.5px]" />
-                Trial {trialDays} Hari Gratis
+                {lang === 'en' ? `Free ${trialDays}-Day Trial` : `Trial ${trialDays} Hari Gratis`}
               </div>
               <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed font-bold">
-                Akses ke seluruh fitur Norden Pro terbuka selama 14 hari setelah setup akun pertama. Tidak membutuhkan kartu kredit.
+                {lang === 'en'
+                  ? `Access to all Norden Pro features is open for ${trialDays} days after first setup. No credit card required.`
+                  : `Akses ke seluruh fitur Norden Pro terbuka selama ${trialDays} hari setelah setup akun pertama. Tidak membutuhkan kartu kredit.`}
               </p>
             </div>
 
@@ -186,13 +202,13 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
                 className="mt-0.5 h-4 w-4 border-2 border-black dark:border-neutral-600 rounded-none cursor-pointer"
               />
               <span className="leading-snug">
-                Saya menyetujui{' '}
+                {lang === 'en' ? 'I agree to the ' : 'Saya menyetujui '}
                 <Link href="/legal/terms" className="underline font-black text-black dark:text-white hover:text-neutral-700 dark:hover:text-neutral-300">
-                  Syarat & Ketentuan
+                  {lang === 'en' ? 'Terms & Conditions' : 'Syarat & Ketentuan'}
                 </Link>
-                {' '}serta{' '}
+                {lang === 'en' ? ' and ' : ' serta '}
                 <Link href="/legal/privacy" className="underline font-black text-black dark:text-white hover:text-neutral-700 dark:hover:text-neutral-300">
-                  Kebijakan Privasi
+                  {lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi'}
                 </Link>.
               </span>
             </label>
@@ -203,15 +219,17 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
               className="w-full mt-2 py-3.5 brutal-btn bg-[#FFE066] text-black border-[2.5px] border-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] hover:bg-yellow-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
-              {loading ? 'Mendaftarkan Akun...' : 'Daftar & Lanjut Setup'}
+              {loading
+                ? (lang === 'en' ? 'Registering Account...' : 'Mendaftarkan Akun...')
+                : (lang === 'en' ? 'Sign up & Continue Setup' : 'Daftar & Lanjut Setup')}
             </button>
           </form>
         </div>
 
         <p className="text-center text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-          Sudah memiliki akun?{' '}
+          {lang === 'en' ? 'Already have an account?' : 'Sudah memiliki akun?'}{' '}
           <Link href="/login" className="text-black dark:text-white underline font-black hover:text-neutral-700 dark:hover:text-neutral-300">
-            Masuk di sini
+            {lang === 'en' ? 'Log in here' : 'Masuk di sini'}
           </Link>
         </p>
       </div>

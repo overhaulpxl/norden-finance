@@ -15,6 +15,7 @@ import NoSpendCalendar from './NoSpendCalendar';
 import Wishlist from './Wishlist';
 import { WishlistItem, Paylater } from '../types';
 import PaylaterList from './PaylaterList';
+import { useLanguage } from '../lib/i18n';
 
 interface DashboardTabsProps {
   transactions: Transaction[];
@@ -26,13 +27,14 @@ interface DashboardTabsProps {
 }
 
 export default function DashboardTabs({ transactions, balances, savingGoals, debts, wishlist, paylaters }: DashboardTabsProps) {
+  const { lang } = useLanguage();
   const [activeTab, setActiveTab] = useState<'overview' | 'wallet' | 'goals' | 'history'>('overview');
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    { id: 'wallet', label: 'Dompet' },
-    { id: 'goals', label: 'Target, Utang & Cicilan' },
-    { id: 'history', label: 'Riwayat' },
+    { id: 'wallet', label: lang === 'en' ? 'Wallets' : 'Dompet' },
+    { id: 'goals', label: lang === 'en' ? 'Goals, Debts & Installments' : 'Target, Utang & Cicilan' },
+    { id: 'history', label: lang === 'en' ? 'History' : 'Riwayat' },
   ] as const;
 
   return (

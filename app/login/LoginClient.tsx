@@ -6,8 +6,10 @@ import { loginAction, loginWithGoogleAction } from '../authActions';
 import Link from 'next/link';
 import BrandLogo from '../../components/BrandLogo';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '../../lib/i18n';
 
 export default function LoginClient() {
+  const { lang } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function LoginClient() {
       const targetEmail = 'email' in result && result.email ? result.email : email;
       router.push(`/verify-email?email=${encodeURIComponent(targetEmail)}`);
     } else {
-      setError(result.error || 'Email atau password tidak sesuai.');
+      setError(result.error || (lang === 'en' ? 'Invalid email or password.' : 'Email atau password tidak sesuai.'));
     }
   }
 
@@ -42,7 +44,7 @@ export default function LoginClient() {
     if (result.success) {
       router.push('/dashboard');
     } else {
-      setError(result.error || 'Gagal masuk dengan Google.');
+      setError(result.error || (lang === 'en' ? 'Failed to sign in with Google.' : 'Gagal masuk dengan Google.'));
     }
   }
 
@@ -53,7 +55,7 @@ export default function LoginClient() {
 
         {/* Brand Header */}
         <div className="flex flex-col items-center gap-2">
-          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label="Beranda Norden Finance">
+          <Link href="/" className="hover:opacity-90 transition-opacity" aria-label={lang === 'en' ? 'Norden Finance Home' : 'Beranda Norden Finance'}>
             <BrandLogo variant="horizontal" priority className="h-12 sm:h-14 w-auto" />
           </Link>
         </div>
@@ -62,10 +64,10 @@ export default function LoginClient() {
         <div className="brutal-card p-6 sm:p-8 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
           <div className="border-b-[2.5px] border-black dark:border-neutral-700 pb-3 mb-5">
             <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white uppercase tracking-wider">
-              Masuk ke Norden
+              {lang === 'en' ? 'Sign in to Norden' : 'Masuk ke Norden'}
             </h1>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
-              Kelola dan pantau keuangan Anda secara mandiri
+              {lang === 'en' ? 'Manage and track your personal finances independently' : 'Kelola dan pantau keuangan Anda secara mandiri'}
             </p>
           </div>
 
@@ -88,19 +90,21 @@ export default function LoginClient() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
             </svg>
-            Masuk dengan Akun Google
+            {lang === 'en' ? 'Sign in with Google' : 'Masuk dengan Akun Google'}
           </button>
 
           <div className="flex items-center justify-center gap-3 my-5">
             <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
-            <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">atau dengan email</span>
+            <span className="text-[10px] font-black text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
+              {lang === 'en' ? 'or with email' : 'atau dengan email'}
+            </span>
             <div className="flex-1 h-[1.5px] bg-neutral-300 dark:bg-neutral-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="login-email" className="block text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-1.5">
-                Alamat Email
+                {lang === 'en' ? 'Email Address' : 'Alamat Email'}
               </label>
               <input
                 id="login-email"
@@ -120,7 +124,7 @@ export default function LoginClient() {
                   Password
                 </label>
                 <Link href="/forgot-password" className="text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white underline">
-                  Lupa password?
+                  {lang === 'en' ? 'Forgot password?' : 'Lupa password?'}
                 </Link>
               </div>
               <input
@@ -141,16 +145,16 @@ export default function LoginClient() {
               className="w-full mt-2 py-3 brutal-btn bg-[#FFE066] text-black border-[2.5px] border-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] hover:bg-yellow-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
-              {loading ? 'Memverifikasi...' : 'Masuk Sekarang'}
+              {loading ? (lang === 'en' ? 'Verifying...' : 'Memverifikasi...') : (lang === 'en' ? 'Sign in Now' : 'Masuk Sekarang')}
             </button>
           </form>
         </div>
 
         {/* Footer info */}
         <p className="text-center text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-          Belum memiliki akun?{' '}
+          {lang === 'en' ? "Don't have an account yet?" : 'Belum memiliki akun?'}{' '}
           <Link href="/register" className="text-black dark:text-white underline font-black hover:text-neutral-700 dark:hover:text-neutral-300">
-            Daftar Akun Baru
+            {lang === 'en' ? 'Create New Account' : 'Daftar Akun Baru'}
           </Link>
         </p>
       </div>
