@@ -21,7 +21,6 @@ import { triggerHaptic } from '../lib/haptics';
 import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
 import { useTheme } from '../lib/themeContext';
 import { useLanguage } from '../lib/i18n';
-import Integrations from './Integrations';
 
 interface SettingsProps {
   user: {
@@ -1099,9 +1098,6 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           </a>
         </div>
       </div>
-
-      {/* Integrasi Mobile Shortcuts & NFC */}
-      <Integrations />
 
       {/* Status Aplikasi PWA & Pemasangan */}
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white rounded-2xl shadow-[4px_4px_0px_0px_#000]">

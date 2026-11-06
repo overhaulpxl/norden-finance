@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useMemo, useState } from 'react';
+import { useLanguage } from '../lib/i18n';
 import {
   Activity,
   AlertTriangle,
@@ -65,10 +66,6 @@ interface MonthlyFinance {
 
 const DAY_MS = 86_400_000;
 const CARD_COLORS = ['#bbf7d0', '#bfdbfe', '#fef08a', '#fecaca', '#ddd6fe'];
-const WEEKDAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-const MONTH_FORMAT = new Intl.DateTimeFormat('id-ID', { month: 'short', year: 'numeric' });
-const LONG_MONTH_FORMAT = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' });
-const compactRupiah = new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 });
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -149,7 +146,7 @@ function svgMultilineText({
   </text>`;
 }
 
-function getMonthlyFinances(transactions: Transaction[]): MonthlyFinance[] {
+function getMonthlyFinances(transactions: Transaction[], monthFormat: Intl.DateTimeFormat): MonthlyFinance[] {
   const map = new Map<string, MonthlyFinance>();
 
   transactions.forEach((transaction) => {
@@ -160,7 +157,7 @@ function getMonthlyFinances(transactions: Transaction[]): MonthlyFinance[] {
     const monthDate = startOfMonth(date);
     const current = map.get(key) ?? {
       key,
-      label: MONTH_FORMAT.format(monthDate),
+      label: monthFormat.format(monthDate),
       income: 0,
       expense: 0,
       net: 0,
@@ -177,14 +174,14 @@ function getMonthlyFinances(transactions: Transaction[]): MonthlyFinance[] {
   return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
 }
 
-function categoryTotals(transactions: Transaction[], reference?: Date) {
+function categoryTotals(transactions: Transaction[], fallbackCategoryLabel: string, reference?: Date) {
   const map = new Map<string, { name: string; amount: number; count: number }>();
   transactions.forEach((transaction) => {
     const date = new Date(transaction.transactionDate);
     if (reference && !sameMonth(date, reference)) return;
     if (transaction.type !== 'keluar') return;
 
-    const name = transaction.category?.name || 'Lain-lain';
+    const name = transaction.category?.name || fallbackCategoryLabel;
     const current = map.get(name.toLowerCase()) ?? { name, amount: 0, count: 0 };
     current.amount += transaction.amount;
     current.count += 1;
@@ -206,10 +203,11 @@ interface WrappedShareData {
   insight: string;
 }
 
-function buildWrappedSvg(data: WrappedShareData, background: string) {
+function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' | 'en' = 'id') {
   const width = 1080;
   const height = 1920;
   const fontFam = "'Outfit', 'Plus Jakarta Sans', 'Arial Black', 'Impact', sans-serif";
+  const isId = lang === 'id';
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
       <defs>
@@ -242,15 +240,15 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <!-- Total Pengeluaran Card -->
       <rect x="108" y="506" width="896" height="285" fill="#000"/>
       <rect x="92" y="490" width="896" height="285" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="138" y="566" font-family="${fontFam}" font-size="34" font-weight="900" fill="#000" letter-spacing="1">TOTAL PENGELUARAN</text>
+      <text x="138" y="566" font-family="${fontFam}" font-size="34" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'TOTAL PENGELUARAN' : 'TOTAL EXPENSES'}</text>
       ${svgMultilineText({ text: data.totalExpense, x: 138, y: 680, maxChars: 18, maxLines: 1, lineHeight: 0, fontSize: 92 })}
 
       <!-- Kategori Utama Card -->
       <rect x="108" y="851" width="416" height="250" fill="#000"/>
       <rect x="92" y="835" width="416" height="250" fill="#fff" stroke="#000" stroke-width="8"/>
       <rect x="126" y="866" width="110" height="38" rx="19" ry="19" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="181" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">UTAMA</text>
-      <text x="136" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Kategori Utama</text>
+      <text x="181" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">${isId ? 'UTAMA' : 'TOP'}</text>
+      <text x="136" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">${isId ? 'Kategori Utama' : 'Top Category'}</text>
       ${svgMultilineText({ text: data.topCategoryName, x: 136, y: 1010, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 40 })}
       <text x="136" y="1055" font-family="${fontFam}" font-size="24" font-weight="900" fill="#737373">${sanitizeSvgText(data.topCategoryAmount)} · ${data.topCategoryPercent}%</text>
 
@@ -258,8 +256,8 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <rect x="588" y="851" width="416" height="250" fill="#FFE066"/>
       <rect x="572" y="835" width="416" height="250" fill="#000" stroke="#000" stroke-width="8"/>
       <rect x="606" y="866" width="130" height="38" rx="19" ry="19" fill="#fff" stroke="#000" stroke-width="4"/>
-      <text x="671" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">AKTIVITAS</text>
-      <text x="616" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#FFE066">Total Transaksi</text>
+      <text x="671" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">${isId ? 'AKTIVITAS' : 'ACTIVITY'}</text>
+      <text x="616" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#FFE066">${isId ? 'Total Transaksi' : 'Total Transactions'}</text>
       ${svgMultilineText({ text: data.totalTransactions, x: 616, y: 1018, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 50, fill: '#fff' })}
 
       <!-- Cashflow Card (Black theme with yellow shadow) -->
@@ -274,14 +272,14 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
       <rect x="588" y="1156" width="416" height="250" fill="#000"/>
       <rect x="572" y="1140" width="416" height="250" fill="#fff" stroke="#000" stroke-width="8"/>
       <rect x="606" y="1171" width="110" height="38" rx="19" ry="19" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="661" y="1197" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">DOMPET</text>
-      <text x="616" y="1258" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Wallet Aktif</text>
+      <text x="661" y="1197" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">${isId ? 'DOMPET' : 'WALLET'}</text>
+      <text x="616" y="1258" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">${isId ? 'Wallet Aktif' : 'Active Wallet'}</text>
       ${svgMultilineText({ text: data.walletBalance, x: 616, y: 1323, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 40 })}
 
       <!-- Insight Card -->
       <rect x="108" y="1466" width="896" height="230" fill="#000"/>
       <rect x="92" y="1450" width="896" height="230" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="136" y="1514" font-family="${fontFam}" font-size="32" font-weight="900" fill="#000" letter-spacing="1">INSIGHT BULAN INI</text>
+      <text x="136" y="1514" font-family="${fontFam}" font-size="32" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'INSIGHT BULAN INI' : 'MONTHLY INSIGHT'}</text>
       ${svgMultilineText({ text: data.insight, x: 136, y: 1575, maxChars: 42, maxLines: 2, lineHeight: 42, fontSize: 28, fontWeight: 800 })}
 
       <!-- Footer Brand Elements -->
@@ -293,10 +291,10 @@ function buildWrappedSvg(data: WrappedShareData, background: string) {
   `;
 }
 
-function downloadSharePng({ data, background }: { data: WrappedShareData; background: string }) {
+function downloadSharePng({ data, background, lang }: { data: WrappedShareData; background: string; lang: 'id' | 'en' }) {
   const width = 1080;
   const height = 1920;
-  const svg = buildWrappedSvg(data, background);
+  const svg = buildWrappedSvg(data, background, lang);
   const image = new Image();
   const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(svgBlob);
@@ -365,6 +363,29 @@ export default function NextGenIntelligence({
   paylaters,
   achievements,
 }: NextGenIntelligenceProps) {
+  const { lang } = useLanguage();
+  const isId = lang === 'id';
+
+  const monthFormat = useMemo(
+    () => new Intl.DateTimeFormat(isId ? 'id-ID' : 'en-US', { month: 'short', year: 'numeric' }),
+    [isId]
+  );
+  const longMonthFormat = useMemo(
+    () => new Intl.DateTimeFormat(isId ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' }),
+    [isId]
+  );
+  const compactFormatter = useMemo(
+    () => new Intl.NumberFormat(isId ? 'id-ID' : 'en-US', { notation: 'compact', maximumFractionDigits: 1 }),
+    [isId]
+  );
+  const weekdayLabels = useMemo(
+    () => (isId
+      ? ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+      : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    ),
+    [isId]
+  );
+
   const [activeSubTab, setActiveSubTab] = useState<'trends' | 'habits' | 'wrapped'>('trends');
   const [allocatorIncome, setAllocatorIncome] = useState('');
   const [allocatorStatus, setAllocatorStatus] = useState<string | null>(null);
@@ -373,11 +394,11 @@ export default function NextGenIntelligence({
   const today = useMemo(() => new Date(), []);
 
   const analysis = useMemo(() => {
-    const monthly = getMonthlyFinances(transactions);
+    const monthly = getMonthlyFinances(transactions, monthFormat);
     const recentMonths = monthly.slice(-6);
     const currentMonth = monthly.find((item) => item.key === monthKey(today)) ?? {
       key: monthKey(today),
-      label: MONTH_FORMAT.format(today),
+      label: monthFormat.format(today),
       income: 0,
       expense: 0,
       net: 0,
@@ -414,10 +435,38 @@ export default function NextGenIntelligence({
       .reduce((sum, transaction) => sum + transaction.amount, 0);
     const savingUpdatedToday = savingGoals.some((goal) => dayKey(new Date(goal.updatedAt)) === dayKey(today) && goal.currentAmount > 0);
     const missions = [
-      { title: 'No Spend Today', reward: 50, done: todayExpense === 0, detail: todayExpense === 0 ? 'Belum ada pengeluaran hari ini.' : `Pengeluaran hari ini ${formatRupiah(todayExpense)}.` },
-      { title: 'Catat 3 transaksi hari ini', reward: 30, done: todayTransactions.length >= 3, detail: `${Math.min(todayTransactions.length, 3)}/3 transaksi tercatat.` },
-      { title: 'Tambahkan progres ke Saving Goal', reward: 40, done: savingUpdatedToday, detail: savingUpdatedToday ? 'Ada goal diperbarui hari ini.' : 'Update saldo salah satu goal.' },
-      { title: 'Cek budget hari ini', reward: 20, done: budgets.length > 0, detail: budgets.length ? `${budgets.length} budget aktif.` : 'Buat atau cek budget kategori.' },
+      {
+        title: isId ? 'No Spend Today' : 'No Spend Today',
+        reward: 50,
+        done: todayExpense === 0,
+        detail: todayExpense === 0
+          ? (isId ? 'Belum ada pengeluaran hari ini.' : 'No expenses recorded today.')
+          : (isId ? `Pengeluaran hari ini ${formatRupiah(todayExpense)}.` : `Today's expense is ${formatRupiah(todayExpense)}.`),
+      },
+      {
+        title: isId ? 'Catat 3 transaksi hari ini' : 'Log 3 transactions today',
+        reward: 30,
+        done: todayTransactions.length >= 3,
+        detail: isId
+          ? `${Math.min(todayTransactions.length, 3)}/3 transaksi tercatat.`
+          : `${Math.min(todayTransactions.length, 3)}/3 transactions recorded.`,
+      },
+      {
+        title: isId ? 'Tambahkan progres ke Saving Goal' : 'Add progress to Saving Goal',
+        reward: 40,
+        done: savingUpdatedToday,
+        detail: savingUpdatedToday
+          ? (isId ? 'Ada goal diperbarui hari ini.' : 'A goal was updated today.')
+          : (isId ? 'Update saldo salah satu goal.' : 'Update balance for any goal.'),
+      },
+      {
+        title: isId ? 'Cek budget hari ini' : 'Check budget today',
+        reward: 20,
+        done: budgets.length > 0,
+        detail: budgets.length
+          ? (isId ? `${budgets.length} budget aktif.` : `${budgets.length} active budgets.`)
+          : (isId ? 'Buat atau cek budget kategori.' : 'Create or check category budget.'),
+      },
     ];
 
     const elapsedDays = Math.max(1, today.getDate());
@@ -428,7 +477,7 @@ export default function NextGenIntelligence({
         .reduce((sum, transaction) => sum + transaction.amount, 0);
       const forecast = (spent / elapsedDays) * monthDays;
       return {
-        name: budget.category?.name || 'Budget',
+        name: budget.category?.name || (isId ? 'Budget' : 'Budget'),
         limit: budget.monthlyLimit,
         spent,
         forecast,
@@ -445,8 +494,9 @@ export default function NextGenIntelligence({
     const avgDailyNet = (avgIncome - avgExpense) / 30;
     const cashflow30 = totalBalance + (avgDailyNet * 30) - upcomingSubscriptions - upcomingPaylater;
 
-    const currentCategories = categoryTotals(transactions, today);
-    const allCategoriesByCount = categoryTotals(transactions).sort((a, b) => b.count - a.count);
+    const fallbackCat = isId ? 'Lain-lain' : 'Other';
+    const currentCategories = categoryTotals(transactions, fallbackCat, today);
+    const allCategoriesByCount = categoryTotals(transactions, fallbackCat).sort((a, b) => b.count - a.count);
     const topCategory = currentCategories[0] ?? null;
     const coffeeTransactions = transactions.filter((transaction) => {
       const text = `${transaction.note || ''} ${transaction.category?.name || ''} ${transaction.rawInput || ''}`.toLowerCase();
@@ -483,7 +533,7 @@ export default function NextGenIntelligence({
     const bestMonth = [...monthly].sort((a, b) => b.net - a.net)[0] ?? null;
     const walletActivity = new Map<string, number>();
     thisMonthTransactions.forEach((transaction) => {
-      const walletName = transaction.wallet?.name || 'Unknown';
+      const walletName = transaction.wallet?.name || (isId ? 'Tidak Diketahui' : 'Unknown');
       walletActivity.set(walletName, (walletActivity.get(walletName) || 0) + 1);
     });
     const activeWallet = Array.from(walletActivity.entries()).sort((a, b) => b[1] - a[1])[0] ?? null;
@@ -517,7 +567,7 @@ export default function NextGenIntelligence({
       bestMonth,
       activeWallet,
     };
-  }, [balances, budgets, debts, paylaters, savingGoals, subscriptions, today, transactions]);
+  }, [balances, budgets, debts, isId, monthFormat, paylaters, savingGoals, subscriptions, today, transactions]);
 
   const suggestedIncome = Number(allocatorIncome.replace(/\D/g, '')) || Math.round(analysis.avgIncome || analysis.currentMonth.income || 0);
   const allocator = {
@@ -529,22 +579,26 @@ export default function NextGenIntelligence({
     ? Math.round((analysis.topCategory.amount / analysis.currentMonth.expense) * 100)
     : 0;
   const wrappedData: WrappedShareData = {
-    month: LONG_MONTH_FORMAT.format(today),
+    month: longMonthFormat.format(today),
     totalExpense: formatCurrency(analysis.currentMonth.expense),
-    topCategoryName: analysis.topCategory?.name || 'Belum ada data kategori',
+    topCategoryName: analysis.topCategory?.name || (isId ? 'Belum ada data kategori' : 'No category data'),
     topCategoryAmount: formatCurrency(analysis.topCategory?.amount || 0),
     topCategoryPercent,
-    totalTransactions: analysis.currentMonth.count > 0 ? `${analysis.currentMonth.count} transaksi` : 'Belum ada transaksi',
+    totalTransactions: analysis.currentMonth.count > 0
+      ? `${analysis.currentMonth.count} ${isId ? 'transaksi' : 'transactions'}`
+      : (isId ? 'Belum ada transaksi' : 'No transactions recorded'),
     cashflow: formatCurrency(analysis.currentMonth.net),
     walletBalance: formatCurrency(analysis.totalBalance),
     insight: analysis.topCategory
-      ? `Pengeluaran terbesar bulan ini berasal dari kategori ${analysis.topCategory.name}.`
-      : 'Belum ada transaksi bulan ini.',
+      ? (isId
+          ? `Pengeluaran terbesar bulan ini berasal dari kategori ${analysis.topCategory.name}.`
+          : `Top expense this month comes from ${analysis.topCategory.name} category.`)
+      : (isId ? 'Belum ada transaksi bulan ini.' : 'No transactions recorded this month.'),
   };
-  const wrappedPreviewSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(buildWrappedSvg(wrappedData, shareBackground))}`;
+  const wrappedPreviewSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(buildWrappedSvg(wrappedData, shareBackground, lang))}`;
   const shareTemplates = useMemo(() => {
     const goalTemplates = savingGoals
-      .map((goal) => `${goal.title} Progress`)
+      .map((goal) => `${goal.title} ${isId ? 'Progres' : 'Progress'}`)
       .filter(Boolean);
     const achievementTemplates = achievements
       .map((achievement) => achievement.title)
@@ -556,21 +610,29 @@ export default function NextGenIntelligence({
       ...goalTemplates,
       ...achievementTemplates,
     ]));
-  }, [achievements, savingGoals]);
+  }, [achievements, isId, savingGoals]);
 
   async function handleCreateAllocatorBudgets() {
     if (suggestedIncome <= 0) {
-      setAllocatorStatus('Masukkan pendapatan bulanan terlebih dahulu.');
+      setAllocatorStatus(isId ? 'Masukkan pendapatan bulanan terlebih dahulu.' : 'Please enter monthly income first.');
       return;
     }
 
+    const needsLabel = isId ? 'Kebutuhan Pokok' : 'Needs';
+    const wantsLabel = isId ? 'Wants' : 'Wants';
+    const savingsLabel = isId ? 'Tabungan' : 'Savings';
+
     const results = await Promise.all([
-      addBudget('Kebutuhan Pokok', allocator.needs),
-      addBudget('Wants', allocator.wants),
-      addBudget('Tabungan', allocator.savings),
+      addBudget(needsLabel, allocator.needs),
+      addBudget(wantsLabel, allocator.wants),
+      addBudget(savingsLabel, allocator.savings),
     ]);
     const failed = results.find((result) => !result.success);
-    setAllocatorStatus(failed ? failed.error || 'Gagal membuat budget.' : 'Budget 50/30/20 berhasil dibuat.');
+    setAllocatorStatus(
+      failed
+        ? failed.error || (isId ? 'Gagal membuat budget.' : 'Failed to create budgets.')
+        : (isId ? 'Budget 50/30/20 berhasil dibuat.' : '50/30/20 budgets successfully created.')
+    );
     setTimeout(() => setAllocatorStatus(null), 5000);
   }
 
@@ -584,11 +646,13 @@ export default function NextGenIntelligence({
               Norden Next-Gen Intelligence
             </h3>
             <p className="mt-1 max-w-3xl text-xs font-bold uppercase tracking-wide text-neutral-300">
-              Goal projection, allocator, missions, journey, replay, forecasts, habits, subscription insights, wrapped, dan share card dari data asli pengguna.
+              {isId
+                ? 'Goal projection, allocator, missions, journey, replay, forecasts, habits, subscription insights, wrapped, dan share card dari data asli pengguna.'
+                : 'Goal projection, allocator, missions, journey, replay, forecasts, habits, subscription insights, wrapped, and share card from real user data.'}
             </p>
           </div>
           <div className="border-[2px] border-white bg-[#bbf7d0] px-3 py-2 text-xs font-black uppercase tracking-widest text-black">
-            {analysis.monthly.length} bulan data
+            {analysis.monthly.length} {isId ? 'bulan data' : 'months of data'}
           </div>
         </div>
       </div>
@@ -604,7 +668,7 @@ export default function NextGenIntelligence({
               : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-750 shadow-[1.5px_1.5px_0px_0px_#000]'
           }`}
         >
-          Tren & Arus Kas
+          {isId ? 'Tren & Arus Kas' : 'Trends & Cashflow'}
         </button>
         <button
           type="button"
@@ -615,7 +679,7 @@ export default function NextGenIntelligence({
               : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-750 shadow-[1.5px_1.5px_0px_0px_#000]'
           }`}
         >
-          Alokasi & Kebiasaan
+          {isId ? 'Alokasi & Kebiasaan' : 'Allocation & Habits'}
         </button>
         <button
           type="button"
@@ -626,7 +690,7 @@ export default function NextGenIntelligence({
               : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-750 shadow-[1.5px_1.5px_0px_0px_#000]'
           }`}
         >
-          Rangkuman & Berbagi
+          {isId ? 'Rangkuman & Berbagi' : 'Summary & Sharing'}
         </button>
       </div>
 
@@ -642,15 +706,15 @@ export default function NextGenIntelligence({
                 </h4>
               </div>
               <div className="mb-4 grid grid-cols-2 gap-3">
-                <SmallMetric label="Net worth saat ini" value={formatRupiah(analysis.netWorth)} tone="bg-white" />
-                <SmallMetric label="Pertumbuhan" value={`${analysis.journeyGrowth >= 0 ? '+' : ''}${analysis.journeyGrowth.toFixed(1)}%`} tone={analysis.journeyGrowth >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
+                <SmallMetric label={isId ? 'Net worth saat ini' : 'Current Net Worth'} value={formatRupiah(analysis.netWorth)} tone="bg-white" />
+                <SmallMetric label={isId ? 'Pertumbuhan' : 'Growth'} value={`${analysis.journeyGrowth >= 0 ? '+' : ''}${analysis.journeyGrowth.toFixed(1)}%`} tone={analysis.journeyGrowth >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={analysis.journey.length ? analysis.journey : [{ label: 'Saat ini', value: analysis.netWorth }]}>
+                  <AreaChart data={analysis.journey.length ? analysis.journey : [{ label: isId ? 'Saat ini' : 'Current', value: analysis.netWorth }]}>
                     <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
                     <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
-                    <YAxis tickFormatter={(value) => compactRupiah.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={52} />
+                    <YAxis tickFormatter={(value) => compactFormatter.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={52} />
                     <Tooltip formatter={(value: unknown) => formatRupiah(Number(value || 0))} contentStyle={{ background: '#fff', border: '3px solid #000', borderRadius: 0, fontSize: 11, fontWeight: 900 }} />
                     <Area type="monotone" dataKey="value" stroke="#000" strokeWidth={3} fill="#bbf7d0" />
                   </AreaChart>
@@ -662,17 +726,19 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Wallet className="h-4 w-4 stroke-[3px]" />
-                  Proyeksi Arus Kas (30 Hari)
+                  {isId ? 'Proyeksi Arus Kas (30 Hari)' : 'Cashflow Projection (30 Days)'}
                 </h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <SmallMetric label="Saldo saat ini" value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
-                <SmallMetric label="Prediksi 30 hari" value={formatRupiah(analysis.cashflow30)} tone={analysis.cashflow30 >= analysis.totalBalance * 0.5 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
-                <SmallMetric label="Tagihan rutin" value={formatRupiah(analysis.upcomingSubscriptions)} tone="bg-[#bfdbfe]" />
-                <SmallMetric label="Cicilan paylater" value={formatRupiah(analysis.upcomingPaylater)} tone="bg-[#fef08a]" />
+                <SmallMetric label={isId ? 'Saldo saat ini' : 'Current Balance'} value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
+                <SmallMetric label={isId ? 'Prediksi 30 hari' : '30-Day Forecast'} value={formatRupiah(analysis.cashflow30)} tone={analysis.cashflow30 >= analysis.totalBalance * 0.5 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
+                <SmallMetric label={isId ? 'Tagihan rutin' : 'Recurring Bills'} value={formatRupiah(analysis.upcomingSubscriptions)} tone="bg-[#bfdbfe]" />
+                <SmallMetric label={isId ? 'Cicilan paylater' : 'Paylater Installments'} value={formatRupiah(analysis.upcomingPaylater)} tone="bg-[#fef08a]" />
               </div>
               <div className="mt-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-3 text-xs font-bold text-neutral-700 dark:text-neutral-300 rounded-xl">
-                Prediksi dihitung dari saldo aktif, rata-rata harian, tagihan subscription, dan cicilan paylater yang belum lunas.
+                {isId
+                  ? 'Prediksi dihitung dari saldo aktif, rata-rata harian, tagihan subscription, dan cicilan paylater yang belum lunas.'
+                  : 'Forecast is calculated from active balances, daily average, recurring subscriptions, and unsettled paylater installments.'}
               </div>
             </div>
           </div>
@@ -681,7 +747,7 @@ export default function NextGenIntelligence({
             <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
               <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                 <LineChartIcon className="h-4 w-4 stroke-[3px]" />
-                Tren Pertumbuhan Finansial (6 Bulan Terakhir)
+                {isId ? 'Tren Pertumbuhan Finansial (6 Bulan Terakhir)' : 'Financial Growth Trend (Last 6 Months)'}
               </h4>
             </div>
             <div className="h-64">
@@ -689,11 +755,11 @@ export default function NextGenIntelligence({
                 <LineChart data={analysis.recentMonths}>
                   <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
                   <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
-                  <YAxis tickFormatter={(value) => compactRupiah.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={58} />
+                  <YAxis tickFormatter={(value) => compactFormatter.format(Number(value || 0))} tick={{ fill: '#525252', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={false} width={58} />
                   <Tooltip formatter={(value: unknown) => formatRupiah(Number(value || 0))} contentStyle={{ background: '#fff', border: '3px solid #000', borderRadius: 0, fontSize: 11, fontWeight: 900 }} />
-                  <Line type="monotone" dataKey="income" stroke="#047857" strokeWidth={3} dot={{ r: 3, fill: '#bbf7d0', stroke: '#000', strokeWidth: 2 }} name="Pemasukan" />
-                  <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={3} dot={{ r: 3, fill: '#fecaca', stroke: '#000', strokeWidth: 2 }} name="Pengeluaran" />
-                  <Line type="monotone" dataKey="net" stroke="#000" strokeWidth={3} dot={{ r: 3, fill: '#fef08a', stroke: '#000', strokeWidth: 2 }} name="Surplus/Defisit" />
+                  <Line type="monotone" dataKey="income" stroke="#047857" strokeWidth={3} dot={{ r: 3, fill: '#bbf7d0', stroke: '#000', strokeWidth: 2 }} name={isId ? 'Pemasukan' : 'Income'} />
+                  <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={3} dot={{ r: 3, fill: '#fecaca', stroke: '#000', strokeWidth: 2 }} name={isId ? 'Pengeluaran' : 'Expenses'} />
+                  <Line type="monotone" dataKey="net" stroke="#000" strokeWidth={3} dot={{ r: 3, fill: '#fef08a', stroke: '#000', strokeWidth: 2 }} name={isId ? 'Surplus/Defisit' : 'Surplus/Deficit'} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -709,14 +775,16 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <PiggyBank className="h-4 w-4 stroke-[3px]" />
-                  Alokasi Ideal 50/30/20
+                  {isId ? 'Alokasi Ideal 50/30/20' : 'Ideal Allocation 50/30/20'}
                 </h4>
               </div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-400">Pendapatan bulanan</label>
+              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-400">
+                {isId ? 'Pendapatan bulanan' : 'Monthly income'}
+              </label>
               <input
                 value={allocatorIncome}
                 onChange={(event) => setAllocatorIncome(event.target.value)}
-                placeholder={analysis.avgIncome ? `Saran: ${Math.round(analysis.avgIncome)}` : 'Masukkan nominal pendapatan'}
+                placeholder={analysis.avgIncome ? `${isId ? 'Saran' : 'Suggested'}: ${Math.round(analysis.avgIncome)}` : (isId ? 'Masukkan nominal pendapatan' : 'Enter monthly income amount')}
                 className="brutal-input mb-4 text-xs font-bold bg-white dark:bg-neutral-800 text-black dark:text-white border-2 border-black dark:border-neutral-700"
                 inputMode="numeric"
               />
@@ -726,7 +794,7 @@ export default function NextGenIntelligence({
                 <SmallMetric label="Savings 20%" value={formatRupiah(allocator.savings)} tone="bg-[#fef08a]" />
               </div>
               <button type="button" onClick={handleCreateAllocatorBudgets} className="brutal-btn w-full text-xs">
-                Buat Pos Anggaran 50/30/20
+                {isId ? 'Buat Pos Anggaran 50/30/20' : 'Create 50/30/20 Budgets'}
               </button>
               {allocatorStatus && <p className="mt-3 text-xs font-bold text-black dark:text-white">{allocatorStatus}</p>}
             </div>
@@ -735,12 +803,12 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <BarChart3 className="h-4 w-4 stroke-[3px]" />
-                  Prediksi Risiko Anggaran (Budget Forecast)
+                  {isId ? 'Prediksi Risiko Anggaran (Budget Forecast)' : 'Budget Risk Forecast'}
                 </h4>
               </div>
               {analysis.budgetForecasts.length === 0 ? (
                 <div className="border-2 border-dashed border-black dark:border-neutral-700 p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 rounded-xl">
-                  Buat anggaran kategori untuk melihat proyeksi akhir bulan.
+                  {isId ? 'Buat anggaran kategori untuk melihat proyeksi akhir bulan.' : 'Create category budgets to view end-of-month forecasts.'}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -754,7 +822,9 @@ export default function NextGenIntelligence({
                         <div className="h-full bg-black dark:bg-white" style={{ width: `${Math.min(budget.risk * 100, 100)}%` }} />
                       </div>
                       <p className="mt-2 text-[11px] font-bold text-neutral-700 dark:text-neutral-300">
-                        Terpakai {formatRupiah(budget.spent)}, prediksi {formatRupiah(budget.forecast)}, limit {formatRupiah(budget.limit)}.
+                        {isId
+                          ? `Terpakai ${formatRupiah(budget.spent)}, prediksi ${formatRupiah(budget.forecast)}, limit ${formatRupiah(budget.limit)}.`
+                          : `Spent ${formatRupiah(budget.spent)}, forecast ${formatRupiah(budget.forecast)}, limit ${formatRupiah(budget.limit)}.`}
                       </p>
                     </div>
                   ))}
@@ -768,14 +838,30 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Activity className="h-4 w-4 stroke-[3px]" />
-                  Pola Kebiasaan Finansial
+                  {isId ? 'Pola Kebiasaan Finansial' : 'Financial Habit Patterns'}
                 </h4>
               </div>
               <div className="space-y-3">
-                <SmallMetric label="Kopi bulan ini" value={`${analysis.coffeeTransactions.filter((item) => sameMonth(new Date(item.transactionDate), today)).length} kali`} tone="bg-[#fef08a]" />
-                <SmallMetric label="Total jajan kopi" value={formatRupiah(analysis.coffeeTransactions.reduce((sum, item) => sum + item.amount, 0))} tone="bg-white" />
-                <SmallMetric label="Hari paling boros" value={WEEKDAY_LABELS[analysis.busiestDay.day]} tone="bg-[#fecaca]" />
-                <SmallMetric label="Kategori tersering" value={analysis.allCategoriesByCount[0]?.name || 'Belum ada'} tone="bg-[#bfdbfe]" />
+                <SmallMetric
+                  label={isId ? 'Kopi bulan ini' : 'Coffee this month'}
+                  value={`${analysis.coffeeTransactions.filter((item) => sameMonth(new Date(item.transactionDate), today)).length} ${isId ? 'kali' : 'times'}`}
+                  tone="bg-[#fef08a]"
+                />
+                <SmallMetric
+                  label={isId ? 'Total jajan kopi' : 'Total coffee spend'}
+                  value={formatRupiah(analysis.coffeeTransactions.reduce((sum, item) => sum + item.amount, 0))}
+                  tone="bg-white"
+                />
+                <SmallMetric
+                  label={isId ? 'Hari paling boros' : 'Highest spend day'}
+                  value={weekdayLabels[analysis.busiestDay.day]}
+                  tone="bg-[#fecaca]"
+                />
+                <SmallMetric
+                  label={isId ? 'Kategori tersering' : 'Most frequent category'}
+                  value={analysis.allCategoriesByCount[0]?.name || (isId ? 'Belum ada' : 'None yet')}
+                  tone="bg-[#bfdbfe]"
+                />
               </div>
             </div>
 
@@ -783,12 +869,12 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Repeat className="h-4 w-4 stroke-[3px]" />
-                  Evaluasi Langganan Rutin
+                  {isId ? 'Evaluasi Langganan Rutin' : 'Recurring Subscription Review'}
                 </h4>
               </div>
               {analysis.subscriptionInsights.length === 0 ? (
                 <div className="border-2 border-dashed border-black dark:border-neutral-700 p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 rounded-xl">
-                  Catat subscription untuk mendeteksi tagihan berulang yang jarang terpakai.
+                  {isId ? 'Catat subscription untuk mendeteksi tagihan berulang yang jarang terpakai.' : 'Record subscriptions to detect underutilized recurring charges.'}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -798,13 +884,17 @@ export default function NextGenIntelligence({
                         <div>
                           <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{subscription.name}</p>
                           <p className="mt-1 text-[11px] font-bold text-neutral-700 dark:text-neutral-300">
-                            {formatRupiah(subscription.amount)}/bulan, {subscription.relatedCount} transaksi terkait dalam 90 hari.
+                            {isId
+                              ? `${formatRupiah(subscription.amount)}/bulan, ${subscription.relatedCount} transaksi terkait dalam 90 hari.`
+                              : `${formatRupiah(subscription.amount)}/month, ${subscription.relatedCount} related transactions in 90 days.`}
                           </p>
                         </div>
                         {subscription.risk && <AlertTriangle className="h-4 w-4 flex-shrink-0 stroke-[3px] text-black dark:text-red-300" />}
                       </div>
                       {subscription.risk && (
-                        <p className="mt-2 text-[11px] font-black text-black dark:text-red-200">Pertimbangkan apakah langganan ini masih dibutuhkan.</p>
+                        <p className="mt-2 text-[11px] font-black text-black dark:text-red-200">
+                          {isId ? 'Pertimbangkan apakah langganan ini masih dibutuhkan.' : 'Consider whether this subscription is still needed.'}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -817,7 +907,7 @@ export default function NextGenIntelligence({
             <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
               <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                 <Flag className="h-4 w-4 stroke-[3px]" />
-                Tantangan Disiplin Harian (Missions)
+                {isId ? 'Tantangan Disiplin Harian (Missions)' : 'Daily Discipline Missions'}
               </h4>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -845,15 +935,15 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <Target className="h-4 w-4 stroke-[3px]" />
-                  Rangkuman Bulanan ({LONG_MONTH_FORMAT.format(today)})
+                  {isId ? `Rangkuman Bulanan (${longMonthFormat.format(today)})` : `Monthly Summary (${longMonthFormat.format(today)})`}
                 </h4>
               </div>
               <div className="space-y-3">
-                <SmallMetric label={LONG_MONTH_FORMAT.format(today)} value={formatRupiah(analysis.currentMonth.expense)} tone="bg-black text-white" />
-                <SmallMetric label="Kategori favorit" value={analysis.topCategory?.name || 'Belum ada'} tone="bg-[#bbf7d0]" />
-                <SmallMetric label="Hari paling sibuk" value={analysis.busiestDay ? WEEKDAY_LABELS[analysis.busiestDay.day] : 'Belum ada'} tone="bg-[#bfdbfe]" />
-                <SmallMetric label="Dompet teraktif" value={analysis.activeWallet?.[0] || 'Belum ada'} tone="bg-[#fef08a]" />
-                <SmallMetric label="Pencapaian terbuka" value={`${achievements.length} badge terbuka`} tone="bg-white" />
+                <SmallMetric label={longMonthFormat.format(today)} value={formatRupiah(analysis.currentMonth.expense)} tone="bg-black text-white" />
+                <SmallMetric label={isId ? 'Kategori favorit' : 'Top category'} value={analysis.topCategory?.name || (isId ? 'Belum ada' : 'None yet')} tone="bg-[#bbf7d0]" />
+                <SmallMetric label={isId ? 'Hari paling sibuk' : 'Busiest day'} value={analysis.busiestDay ? weekdayLabels[analysis.busiestDay.day] : (isId ? 'Belum ada' : 'None yet')} tone="bg-[#bfdbfe]" />
+                <SmallMetric label={isId ? 'Dompet teraktif' : 'Most active wallet'} value={analysis.activeWallet?.[0] || (isId ? 'Belum ada' : 'None yet')} tone="bg-[#fef08a]" />
+                <SmallMetric label={isId ? 'Pencapaian terbuka' : 'Unlocked achievements'} value={`${achievements.length} ${isId ? 'badge terbuka' : 'badges unlocked'}`} tone="bg-white" />
               </div>
             </div>
 
@@ -861,28 +951,34 @@ export default function NextGenIntelligence({
               <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
                 <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                   <CalendarDays className="h-4 w-4 stroke-[3px]" />
-                  Kilas Balik Transaksi (Replay)
+                  {isId ? 'Kilas Balik Transaksi (Replay)' : 'Transaction Replay'}
                 </h4>
               </div>
               {analysis.replayTransactions.length === 0 ? (
                 <div className="border-2 border-dashed border-black dark:border-neutral-700 p-6 text-center text-xs font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 rounded-xl">
-                  Replay bulanan akan muncul setelah ada mutasi transaksi tercatat.
+                  {isId ? 'Replay bulanan akan muncul setelah ada mutasi transaksi tercatat.' : 'Monthly replay will appear once transactions are recorded.'}
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <SmallMetric label={analysis.replayMonth.label} value={`${analysis.replayMonth.count} transaksi`} tone="bg-[#bbf7d0]" />
-                    <SmallMetric label="Estimasi saldo akhir" value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
-                    <SmallMetric label="Total pemasukan" value={formatRupiah(analysis.replayMonth.income)} tone="bg-[#bfdbfe]" />
-                    <SmallMetric label="Total pengeluaran" value={formatRupiah(analysis.replayMonth.expense)} tone="bg-[#fecaca]" />
+                    <SmallMetric label={analysis.replayMonth.label} value={`${analysis.replayMonth.count} ${isId ? 'transaksi' : 'transactions'}`} tone="bg-[#bbf7d0]" />
+                    <SmallMetric label={isId ? 'Estimasi saldo akhir' : 'Estimated ending balance'} value={formatRupiah(analysis.totalBalance)} tone="bg-white" />
+                    <SmallMetric label={isId ? 'Total pemasukan' : 'Total income'} value={formatRupiah(analysis.replayMonth.income)} tone="bg-[#bfdbfe]" />
+                    <SmallMetric label={isId ? 'Total pengeluaran' : 'Total expenses'} value={formatRupiah(analysis.replayMonth.expense)} tone="bg-[#fecaca]" />
                   </div>
                   <div className="border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-3 rounded-xl text-black dark:text-white">
-                    <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">Sorotan</p>
-                    <p className="mt-1 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                      Transaksi terbesar: {analysis.largestTransaction ? `${analysis.largestTransaction.note || analysis.largestTransaction.category?.name || 'Transaksi'} (${formatRupiah(analysis.largestTransaction.amount)})` : 'Belum ada'}.
+                    <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                      {isId ? 'Sorotan' : 'Highlights'}
                     </p>
                     <p className="mt-1 text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                      Bulan terbaik: {analysis.bestMonth ? `${analysis.bestMonth.label}, surplus ${formatRupiah(analysis.bestMonth.net)}` : 'Belum ada'}.
+                      {isId
+                        ? `Transaksi terbesar: ${analysis.largestTransaction ? `${analysis.largestTransaction.note || analysis.largestTransaction.category?.name || 'Transaksi'} (${formatRupiah(analysis.largestTransaction.amount)})` : 'Belum ada'}.`
+                        : `Largest transaction: ${analysis.largestTransaction ? `${analysis.largestTransaction.note || analysis.largestTransaction.category?.name || 'Transaction'} (${formatRupiah(analysis.largestTransaction.amount)})` : 'None yet'}.`}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                      {isId
+                        ? `Bulan terbaik: ${analysis.bestMonth ? `${analysis.bestMonth.label}, surplus ${formatRupiah(analysis.bestMonth.net)}` : 'Belum ada'}.`
+                        : `Best month: ${analysis.bestMonth ? `${analysis.bestMonth.label}, surplus ${formatRupiah(analysis.bestMonth.net)}` : 'None yet'}.`}
                     </p>
                   </div>
                 </div>
@@ -894,13 +990,15 @@ export default function NextGenIntelligence({
             <div className="mb-5 flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
               <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-black dark:text-white">
                 <Share2 className="h-4 w-4 stroke-[3px]" />
-                Kartu Berbagi Visual (Share Card)
+                {isId ? 'Kartu Berbagi Visual (Share Card)' : 'Visual Share Card'}
               </h4>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-[1fr_260px] items-start">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">Template Kartu</label>
+                  <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">
+                    {isId ? 'Template Kartu' : 'Card Template'}
+                  </label>
                   <select value={shareTemplate} onChange={(event) => setShareTemplate(event.target.value)} className="brutal-input text-xs font-black uppercase bg-white dark:bg-neutral-800 text-black dark:text-white border-2 border-black dark:border-neutral-700">
                     {shareTemplates.map((template) => (
                       <option key={template} value={template}>{template}</option>
@@ -908,7 +1006,9 @@ export default function NextGenIntelligence({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">Warna Latar</label>
+                  <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">
+                    {isId ? 'Warna Latar' : 'Background Color'}
+                  </label>
                   <div className="flex gap-2">
                     {CARD_COLORS.map((color) => (
                       <button
@@ -917,7 +1017,7 @@ export default function NextGenIntelligence({
                         onClick={() => setShareBackground(color)}
                         className={`h-9 w-9 border-2 border-black dark:border-neutral-700 ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
                         style={{ backgroundColor: color }}
-                        aria-label={`Pilih warna ${color}`}
+                        aria-label={isId ? `Pilih warna ${color}` : `Select color ${color}`}
                       />
                     ))}
                   </div>
@@ -927,17 +1027,18 @@ export default function NextGenIntelligence({
                   onClick={() => downloadSharePng({
                     data: wrappedData,
                     background: shareBackground,
+                    lang,
                   })}
                   className="brutal-btn flex w-full items-center justify-center gap-2 text-xs font-black uppercase tracking-wider"
                 >
                   <Download className="h-4 w-4" />
-                  Unduh Kartu PNG
+                  {isId ? 'Unduh Kartu PNG' : 'Download PNG Card'}
                 </button>
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <SmallMetric label="Kategori Utama" value={wrappedData.topCategoryName} tone="bg-[#fef08a]" />
+                  <SmallMetric label={isId ? 'Kategori Utama' : 'Top Category'} value={wrappedData.topCategoryName} tone="bg-[#fef08a]" />
                   <SmallMetric label="Cashflow" value={wrappedData.cashflow} tone={analysis.currentMonth.net >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
-                  <SmallMetric label="Transaksi" value={wrappedData.totalTransactions} tone="bg-white" />
-                  <SmallMetric label="Saldo Dompet" value={wrappedData.walletBalance} tone="bg-[#bfdbfe]" />
+                  <SmallMetric label={isId ? 'Transaksi' : 'Transactions'} value={wrappedData.totalTransactions} tone="bg-white" />
+                  <SmallMetric label={isId ? 'Saldo Dompet' : 'Wallet Balance'} value={wrappedData.walletBalance} tone="bg-[#bfdbfe]" />
                 </div>
               </div>
               <div className="mx-auto w-full max-w-[260px]">
