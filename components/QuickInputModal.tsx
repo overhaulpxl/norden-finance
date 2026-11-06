@@ -1000,7 +1000,7 @@ export default function QuickInputModal({
                   }}
                   className={`flex-1 py-2 text-xs font-black rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
                     mType === 'keluar'
-                      ? 'bg-[#fecaca] text-black font-black'
+                      ? 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200 font-black'
                       : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
                   }`}
                 >
@@ -1014,7 +1014,7 @@ export default function QuickInputModal({
                   }}
                   className={`flex-1 py-2 text-xs font-black rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
                     mType === 'masuk'
-                      ? 'bg-[#bbf7d0] text-black font-black'
+                      ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 font-black'
                       : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
                   }`}
                 >
@@ -1028,7 +1028,7 @@ export default function QuickInputModal({
                   }}
                   className={`flex-1 py-2 text-xs font-black rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
                     mType === 'transfer'
-                      ? 'bg-[#bfdbfe] text-black font-black'
+                      ? 'bg-[#bfdbfe] dark:bg-blue-950/80 text-black dark:text-blue-200 font-black'
                       : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
                   }`}
                 >

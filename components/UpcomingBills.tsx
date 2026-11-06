@@ -211,8 +211,10 @@ export default function UpcomingBills({
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <div
-                    className={`p-2 border-2 border-black rounded-lg shrink-0 shadow-[1.5px_1.5px_0px_0px_#000] ${
-                      isUrgent ? 'bg-[#fecaca] text-black animate-pulse' : 'bg-[#e0f2fe] text-black'
+                    className={`p-2 border-2 border-black dark:border-neutral-700 rounded-lg shrink-0 shadow-[1.5px_1.5px_0px_0px_#000] ${
+                      isUrgent
+                        ? 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200 animate-pulse'
+                        : 'bg-[#e0f2fe] dark:bg-sky-950/80 text-black dark:text-sky-200'
                     }`}
                   >
                     <CreditCard className="w-4 h-4 stroke-[2.5px]" />
@@ -223,7 +225,7 @@ export default function UpcomingBills({
                         {bill.title}
                       </h4>
                       <span
-                        className={`text-[9px] font-black uppercase px-1.5 py-0.2 border border-black rounded ${
+                        className={`text-[9px] font-black uppercase px-1.5 py-0.2 border border-black dark:border-neutral-700 rounded ${
                           isUrgent ? 'bg-red-500 text-white' : 'bg-[#FFE066] text-black'
                         }`}
                       >
@@ -244,9 +246,9 @@ export default function UpcomingBills({
                   <button
                     onClick={() => handlePayBill(bill)}
                     disabled={isProcessing || isSuccess}
-                    className={`px-2.5 py-1.5 border-[2px] border-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 ${
+                    className={`px-2.5 py-1.5 border-[2px] border-black dark:border-neutral-700 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 ${
                       isSuccess
-                        ? 'bg-[#bbf7d0] text-black'
+                        ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
                         : 'bg-[#FFE066] hover:bg-yellow-300 text-black'
                     }`}
                   >

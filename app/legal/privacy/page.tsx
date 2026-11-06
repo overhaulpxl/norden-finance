@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         {/* Content Card */}
         <article className="brutal-card p-6 sm:p-10 bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 shadow-[6px_6px_0px_0px_#000]">
           <div className="border-b-[3px] border-black dark:border-neutral-700 pb-4 mb-6">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border-[2px] border-black dark:border-neutral-700 bg-[#bbf7d0] text-emerald-950 p-1 text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border-[2px] border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-200 p-1 text-[10px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000] mb-3">
               <Lock className="w-3.5 h-3.5" /> Perlindungan Privasi
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-black dark:text-white uppercase tracking-tight">Kebijakan Privasi</h1>

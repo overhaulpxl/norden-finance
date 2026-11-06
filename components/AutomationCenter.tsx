@@ -408,7 +408,7 @@ export default function AutomationCenter({
                               : 'Transaction created from template.'
                           )
                         }
-                        className="border border-black dark:border-neutral-700 bg-[#bbf7d0] text-black p-1.5 rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                        className="border border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 p-1.5 rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                         title={lang === 'id' ? 'Gunakan template' : 'Use template'}
                       >
                         <Play className="h-3.5 w-3.5 stroke-[3px]" />
@@ -424,7 +424,7 @@ export default function AutomationCenter({
                         }
                         className={`border border-black dark:border-neutral-700 p-1.5 rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer ${
                           template.isFavorite
-                            ? 'bg-[#fef08a] text-black'
+                            ? 'bg-[#fef08a] dark:bg-amber-400 text-black'
                             : 'bg-white dark:bg-neutral-700 text-black dark:text-white'
                         }`}
                         title={lang === 'id' ? 'Favorit' : 'Favorite'}
@@ -440,7 +440,7 @@ export default function AutomationCenter({
                             lang === 'id' ? 'Template dihapus.' : 'Template deleted.'
                           )
                         }
-                        className="border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 p-1.5 rounded-lg hover:bg-[#fecaca] text-black dark:text-white shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                        className="border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 p-1.5 rounded-lg hover:bg-[#fecaca] hover:text-black dark:hover:bg-red-950 dark:hover:text-red-200 text-black dark:text-white shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                         title={lang === 'id' ? 'Hapus' : 'Delete'}
                       >
                         <Trash2 className="h-3.5 w-3.5 stroke-[3px]" />
@@ -587,7 +587,7 @@ export default function AutomationCenter({
                         }
                         className={`border border-black dark:border-neutral-700 px-2 py-1 text-[9px] font-black uppercase rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer ${
                           rule.isActive
-                            ? 'bg-[#bbf7d0] text-black'
+                            ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
                             : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
                         }`}
                       >
@@ -608,7 +608,7 @@ export default function AutomationCenter({
                             lang === 'id' ? 'Aturan berulang dihapus.' : 'Recurring rule deleted.'
                           )
                         }
-                        className="border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 p-1.5 rounded-lg hover:bg-[#fecaca] text-black dark:text-white shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                        className="border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 p-1.5 rounded-lg hover:bg-[#fecaca] hover:text-black dark:hover:bg-red-950 dark:hover:text-red-200 text-black dark:text-white shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                         title={lang === 'id' ? 'Hapus' : 'Delete'}
                       >
                         <Trash2 className="h-3.5 w-3.5 stroke-[3px]" />
@@ -746,7 +746,7 @@ export default function AutomationCenter({
                               lang === 'id' ? 'Pengingat selesai!' : 'Reminder completed!'
                             )
                           }
-                          className="border border-black dark:border-neutral-700 bg-[#bbf7d0] text-black p-1.5 rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                          className="border border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 p-1.5 rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                           title={lang === 'id' ? 'Tandai selesai' : 'Complete'}
                         >
                           <Check className="h-3.5 w-3.5 stroke-[3px]" />
@@ -761,7 +761,7 @@ export default function AutomationCenter({
                             lang === 'id' ? 'Pengingat dihapus.' : 'Reminder deleted.'
                           )
                         }
-                        className="border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 p-1.5 rounded-lg hover:bg-[#fecaca] text-black dark:text-white shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                        className="border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 p-1.5 rounded-lg hover:bg-[#fecaca] hover:text-black dark:hover:bg-red-950 dark:hover:text-red-200 text-black dark:text-white shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                         title={lang === 'id' ? 'Hapus' : 'Delete'}
                       >
                         <Trash2 className="h-3.5 w-3.5 stroke-[3px]" />

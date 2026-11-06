@@ -38,8 +38,8 @@ export default function VerifiedClient() {
         </div>
 
         <section className="brutal-card border-[3px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
-          <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#bbf7d0] text-emerald-950 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
-            <CheckCircle2 className="h-8 w-8 stroke-[3px] text-emerald-950" />
+          <div className="mb-4 inline-flex border-[2.5px] border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-200 p-3 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)]">
+            <CheckCircle2 className="h-8 w-8 stroke-[3px] text-emerald-950 dark:text-emerald-300" />
           </div>
 
           <h1 className="mb-2 text-xl sm:text-2xl font-black uppercase tracking-wider text-black dark:text-white">

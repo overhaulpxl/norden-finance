@@ -614,7 +614,7 @@ export default function HelpPage() {
         </div>
 
         {success && (
-          <div className="mb-5 border-2 border-black bg-[#bbf7d0] text-black p-3.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+          <div className="mb-5 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 p-3.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
             {lang === 'id'
               ? 'Terima kasih! Ulasan Anda berhasil dikirim ke tim pengembang.'
               : 'Thank you! Your feedback has been sent to our developer team.'}

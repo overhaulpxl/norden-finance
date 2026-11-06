@@ -222,10 +222,10 @@ function SwipeableTransactionRow({
           <div
             className={`p-2 rounded-xl border-2 border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_#000] shrink-0 ${
               t.type === 'masuk'
-                ? 'bg-[#bbf7d0] text-black'
+                ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
                 : t.type === 'transfer'
-                ? 'bg-[#bfdbfe] text-black'
-                : 'bg-[#fecaca] text-black'
+                ? 'bg-[#bfdbfe] dark:bg-blue-950/80 text-black dark:text-blue-200'
+                : 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'
             }`}
           >
             {t.type === 'masuk' ? (
@@ -770,13 +770,13 @@ export default function TransactionTable({
   return (
     <div className="select-none space-y-4">
       {success && (
-        <div className="p-3 border-2 border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200">
+        <div className="p-3 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200">
           {success}
         </div>
       )}
 
       {error && (
-        <div className="p-3 border-2 border-black bg-[#fecaca] text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200">
+        <div className="p-3 border-2 border-black dark:border-neutral-700 bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200">
           {error}
         </div>
       )}
@@ -877,7 +877,7 @@ export default function TransactionTable({
             <button
               type="button"
               onClick={handleResetFilters}
-              className="px-2.5 py-2 border-2 border-black dark:border-neutral-700 bg-[#fecaca] hover:bg-red-200 text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] cursor-pointer transition-colors"
+              className="px-2.5 py-2 border-2 border-black dark:border-neutral-700 bg-[#fecaca] dark:bg-red-950/80 hover:bg-red-200 dark:hover:bg-red-900 text-black dark:text-red-200 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] cursor-pointer transition-colors"
               title={lang === 'en' ? 'Clear all active filters' : 'Bersihkan semua filter'}
             >
               Reset ({activeFilterCount})
@@ -912,7 +912,7 @@ export default function TransactionTable({
           className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
             filterType === 'all'
               ? 'bg-black text-white dark:bg-white dark:text-black'
-              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700'
           }`}
         >
           {lang === 'en' ? 'All' : 'Semua'} ({transactions.length})
@@ -926,8 +926,8 @@ export default function TransactionTable({
           }}
           className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
             filterType === 'keluar'
-              ? 'bg-[#fecaca] text-black ring-2 ring-black font-black'
-              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100'
+              ? 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200 ring-2 ring-black dark:ring-neutral-400 font-black'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700'
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-red-600 shrink-0" />
@@ -945,8 +945,8 @@ export default function TransactionTable({
           }}
           className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
             filterType === 'masuk'
-              ? 'bg-[#bbf7d0] text-black ring-2 ring-black font-black'
-              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100'
+              ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 ring-2 ring-black dark:ring-neutral-400 font-black'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700'
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
@@ -964,8 +964,8 @@ export default function TransactionTable({
           }}
           className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
             filterType === 'transfer'
-              ? 'bg-[#bfdbfe] text-black ring-2 ring-black font-black'
-              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100'
+              ? 'bg-[#bfdbfe] dark:bg-blue-950/80 text-black dark:text-blue-200 ring-2 ring-black dark:ring-neutral-400 font-black'
+              : 'bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700'
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />

@@ -194,9 +194,9 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
         </Link>
         <div className={`flex items-center gap-2 border-[2px] border-black dark:border-neutral-700 px-4 py-2 font-black text-xs uppercase tracking-wider ${
           hasPendingRequest
-            ? 'bg-amber-200 text-black'
+            ? 'bg-amber-200 dark:bg-amber-950/80 text-black dark:text-amber-200'
             : isPro
-            ? 'bg-[#bbf7d0] text-black'
+            ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
             : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'
         }`}>
           Status: {hasPendingRequest ? 'Pro (Verifikasi Pembayaran ⏳)' : isPro ? 'Pro Active 👑' : 'Free Basic 🌱'}
@@ -204,7 +204,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
       </div>
 
       {hasPendingRequest && (
-        <div className="p-4 bg-amber-100 border-[3px] border-black text-black font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <div className="p-4 bg-amber-100 dark:bg-amber-950/80 border-[3px] border-black dark:border-neutral-700 text-black dark:text-amber-200 font-bold text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
           ⏳ Bukti pembayaran Anda telah dikirim dan sedang menunggu tinjauan Admin. Akses fitur Norden Pro Anda tetap aktif selama masa verifikasi.
         </div>
       )}
@@ -227,7 +227,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   onClick={() => setSelectedPlan('monthly')}
                   className={`w-full p-4 border-[3px] border-black dark:border-neutral-700 rounded-none text-left transition-all ${
                   selectedPlan === 'monthly' 
-                    ? 'bg-[#fef08a] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
+                    ? 'bg-[#fef08a] dark:bg-amber-950/80 text-black dark:text-amber-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
                     : 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                   }`}
                 >
@@ -248,7 +248,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                   onClick={() => setSelectedPlan('yearly')}
                   className={`w-full p-4 border-[3px] border-black dark:border-neutral-700 rounded-none text-left transition-all ${
                   selectedPlan === 'yearly' 
-                    ? 'bg-[#bbf7d0] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
+                    ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' 
                     : 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                   }`}
                 >
@@ -467,10 +467,10 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">{req.paymentMethod}</td>
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700 text-black dark:text-white">{formatCurrency(req.amount)}</td>
                     <td className="p-3 border-r-[2px] border-black dark:border-neutral-700">
-                      <span className={`px-2 py-0.5 text-[10px] font-black border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
-                        req.status === 'approved' ? 'bg-[#bbf7d0] text-emerald-950' :
-                        req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-[#fef08a] text-amber-950'
+                      <span className={`px-2 py-0.5 text-[10px] font-black border-[2px] border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                        req.status === 'approved' ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-200' :
+                        req.status === 'rejected' ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-200' :
+                        'bg-[#fef08a] dark:bg-amber-950/80 text-amber-950 dark:text-amber-200'
                       }`}>
                         {req.status === 'approved' ? 'DISETUJUI' : req.status === 'rejected' ? 'DITOLAK' : 'MENUNGGU VERIFIKASI'}
                       </span>

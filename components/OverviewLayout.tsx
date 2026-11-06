@@ -351,10 +351,10 @@ export default function OverviewLayout({
                 {recentTransactions.map(t => (
                   <div key={t.id} className="flex items-center justify-between py-3.5 first:pt-1 last:pb-1">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-9 h-9 border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                        t.type === 'masuk' ? 'bg-[#bbf7d0] text-black' : 
-                        t.type === 'transfer' ? 'bg-[#bfdbfe] text-black' : 
-                        'bg-[#fecaca] text-black'
+                      <div className={`w-9 h-9 border-2 border-black dark:border-neutral-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                        t.type === 'masuk' ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 
+                        t.type === 'transfer' ? 'bg-[#bfdbfe] dark:bg-blue-950/80 text-black dark:text-blue-200' : 
+                        'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'
                       }`}>
                         {t.type === 'masuk' ? <ArrowDownRight className="w-4 h-4 stroke-[3px]" /> : 
                          t.type === 'transfer' ? <ArrowRightLeft className="w-4 h-4 stroke-[3px]" /> : 
@@ -422,10 +422,10 @@ export default function OverviewLayout({
             user.effectivePlan === 'PRO_ACTIVE'
               ? 'bg-[#FFE066] text-black'
               : user.effectivePlan === 'PRO_PENDING'
-              ? 'bg-amber-200 text-black'
+              ? 'bg-amber-200 dark:bg-amber-950/80 text-black dark:text-amber-200'
               : user.effectivePlan === 'TRIAL'
-              ? 'bg-[#bbf7d0] text-black'
-              : 'bg-neutral-200 text-neutral-800'
+              ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
+              : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200'
           }`}>
             {user.effectivePlan === 'PRO_ACTIVE'
               ? 'PRO 👑'
@@ -447,7 +447,7 @@ export default function OverviewLayout({
       </div>
 
       {success && (
-        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
+        <div className="p-3 border-[2px] border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
           {success}
         </div>
       )}
@@ -459,7 +459,7 @@ export default function OverviewLayout({
             <h3 className="text-sm font-black uppercase tracking-wider text-black dark:text-white">{t('layout_customize_title')}</h3>
             <button 
               onClick={handleResetLayout}
-              className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] text-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200 border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
             >
               {t('btn_reset_default')}
             </button>
@@ -478,21 +478,21 @@ export default function OverviewLayout({
                     <div className="flex items-center gap-1.5">
                       <button 
                         onClick={() => handleToggleTopWidget(widget.id)}
-                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] text-black' : 'bg-[#fecaca] text-black'}`}
+                        className={`px-2 py-1 border border-black dark:border-neutral-700 font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'}`}
                       >
                         {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
                         disabled={index === 0}
                         onClick={() => handleMoveTopWidget(index, 'up')}
-                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↑
                       </button>
                       <button 
                         disabled={index === topWidgets.length - 1}
                         onClick={() => handleMoveTopWidget(index, 'down')}
-                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↓
                       </button>
@@ -518,27 +518,27 @@ export default function OverviewLayout({
                     <div className="flex items-center gap-1.5">
                       <button 
                         onClick={() => handleToggleColumnWidget(widget.id)}
-                        className={`px-2 py-1 border border-black font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] text-black' : 'bg-[#fecaca] text-black'}`}
+                        className={`px-2 py-1 border border-black dark:border-neutral-700 font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'}`}
                       >
                         {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
                         disabled={index === 0}
                         onClick={() => handleMoveColumnWidget(index, 'up')}
-                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↑
                       </button>
                       <button 
                         disabled={index === columnWidgets.length - 1}
                         onClick={() => handleMoveColumnWidget(index, 'down')}
-                        className="px-2 py-1 border border-black bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
+                        className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
                       >
                         ↓
                       </button>
                       <button 
                         onClick={() => handleSwitchColumnWidget(widget.id)}
-                        className="px-2 py-1 border border-black bg-[#bfdbfe] text-black"
+                        className="px-2 py-1 border border-black dark:border-neutral-700 bg-[#bfdbfe] dark:bg-blue-950/80 text-black dark:text-blue-200"
                         title={lang === 'id' ? 'Pindah kolom' : 'Switch column'}
                       >
                         ⇆

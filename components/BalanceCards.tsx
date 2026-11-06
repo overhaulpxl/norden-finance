@@ -264,7 +264,7 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
       </div>
 
       {success && (
-        <div className="p-3 border-2 border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200">
+        <div className="p-3 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200">
           {success}
         </div>
       )}

@@ -96,7 +96,7 @@ const FinancialTimeline = dynamic(() => import('./FinancialTimeline'), {
 const NotificationCenter = dynamic(() => import('./NotificationCenter'), {
   ssr: false,
   loading: () => (
-    <div className="h-10 w-10 border-[2px] border-black bg-white shadow-[2px_2px_0px_0px_#000] animate-pulse" />
+    <div className="h-10 w-10 border-[2px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-[2px_2px_0px_0px_#000] animate-pulse" />
   ),
 });
 const NextGenIntelligence = dynamic(() => import('./NextGenIntelligence'), {
@@ -404,7 +404,7 @@ export default function AppLayout({
         </header>
 
         {dataError && (
-          <div className="mb-6 border-[3px] border-black bg-[#ffccd5] p-4 text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_#000] rounded-none">
+          <div className="mb-6 border-[3px] border-black dark:border-neutral-700 bg-[#ffccd5] dark:bg-red-950/80 p-4 text-xs font-black uppercase tracking-wider text-black dark:text-red-200 shadow-[3px_3px_0px_0px_#000] rounded-none">
             {dataError}
           </div>
         )}

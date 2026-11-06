@@ -298,10 +298,10 @@ export default function EmergencyFundTracker({
 
       {status && (
         <div
-          className={`mb-5 border-2 border-black p-3 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200 ${
+          className={`mb-5 border-2 border-black dark:border-neutral-700 p-3 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] animate-in fade-in duration-200 ${
             status.type === 'success'
-              ? 'bg-[#bbf7d0] text-black'
-              : 'bg-[#fecaca] text-black'
+              ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
+              : 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'
           }`}
         >
           {status.text}

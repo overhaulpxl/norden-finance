@@ -94,26 +94,26 @@ export default function NotificationCenter() {
     const iconClass = "w-4 h-4 stroke-[2.5px] text-black";
     switch (type) {
       case 'BUDGET_ALERT':
-        return <div className="p-1.5 bg-[#fecaca] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><ShieldAlert className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fecaca] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><ShieldAlert className={iconClass} /></div>;
       case 'GOAL_REACHED':
-        return <div className="p-1.5 bg-[#fef08a] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Trophy className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fef08a] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><Trophy className={iconClass} /></div>;
       case 'PAYLATER_DUE':
       case 'DEBT_DUE':
-        return <div className="p-1.5 bg-[#fed7aa] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><CreditCard className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fed7aa] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><CreditCard className={iconClass} /></div>;
       case 'SUBSCRIPTION_DUE':
-        return <div className="p-1.5 bg-[#dbeafe] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><CalendarCheck className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#dbeafe] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><CalendarCheck className={iconClass} /></div>;
       case 'TRIAL_WARNING':
-        return <div className="p-1.5 bg-[#f5d0fe] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Zap className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#f5d0fe] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><Zap className={iconClass} /></div>;
       case 'PAYMENT_APPROVED':
-        return <div className="p-1.5 bg-[#bbf7d0] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Check className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#bbf7d0] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><Check className={iconClass} /></div>;
       case 'PAYMENT_REJECTED':
-        return <div className="p-1.5 bg-[#fca5a5] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><X className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fca5a5] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><X className={iconClass} /></div>;
       case 'ACHIEVEMENT':
-        return <div className="p-1.5 bg-[#e9d5ff] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Star className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#e9d5ff] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><Star className={iconClass} /></div>;
       case 'STREAK':
-        return <div className="p-1.5 bg-[#fed7aa] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Flame className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fed7aa] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><Flame className={iconClass} /></div>;
       default:
-        return <div className="p-1.5 bg-[#e5e7eb] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><AlertCircle className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#e5e7eb] border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000]"><AlertCircle className={iconClass} /></div>;
     }
   };
 
@@ -190,7 +190,7 @@ export default function NotificationCenter() {
                           type="button"
                           onClick={handleClearAll}
                           disabled={loading}
-                          className="px-2.5 py-1 border-2 border-black bg-red-500 text-white text-[10px] font-black uppercase rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer disabled:opacity-50"
+                          className="px-2.5 py-1 border-2 border-black dark:border-neutral-700 bg-red-500 text-white text-[10px] font-black uppercase rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer disabled:opacity-50"
                         >
                           {lang === 'en' ? 'Yes, Clear' : 'Ya, Hapus'}
                         </button>
@@ -201,7 +201,7 @@ export default function NotificationCenter() {
                       <button
                         onClick={handleMarkAllAsRead}
                         disabled={loading || unreadCount === 0}
-                        className="flex-1 py-1.5 px-2 border-2 border-black rounded-xl bg-[#bbf7d0] hover:bg-[#a6ecbd] text-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+                        className="flex-1 py-1.5 px-2 border-2 border-black dark:border-neutral-700 rounded-xl bg-[#bbf7d0] dark:bg-emerald-950/80 hover:bg-[#a6ecbd] dark:hover:bg-emerald-900 text-black dark:text-emerald-200 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
                       >
                         {lang === 'en' ? 'Mark All Read' : 'Tandai Semua Dibaca'}
                       </button>
@@ -211,7 +211,7 @@ export default function NotificationCenter() {
                           setConfirmClear(true);
                         }}
                         disabled={loading}
-                        className="py-1.5 px-3 border-2 border-black rounded-xl bg-red-100 dark:bg-red-950/80 hover:bg-red-200 text-red-700 dark:text-red-300 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+                        className="py-1.5 px-3 border-2 border-black dark:border-neutral-700 rounded-xl bg-red-100 dark:bg-red-950/80 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-300 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>{lang === 'en' ? 'Clear' : 'Hapus'}</span>

@@ -175,9 +175,9 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
                 user.effectivePlan === 'PRO_ACTIVE'
                   ? 'bg-[#FFE066] text-black'
                   : user.effectivePlan === 'PRO_PENDING'
-                  ? 'bg-amber-200 text-black'
+                  ? 'bg-amber-200 dark:bg-amber-950/80 text-black dark:text-amber-200'
                   : user.effectivePlan === 'TRIAL'
-                  ? 'bg-[#bbf7d0] text-black'
+                  ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
                   : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200'
               }`}>
                 {user.effectivePlan === 'PRO_ACTIVE'

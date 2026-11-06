@@ -69,27 +69,29 @@ export default function QuickStartGuide({
         {/* Step 1 */}
         <div
           className={`p-3.5 border-2 border-black dark:border-neutral-700 rounded-xl ${
-            step1Done ? 'bg-[#bbf7d0] text-black' : 'bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white'
+            step1Done
+              ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-100'
+              : 'bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white'
           } shadow-[2px_2px_0px_0px_#000] flex flex-col justify-between`}
         >
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400">Langkah 1</span>
+              <span className={`text-[10px] font-black uppercase ${step1Done ? 'text-emerald-900 dark:text-emerald-300' : 'text-neutral-500 dark:text-neutral-400'}`}>Langkah 1</span>
               {step1Done ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-800 stroke-[3px]" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-800 dark:text-emerald-300 stroke-[3px]" />
               ) : (
                 <Circle className="w-4 h-4 text-neutral-400 stroke-[2px]" />
               )}
             </div>
-            <h4 className="font-black text-xs uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+            <h4 className={`font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ${step1Done ? 'text-black dark:text-emerald-100' : 'text-black dark:text-white'}`}>
               <Wallet className="w-3.5 h-3.5" /> Buat Dompet Utama
             </h4>
-            <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 mt-1">
+            <p className={`text-[11px] font-bold mt-1 ${step1Done ? 'text-emerald-950 dark:text-emerald-200' : 'text-neutral-600 dark:text-neutral-400'}`}>
               {step1Done ? `Tersedia: ${activeBalances[0]?.name}` : 'Tambahkan rekening bank atau e-wallet (e.g. BCA, GoPay).'}
             </p>
           </div>
           {step1Done && (
-            <span className="text-[10px] font-black text-emerald-800 uppercase mt-3 block">
+            <span className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 uppercase mt-3 block">
               ✓ Selesai
             </span>
           )}
@@ -98,27 +100,29 @@ export default function QuickStartGuide({
         {/* Step 2 */}
         <div
           className={`p-3.5 border-2 border-black dark:border-neutral-700 rounded-xl ${
-            step2Done ? 'bg-[#bbf7d0] text-black' : 'bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white'
+            step2Done
+              ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-100'
+              : 'bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white'
           } shadow-[2px_2px_0px_0px_#000] flex flex-col justify-between`}
         >
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400">Langkah 2</span>
+              <span className={`text-[10px] font-black uppercase ${step2Done ? 'text-emerald-900 dark:text-emerald-300' : 'text-neutral-500 dark:text-neutral-400'}`}>Langkah 2</span>
               {step2Done ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-800 stroke-[3px]" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-800 dark:text-emerald-300 stroke-[3px]" />
               ) : (
                 <Circle className="w-4 h-4 text-neutral-400 stroke-[2px]" />
               )}
             </div>
-            <h4 className="font-black text-xs uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+            <h4 className={`font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ${step2Done ? 'text-black dark:text-emerald-100' : 'text-black dark:text-white'}`}>
               <Coins className="w-3.5 h-3.5" /> Masukkan Saldo Awal
             </h4>
-            <p className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 mt-1">
+            <p className={`text-[11px] font-bold mt-1 ${step2Done ? 'text-emerald-950 dark:text-emerald-200' : 'text-neutral-600 dark:text-neutral-400'}`}>
               {step2Done ? 'Saldo awal sudah terisi.' : 'Atur nominal uang tunai atau saldo rekening saat ini.'}
             </p>
           </div>
           {step2Done && (
-            <span className="text-[10px] font-black text-emerald-800 uppercase mt-3 block">
+            <span className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 uppercase mt-3 block">
               ✓ Selesai
             </span>
           )}
@@ -127,19 +131,21 @@ export default function QuickStartGuide({
         {/* Step 3 */}
         <div
           className={`p-3.5 border-2 border-black dark:border-neutral-700 rounded-xl ${
-            step3Done ? 'bg-[#bbf7d0] text-black' : 'bg-[#FFE066] text-black'
+            step3Done
+              ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-100'
+              : 'bg-[#FFE066] text-black'
           } shadow-[2px_2px_0px_0px_#000] flex flex-col justify-between`}
         >
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black uppercase text-neutral-800">Langkah 3</span>
+              <span className={`text-[10px] font-black uppercase ${step3Done ? 'text-emerald-900 dark:text-emerald-300' : 'text-neutral-800'}`}>Langkah 3</span>
               {step3Done ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-800 stroke-[3px]" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-800 dark:text-emerald-300 stroke-[3px]" />
               ) : (
                 <Circle className="w-4 h-4 text-black stroke-[2.5px]" />
               )}
             </div>
-            <h4 className="font-black text-xs uppercase tracking-wider text-black flex items-center gap-1.5">
+            <h4 className={`font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ${step3Done ? 'text-black dark:text-emerald-100' : 'text-black'}`}>
               <Sparkles className="w-3.5 h-3.5" /> Catat Transaksi 1
             </h4>
             <p className="text-[11px] font-bold text-neutral-800 mt-1">

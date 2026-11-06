@@ -313,14 +313,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <p className="text-lg font-black text-black dark:text-white uppercase tracking-wider">{user.fullName || 'User'}</p>
               <p className="text-sm text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-wider">{user.email}</p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
                   user.effectivePlan === 'PRO_ACTIVE'
-                    ? 'bg-[#bbf7d0] text-black'
+                    ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
                     : user.effectivePlan === 'PRO_PENDING'
-                    ? 'bg-amber-200 text-black'
+                    ? 'bg-amber-200 dark:bg-amber-950/80 text-black dark:text-amber-200'
                     : user.effectivePlan === 'TRIAL'
-                    ? 'bg-[#fef08a] text-black'
-                    : 'bg-neutral-200 text-neutral-800'
+                    ? 'bg-[#fef08a] dark:bg-amber-950/80 text-black dark:text-amber-200'
+                    : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200'
                 }`}>
                   {user.effectivePlan === 'PRO_ACTIVE'
                     ? 'Pro Plan 👑'
@@ -637,23 +637,23 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         </div>
 
         {pinActionSuccess && (
-          <div className="mb-4 p-3 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
+          <div className="mb-4 p-3 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
             {pinActionSuccess}
           </div>
         )}
 
         {pinActionError && (
-          <div className="mb-4 p-3 border-2 border-black dark:border-neutral-700 bg-red-100 text-red-900 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
+          <div className="mb-4 p-3 border-2 border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/80 text-red-900 dark:text-red-200 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] animate-in fade-in">
             {pinActionError}
           </div>
         )}
 
         <div className="p-4 sm:p-5 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl max-w-xl space-y-4 text-black dark:text-white">
           <div className="flex items-start gap-3">
-            <div className={`p-2 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 ${
-              pinActive ? 'bg-[#bbf7d0]' : 'bg-[#FFE066]'
+            <div className={`p-2 border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+              pinActive ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#FFE066] text-black'
             }`}>
-              <Lock className="w-5 h-5 text-black stroke-[2.5px]" />
+              <Lock className="w-5 h-5 stroke-[2.5px]" />
             </div>
             <div className="space-y-1">
               <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
@@ -1117,16 +1117,16 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
         <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-3 text-black dark:text-white">
           <div className="flex items-start gap-3">
-            <div className={`p-2 border-[2px] border-black shadow-[2px_2px_0px_0px_#000] shrink-0 ${
-              pwaInstalled ? 'bg-[#bbf7d0]' : 'bg-[#FFE066]'
+            <div className={`p-2 border-[2px] border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+              pwaInstalled ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#FFE066] text-black'
             }`}>
-              {pwaInstalled ? <CheckCircle2 className="w-5 h-5 text-emerald-800 stroke-[2.5px]" /> : <Smartphone className="w-5 h-5 text-black stroke-[2.5px]" />}
+              {pwaInstalled ? <CheckCircle2 className="w-5 h-5 text-emerald-800 dark:text-emerald-300 stroke-[2.5px]" /> : <Smartphone className="w-5 h-5 stroke-[2.5px]" />}
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-black uppercase tracking-wider text-black">
+              <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 {pwaInstalled ? 'Norden Berjalan Sebagai Aplikasi Penuh' : 'Pasang di Layar Utama (Home Screen)'}
               </p>
-              <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {pwaInstalled
                   ? 'Aplikasi berjalan dalam mode standalone layar penuh, terisolasi dari tab peramban dan hemat konsumsi memori.'
                   : isIos
