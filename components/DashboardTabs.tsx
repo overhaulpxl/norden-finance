@@ -44,11 +44,12 @@ export default function DashboardTabs({ transactions, balances, savingGoals, deb
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
               className={`pb-3 px-1 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
                 isActive 
                   ? 'border-neutral-200 text-neutral-100' 
-                  : 'border-transparent text-neutral-500 hover:text-neutral-300'
+                  : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-300'
               }`}
             >
               {tab.label}

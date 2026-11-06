@@ -224,6 +224,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
               {/* Monthly Plan */}
               {pricingPlans.monthly ? (
                 <button
+                  type="button"
                   onClick={() => setSelectedPlan('monthly')}
                   className={`w-full p-4 border-[3px] border-black dark:border-neutral-700 rounded-none text-left transition-all ${
                   selectedPlan === 'monthly' 
@@ -245,6 +246,7 @@ export default function UpgradeClient({ profile, initialRequests, paymentSetting
               {/* Yearly Plan */}
               {pricingPlans.yearly ? (
                 <button
+                  type="button"
                   onClick={() => setSelectedPlan('yearly')}
                   className={`w-full p-4 border-[3px] border-black dark:border-neutral-700 rounded-none text-left transition-all ${
                   selectedPlan === 'yearly' 

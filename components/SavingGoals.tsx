@@ -239,11 +239,12 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
           {lang === 'id' ? 'Target Tabungan' : 'Saving Goals'}
         </h3>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setShowForm(!showForm);
           }}
-          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
+          className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
           style={{
             backgroundColor: 'var(--theme-accent, #FFE066)',
             color: 'var(--theme-accent-text, #000000)',
@@ -329,8 +330,9 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
               : 'Create saving targets to stay motivated in putting aside money.'}
           </p>
           <button
+            type="button"
             onClick={() => setShowForm(true)}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -405,8 +407,9 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                       </div>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => setConfirmDeleteId(goal.id)}
-                        className="text-neutral-500 hover:text-red-600 hover:underline font-black text-xs uppercase tracking-wider cursor-pointer"
+                        className="text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:underline font-black text-xs uppercase tracking-wider cursor-pointer"
                       >
                         {lang === 'id' ? 'Hapus' : 'Delete'}
                       </button>
@@ -435,9 +438,10 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                       autoFocus
                     />
                     <button
+                      type="button"
                       onClick={() => handleUpdateCurrent(goal.id)}
                       disabled={loading}
-                      className="px-3.5 py-1.5 border-2 border-black rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer text-black"
+                      className="px-3.5 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer text-black"
                       style={{
                         backgroundColor: 'var(--theme-accent, #FFE066)',
                         color: 'var(--theme-accent-text, #000000)',
@@ -446,6 +450,7 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                       {lang === 'id' ? 'Simpan' : 'Save'}
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         setEditingId(null);
                         setEditAmount('');
@@ -457,6 +462,7 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => {
                       triggerHaptic('light');
                       setEditingId(goal.id);

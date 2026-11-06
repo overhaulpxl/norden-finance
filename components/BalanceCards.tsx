@@ -208,6 +208,7 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={() => {
               triggerHaptic('light');
               setIsTransferring(!isTransferring);
@@ -237,13 +238,14 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
             </span>
           </button>
           <button
+            type="button"
             onClick={() => {
               triggerHaptic('light');
               setIsEditing(!isEditing);
               if (isEditing) setEditingId(undefined);
               if (isTransferring) setIsTransferring(false);
             }}
-            className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -455,8 +457,9 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
               : 'Add a new wallet to start tracking your balances and cashflow.'}
           </p>
           <button
+            type="button"
             onClick={() => setIsEditing(true)}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -506,11 +509,12 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
                     </div>
                   ) : (
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setConfirmArchiveId(b.id);
                       }}
-                      className="text-neutral-500 hover:text-red-600 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 -mt-1 -mr-1 cursor-pointer"
+                      className="text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 -mt-1 -mr-1 cursor-pointer"
                       title={
                         lang === 'id'
                           ? `Arsipkan dompet ${formatMethodName(b.name)}`

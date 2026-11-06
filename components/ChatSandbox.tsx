@@ -181,18 +181,21 @@ export default function ChatSandbox() {
       {/* Suggested Quick Inputs */}
       <div className="mb-2.5 flex flex-wrap gap-1.5 select-none">
         <button
+          type="button"
           onClick={() => handleSend('kopi starbucks 55k bca')}
           className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
           ☕ Kopi 55k BCA
         </button>
         <button
+          type="button"
           onClick={() => handleSend('gaji masuk 12jt bca')}
           className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
           💼 Gaji 12jt BCA
         </button>
         <button
+          type="button"
           onClick={() => handleSend('gojek 22rb cash')}
           className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >

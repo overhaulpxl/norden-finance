@@ -163,12 +163,13 @@ export default function PaylaterList({
           {lang === 'id' ? 'Paylater & Cicilan' : 'Paylater & Installments'}
         </h2>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setShowAdd(!showAdd);
             setSuccess(null);
           }}
-          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
+          className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
           style={{
             backgroundColor: 'var(--theme-accent, #FFE066)',
             color: 'var(--theme-accent-text, #000000)',
@@ -299,11 +300,12 @@ export default function PaylaterList({
               : 'Track your paylater installments (e.g. Shopee Paylater) here to keep finances balanced.'}
           </p>
           <button
+            type="button"
             onClick={() => {
               setShowAdd(true);
               setSuccess(null);
             }}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -353,6 +355,7 @@ export default function PaylaterList({
                     </div>
                   ) : (
                     <button
+                      type="button"
                       onClick={() => setConfirmDeleteId(p.id)}
                       className="text-neutral-400 hover:text-red-500 transition-all p-1.5 cursor-pointer"
                       title={lang === 'id' ? 'Hapus cicilan' : 'Delete installment'}
@@ -405,9 +408,10 @@ export default function PaylaterList({
                       required
                     />
                     <button
+                      type="button"
                       onClick={() => handlePay(p.id)}
                       disabled={loading || !currentPayMethod}
-                      className="px-4 py-2 border-2 border-black rounded-lg text-xs font-black uppercase cursor-pointer text-black"
+                      className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-lg text-xs font-black uppercase cursor-pointer text-black"
                       style={{
                         backgroundColor: 'var(--theme-accent, #FFE066)',
                         color: 'var(--theme-accent-text, #000000)',
@@ -416,6 +420,7 @@ export default function PaylaterList({
                       {lang === 'id' ? 'Bayar' : 'Pay'}
                     </button>
                     <button
+                      type="button"
                       onClick={() => setPayingId(null)}
                       className="px-3 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-black uppercase rounded-lg cursor-pointer"
                     >
@@ -424,6 +429,7 @@ export default function PaylaterList({
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => {
                       triggerHaptic('light');
                       setPayingId(p.id);
@@ -454,7 +460,7 @@ export default function PaylaterList({
               >
                 <div>
                   <h4 className="font-black text-xs uppercase">{p.itemName}</h4>
-                  <span className="text-[10px] text-neutral-500 font-bold uppercase">
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-bold uppercase">
                     {p.platform} • {formatRupiah(p.totalAmount)}
                   </span>
                 </div>

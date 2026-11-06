@@ -261,6 +261,7 @@ export default function AppLayout({
             {/* Desktop Page Title / Mobile Hamburger + Brand */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
+                type="button"
                 onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
                 aria-label="Buka menu navigasi"
                 className="lg:hidden rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white"
@@ -348,7 +349,7 @@ export default function AppLayout({
                   </span>
                 )}
                 {user.effectivePlan === 'FREE_BASIC' && (
-                  <span className="bg-neutral-200 text-neutral-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                  <span className="bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
                     🌱 FREE BASIC
                   </span>
                 )}
@@ -357,6 +358,7 @@ export default function AppLayout({
               <NotificationCenter />
 
               <button
+                type="button"
                 onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
                 className="brutal-btn-accent px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex"
                 title="Catat transaksi baru"

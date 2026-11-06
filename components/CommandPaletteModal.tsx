@@ -231,6 +231,7 @@ export default function CommandPaletteModal({
           />
           {query && (
             <button
+              type="button"
               onClick={() => setQuery('')}
               className="p-1 text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer"
             >
@@ -255,6 +256,7 @@ export default function CommandPaletteModal({
                 return (
                   <button
                     key={item.id}
+                    type="button"
                     onClick={item.action}
                     className="w-full text-left p-2.5 rounded-xl border border-transparent hover:border-black dark:hover:border-neutral-600 transition-all flex items-center justify-between gap-3 group cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   >
@@ -292,6 +294,7 @@ export default function CommandPaletteModal({
                   return (
                     <button
                       key={item.id}
+                      type="button"
                       onClick={() => {
                         triggerHaptic('light');
                         handleClose();

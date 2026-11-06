@@ -121,6 +121,7 @@ export default function NotificationCenter() {
     <>
       {/* Bell Trigger Button */}
       <button
+        type="button"
         onClick={() => {
           triggerHaptic('light');
           setIsOpen(true);
@@ -163,6 +164,7 @@ export default function NotificationCenter() {
                   )}
                 </div>
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
                   className="p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 >
@@ -199,6 +201,7 @@ export default function NotificationCenter() {
                   ) : (
                     <>
                       <button
+                        type="button"
                         onClick={handleMarkAllAsRead}
                         disabled={loading || unreadCount === 0}
                         className="flex-1 py-1.5 px-2 border-2 border-black dark:border-neutral-700 rounded-xl bg-[#bbf7d0] dark:bg-emerald-950/80 hover:bg-[#a6ecbd] dark:hover:bg-emerald-900 text-black dark:text-emerald-200 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
@@ -206,6 +209,7 @@ export default function NotificationCenter() {
                         {lang === 'en' ? 'Mark All Read' : 'Tandai Semua Dibaca'}
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           triggerHaptic('light');
                           setConfirmClear(true);
@@ -272,6 +276,7 @@ export default function NotificationCenter() {
                       {/* Mark as read tick action button */}
                       {!notif.isRead && (
                         <button
+                          type="button"
                           onClick={() => handleMarkAsRead(notif.id)}
                           className="absolute top-3 right-3 p-1 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded-lg shadow-[1px_1px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
                           title={lang === 'en' ? 'Mark as read' : 'Tandai sudah dibaca'}

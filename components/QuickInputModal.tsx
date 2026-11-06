@@ -726,6 +726,7 @@ export default function QuickInputModal({
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 triggerHaptic('light');
                 onClose();
@@ -1091,7 +1092,7 @@ export default function QuickInputModal({
               {/* Quick Nominal Increment Chips */}
               {!showNumpad && (
                 <div className="flex flex-wrap items-center gap-1.5 -mt-1">
-                  <span className="text-[9px] font-black text-neutral-500 uppercase tracking-widest mr-0.5">
+                  <span className="text-[9px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mr-0.5">
                     Tambah:
                   </span>
                   {QUICK_AMOUNT_INCREMENTS.map((chip) => (
@@ -1136,7 +1137,7 @@ export default function QuickInputModal({
                     <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
                       Kategori
                     </label>
-                    <span className="text-[9px] font-bold text-neutral-500">Pilih cepat atau ketik</span>
+                    <span className="text-[9px] font-bold text-neutral-500 dark:text-neutral-400">Pilih cepat atau ketik</span>
                   </div>
                   <input
                     type="text"

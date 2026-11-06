@@ -21,6 +21,7 @@ import { triggerHaptic } from '../lib/haptics';
 import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
 import { useTheme } from '../lib/themeContext';
 import { useLanguage } from '../lib/i18n';
+import Integrations from './Integrations';
 
 interface SettingsProps {
   user: {
@@ -985,6 +986,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </div>
 
               <button
+                type="button"
                 onClick={handleResetFinancialData}
                 disabled={resetLoading || resetConfirmText !== 'RESET KEUANGAN' || !resetAcknowledged}
                 className="mt-2 px-4 py-2.5 border-2 border-black dark:border-neutral-700 bg-[#FFE066] text-black rounded-none text-xs font-black hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
@@ -1026,6 +1028,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 />
               </div>
               <button 
+                type="button"
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading || deleteConfirmText !== 'DELETE'}
                 className="mt-3 px-4 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-red-650 dark:text-red-400 rounded-none text-xs font-black hover:bg-neutral-50 dark:hover:bg-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50"
@@ -1097,6 +1100,9 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         </div>
       </div>
 
+      {/* Integrasi Mobile Shortcuts & NFC */}
+      <Integrations />
+
       {/* Status Aplikasi PWA & Pemasangan */}
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white rounded-2xl shadow-[4px_4px_0px_0px_#000]">
         <div className="flex justify-between items-start mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
@@ -1159,10 +1165,10 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
       {/* App Version & Build Footer */}
       <div className="pt-2 pb-6 text-center select-none">
-        <p className="text-xs font-black uppercase tracking-widest text-black">
+        <p className="text-xs font-black uppercase tracking-widest text-black dark:text-white">
           Norden Finance v1.2.0 • Build 2026
         </p>
-        <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mt-1">
+        <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mt-1">
           Aplikasi Manajemen Keuangan Pribadi & PWA Standalone • Terenkripsi
         </p>
       </div>

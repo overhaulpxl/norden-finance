@@ -113,12 +113,13 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
           <span>{t('budget_title')}</span>
         </h3>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setShowForm(!showForm);
             setError(null);
           }}
-          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
+          className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
           style={{
             backgroundColor: 'var(--theme-accent, #FFE066)',
             color: 'var(--theme-accent-text, #000000)',
@@ -215,11 +216,12 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
             {t('budget_empty_desc')}
           </p>
           <button
+            type="button"
             onClick={() => {
               setShowForm(true);
               setError(null);
             }}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -272,6 +274,7 @@ export default function BudgetManager({ budgets, transactions }: BudgetManagerPr
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => setConfirmDeleteId(b.id)}
                     className="text-neutral-400 hover:text-red-600 transition-colors cursor-pointer p-1"
                     title={lang === 'id' ? 'Hapus budget' : 'Delete budget'}

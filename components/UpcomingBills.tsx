@@ -244,6 +244,7 @@ export default function UpcomingBills({
                   </span>
 
                   <button
+                    type="button"
                     onClick={() => handlePayBill(bill)}
                     disabled={isProcessing || isSuccess}
                     className={`px-2.5 py-1.5 border-[2px] border-black dark:border-neutral-700 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 ${

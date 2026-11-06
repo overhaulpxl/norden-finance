@@ -172,6 +172,7 @@ export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsi
         </div>
 
         <button
+          type="button"
           onClick={handleDismiss}
           className="p-1.5 text-neutral-400 hover:text-black dark:hover:text-white border border-transparent hover:border-black dark:hover:border-neutral-600 rounded-lg cursor-pointer shrink-0 transition-all"
           title={lang === 'en' ? 'Dismiss recap' : 'Tutup ringkasan ini'}

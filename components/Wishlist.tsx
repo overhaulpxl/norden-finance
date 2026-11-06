@@ -111,11 +111,12 @@ export default function Wishlist({
           </p>
         </div>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setShowForm(!showForm);
           }}
-          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 text-black"
+          className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 text-black"
           style={{
             backgroundColor: 'var(--theme-accent, #FFE066)',
             color: 'var(--theme-accent-text, #000000)',
@@ -223,8 +224,9 @@ export default function Wishlist({
               : 'Use the wishlist 3-day cooldown to prevent impulsive purchases.'}
           </p>
           <button
+            type="button"
             onClick={() => setShowForm(true)}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -311,9 +313,10 @@ export default function Wishlist({
                         required
                       />
                       <button
+                        type="button"
                         onClick={() => handleBuy(item.id)}
                         disabled={loading || !currentSelectedMethod}
-                        className="px-4 py-1.5 border-2 border-black rounded-lg text-xs font-black uppercase shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer text-black"
+                        className="px-4 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg text-xs font-black uppercase shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer text-black"
                         style={{
                           backgroundColor: 'var(--theme-accent, #FFE066)',
                           color: 'var(--theme-accent-text, #000000)',
@@ -348,6 +351,7 @@ export default function Wishlist({
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => setConfirmDeleteId(item.id)}
                     className="absolute right-4 bottom-4 text-neutral-400 hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all p-1.5 cursor-pointer"
                     title={lang === 'id' ? 'Hapus wishlist' : 'Delete item'}

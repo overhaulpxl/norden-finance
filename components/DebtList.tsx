@@ -133,12 +133,13 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
           {lang === 'id' ? 'Utang & Piutang' : 'Debts & Receivables'}
         </h3>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setShowForm(!showForm);
             setError(null);
           }}
-          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-black flex items-center gap-1.5"
+          className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-black flex items-center gap-1.5"
           style={{
             backgroundColor: 'var(--theme-accent, #FFE066)',
             color: 'var(--theme-accent-text, #000000)',
@@ -276,6 +277,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
         {(['active', 'settled', 'all'] as const).map((f) => (
           <button
             key={f}
+            type="button"
             onClick={() => {
               triggerHaptic('selection');
               setFilter(f);
@@ -304,7 +306,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
       {filteredDebts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 bg-white dark:bg-neutral-900 border-2 border-dashed border-black dark:border-neutral-700 rounded-2xl shadow-[3px_3px_0px_0px_#000] text-center px-4">
           <div
-            className="p-2 border-2 border-black rounded-xl mb-3 shadow-[2px_2px_0px_0px_#000] flex items-center justify-center shrink-0"
+            className="p-2 border-2 border-black dark:border-neutral-700 rounded-xl mb-3 shadow-[2px_2px_0px_0px_#000] flex items-center justify-center shrink-0"
             style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
           >
             <span className="text-lg font-black text-black">🤝</span>
@@ -318,11 +320,12 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
               : 'Track debts and receivables so your repayments and collections stay on schedule.'}
           </p>
           <button
+            type="button"
             onClick={() => {
               setShowForm(true);
               setError(null);
             }}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -388,6 +391,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
 
               <div className="w-full flex justify-between items-center mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-700">
                 <button
+                  type="button"
                   onClick={() => handleSettle(d.id)}
                   className="px-3 py-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
                 >
@@ -422,6 +426,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => setConfirmDeleteId(d.id)}
                     className="text-neutral-400 hover:text-red-500 transition-all p-1.5 cursor-pointer"
                     title={lang === 'id' ? 'Hapus catatan' : 'Delete record'}

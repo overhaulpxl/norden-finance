@@ -163,12 +163,13 @@ export default function SubscriptionManager({
           <span>{lang === 'en' ? 'Subscriptions' : 'Layanan Langganan'}</span>
         </h3>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setShowForm(!showForm);
             setError(null);
           }}
-          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
+          className="px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
           style={{
             backgroundColor: 'var(--theme-accent, #FFE066)',
             color: 'var(--theme-accent-text, #000000)',
@@ -296,11 +297,12 @@ export default function SubscriptionManager({
               : 'Catat layanan langganan rutin bulanan Anda (Netflix, Spotify, Cloud, dll) di sini.'}
           </p>
           <button
+            type="button"
             onClick={() => {
               setShowForm(true);
               setError(null);
             }}
-            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            className="mt-4 px-4 py-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
             style={{
               backgroundColor: 'var(--theme-accent, #FFE066)',
               color: 'var(--theme-accent-text, #000000)',
@@ -322,6 +324,7 @@ export default function SubscriptionManager({
             >
               <div className="flex items-center gap-3 min-w-0">
                 <button
+                  type="button"
                   onClick={() => handleToggle(s.id)}
                   className="text-black dark:text-white hover:scale-105 transition-transform cursor-pointer shrink-0"
                 >
@@ -369,6 +372,7 @@ export default function SubscriptionManager({
                 </div>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setConfirmDeleteId(s.id)}
                   className="text-neutral-400 hover:text-red-500 transition-colors ml-4 cursor-pointer p-1 shrink-0"
                   title={lang === 'en' ? 'Delete subscription' : 'Hapus langganan'}

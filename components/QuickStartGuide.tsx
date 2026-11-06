@@ -57,6 +57,7 @@ export default function QuickStartGuide({
         </div>
 
         <button
+          type="button"
           onClick={handleDismiss}
           className="p-1 text-neutral-400 hover:text-black dark:hover:text-white border border-transparent hover:border-black rounded-lg cursor-pointer"
           title="Tutup panduan ini"
@@ -155,6 +156,7 @@ export default function QuickStartGuide({
 
           {!step3Done && onNewTransaction && (
             <button
+              type="button"
               onClick={onNewTransaction}
               className="mt-3 px-3 py-1.5 bg-black text-white text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] flex items-center justify-center gap-1 cursor-pointer hover:bg-neutral-800 rounded-lg"
             >

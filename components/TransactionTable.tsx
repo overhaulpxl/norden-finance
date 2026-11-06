@@ -334,6 +334,7 @@ function SwipeableTransactionRow({
             {isEditing ? (
               <>
                 <button
+                  type="button"
                   disabled={isPending}
                   onClick={onEditSave}
                   className="p-1.5 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-neutral-800 rounded-lg transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50"
@@ -342,6 +343,7 @@ function SwipeableTransactionRow({
                   <Check className="w-4 h-4 stroke-[3px]" />
                 </button>
                 <button
+                  type="button"
                   disabled={isPending}
                   onClick={onEditCancel}
                   className="p-1.5 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-lg transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50"
@@ -353,6 +355,7 @@ function SwipeableTransactionRow({
             ) : isDeleting ? (
               <>
                 <button
+                  type="button"
                   disabled={isPending}
                   onClick={onDeleteConfirm}
                   className="px-2 py-0.5 bg-red-600 text-white border border-black rounded-lg text-[10px] font-black uppercase cursor-pointer disabled:opacity-50 shadow-[1px_1px_0px_0px_#000]"
@@ -361,6 +364,7 @@ function SwipeableTransactionRow({
                   {lang === 'en' ? 'Yes' : 'Ya'}
                 </button>
                 <button
+                  type="button"
                   disabled={isPending}
                   onClick={onDeleteCancel}
                   className="px-2 py-0.5 bg-white dark:bg-neutral-800 text-black dark:text-white border border-black dark:border-neutral-700 rounded-lg text-[10px] font-black uppercase cursor-pointer disabled:opacity-50"
@@ -372,6 +376,7 @@ function SwipeableTransactionRow({
             ) : (
               <>
                 <button
+                  type="button"
                   onClick={onRepeat}
                   disabled={isRepeating}
                   className="p-1.5 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
@@ -388,6 +393,7 @@ function SwipeableTransactionRow({
                   )}
                 </button>
                 <button
+                  type="button"
                   onClick={onStartEdit}
                   className="p-1.5 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
                   title={lang === 'en' ? 'Edit transaction' : 'Edit transaksi'}
@@ -395,6 +401,7 @@ function SwipeableTransactionRow({
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
+                  type="button"
                   onClick={onStartDelete}
                   className="p-1.5 text-neutral-600 dark:text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
                   title={lang === 'en' ? 'Delete transaction' : 'Hapus transaksi'}
@@ -886,6 +893,7 @@ export default function TransactionTable({
 
           {filtered.length > 0 && (
             <button
+              type="button"
               onClick={() => exportTransactionsToCSV(filtered)}
               className="brutal-btn-light px-3 py-2 text-xs flex items-center gap-1.5 font-black uppercase tracking-wider cursor-pointer ml-auto lg:ml-0"
               title={
@@ -1136,7 +1144,7 @@ export default function TransactionTable({
                   <h3 className="font-black text-sm uppercase tracking-wider text-black dark:text-white">
                     {activeDetailTx.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain')}
                   </h3>
-                  <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide">
+                  <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                     {activeDetailTx.type === 'masuk'
                       ? lang === 'en'
                         ? 'Income'
@@ -1152,6 +1160,7 @@ export default function TransactionTable({
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setActiveDetailTx(null)}
                 className="p-1.5 border border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-black dark:text-white cursor-pointer"
               >
@@ -1181,7 +1190,7 @@ export default function TransactionTable({
             {/* Details Grid */}
             <div className="grid grid-cols-2 gap-2.5 text-xs font-bold">
               <div className="p-2.5 border border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800">
-                <span className="text-[10px] text-neutral-500 uppercase block font-black">
+                <span className="text-[10px] text-neutral-500 dark:text-neutral-400 uppercase block font-black">
                   {lang === 'en' ? 'Wallet' : 'Dompet'}
                 </span>
                 <span className="text-black dark:text-white font-black uppercase truncate block mt-0.5">
@@ -1191,7 +1200,7 @@ export default function TransactionTable({
                 </span>
               </div>
               <div className="p-2.5 border border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800">
-                <span className="text-[10px] text-neutral-500 uppercase block font-black">
+                <span className="text-[10px] text-neutral-500 dark:text-neutral-400 uppercase block font-black">
                   {lang === 'en' ? 'Date' : 'Tanggal'}
                 </span>
                 <span className="text-black dark:text-white font-black truncate block mt-0.5">
@@ -1199,7 +1208,7 @@ export default function TransactionTable({
                 </span>
               </div>
               <div className="p-2.5 border border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 col-span-2">
-                <span className="text-[10px] text-neutral-500 uppercase block font-black">
+                <span className="text-[10px] text-neutral-500 dark:text-neutral-400 uppercase block font-black">
                   {lang === 'en' ? 'Note' : 'Catatan'}
                 </span>
                 <span className="text-black dark:text-white font-bold block mt-0.5">
@@ -1208,7 +1217,7 @@ export default function TransactionTable({
               </div>
               {(activeDetailTx.tags || []).length > 0 && (
                 <div className="p-2.5 border border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 col-span-2">
-                  <span className="text-[10px] text-neutral-500 uppercase block font-black mb-1">
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400 uppercase block font-black mb-1">
                     {lang === 'en' ? 'Tags' : 'Tag'}
                   </span>
                   <div className="flex flex-wrap gap-1">
@@ -1228,12 +1237,13 @@ export default function TransactionTable({
             {/* Action Buttons */}
             <div className="grid grid-cols-3 gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => {
                   const tx = activeDetailTx;
                   setActiveDetailTx(null);
                   handleRepeat(tx);
                 }}
-                className="py-3 px-2 border-2 border-black rounded-xl text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
+                className="py-3 px-2 border-2 border-black dark:border-neutral-700 rounded-xl text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
                 style={{
                   backgroundColor: 'var(--theme-accent, #FFE066)',
                   color: 'var(--theme-accent-text, #000000)',
@@ -1244,6 +1254,7 @@ export default function TransactionTable({
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   const tx = activeDetailTx;
                   setActiveDetailTx(null);
@@ -1260,12 +1271,13 @@ export default function TransactionTable({
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   const tx = activeDetailTx;
                   setActiveDetailTx(null);
                   setDeletingId(tx.id);
                 }}
-                className="py-3 px-2 border-2 border-black bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer rounded-xl"
+                className="py-3 px-2 border-2 border-black dark:border-neutral-700 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer rounded-xl"
               >
                 <Trash2 className="w-4 h-4 stroke-[2.5px]" />
                 <span className="text-[10px]">{lang === 'en' ? 'Delete' : 'Hapus'}</span>

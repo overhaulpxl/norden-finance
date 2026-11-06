@@ -710,7 +710,7 @@ export default function AutomationCenter({
                       <p
                         className={`truncate text-xs font-black uppercase tracking-wider ${
                           reminder.completedAt
-                            ? 'line-through text-neutral-500'
+                            ? 'line-through text-neutral-500 dark:text-neutral-400'
                             : 'text-black dark:text-white'
                         }`}
                       >

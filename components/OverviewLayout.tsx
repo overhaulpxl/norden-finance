@@ -322,6 +322,7 @@ export default function OverviewLayout({
               </div>
               {onNewTransaction && (
                 <button
+                  type="button"
                   onClick={onNewTransaction}
                   className="px-3 py-1.5 border-2 border-black rounded-lg font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                   style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
@@ -339,6 +340,7 @@ export default function OverviewLayout({
                 </p>
                 {onNewTransaction && (
                   <button
+                    type="button"
                     onClick={onNewTransaction}
                     className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
                   >
@@ -438,6 +440,7 @@ export default function OverviewLayout({
         </div>
 
         <button 
+          type="button"
           onClick={handleToggleCustomize}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
         >
@@ -458,6 +461,7 @@ export default function OverviewLayout({
           <div className="flex justify-between items-center mb-6 border-b-2 border-black dark:border-neutral-700 pb-3">
             <h3 className="text-sm font-black uppercase tracking-wider text-black dark:text-white">{t('layout_customize_title')}</h3>
             <button 
+              type="button"
               onClick={handleResetLayout}
               className="px-3 py-1 text-[10px] font-black uppercase bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200 border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
             >
@@ -477,12 +481,14 @@ export default function OverviewLayout({
                     </span>
                     <div className="flex items-center gap-1.5">
                       <button 
+                        type="button"
                         onClick={() => handleToggleTopWidget(widget.id)}
                         className={`px-2 py-1 border border-black dark:border-neutral-700 font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'}`}
                       >
                         {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
+                        type="button"
                         disabled={index === 0}
                         onClick={() => handleMoveTopWidget(index, 'up')}
                         className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
@@ -490,6 +496,7 @@ export default function OverviewLayout({
                         ↑
                       </button>
                       <button 
+                        type="button"
                         disabled={index === topWidgets.length - 1}
                         onClick={() => handleMoveTopWidget(index, 'down')}
                         className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
@@ -517,12 +524,14 @@ export default function OverviewLayout({
                     </div>
                     <div className="flex items-center gap-1.5">
                       <button 
+                        type="button"
                         onClick={() => handleToggleColumnWidget(widget.id)}
                         className={`px-2 py-1 border border-black dark:border-neutral-700 font-black text-[10px] uppercase ${widget.visible ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#fecaca] dark:bg-red-950/80 text-black dark:text-red-200'}`}
                       >
                         {widget.visible ? (lang === 'id' ? 'Tampil' : 'Show') : (lang === 'id' ? 'Sembunyi' : 'Hide')}
                       </button>
                       <button 
+                        type="button"
                         disabled={index === 0}
                         onClick={() => handleMoveColumnWidget(index, 'up')}
                         className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
@@ -530,6 +539,7 @@ export default function OverviewLayout({
                         ↑
                       </button>
                       <button 
+                        type="button"
                         disabled={index === columnWidgets.length - 1}
                         onClick={() => handleMoveColumnWidget(index, 'down')}
                         className="px-2 py-1 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-700 text-black dark:text-white disabled:opacity-30"
@@ -537,6 +547,7 @@ export default function OverviewLayout({
                         ↓
                       </button>
                       <button 
+                        type="button"
                         onClick={() => handleSwitchColumnWidget(widget.id)}
                         className="px-2 py-1 border border-black dark:border-neutral-700 bg-[#bfdbfe] dark:bg-blue-950/80 text-black dark:text-blue-200"
                         title={lang === 'id' ? 'Pindah kolom' : 'Switch column'}
@@ -666,6 +677,7 @@ export default function OverviewLayout({
           </div>
 
           <button
+            type="button"
             onClick={onNewTransaction}
             className="brutal-btn px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-black text-white border-2 border-black rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
           >

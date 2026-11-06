@@ -725,7 +725,7 @@ export default function NextGenIntelligence({
                 <SmallMetric label="Wants 30%" value={formatRupiah(allocator.wants)} tone="bg-[#bfdbfe]" />
                 <SmallMetric label="Savings 20%" value={formatRupiah(allocator.savings)} tone="bg-[#fef08a]" />
               </div>
-              <button onClick={handleCreateAllocatorBudgets} className="brutal-btn w-full text-xs">
+              <button type="button" onClick={handleCreateAllocatorBudgets} className="brutal-btn w-full text-xs">
                 Buat Pos Anggaran 50/30/20
               </button>
               {allocatorStatus && <p className="mt-3 text-xs font-bold text-black dark:text-white">{allocatorStatus}</p>}
@@ -913,6 +913,7 @@ export default function NextGenIntelligence({
                     {CARD_COLORS.map((color) => (
                       <button
                         key={color}
+                        type="button"
                         onClick={() => setShareBackground(color)}
                         className={`h-9 w-9 border-2 border-black dark:border-neutral-700 ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
                         style={{ backgroundColor: color }}
@@ -922,6 +923,7 @@ export default function NextGenIntelligence({
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => downloadSharePng({
                     data: wrappedData,
                     background: shareBackground,

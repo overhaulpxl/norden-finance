@@ -95,6 +95,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
             {lang === 'en' ? 'Edit Transaction' : 'Edit Transaksi'}
           </h3>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
           >

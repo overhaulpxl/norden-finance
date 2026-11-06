@@ -78,6 +78,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       {/* CTA Button */}
       <div className="px-6 mb-8">
         <button 
+          type="button"
           onClick={onNewTransaction}
           className="w-full border-2 border-black dark:border-neutral-700 font-black uppercase text-xs py-3 shadow-[2.5px_2.5px_0px_0px_#000] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all rounded-xl cursor-pointer flex items-center justify-center gap-2"
           style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
@@ -94,6 +95,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border-2 cursor-pointer ${
                 isActive 
@@ -101,7 +103,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
                   : 'text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white'
               }`}
             >
-              <item.icon className={`w-4.5 h-4.5 stroke-[2.5px] ${isActive ? 'text-[#2ECC71]' : 'text-neutral-500'}`} />
+              <item.icon className={`w-4.5 h-4.5 stroke-[2.5px] ${isActive ? 'text-[#2ECC71]' : 'text-neutral-500 dark:text-neutral-400'}`} />
               {item.label}
             </button>
           );
@@ -118,6 +120,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border-2 cursor-pointer ${
                 isActive 
@@ -125,7 +128,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
                   : 'text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white'
               }`}
             >
-              <item.icon className={`w-4.5 h-4.5 stroke-[2.5px] ${isActive ? 'text-[#2ECC71]' : 'text-neutral-500'}`} />
+              <item.icon className={`w-4.5 h-4.5 stroke-[2.5px] ${isActive ? 'text-[#2ECC71]' : 'text-neutral-500 dark:text-neutral-400'}`} />
               {item.label}
             </button>
           );
@@ -191,6 +194,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
             </div>
           </div>
           <button 
+            type="button"
             onClick={handleLogout}
             disabled={isPending}
             className="w-full flex items-center justify-center gap-1.5 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 mt-1 cursor-pointer bg-black text-white hover:bg-neutral-800 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
