@@ -79,7 +79,8 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       <div className="px-6 mb-8">
         <button 
           onClick={onNewTransaction}
-          className="w-full bg-[#FFE066] text-black border-[2.5px] border-black font-black uppercase text-xs py-3 shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+          className="w-full border-2 border-black dark:border-neutral-700 font-black uppercase text-xs py-3 shadow-[2.5px_2.5px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all rounded-xl cursor-pointer flex items-center justify-center gap-2"
+          style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
         >
           <Plus className="w-4 h-4 stroke-[3px]" />
           {t('btn_new_transaction')}
@@ -87,17 +88,17 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 px-4 space-y-2.5 overflow-y-auto">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-none text-xs font-bold uppercase tracking-wider transition-all border-[2px] cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border-2 cursor-pointer ${
                 isActive 
-                  ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]' 
-                  : 'text-neutral-700 border-transparent hover:bg-neutral-200/50 hover:text-black'
+                  ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-[2px_2px_0px_0px_#000] dark:shadow-[2px_2px_0px_0px_#fff] translate-x-[-1px] translate-y-[-1px]' 
+                  : 'text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white'
               }`}
             >
               <item.icon className={`w-4.5 h-4.5 stroke-[2.5px] ${isActive ? 'text-[#2ECC71]' : 'text-neutral-500'}`} />
@@ -106,8 +107,8 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
           );
         })}
 
-        <div className="pt-6 pb-2">
-          <p className="px-4 text-[9px] font-black text-neutral-500 uppercase tracking-widest">
+        <div className="pt-4 pb-1">
+          <p className="px-3 text-[9px] font-black text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
             {lang === 'id' ? 'Lainnya' : 'Other'}
           </p>
         </div>
@@ -118,10 +119,10 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-none text-xs font-bold uppercase tracking-wider transition-all border-[2px] cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border-2 cursor-pointer ${
                 isActive 
-                  ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]' 
-                  : 'text-neutral-700 border-transparent hover:bg-neutral-200/50 hover:text-black'
+                  ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-[2px_2px_0px_0px_#000] dark:shadow-[2px_2px_0px_0px_#fff] translate-x-[-1px] translate-y-[-1px]' 
+                  : 'text-neutral-700 dark:text-neutral-300 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-black dark:hover:text-white'
               }`}
             >
               <item.icon className={`w-4.5 h-4.5 stroke-[2.5px] ${isActive ? 'text-[#2ECC71]' : 'text-neutral-500'}`} />
@@ -134,12 +135,12 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       {/* Trial Banner */}
       {user.plan === 'trial' && trialDaysLeft !== null && (
         <div className="px-4 mb-3">
-          <div className="p-3 bg-white border-[2px] border-black rounded-none shadow-[3px_3px_0px_0px_#000] text-center">
+          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] text-center">
             <p className="text-[10px] font-black text-[#FF6B6B] uppercase tracking-wider">Trial</p>
-            <p className="text-sm font-black text-black mt-0.5">
+            <p className="text-sm font-black text-black dark:text-white mt-0.5">
               {lang === 'id' ? `${trialDaysLeft} hari tersisa` : `${trialDaysLeft} days left`}
             </p>
-            <a href="/upgrade" className="text-[10px] font-black text-black underline hover:text-neutral-800 transition-colors mt-1.5 block">
+            <a href="/upgrade" className="text-[10px] font-black text-black dark:text-white underline hover:opacity-80 transition-opacity mt-1.5 block">
               {lang === 'id' ? 'Upgrade ke Pro' : 'Upgrade to Pro'}
             </a>
           </div>
@@ -151,9 +152,10 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
         <div className="px-4 mb-3">
           <Link 
             href="/norden-control-center" 
-            className="w-full flex items-center justify-center gap-2 py-2.5 border-[2px] border-black bg-[#FFE066] hover:bg-[#ffd533] text-black font-black uppercase text-xs rounded-none shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer text-center"
+            className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-black dark:border-neutral-700 font-black uppercase text-xs rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer text-center"
+            style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
           >
-            <Shield className="w-4 h-4 stroke-[2.5px] text-black" />
+            <Shield className="w-4 h-4 stroke-[2.5px]" />
             Admin Panel
           </Link>
         </div>
@@ -161,15 +163,15 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
 
       {/* User Profile */}
       <div className="px-4 mt-auto">
-        <div className="p-3 border-[2.5px] border-black rounded-none bg-white shadow-[3px_3px_0px_0px_#000] flex flex-col gap-2">
+        <div className="p-3 border-2 border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 shadow-[2.5px_2.5px_0px_0px_#000] flex flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-none border-[1.5px] border-black bg-[#2ECC71] flex items-center justify-center text-black font-black text-xs shrink-0">
+            <div className="w-8 h-8 rounded-lg border-2 border-black bg-[#2ECC71] flex items-center justify-center text-black font-black text-xs shrink-0">
               {user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black text-black truncate leading-tight uppercase tracking-wider">{user.fullName || 'User'}</p>
-              <p className="text-[8px] font-bold text-neutral-500 uppercase tracking-wide truncate mt-0.5">Lvl {levelInfo.level}: {levelInfo.name}</p>
-              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-black inline-block mt-1 leading-none ${
+              <p className="text-xs font-black text-black dark:text-white truncate leading-tight uppercase tracking-wider">{user.fullName || 'User'}</p>
+              <p className="text-[8px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide truncate mt-0.5">Lvl {levelInfo.level}: {levelInfo.name}</p>
+              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border border-black inline-block mt-1 leading-none ${
                 user.effectivePlan === 'PRO_ACTIVE'
                   ? 'bg-[#FFE066] text-black'
                   : user.effectivePlan === 'PRO_PENDING'

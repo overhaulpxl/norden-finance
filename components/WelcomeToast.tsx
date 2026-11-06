@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Sparkles } from 'lucide-react';
+import { useLanguage } from '../lib/i18n';
 
 interface WelcomeToastProps {
   userId: string;
@@ -9,6 +10,7 @@ interface WelcomeToastProps {
 }
 
 export default function WelcomeToast({ userId, fullName }: WelcomeToastProps) {
+  const { lang } = useLanguage();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -26,24 +28,31 @@ export default function WelcomeToast({ userId, fullName }: WelcomeToastProps) {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-[#fef08a] border-[3px] border-black p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-bottom duration-300 select-none">
+    <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-[#fef08a] dark:bg-amber-950/90 border-2 border-black dark:border-neutral-700 p-4 rounded-2xl shadow-[4px_4px_0px_0px_#000] animate-in slide-in-from-bottom duration-300 select-none text-black dark:text-white">
       <div className="flex gap-3">
-        <div className="flex-shrink-0 p-1.5 bg-black border-[2px] border-black text-yellow-300 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 fill-yellow-300 text-yellow-300" />
+        <div
+          className="flex-shrink-0 p-1.5 border-2 border-black rounded-xl text-black flex items-center justify-center shadow-[1px_1px_0px_0px_#000]"
+          style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
+        >
+          <Sparkles className="w-5 h-5 fill-current stroke-[2px]" />
         </div>
         <div className="flex-grow min-w-0">
-          <p className="text-sm font-black text-black uppercase tracking-wider">
-            Selamat datang di Norden{fullName ? `, ${fullName}` : ''}!
+          <p className="text-sm font-black uppercase tracking-wider">
+            {lang === 'en'
+              ? `Welcome to Norden${fullName ? `, ${fullName}` : ''}!`
+              : `Selamat datang di Norden${fullName ? `, ${fullName}` : ''}!`}
           </p>
-          <p className="text-xs font-bold text-neutral-800 uppercase tracking-wide mt-1 leading-relaxed">
-            Yuk atur keuanganmu mulai hari ini.
+          <p className="text-xs font-bold text-neutral-800 dark:text-neutral-300 uppercase tracking-wide mt-1 leading-relaxed">
+            {lang === 'en'
+              ? 'Start organizing your finances today.'
+              : 'Yuk atur keuanganmu mulai hari ini.'}
           </p>
         </div>
         <button
           onClick={() => setShow(false)}
-          className="flex-shrink-0 p-1 border-[2px] border-black bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2.5px] active:translate-y-[2.5px] active:shadow-none transition-all cursor-pointer h-fit self-start"
+          className="flex-shrink-0 p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-850 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer h-fit self-start"
         >
-          <X className="w-3.5 h-3.5 text-black stroke-[3px]" />
+          <X className="w-3.5 h-3.5 stroke-[3px]" />
         </button>
       </div>
     </div>

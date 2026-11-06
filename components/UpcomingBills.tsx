@@ -165,32 +165,35 @@ export default function UpcomingBills({
   };
 
   return (
-    <div className="brutal-card p-6 bg-white border-[3px] border-black flex flex-col justify-between select-none">
-      <div className="flex justify-between items-center mb-4 border-b-[3px] border-black pb-3">
+    <div className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 flex flex-col justify-between select-none shadow-[3px_3px_0px_0px_#000]">
+      <div className="flex justify-between items-center mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
         <div>
-          <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider flex items-center gap-2">
-            <Clock className="w-5 h-5 text-black stroke-[2.5px]" /> {t('bills_title')}
+          <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <Clock className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {t('bills_title')}
           </h3>
-          <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide mt-0.5">
+          <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">
             {t('bills_subtitle')}
           </p>
         </div>
-        <span className="px-2 py-0.5 border border-black bg-[#FFE066] text-black font-black text-[10px] uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000]">
+        <span
+          className="px-2 py-0.5 border border-black dark:border-neutral-700 rounded-md font-black text-[10px] uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000]"
+          style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
+        >
           {bills.length} {t('bills_count_label')}
         </span>
       </div>
 
       {errorMsg && (
-        <div className="mb-3 p-2.5 bg-red-100 border-[2px] border-black text-red-700 font-bold text-xs uppercase flex items-center gap-1.5">
+        <div className="mb-3 p-2.5 bg-red-100 dark:bg-red-950/50 border-2 border-black dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 font-bold text-xs uppercase flex items-center gap-1.5">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {displayBills.length === 0 ? (
-        <div className="text-center py-6 border-2 border-dashed border-black p-4 bg-[#FAF9F5]">
-          <p className="text-xs font-black text-black uppercase tracking-wider">{t('bills_empty_title')}</p>
-          <p className="text-[11px] font-bold text-neutral-500 mt-1 uppercase tracking-wide">
+        <div className="text-center py-6 border-2 border-dashed border-black dark:border-neutral-700 rounded-xl p-4 bg-[#FAF9F5] dark:bg-neutral-800/40">
+          <p className="text-xs font-black text-black dark:text-white uppercase tracking-wider">{t('bills_empty_title')}</p>
+          <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mt-1 uppercase tracking-wide">
             {t('bills_empty_desc')}
           </p>
         </div>
@@ -208,7 +211,7 @@ export default function UpcomingBills({
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <div
-                    className={`p-2 border-[2px] border-black shrink-0 shadow-[1.5px_1.5px_0px_0px_#000] ${
+                    className={`p-2 border-2 border-black rounded-lg shrink-0 shadow-[1.5px_1.5px_0px_0px_#000] ${
                       isUrgent ? 'bg-[#fecaca] text-black animate-pulse' : 'bg-[#e0f2fe] text-black'
                     }`}
                   >
@@ -216,11 +219,11 @@ export default function UpcomingBills({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-black text-xs uppercase tracking-wider text-black truncate">
+                      <h4 className="font-black text-xs uppercase tracking-wider text-black dark:text-white truncate">
                         {bill.title}
                       </h4>
                       <span
-                        className={`text-[9px] font-black uppercase px-1.5 py-0.2 border border-black ${
+                        className={`text-[9px] font-black uppercase px-1.5 py-0.2 border border-black rounded ${
                           isUrgent ? 'bg-red-500 text-white' : 'bg-[#FFE066] text-black'
                         }`}
                       >

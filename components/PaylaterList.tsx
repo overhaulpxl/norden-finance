@@ -7,19 +7,27 @@ import { addPaylater, payPaylaterInstallment, deletePaylater } from '../app/acti
 import { Plus, Trash2, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { useLanguage } from '../lib/i18n';
 import { triggerHaptic } from '../lib/haptics';
 
-export default function PaylaterList({ paylaters, balances = [] }: { paylaters: Paylater[]; balances?: Balance[] }) {
+export default function PaylaterList({
+  paylaters,
+  balances = [],
+}: {
+  paylaters: Paylater[];
+  balances?: Balance[];
+}) {
+  const { lang } = useLanguage();
   const { maskBalance } = useHideBalance();
   const [showAdd, setShowAdd] = useState(false);
   const [itemName, setItemName] = useState('');
   const [platform, setPlatform] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
   const [tenorMonths, setTenorMonths] = useState('');
-  
+
   const [payMethod, setPayMethod] = useState('');
   const [payingId, setPayingId] = useState<string | null>(null);
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,19 +41,30 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    triggerHaptic('medium');
     const amount = parseRupiahInput(totalAmount);
     const tenor = parseInt(tenorMonths.replace(/\D/g, ''), 10);
-    
+
     if (!itemName.trim() || !platform.trim() || !amount || !tenor) {
-      setError('Harap lengkapi semua kolom dengan benar.');
+      triggerHaptic('warning');
+      setError(
+        lang === 'id'
+          ? 'Harap lengkapi semua kolom dengan benar.'
+          : 'Please complete all required fields.'
+      );
       return;
     }
 
     if (tenor <= 0 || tenor > 120) {
-      setError('Tenor harus antara 1 sampai 120 bulan.');
+      triggerHaptic('warning');
+      setError(
+        lang === 'id'
+          ? 'Tenor harus antara 1 sampai 120 bulan.'
+          : 'Tenor must be between 1 and 120 months.'
+      );
       return;
     }
-    
+
     setLoading(true);
     const res = await addPaylater(itemName.trim(), platform.trim(), amount, tenor);
     if (res.success) {
@@ -55,11 +74,20 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
       setPlatform('');
       setTotalAmount('');
       setTenorMonths('');
-      setSuccess('Cicilan paylater berhasil ditambahkan!');
+      setSuccess(
+        lang === 'id'
+          ? 'Cicilan paylater berhasil ditambahkan!'
+          : 'Installment successfully added!'
+      );
       setTimeout(() => setSuccess(null), 5000);
     } else {
       triggerHaptic('warning');
-      setError(res.error || 'Gagal menyimpan cicilan paylater.');
+      setError(
+        res.error ||
+          (lang === 'id'
+            ? 'Gagal menyimpan cicilan paylater.'
+            : 'Failed to save installment.')
+      );
     }
     setLoading(false);
   };
@@ -67,22 +95,33 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
   const handlePay = async (id: string) => {
     if (!currentPayMethod.trim()) {
       triggerHaptic('warning');
-      setError('Pilih dompet / metode pembayaran terlebih dahulu.');
+      setError(
+        lang === 'id'
+          ? 'Pilih dompet / metode pembayaran terlebih dahulu.'
+          : 'Select a wallet / payment method first.'
+      );
       return;
     }
     setLoading(true);
     setSuccess(null);
     setError(null);
+    triggerHaptic('medium');
     const res = await payPaylaterInstallment(id, currentPayMethod);
     if (res.success) {
       triggerHaptic('success');
       setPayingId(null);
       setPayMethod('');
-      setSuccess('Pembayaran cicilan berhasil dicatat!');
+      setSuccess(
+        lang === 'id'
+          ? 'Pembayaran cicilan berhasil dicatat!'
+          : 'Installment payment recorded successfully!'
+      );
       setTimeout(() => setSuccess(null), 5000);
     } else {
       triggerHaptic('warning');
-      setError(res.error || 'Gagal membayar cicilan.');
+      setError(
+        res.error || (lang === 'id' ? 'Gagal membayar cicilan.' : 'Failed to pay installment.')
+      );
     }
     setLoading(false);
   };
@@ -91,143 +130,232 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
     setLoading(true);
     setSuccess(null);
     setError(null);
+    triggerHaptic('medium');
     const res = await deletePaylater(id);
     setLoading(false);
     setConfirmDeleteId(null);
     if (res.success) {
       triggerHaptic('medium');
-      setSuccess('Cicilan paylater berhasil dihapus!');
+      setSuccess(
+        lang === 'id'
+          ? 'Cicilan paylater berhasil dihapus!'
+          : 'Installment successfully deleted!'
+      );
       setTimeout(() => setSuccess(null), 5000);
     } else {
       triggerHaptic('warning');
-      setError(res.error || 'Gagal menghapus cicilan paylater.');
+      setError(
+        res.error ||
+          (lang === 'id'
+            ? 'Gagal menghapus cicilan paylater.'
+            : 'Failed to delete installment.')
+      );
     }
   };
 
-  const activePaylaters = paylaters.filter(p => !p.isSettled);
-  const settledPaylaters = paylaters.filter(p => p.isSettled);
+  const activePaylaters = paylaters.filter((p) => !p.isSettled);
+  const settledPaylaters = paylaters.filter((p) => p.isSettled);
 
   return (
-    <div className="brutal-card p-6 bg-white select-none">
+    <div className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[4px_4px_0px_0px_#000] text-black dark:text-white select-none">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-        <h2 className="text-lg font-black text-black uppercase tracking-wider">Paylater & Cicilan</h2>
-        <button 
+        <h2 className="text-base sm:text-lg font-black uppercase tracking-wider">
+          {lang === 'id' ? 'Paylater & Cicilan' : 'Paylater & Installments'}
+        </h2>
+        <button
           onClick={() => {
+            triggerHaptic('light');
             setShowAdd(!showAdd);
             setSuccess(null);
           }}
-          className="brutal-btn-light text-xs px-4 py-2 flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 text-black"
+          style={{
+            backgroundColor: 'var(--theme-accent, #FFE066)',
+            color: 'var(--theme-accent-text, #000000)',
+          }}
         >
-          {showAdd ? 'Batal' : <><Plus className="w-4 h-4" /> Tambah Cicilan</>}
+          {showAdd ? (
+            lang === 'id' ? (
+              'Batal'
+            ) : (
+              'Cancel'
+            )
+          ) : (
+            <>
+              <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+              <span>{lang === 'id' ? 'Tambah Cicilan' : 'Add Installment'}</span>
+            </>
+          )}
         </button>
       </div>
 
       {success && (
-        <div className="p-3 border-[2px] border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+        <div className="p-3 border-2 border-black bg-[#bbf7d0] text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] mb-4 animate-in fade-in duration-200">
           {success}
         </div>
       )}
 
       {error && (
-        <div className="p-3 border-[2px] border-black bg-red-100 text-red-700 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4 animate-in fade-in duration-200">
+        <div className="p-3 border-2 border-black bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-200 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] mb-4 animate-in fade-in duration-200">
           ❌ {error}
         </div>
       )}
 
       {showAdd && (
-        <form onSubmit={handleAdd} className="mb-6 border-[3px] border-black bg-white p-4 space-y-4 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form
+          onSubmit={handleAdd}
+          className="mb-6 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 p-4 space-y-4 rounded-xl shadow-[3px_3px_0px_0px_#000] animate-in fade-in duration-200 text-black dark:text-white"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Nama Barang / Transaksi</label>
-              <input type="text" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="Contoh: iPhone 15 Pro" className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
-            </div>
-            <div>
-              <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Platform</label>
-              <input type="text" value={platform} onChange={e => setPlatform(e.target.value)} placeholder="Contoh: SPayLater, GoPayLater" className="w-full brutal-input px-4 py-2.5 text-sm font-bold uppercase" required />
-            </div>
-            <div>
-              <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Total Harga (Rp)</label>
-              <input 
-                type="text" 
-                inputMode="numeric"
-                value={totalAmount} 
-                onChange={e => setTotalAmount(formatRupiahInput(e.target.value))} 
-                placeholder="Contoh: 1.500.000" 
-                className="w-full brutal-input px-4 py-2.5 text-sm font-bold" 
-                required 
+              <label className="block text-xs font-black mb-1 uppercase tracking-widest">
+                {lang === 'id' ? 'Nama Barang / Transaksi' : 'Item / Transaction Name'}
+              </label>
+              <input
+                type="text"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder={lang === 'id' ? 'Contoh: iPhone 15 Pro' : 'E.g.: iPhone 15 Pro'}
+                className="w-full brutal-input px-4 py-2 text-xs font-bold uppercase bg-white dark:bg-neutral-900"
+                required
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Tenor (Bulan)</label>
-              <input 
-                type="text" 
+              <label className="block text-xs font-black mb-1 uppercase tracking-widest">
+                {lang === 'id' ? 'Platform' : 'Platform'}
+              </label>
+              <input
+                type="text"
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                placeholder="SPayLater, GoPayLater, Kredivo"
+                className="w-full brutal-input px-4 py-2 text-xs font-bold uppercase bg-white dark:bg-neutral-900"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-black mb-1 uppercase tracking-widest">
+                {lang === 'id' ? 'Total Harga (Rp)' : 'Total Price (Rp)'}
+              </label>
+              <input
+                type="text"
                 inputMode="numeric"
-                value={tenorMonths} 
-                onChange={e => setTenorMonths(e.target.value.replace(/\D/g, ''))} 
-                placeholder="Contoh: 12" 
-                className="w-full brutal-input px-4 py-2.5 text-sm font-bold" 
-                required 
+                value={totalAmount}
+                onChange={(e) => setTotalAmount(formatRupiahInput(e.target.value))}
+                placeholder="Contoh: 1.500.000"
+                className="w-full brutal-input px-4 py-2 text-xs font-bold bg-white dark:bg-neutral-900"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-black mb-1 uppercase tracking-widest">
+                {lang === 'id' ? 'Tenor (Bulan)' : 'Tenor (Months)'}
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={tenorMonths}
+                onChange={(e) => setTenorMonths(e.target.value.replace(/\D/g, ''))}
+                placeholder="Contoh: 12"
+                className="w-full brutal-input px-4 py-2 text-xs font-bold bg-white dark:bg-neutral-900"
+                required
               />
             </div>
           </div>
-          <button type="submit" disabled={loading} className="w-full brutal-btn py-3 flex justify-center items-center gap-2 cursor-pointer">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'Simpan Cicilan'}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 border-2 border-black rounded-xl flex justify-center items-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_#000] text-xs font-black uppercase tracking-wider text-black disabled:opacity-50"
+            style={{
+              backgroundColor: 'var(--theme-accent, #FFE066)',
+              color: 'var(--theme-accent-text, #000000)',
+            }}
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : lang === 'id' ? (
+              'Simpan Cicilan'
+            ) : (
+              'Save Installment'
+            )}
           </button>
         </form>
       )}
 
       {activePaylaters.length === 0 && settledPaylaters.length === 0 && !showAdd ? (
-        <div className="flex flex-col items-center justify-center py-10 bg-white border-[3px] border-dashed border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center px-4">
-          <div className="p-2 border-[2px] border-black bg-[#FFE066] mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center shrink-0">
+        <div className="flex flex-col items-center justify-center py-10 bg-white dark:bg-neutral-900 border-2 border-dashed border-black dark:border-neutral-700 rounded-2xl shadow-[3px_3px_0px_0px_#000] text-center px-4">
+          <div
+            className="p-2 border-2 border-black rounded-xl mb-3 shadow-[2px_2px_0px_0px_#000] flex items-center justify-center shrink-0"
+            style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
+          >
             <span className="text-lg font-black text-black">💳</span>
           </div>
-          <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada catatan paylater</p>
-          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Lacak cicilan belanja paylater Anda (e.g. Shopee Paylater) di sini agar keuangan tetap stabil.</p>
+          <p className="text-sm font-black uppercase tracking-wider text-black dark:text-white">
+            {lang === 'id' ? 'Belum ada catatan paylater' : 'No paylater records yet'}
+          </p>
+          <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
+            {lang === 'id'
+              ? 'Lacak cicilan belanja paylater Anda (e.g. Shopee Paylater) di sini agar keuangan tetap stabil.'
+              : 'Track your paylater installments (e.g. Shopee Paylater) here to keep finances balanced.'}
+          </p>
           <button
             onClick={() => {
               setShowAdd(true);
               setSuccess(null);
             }}
-            className="mt-4 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+            className="mt-4 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer text-black"
+            style={{
+              backgroundColor: 'var(--theme-accent, #FFE066)',
+              color: 'var(--theme-accent-text, #000000)',
+            }}
           >
-            + Tambah Cicilan Baru
+            {lang === 'id' ? '+ Tambah Cicilan Baru' : '+ Add New Installment'}
           </button>
         </div>
       ) : activePaylaters.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {activePaylaters.map(p => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {activePaylaters.map((p) => {
             const progress = (p.monthsPaid / p.tenorMonths) * 100;
             return (
-              <div key={p.id} className="border-[2px] border-black rounded-none p-4 bg-white relative group shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                <div className="flex justify-between items-start mb-4">
+              <div
+                key={p.id}
+                className="border-2 border-black dark:border-neutral-700 rounded-xl p-4 bg-white dark:bg-neutral-800 relative group shadow-[3px_3px_0px_0px_#000] text-black dark:text-white"
+              >
+                <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="font-black text-black text-base uppercase tracking-wider">{p.itemName}</h3>
-                    <p className="text-[10px] font-black text-black border-[2px] border-black bg-white px-2 py-0.5 rounded-none inline-block mt-1 uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">{p.platform}</p>
+                    <h3 className="font-black text-sm sm:text-base uppercase tracking-wider">
+                      {p.itemName}
+                    </h3>
+                    <p className="text-[10px] font-black border border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-900 px-2 py-0.5 rounded-md inline-block mt-1 uppercase shadow-[1px_1px_0px_0px_#000]">
+                      {p.platform}
+                    </p>
                   </div>
                   {confirmDeleteId === p.id ? (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-neutral-600">Hapus?</span>
+                      <span className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400">
+                        {lang === 'id' ? 'Hapus?' : 'Delete?'}
+                      </span>
                       <button
                         type="button"
                         disabled={loading}
                         onClick={() => handleDelete(p.id)}
-                        className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
+                        className="px-2 py-0.5 bg-red-600 text-white border border-black rounded text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000] hover:bg-red-700 cursor-pointer"
                       >
-                        Ya
+                        {lang === 'id' ? 'Ya' : 'Yes'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(null)}
-                        className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
+                        className="px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 text-black dark:text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000] hover:bg-neutral-300 rounded cursor-pointer"
                       >
-                        Batal
+                        {lang === 'id' ? 'Batal' : 'Cancel'}
                       </button>
                     </div>
                   ) : (
-                    <button 
-                      onClick={() => setConfirmDeleteId(p.id)} 
+                    <button
+                      onClick={() => setConfirmDeleteId(p.id)}
                       className="text-neutral-400 hover:text-red-500 transition-all p-1.5 cursor-pointer"
-                      title="Hapus cicilan"
+                      title={lang === 'id' ? 'Hapus cicilan' : 'Delete installment'}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -236,21 +364,34 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
 
                 <div className="flex justify-between items-end mb-2">
                   <div>
-                    <p className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Cicilan bulanan</p>
-                    <p className="font-black text-black text-lg tracking-wider">{maskBalance(formatRupiah(p.installmentAmount))}</p>
+                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-black uppercase tracking-widest">
+                      {lang === 'id' ? 'Cicilan bulanan' : 'Monthly installment'}
+                    </p>
+                    <p className="font-black text-base sm:text-lg tracking-wider">
+                      {maskBalance(formatRupiah(p.installmentAmount))}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Total: {maskBalance(formatRupiah(p.totalAmount))}</p>
+                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
+                      Total: {maskBalance(formatRupiah(p.totalAmount))}
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-1 mb-4">
                   <div className="flex justify-between text-[10px] font-black uppercase tracking-wider">
-                    <span className="text-black">{p.monthsPaid} bulan</span>
-                    <span className="text-neutral-400">{p.tenorMonths} bulan</span>
+                    <span>
+                      {p.monthsPaid} {lang === 'id' ? 'bulan' : 'months'}
+                    </span>
+                    <span className="text-neutral-400">
+                      {p.tenorMonths} {lang === 'id' ? 'bulan' : 'months'}
+                    </span>
                   </div>
-                  <div className="w-full bg-[#f3f4f6] border-[2px] border-black rounded-none h-3 overflow-hidden shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                    <div className="bg-[#bfdbfe] h-full rounded-none transition-all duration-500 border-r-[2px] border-black" style={{ width: `${progress}%` }} />
+                  <div className="w-full bg-neutral-100 dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-full h-3 overflow-hidden shadow-[1px_1px_0px_0px_#000]">
+                    <div
+                      className="bg-[#bfdbfe] dark:bg-blue-600 h-full rounded-full transition-all duration-500 border-r-2 border-black"
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
                 </div>
 
@@ -258,17 +399,39 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
                   <div className="flex gap-2 items-center mt-4">
                     <WalletSelect
                       wallets={balances}
-                      value={currentPayMethod} 
+                      value={currentPayMethod}
                       onChange={setPayMethod}
-                      className="flex-1 brutal-input px-3 py-2 text-xs uppercase font-black" 
+                      className="flex-1 brutal-input px-3 py-2 text-xs uppercase font-black"
                       required
                     />
-                    <button onClick={() => handlePay(p.id)} disabled={loading || !currentPayMethod} className="brutal-btn px-4 py-2 text-xs cursor-pointer">Bayar</button>
-                    <button onClick={() => setPayingId(null)} className="brutal-btn-light px-4 py-2 text-xs cursor-pointer">Batal</button>
+                    <button
+                      onClick={() => handlePay(p.id)}
+                      disabled={loading || !currentPayMethod}
+                      className="px-4 py-2 border-2 border-black rounded-lg text-xs font-black uppercase cursor-pointer text-black"
+                      style={{
+                        backgroundColor: 'var(--theme-accent, #FFE066)',
+                        color: 'var(--theme-accent-text, #000000)',
+                      }}
+                    >
+                      {lang === 'id' ? 'Bayar' : 'Pay'}
+                    </button>
+                    <button
+                      onClick={() => setPayingId(null)}
+                      className="px-3 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-black uppercase rounded-lg cursor-pointer"
+                    >
+                      {lang === 'id' ? 'Batal' : 'Cancel'}
+                    </button>
                   </div>
                 ) : (
-                  <button onClick={() => setPayingId(p.id)} className="w-full brutal-btn-light py-2 mt-4 flex justify-center items-center gap-1.5 text-xs font-black uppercase tracking-wider cursor-pointer">
-                    Bayar Bulan Ini <ChevronRight className="w-4 h-4 stroke-[3px]" />
+                  <button
+                    onClick={() => {
+                      triggerHaptic('light');
+                      setPayingId(p.id);
+                    }}
+                    className="w-full py-2 mt-4 flex justify-center items-center gap-1.5 text-xs font-black uppercase tracking-wider border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+                  >
+                    <span>{lang === 'id' ? 'Bayar Bulan Ini' : 'Pay This Month'}</span>
+                    <ChevronRight className="w-4 h-4 stroke-[3px]" />
                   </button>
                 )}
               </div>
@@ -278,39 +441,26 @@ export default function PaylaterList({ paylaters, balances = [] }: { paylaters: 
       ) : null}
 
       {settledPaylaters.length > 0 && (
-        <div className="mt-8 pt-6 border-t-[3px] border-black">
-          <h3 className="text-sm font-black text-black mb-4 uppercase tracking-wider">Lunas 🎉</h3>
+        <div className="mt-8 pt-6 border-t-2 border-black dark:border-neutral-700">
+          <h3 className="text-sm font-black mb-4 uppercase tracking-wider flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{lang === 'id' ? 'Lunas 🎉' : 'Settled 🎉'}</span>
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {settledPaylaters.map(p => (
-              <div key={p.id} className="border-[2px] border-black bg-[#bbf7d0] p-4 rounded-none flex justify-between items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] opacity-90">
+            {settledPaylaters.map((p) => (
+              <div
+                key={p.id}
+                className="border-2 border-black dark:border-neutral-700 rounded-xl p-3 bg-neutral-100 dark:bg-neutral-800/60 opacity-70 flex justify-between items-center"
+              >
                 <div>
-                  <h4 className="font-black text-neutral-600 line-through uppercase tracking-wider">{p.itemName}</h4>
-                  <p className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest">{p.platform} • {p.tenorMonths} Bulan</p>
+                  <h4 className="font-black text-xs uppercase">{p.itemName}</h4>
+                  <span className="text-[10px] text-neutral-500 font-bold uppercase">
+                    {p.platform} • {formatRupiah(p.totalAmount)}
+                  </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="text-emerald-700 w-5 h-5" />
-                  {confirmDeleteId === p.id ? (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        disabled={loading}
-                        onClick={() => handleDelete(p.id)}
-                        className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 cursor-pointer"
-                      >
-                        Ya
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="px-2 py-0.5 bg-neutral-200 text-black border border-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-300 cursor-pointer"
-                      >
-                        Batal
-                      </button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setConfirmDeleteId(p.id)} className="text-neutral-500 hover:text-red-500 transition-colors cursor-pointer" title="Hapus cicilan lunas"><Trash2 className="w-4 h-4" /></button>
-                  )}
-                </div>
+                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase">
+                  {lang === 'id' ? 'Lunas' : 'Paid'}
+                </span>
               </div>
             ))}
           </div>

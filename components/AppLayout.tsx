@@ -7,7 +7,7 @@ import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget,
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
-import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search } from 'lucide-react';
+import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search, Repeat2, FileText, Settings, HelpCircle } from 'lucide-react';
 const WelcomeToast = dynamic(() => import('./WelcomeToast'), {
   ssr: false,
 });
@@ -254,104 +254,152 @@ export default function AppLayout({
       </div>
 
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
-        <header className="flex justify-between items-center mb-6 lg:mb-8 border-b-[3px] border-black pb-4 select-none">
-          {/* Mobile hamburger & brand */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <button
-              onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
-              aria-label="Buka menu navigasi"
-              className="lg:hidden rounded-none border-[2px] border-black bg-white p-2 shadow-[2px_2px_0px_0px_#000] transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 shrink-0 cursor-pointer"
-            >
-              <Menu className="w-5 h-5 text-slate-800" />
-            </button>
-            <div className="lg:hidden shrink-0">
-              <BrandLogo variant="icon" priority className="h-7 w-7" />
+        {/* Responsive Header (Desktop: Single Row, Mobile: Tier 1 Action Row + Tier 2 Dedicated Title Card) */}
+        <header className="mb-4 lg:mb-8 border-b-2 border-black dark:border-neutral-700 pb-3 lg:pb-4 select-none">
+          {/* Top Row: Mobile Controls + Desktop Header */}
+          <div className="flex justify-between items-center gap-2">
+            {/* Desktop Page Title / Mobile Hamburger + Brand */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <button
+                onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
+                aria-label="Buka menu navigasi"
+                className="lg:hidden rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <div className="lg:hidden flex items-center gap-1.5 shrink-0">
+                <BrandLogo variant="icon" priority className="h-7 w-7" />
+                <span className="font-black text-xs uppercase tracking-widest text-black dark:text-white">Norden</span>
+              </div>
+              <h2 className="hidden lg:block text-2xl lg:text-3xl font-black uppercase tracking-wider text-black dark:text-white truncate">
+                {tabTitle}
+              </h2>
             </div>
-            <h2 className="text-base sm:text-2xl lg:text-3xl font-black uppercase tracking-wider text-black truncate">
-              {tabTitle}
-            </h2>
+
+            {/* Header Actions (Search, Balance, Language, Level, Pro, Notification, New Transaction) */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              {/* Quick Command / Search Palette Trigger */}
+              <button
+                type="button"
+                onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
+                title="Cari menu, aksi cepat, atau transaksi (Ctrl+K)"
+                className="p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white flex items-center gap-1.5"
+              >
+                <Search className="w-4 h-4 stroke-[2.5px]" />
+                <kbd className="hidden md:inline-block px-1.5 py-0.5 border border-black dark:border-neutral-600 rounded-md bg-[#FAF9F5] dark:bg-neutral-900 text-[10px] font-mono font-black tracking-tight leading-none shadow-[1px_1px_0px_0px_#000]">
+                  Ctrl K
+                </kbd>
+              </button>
+
+              {/* Hide / Show Balance Toggle Button */}
+              <button
+                type="button"
+                onClick={() => { triggerHaptic('light'); toggleHideBalance(); }}
+                title={isBalanceHidden ? t('btn_show_balance') : t('btn_hide_balance')}
+                className={`p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
+                  isBalanceHidden
+                    ? 'bg-amber-100 dark:bg-amber-900/40 text-black dark:text-amber-200'
+                    : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
+                }`}
+              >
+                {isBalanceHidden ? <EyeOff className="w-4 h-4 stroke-[2.5px]" /> : <Eye className="w-4 h-4 stroke-[2.5px]" />}
+              </button>
+
+              {/* Language Switcher [ ID | EN ] */}
+              <div className="flex border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] bg-white dark:bg-neutral-800 text-[11px] font-black uppercase tracking-wider overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => { triggerHaptic('selection'); setLang('id'); }}
+                  className={`px-2 py-1.5 transition-colors cursor-pointer ${
+                    lang === 'id' ? 'font-black' : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                  }`}
+                  style={lang === 'id' ? { backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' } : {}}
+                >
+                  ID
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { triggerHaptic('selection'); setLang('en'); }}
+                  className={`px-2 py-1.5 transition-colors cursor-pointer border-l border-black dark:border-neutral-700 ${
+                    lang === 'en' ? 'font-black' : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                  }`}
+                  style={lang === 'en' ? { backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' } : {}}
+                >
+                  EN
+                </button>
+              </div>
+
+              {/* Level and PRO badge (Desktop only) */}
+              <div className="hidden sm:flex items-center gap-2">
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] ${levelInfo.color}`}>
+                  Lvl {levelInfo.level}: {levelInfo.name}
+                </span>
+                {user.effectivePlan === 'PRO_ACTIVE' && (
+                  <span
+                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1"
+                    style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
+                  >
+                    👑 PRO
+                  </span>
+                )}
+                {user.effectivePlan === 'PRO_PENDING' && (
+                  <span className="bg-amber-200 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                    ⏳ PRO (REVIEW)
+                  </span>
+                )}
+                {user.effectivePlan === 'FREE_BASIC' && (
+                  <span className="bg-neutral-200 text-neutral-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                    🌱 FREE BASIC
+                  </span>
+                )}
+              </div>
+
+              <NotificationCenter />
+
+              <button
+                onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
+                className="brutal-btn-accent px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex"
+                title="Catat transaksi baru"
+              >
+                <span>{t('btn_new_transaction')}</span>
+              </button>
+            </div>
           </div>
 
-          {/* Header Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Quick Command / Search Palette Trigger */}
-            <button
-              type="button"
-              onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
-              title="Cari menu, aksi cepat, atau transaksi (Ctrl+K)"
-              className="p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white hover:bg-neutral-50 text-black flex items-center gap-1.5"
-            >
-              <Search className="w-4 h-4 stroke-[2.5px]" />
-              <kbd className="hidden md:inline-block px-1.5 py-0.5 border border-black bg-[#FAF9F5] text-[10px] font-mono font-black tracking-tight leading-none shadow-[1px_1px_0px_0px_#000]">
-                Ctrl K
-              </kbd>
-            </button>
-
-            {/* Hide / Show Balance Toggle Button */}
-            <button
-              type="button"
-              onClick={() => { triggerHaptic('light'); toggleHideBalance(); }}
-              title={isBalanceHidden ? t('btn_show_balance') : t('btn_hide_balance')}
-              className={`p-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
-                isBalanceHidden ? 'bg-amber-100 text-black' : 'bg-white text-black'
-              }`}
-            >
-              {isBalanceHidden ? <EyeOff className="w-4 h-4 stroke-[2.5px]" /> : <Eye className="w-4 h-4 stroke-[2.5px]" />}
-            </button>
-
-            {/* Language Switcher [ ID | EN ] */}
-            <div className="flex border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white text-[11px] font-black uppercase tracking-wider overflow-hidden">
-              <button
-                type="button"
-                onClick={() => { triggerHaptic('selection'); setLang('id'); }}
-                className={`px-2 py-1.5 transition-colors cursor-pointer ${
-                  lang === 'id' ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-500 hover:text-black'
-                }`}
+          {/* Tier 2: Mobile Dedicated Full-Width Page Title Card (No More Truncation!) */}
+          <div className="lg:hidden mt-3 brutal-card p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_#000]">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="p-1.5 rounded-lg border border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_#000] shrink-0"
+                style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
               >
-                ID
-              </button>
-              <button
-                type="button"
-                onClick={() => { triggerHaptic('selection'); setLang('en'); }}
-                className={`px-2 py-1.5 transition-colors cursor-pointer border-l-[1.5px] border-black ${
-                  lang === 'en' ? 'bg-[#FFE066] text-black font-black' : 'bg-white text-neutral-500 hover:text-black'
-                }`}
-              >
-                EN
-              </button>
+                {activeTab === 'overview' && <Home className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'wallet' && <Wallet className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'goals' && <Target className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'history' && <History className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'automation' && <Repeat2 className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'reports' && <FileText className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'settings' && <Settings className="w-4 h-4 stroke-[2.5px]" />}
+                {activeTab === 'help' && <HelpCircle className="w-4 h-4 stroke-[2.5px]" />}
+              </div>
+              <h1 className="text-sm font-black uppercase tracking-wider text-black dark:text-white truncate">
+                {tabTitle}
+              </h1>
             </div>
 
-            {/* Level and PRO badge (Desktop only) */}
-            <div className="hidden sm:flex items-center gap-2">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color}`}>
-                Lvl {levelInfo.level}: {levelInfo.name}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-md shadow-[1px_1px_0px_0px_#000] ${levelInfo.color}`}>
+                Lvl {levelInfo.level}
               </span>
               {user.effectivePlan === 'PRO_ACTIVE' && (
-                <span className="bg-[#FFE066] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
-                  👑 PRO
-                </span>
-              )}
-              {user.effectivePlan === 'PRO_PENDING' && (
-                <span className="bg-amber-200 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
-                  ⏳ PRO (REVIEW)
-                </span>
-              )}
-              {user.effectivePlan === 'FREE_BASIC' && (
-                <span className="bg-neutral-200 text-neutral-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1">
-                  🌱 FREE BASIC
+                <span
+                  className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-md shadow-[1px_1px_0px_0px_#000]"
+                  style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
+                >
+                  PRO 👑
                 </span>
               )}
             </div>
-
-            <NotificationCenter />
-
-            <button
-              onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
-              className="brutal-btn px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex"
-              title="Catat transaksi baru"
-            >
-              <span>{t('btn_new_transaction')}</span>
-            </button>
           </div>
         </header>
 
@@ -426,16 +474,41 @@ export default function AppLayout({
                 paylaters={paylaters}
                 achievements={achievements}
               />
-              <div className="brutal-card bg-white p-4 sm:p-6">
+              <div className="brutal-card bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 p-5 rounded-2xl shadow-[3px_3px_0px_0px_#000] text-black dark:text-white">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-950">Exports & Reports</h3>
-                    <p className="text-sm text-slate-500">Download data transaksi dan laporan bulanan.</p>
+                    <h3 className="text-base font-black uppercase tracking-wider">
+                      {lang === 'id' ? 'Ekspor Data & Laporan' : 'Exports & Reports'}
+                    </h3>
+                    <p className="text-xs font-bold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      {lang === 'id'
+                        ? 'Unduh cadangan data transaksi dan ringkasan laporan bulanan.'
+                        : 'Download transaction backups and monthly summary reports.'}
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <a href="/api/export?format=csv" className="brutal-btn-light min-h-11 text-sm">CSV</a>
-                    <a href="/api/export?format=json" className="brutal-btn-light min-h-11 text-sm">JSON</a>
-                    <a href="/api/export?format=pdf" className="brutal-btn min-h-11 text-sm">PDF Report</a>
+                    <a
+                      href="/api/export?format=csv"
+                      className="px-3.5 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+                    >
+                      CSV
+                    </a>
+                    <a
+                      href="/api/export?format=json"
+                      className="px-3.5 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+                    >
+                      JSON
+                    </a>
+                    <a
+                      href="/api/export?format=pdf"
+                      className="px-3.5 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer text-black"
+                      style={{
+                        backgroundColor: 'var(--theme-accent, #FFE066)',
+                        color: 'var(--theme-accent-text, #000000)',
+                      }}
+                    >
+                      {lang === 'id' ? 'Laporan PDF' : 'PDF Report'}
+                    </a>
                   </div>
                 </div>
               </div>
@@ -467,14 +540,14 @@ export default function AppLayout({
         </div>
       </main>
 
-      {/* Mobile Sticky Bottom Navigation Bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t-[3px] border-black safe-bottom shadow-[0px_-2px_0px_0px_rgba(0,0,0,1)] select-none">
+      {/* Mobile Sticky Bottom Navigation Bar (Soft-Neobrutalism + Dynamic Accent FAB) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-neutral-900 border-t-2 border-black dark:border-neutral-700 safe-bottom shadow-[0px_-2px_0px_0px_rgba(0,0,0,1)] select-none">
         <div className="flex justify-around items-center h-16 px-2">
           <button
             type="button"
             onClick={() => handleTabChange('overview')}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
-              activeTab === 'overview' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+              activeTab === 'overview' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
           >
             <Home className={`w-5 h-5 ${activeTab === 'overview' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
@@ -485,14 +558,14 @@ export default function AppLayout({
             type="button"
             onClick={() => handleTabChange('wallet')}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
-              activeTab === 'wallet' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+              activeTab === 'wallet' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
           >
             <Wallet className={`w-5 h-5 ${activeTab === 'wallet' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
             <span className="text-[10px] uppercase tracking-wider mt-0.5">{lang === 'id' ? 'Dompet' : 'Wallets'}</span>
           </button>
 
-          {/* Floating Action Button (FAB) */}
+          {/* Floating Action Button (FAB) with Dynamic Accent Color */}
           <div className="relative -top-4 flex flex-col items-center justify-center px-2">
             <button
               type="button"
@@ -501,7 +574,8 @@ export default function AppLayout({
                 setShowModal(true);
               }}
               aria-label="Catat Transaksi"
-              className="w-13 h-13 rounded-full bg-[#FFE066] hover:bg-[#FFD633] text-black border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+              className="w-13 h-13 rounded-2xl border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+              style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
             >
               <Plus className="w-7 h-7 stroke-[3px]" />
             </button>
@@ -511,7 +585,7 @@ export default function AppLayout({
             type="button"
             onClick={() => handleTabChange('goals')}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
-              activeTab === 'goals' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+              activeTab === 'goals' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
           >
             <Target className={`w-5 h-5 ${activeTab === 'goals' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />
@@ -522,7 +596,7 @@ export default function AppLayout({
             type="button"
             onClick={() => handleTabChange('history')}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
-              activeTab === 'history' ? 'text-black font-black' : 'text-neutral-400 hover:text-black font-bold'
+              activeTab === 'history' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
           >
             <History className={`w-5 h-5 ${activeTab === 'history' ? 'stroke-[2.75px]' : 'stroke-[2px]'}`} />

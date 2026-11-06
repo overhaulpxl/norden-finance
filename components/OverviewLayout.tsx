@@ -314,16 +314,17 @@ export default function OverviewLayout({
         );
       case 'recent-transactions':
         return (
-          <div key={id} className="brutal-card p-6 flex flex-col bg-white border-[3px] border-black">
-            <div className="flex justify-between items-center mb-5 border-b-[3px] border-black pb-4">
+          <div key={id} className="brutal-card p-5 sm:p-6 flex flex-col bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
+            <div className="flex justify-between items-center mb-5 border-b-2 border-black dark:border-neutral-700 pb-4">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-black uppercase tracking-wider">{t('recent_tx_title')}</h3>
-                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide mt-0.5">{t('recent_tx_subtitle')}</p>
+                <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider">{t('recent_tx_title')}</h3>
+                <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-0.5">{t('recent_tx_subtitle')}</p>
               </div>
               {onNewTransaction && (
                 <button
                   onClick={onNewTransaction}
-                  className="px-3 py-1.5 border-[2px] border-black bg-[#FFE066] text-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="px-3 py-1.5 border-2 border-black rounded-lg font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
                 >
                   {lang === 'id' ? '+ Tambah' : '+ Add'}
                 </button>
@@ -331,9 +332,9 @@ export default function OverviewLayout({
             </div>
 
             {recentTransactions.length === 0 ? (
-              <div className="text-center py-8 border-2 border-dashed border-black p-6 bg-[#FAF9F5]">
-                <p className="text-sm font-black text-black uppercase tracking-wider">{t('recent_tx_empty_title')}</p>
-                <p className="text-xs font-bold text-neutral-500 mt-1 uppercase tracking-wide">
+              <div className="text-center py-8 border-2 border-dashed border-black dark:border-neutral-700 rounded-xl p-6 bg-[#FAF9F5] dark:bg-neutral-800/50">
+                <p className="text-sm font-black text-black dark:text-white uppercase tracking-wider">{t('recent_tx_empty_title')}</p>
+                <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mt-1 uppercase tracking-wide">
                   {t('recent_tx_empty_desc')}
                 </p>
                 {onNewTransaction && (
@@ -346,11 +347,11 @@ export default function OverviewLayout({
                 )}
               </div>
             ) : (
-              <div className="divide-y-2 divide-neutral-100">
+              <div className="divide-y-2 divide-neutral-100 dark:divide-neutral-800">
                 {recentTransactions.map(t => (
                   <div key={t.id} className="flex items-center justify-between py-3.5 first:pt-1 last:pb-1">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-9 h-9 border-[2px] border-black rounded-none flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                      <div className={`w-9 h-9 border-2 border-black rounded-xl flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
                         t.type === 'masuk' ? 'bg-[#bbf7d0] text-black' : 
                         t.type === 'transfer' ? 'bg-[#bfdbfe] text-black' : 
                         'bg-[#fecaca] text-black'
@@ -360,20 +361,20 @@ export default function OverviewLayout({
                          <ArrowUpRight className="w-4 h-4 stroke-[3px]" />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-black text-black uppercase tracking-wider truncate flex items-center gap-1.5">
+                        <p className="text-xs sm:text-sm font-black text-black dark:text-white uppercase tracking-wider truncate flex items-center gap-1.5">
                           <span className="text-sm shrink-0 select-none">{getCategoryEmoji(t.category?.name)}</span>
                           <span className="truncate">{t.category?.name || 'Lain-lain'}</span>
                         </p>
-                        <p className="text-[11px] font-bold text-neutral-500 truncate mt-0.5">
+                        <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
                           {t.note || t.wallet?.name || 'Lain-lain'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-4">
                       <span className={`text-xs sm:text-sm font-black block tracking-wider ${
-                        t.type === 'masuk' ? 'text-emerald-700' : 
-                        t.type === 'transfer' ? 'text-blue-700' : 
-                        'text-black'
+                        t.type === 'masuk' ? 'text-emerald-700 dark:text-emerald-400' : 
+                        t.type === 'transfer' ? 'text-blue-700 dark:text-blue-400' : 
+                        'text-black dark:text-white'
                       }`}>
                         {t.type === 'masuk' ? '+' : t.type === 'transfer' ? '' : '-'}{maskBalance(formatRupiah(t.amount))}
                       </span>
@@ -410,14 +411,14 @@ export default function OverviewLayout({
   return (
     <div className="space-y-6 select-none">
       {/* Overview Context Header & Action Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_#000]">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl p-4 shadow-[3px_3px_0px_0px_#000]">
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 border-[2px] border-black bg-[#FAF9F5] text-xs font-black uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-lg bg-[#FAF9F5] dark:bg-neutral-800 text-xs font-black uppercase tracking-wider text-black dark:text-white">
             <Calendar className="w-3.5 h-3.5" />
             <span>{formattedMonth}</span>
           </div>
 
-          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_#000] ${
+          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1.5px_1.5px_0px_0px_#000] ${
             user.effectivePlan === 'PRO_ACTIVE'
               ? 'bg-[#FFE066] text-black'
               : user.effectivePlan === 'PRO_PENDING'
@@ -438,7 +439,7 @@ export default function OverviewLayout({
 
         <button 
           onClick={handleToggleCustomize}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <span>{isCustomizing ? t('btn_done_save') : t('btn_customize_layout')}</span>
@@ -551,27 +552,27 @@ export default function OverviewLayout({
         </div>
       )}
 
-      {/* Hero Financial Summary Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
+      {/* Hero Financial Summary Row (Balanced 4-Card Grid) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-stretch">
         {topWidgets
           .filter(w => w.visible)
           .map(w => {
             if (w.id === 'total-balance') {
               return (
-                <div key={w.id} className="brutal-card p-6 bg-black text-white flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
+                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-black text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
                   <div>
                     <p className="text-xs font-black text-[#bbf7d0] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                       <Wallet className="w-4 h-4 stroke-[2.5px]" /> {lang === 'id' ? 'Total Saldo Dompet' : 'Total Wallet Balance'}
                     </p>
-                    <h2 className="text-3xl xl:text-4xl font-black text-white truncate">{maskBalance(formatRupiah(totalBalance))}</h2>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white truncate">{maskBalance(formatRupiah(totalBalance))}</h2>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-neutral-700 flex justify-between items-center text-[11px] font-bold">
                     <span className="text-neutral-400 uppercase tracking-wide">
                       {activeBalances.length} {lang === 'id' ? 'Dompet Aktif' : 'Active Wallets'}
                     </span>
-                    <span className="text-[#bbf7d0] uppercase tracking-wide font-black">
-                      {lang === 'id' ? 'Arus Kas: ' : 'Cashflow: '}{monthlyFlow.net >= 0 ? '+' : ''}{maskBalance(formatRupiah(monthlyFlow.net))}
+                    <span className="text-[#bbf7d0] uppercase tracking-wide font-black truncate ml-2">
+                      {lang === 'id' ? 'Arus: ' : 'Flow: '}{monthlyFlow.net >= 0 ? '+' : ''}{maskBalance(formatRupiah(monthlyFlow.net))}
                     </span>
                   </div>
                 </div>
@@ -579,21 +580,21 @@ export default function OverviewLayout({
             }
             if (w.id === 'safe-to-spend') {
               return (
-                <div key={w.id} className="brutal-card p-6 bg-[#FAF9F5] text-black flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
+                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-[#FAF9F5] dark:bg-neutral-800 text-black dark:text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
                   <div>
-                    <p className="text-xs font-black text-black uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <p className="text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                       <Coins className="w-4 h-4 stroke-[2.5px] text-amber-600" /> {lang === 'id' ? 'Aman Dibelanjakan Hari Ini' : 'Safe to Spend Today'}
                     </p>
-                    <h2 className="text-3xl xl:text-4xl font-black truncate text-black">
+                    <h2 className="text-2xl sm:text-3xl font-black truncate text-black dark:text-white">
                       {maskBalance(formatRupiah(safeToSpendDaily))}
                     </h2>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t-2 border-black flex justify-between items-center text-[10px] sm:text-[11px] font-bold">
-                    <span className="text-neutral-600 uppercase tracking-wide">
+                  <div className="mt-4 pt-3 border-t-2 border-black dark:border-neutral-700 flex justify-between items-center text-[10px] sm:text-[11px] font-bold">
+                    <span className="text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
                       {lang === 'id' ? `Sisa ${remainingDays} Hari` : `${remainingDays} Days Left`}
                     </span>
-                    <span className="text-black uppercase tracking-wide font-black truncate ml-2">
+                    <span className="text-black dark:text-white uppercase tracking-wide font-black truncate ml-2">
                       {lang === 'id' ? 'Sisa: ' : 'Rem.: '}{maskBalance(formatRupiah(remainingBudget))}
                     </span>
                   </div>
@@ -602,25 +603,25 @@ export default function OverviewLayout({
             }
             if (w.id === 'net-worth') {
               return (
-                <div key={w.id} className="brutal-card p-6 bg-white text-black flex flex-col justify-between border-[3px] border-black shadow-[5px_5px_0px_0px_#000]">
+                <div key={w.id} className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-800 text-black dark:text-white flex flex-col justify-between border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_#000]">
                   <div>
-                    <p className="text-xs font-black text-black uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Scale className="w-4 h-4 stroke-[2.5px]" /> {t('card_net_worth')} (Net Worth)
+                    <p className="text-xs font-black text-black dark:text-neutral-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Scale className="w-4 h-4 stroke-[2.5px]" /> {t('card_net_worth')}
                     </p>
-                    <h2 className={`text-3xl xl:text-4xl font-black truncate ${netWorth >= 0 ? 'text-black' : 'text-red-600'}`}>
+                    <h2 className={`text-2xl sm:text-3xl font-black truncate ${netWorth >= 0 ? 'text-black dark:text-white' : 'text-red-600'}`}>
                       {maskBalance(formatRupiah(netWorth))}
                     </h2>
                   </div>
-                  <div className="text-[10px] font-bold text-black mt-4 flex justify-between uppercase tracking-wider border-t-2 border-black pt-3">
-                    <span className="text-red-700 font-black">{lang === 'id' ? 'Utang' : 'Debt'}: {maskBalance(formatRupiah(activeUtang))}</span>
-                    <span className="text-emerald-700 font-black">{lang === 'id' ? 'Piutang' : 'Receivable'}: {maskBalance(formatRupiah(activePiutang))}</span>
+                  <div className="text-[10px] font-bold text-black dark:text-neutral-300 mt-4 flex justify-between uppercase tracking-wider border-t-2 border-black dark:border-neutral-700 pt-3">
+                    <span className="text-red-700 dark:text-red-400 font-black">{lang === 'id' ? 'Utang' : 'Debt'}: {maskBalance(formatRupiah(activeUtang))}</span>
+                    <span className="text-emerald-700 dark:text-emerald-400 font-black">{lang === 'id' ? 'Piutang' : 'Receivable'}: {maskBalance(formatRupiah(activePiutang))}</span>
                   </div>
                 </div>
               );
             }
             if (w.id === 'health-score') {
               return (
-                <div key={w.id} className="md:col-span-2 lg:col-span-1">
+                <div key={w.id} className="h-full">
                   <HealthScore transactions={transactions} balances={balances} debts={debts} />
                 </div>
               );
@@ -646,41 +647,44 @@ export default function OverviewLayout({
       {/* PWA Mobile App Installation Prompt */}
       <PWAInstallBanner />
 
-      {/* Smart Input & Quick Entry Callout Banner */}
+      {/* Smart Input & Quick Entry Callout Banner (Dynamic Theme Accent) */}
       {onNewTransaction && (
-        <div className="border-[3px] border-black bg-[#FFE066] p-4 sm:p-5 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div
+          className="border-2 border-black dark:border-neutral-700 rounded-xl p-4 sm:p-5 shadow-[3px_3px_0px_0px_#000] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+          style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
+        >
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-black stroke-[2.5px]" />
-              <h3 className="text-sm sm:text-base font-black text-black uppercase tracking-wider">
+              <Sparkles className="w-5 h-5 stroke-[2.5px]" />
+              <h3 className="text-sm sm:text-base font-black uppercase tracking-wider">
                 {t('banner_smart_input_title')}
               </h3>
             </div>
-            <p className="text-xs font-bold text-neutral-800 leading-relaxed">
-              {lang === 'id' ? 'Ketik cepat:' : 'Quick type:'} <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">kopi 25k gopay</span>, <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">gaji 5jt bca</span>, {lang === 'id' ? 'atau' : 'or'} <span className="font-mono bg-white px-1.5 py-0.5 border border-black font-black text-[11px]">transfer bca ke dana 100k</span>.
+            <p className="text-xs font-bold leading-relaxed opacity-95">
+              {lang === 'id' ? 'Ketik cepat:' : 'Quick type:'} <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px]">kopi 25k gopay</span>, <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px]">gaji 5jt bca</span>, {lang === 'id' ? 'atau' : 'or'} <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px]">transfer bca ke dana 100k</span>.
             </p>
           </div>
 
           <button
             onClick={onNewTransaction}
-            className="brutal-btn px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-black text-white border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
+            className="brutal-btn px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-black text-white border-2 border-black rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0"
           >
             {t('banner_smart_input_btn')}
           </button>
         </div>
       )}
 
-      {/* Main Content Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Left Column (Wider, Primary Activity & Distribution) */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Main Content Columns (Symmetrical 2-Column Balanced Grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Left Column (Activity & Financial Flows) */}
+        <div className="space-y-6 min-w-0">
           {columnWidgets
             .filter(w => w.column === 'left' && w.visible)
             .map(w => renderColumnWidget(w.id))}
         </div>
         
         {/* Right Column (Planning, Budgets & Discipline) */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {columnWidgets
             .filter(w => w.column === 'right' && w.visible)
             .map(w => renderColumnWidget(w.id))}

@@ -217,37 +217,37 @@ export default function CommandPaletteModal({
         aria-hidden="true"
       />
 
-      <div className="relative bg-white border-[3px] border-black w-full max-w-xl shadow-[8px_8px_0px_0px_#000] overflow-hidden flex flex-col max-h-[80vh] z-10 animate-in zoom-in-95 duration-150">
+      <div className="relative bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl w-full max-w-xl shadow-[6px_6px_0px_0px_#000] overflow-hidden flex flex-col max-h-[80vh] z-10 animate-in zoom-in-95 duration-150 text-black dark:text-white">
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 p-3.5 sm:p-4 border-b-[2.5px] border-black bg-[#FAF9F5]">
-          <Search className="w-5 h-5 text-black stroke-[3px] shrink-0" />
+        <div className="flex items-center gap-3 p-3.5 sm:p-4 border-b-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800">
+          <Search className="w-5 h-5 text-black dark:text-white stroke-[3px] shrink-0" />
           <input
             ref={inputRef}
             type="text"
             placeholder={lang === 'en' ? 'Search menu, quick actions, or transactions...' : 'Cari menu, aksi cepat, atau transaksi...'}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-xs sm:text-sm font-black text-black outline-none uppercase placeholder:text-neutral-400 placeholder:normal-case"
+            className="flex-1 bg-transparent text-xs sm:text-sm font-black text-black dark:text-white outline-none uppercase placeholder:text-neutral-400 placeholder:normal-case"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="p-1 text-neutral-400 hover:text-black cursor-pointer"
+              className="p-1 text-neutral-400 hover:text-black dark:hover:text-white cursor-pointer"
             >
               <X className="w-4 h-4 stroke-[2.5px]" />
             </button>
           )}
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 border border-black bg-white text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000]">
+          <kbd className="hidden sm:inline-block px-2 py-0.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[10px] font-black uppercase rounded-md shadow-[1px_1px_0px_0px_#000]">
             ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="overflow-y-auto p-3 space-y-4 divide-y divide-neutral-200">
+        <div className="overflow-y-auto p-3 space-y-4 divide-y divide-neutral-200 dark:divide-neutral-800">
           {/* Quick Actions */}
           {filteredActions.length > 0 && (
             <div className="space-y-1">
-              <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
+              <span className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400 tracking-wider px-2 block mb-1">
                 {lang === 'en' ? 'Quick Actions' : 'Aksi Cepat'}
               </span>
               {filteredActions.map((item) => {
@@ -256,17 +256,20 @@ export default function CommandPaletteModal({
                   <button
                     key={item.id}
                     onClick={item.action}
-                    className="w-full text-left p-2.5 hover:bg-[#FFE066] active:bg-yellow-300 border border-transparent hover:border-black transition-all flex items-center justify-between gap-3 group cursor-pointer"
+                    className="w-full text-left p-2.5 rounded-xl border border-transparent hover:border-black dark:hover:border-neutral-600 transition-all flex items-center justify-between gap-3 group cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="p-1.5 border border-black bg-white shadow-[1px_1px_0px_0px_#000] shrink-0">
+                      <div
+                        className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1px_1px_0px_0px_#000] shrink-0"
+                        style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
+                      >
                         <IconComponent className="w-4 h-4 stroke-[2.5px] text-black" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-black uppercase tracking-wider text-black truncate">
+                        <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
                           {item.title}
                         </p>
-                        <p className="text-[10px] font-bold text-neutral-500 group-hover:text-neutral-800 truncate">
+                        <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 truncate">
                           {item.subtitle}
                         </p>
                       </div>
@@ -280,7 +283,7 @@ export default function CommandPaletteModal({
           {/* Navigation Menus */}
           {filteredNav.length > 0 && (
             <div className="pt-3 space-y-1">
-              <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
+              <span className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400 tracking-wider px-2 block mb-1">
                 {lang === 'en' ? 'Menu Navigation' : 'Navigasi Menu'}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -294,16 +297,16 @@ export default function CommandPaletteModal({
                         handleClose();
                         onNavigate(item.tab);
                       }}
-                      className="text-left p-2 hover:bg-[#bfdbfe] active:bg-blue-200 border border-transparent hover:border-black transition-all flex items-center gap-2.5 group cursor-pointer"
+                      className="text-left p-2 rounded-xl border border-transparent hover:border-black dark:hover:border-neutral-600 transition-all flex items-center gap-2.5 group cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     >
-                      <div className="p-1.5 border border-black bg-white shadow-[1px_1px_0px_0px_#000] shrink-0">
-                        <IconComponent className="w-3.5 h-3.5 stroke-[2.5px] text-black" />
+                      <div className="p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg shadow-[1px_1px_0px_0px_#000] shrink-0">
+                        <IconComponent className="w-3.5 h-3.5 stroke-[2.5px] text-black dark:text-white" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-black uppercase tracking-wider text-black truncate">
+                        <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
                           {item.title}
                         </p>
-                        <p className="text-[9px] font-bold text-neutral-500 group-hover:text-neutral-800 truncate">
+                        <p className="text-[9px] font-bold text-neutral-500 dark:text-neutral-400 truncate">
                           {item.subtitle}
                         </p>
                       </div>
@@ -317,7 +320,7 @@ export default function CommandPaletteModal({
           {/* Matched Balances / Wallets */}
           {matchedBalances.length > 0 && (
             <div className="pt-3 space-y-1">
-              <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
+              <span className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400 tracking-wider px-2 block mb-1">
                 {lang === 'en' ? 'Wallets & Accounts' : 'Dompet & Rekening'}
               </span>
               {matchedBalances.map((wallet) => (
@@ -328,23 +331,23 @@ export default function CommandPaletteModal({
                     handleClose();
                     onNavigate('wallet');
                   }}
-                  className="p-2.5 border border-black bg-white hover:bg-[#FAF9F5] flex items-center justify-between gap-3 shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+                  className="p-2.5 border-2 border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 hover:bg-[#FAF9F5] dark:hover:bg-neutral-750 flex items-center justify-between gap-3 shadow-[2px_2px_0px_0px_#000] cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1.5 border border-black bg-white shadow-[1px_1px_0px_0px_#000] shrink-0">
-                      <Wallet className="w-4 h-4 stroke-[2.5px] text-black" />
+                    <div className="p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded-lg shadow-[1px_1px_0px_0px_#000] shrink-0">
+                      <Wallet className="w-4 h-4 stroke-[2.5px] text-black dark:text-white" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-wider text-black truncate">
+                      <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
                         {wallet.name}
                       </p>
-                      <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide truncate">
+                      <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide truncate">
                         {wallet.type}
                       </p>
                     </div>
                   </div>
 
-                  <span className="text-xs font-black shrink-0 text-black">
+                  <span className="text-xs font-black shrink-0 text-black dark:text-white">
                     {maskBalance(formatRupiah(wallet.currentBalance))}
                   </span>
                 </div>
@@ -355,7 +358,7 @@ export default function CommandPaletteModal({
           {/* Matched Transactions */}
           {matchedTransactions.length > 0 && (
             <div className="pt-3 space-y-1">
-              <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
+              <span className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400 tracking-wider px-2 block mb-1">
                 {lang === 'en' ? 'Transaction Results' : 'Hasil Pencarian Transaksi'}
               </span>
               {matchedTransactions.map((tx) => (
@@ -366,15 +369,15 @@ export default function CommandPaletteModal({
                     handleClose();
                     onNavigate('history');
                   }}
-                  className="p-2.5 border border-black bg-white hover:bg-[#FAF9F5] flex items-center justify-between gap-3 shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+                  className="p-2.5 border-2 border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 hover:bg-[#FAF9F5] dark:hover:bg-neutral-750 flex items-center justify-between gap-3 shadow-[2px_2px_0px_0px_#000] cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="text-base shrink-0">{getCategoryEmoji(tx.category?.name)}</span>
                     <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-wider text-black truncate">
+                      <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
                         {tx.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain')}
                       </p>
-                      <p className="text-[10px] font-bold text-neutral-500 truncate">
+                      <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 truncate">
                         {tx.note || tx.wallet?.name || '-'} • {formatTanggal(tx.transactionDate)}
                       </p>
                     </div>
@@ -383,10 +386,10 @@ export default function CommandPaletteModal({
                   <span
                     className={`text-xs font-black shrink-0 ${
                       tx.type === 'masuk'
-                        ? 'text-emerald-700'
+                        ? 'text-emerald-600 dark:text-emerald-400'
                         : tx.type === 'transfer'
-                        ? 'text-blue-700'
-                        : 'text-black'
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-black dark:text-white'
                     }`}
                   >
                     {tx.type === 'masuk' ? '+' : tx.type === 'transfer' ? '' : '-'}
@@ -399,10 +402,10 @@ export default function CommandPaletteModal({
 
           {filteredActions.length === 0 && filteredNav.length === 0 && matchedBalances.length === 0 && matchedTransactions.length === 0 && (
             <div className="p-8 text-center space-y-1">
-              <p className="text-xs font-black uppercase text-black">
+              <p className="text-xs font-black uppercase text-black dark:text-white">
                 {lang === 'en' ? 'No matching menu or transactions found' : 'Tidak ada menu atau transaksi yang cocok'}
               </p>
-              <p className="text-[11px] font-bold text-neutral-500">
+              <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
                 {lang === 'en' ? 'Try using shorter or different search keywords.' : 'Coba gunakan kata kunci pencarian yang lebih singkat.'}
               </p>
             </div>
@@ -410,7 +413,7 @@ export default function CommandPaletteModal({
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="p-2.5 border-t-2 border-black bg-[#FAF9F5] flex items-center justify-between text-[10px] font-bold text-neutral-500 px-4">
+        <div className="p-2.5 border-t-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 flex items-center justify-between text-[10px] font-bold text-neutral-500 dark:text-neutral-400 px-4">
           <span>{lang === 'en' ? 'Use ↑↓ to navigate' : 'Gunakan ↑↓ untuk navigasi'}</span>
           <span>{lang === 'en' ? 'ESC to close' : 'ESC untuk menutup'}</span>
         </div>

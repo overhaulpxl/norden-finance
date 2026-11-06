@@ -78,11 +78,11 @@ export default function HealthScore({ transactions, balances, debts }: { transac
   }, [transactions, balances, debts]);
 
   return (
-    <div className="brutal-card p-6 bg-white flex items-center gap-6 select-none">
+    <div className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[3.5px_3.5px_0px_0px_#000] flex items-center gap-5 sm:gap-6 select-none text-black dark:text-white">
       <div className="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
         <svg viewBox="0 0 36 36" className="w-16 h-16 transform -rotate-90">
           <path
-            className="text-neutral-100"
+            className="text-neutral-100 dark:text-neutral-800"
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"
             stroke="currentColor"
@@ -95,19 +95,19 @@ export default function HealthScore({ transactions, balances, debts }: { transac
             fill="none"
             stroke="currentColor"
             strokeWidth="4"
-            strokeLinecap="square"
+            strokeLinecap="round"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-base font-black text-black">{score}</span>
+          <span className="text-base font-black">{score}</span>
         </div>
       </div>
       <div>
-        <h3 className="text-[10px] font-black text-neutral-500 mb-1 uppercase tracking-widest">{t('health_score_title')}</h3>
+        <h3 className="text-[10px] font-black text-neutral-500 dark:text-neutral-400 mb-1 uppercase tracking-widest">{t('health_score_title')}</h3>
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className={`text-base font-black uppercase tracking-wider ${colorClass}`}>{t(labelKey)}</span>
         </div>
-        <p className="text-xs text-neutral-600 font-bold leading-relaxed">{t(messageKey)}</p>
+        <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">{t(messageKey)}</p>
       </div>
     </div>
   );

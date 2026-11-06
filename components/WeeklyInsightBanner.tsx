@@ -6,6 +6,7 @@ import { formatRupiah } from '../lib/format';
 import { Sparkles, TrendingDown, TrendingUp, X, CheckCircle2 } from 'lucide-react';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { useLanguage } from '../lib/i18n';
 
 interface WeeklyInsightBannerProps {
   transactions: Transaction[];
@@ -14,6 +15,7 @@ interface WeeklyInsightBannerProps {
 
 export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsightBannerProps) {
   const { maskBalance } = useHideBalance();
+  const { lang } = useLanguage();
   const now = useMemo(() => new Date(), []);
   const weekNumber = useMemo(() => {
     const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
@@ -95,17 +97,22 @@ export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsi
   };
 
   return (
-    <div className="border-[3px] border-black bg-[#FAF9F5] p-4 sm:p-5 shadow-[4px_4px_0px_0px_#000] relative select-none animate-in fade-in duration-200">
+    <div className="border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-850 p-4 sm:p-5 rounded-2xl shadow-[3.5px_3.5px_0px_0px_#000] relative select-none animate-in fade-in duration-200 text-black dark:text-white">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div
-            className={`p-2 border-[2px] border-black shrink-0 shadow-[2px_2px_0px_0px_#000] ${
+            className={`p-2.5 border-2 border-black dark:border-neutral-700 rounded-xl shrink-0 shadow-[2px_2px_0px_0px_#000] ${
               insight.trend === 'down'
-                ? 'bg-[#bbf7d0] text-black'
+                ? 'bg-[#bbf7d0] dark:bg-emerald-500 text-black'
                 : insight.trend === 'up'
-                ? 'bg-[#fed7aa] text-black'
-                : 'bg-[#FFE066] text-black'
+                ? 'bg-[#fed7aa] dark:bg-amber-400 text-black'
+                : 'text-black'
             }`}
+            style={
+              insight.trend === 'stable'
+                ? { backgroundColor: 'var(--theme-accent, #FFE066)' }
+                : {}
+            }
           >
             {insight.trend === 'down' ? (
               <TrendingDown className="w-5 h-5 stroke-[2.5px]" />
@@ -116,32 +123,48 @@ export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsi
             )}
           </div>
 
-          <div className="space-y-1 min-w-0">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 border border-black bg-white shadow-[1px_1px_0px_0px_#000]">
-                Ringkasan Mingguan Cerdas
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 border border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-md shadow-[1px_1px_0px_0px_#000]">
+                {lang === 'en' ? 'Smart Weekly Recap' : 'Ringkasan Mingguan Cerdas'}
               </span>
               {insight.trend === 'down' && (
-                <span className="text-[10px] font-black uppercase text-emerald-800 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Hemat {insight.percentChange}%
+                <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />{' '}
+                  {lang === 'en'
+                    ? `Saved ${insight.percentChange}%`
+                    : `Hemat ${insight.percentChange}%`}
                 </span>
               )}
             </div>
 
-            <p className="text-xs sm:text-sm font-black text-black leading-snug">
+            <p className="text-xs sm:text-sm font-black leading-snug">
               {insight.trend === 'down'
-                ? `Hebat! Pengeluaran 7 hari terakhir kamu turun ${insight.percentChange}% dibanding minggu lalu (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
+                ? lang === 'en'
+                  ? `Great! Your spending in the last 7 days dropped ${insight.percentChange}% compared to last week (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
+                  : `Hebat! Pengeluaran 7 hari terakhir kamu turun ${insight.percentChange}% dibanding minggu lalu (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
                 : insight.trend === 'up'
-                ? `Pengeluaran 7 hari terakhir naik ${insight.percentChange}% dibanding minggu lalu (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
+                ? lang === 'en'
+                  ? `Your spending in the last 7 days increased ${insight.percentChange}% compared to last week (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
+                  : `Pengeluaran 7 hari terakhir naik ${insight.percentChange}% dibanding minggu lalu (${maskBalance(formatRupiah(insight.thisWeekTotal))} vs ${maskBalance(formatRupiah(insight.lastWeekTotal))}).`
+                : lang === 'en'
+                ? `Total spending over the last 7 days: ${maskBalance(formatRupiah(insight.thisWeekTotal))} across ${insight.txCount} transactions.`
                 : `Total pengeluaran 7 hari terakhir: ${maskBalance(formatRupiah(insight.thisWeekTotal))} dari ${insight.txCount} transaksi.`}
             </p>
 
             {insight.topCategory && (
-              <p className="text-xs font-bold text-neutral-600 flex items-center gap-1.5 pt-0.5">
-                <span>Alokasi tertinggi minggu ini:</span>
-                <span className="font-black text-black inline-flex items-center gap-1 bg-white px-2 py-0.5 border border-black text-[11px]">
+              <p className="text-xs font-bold text-neutral-600 dark:text-neutral-400 flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span>
+                  {lang === 'en'
+                    ? 'Top category this week:'
+                    : 'Alokasi tertinggi minggu ini:'}
+                </span>
+                <span className="font-black text-black dark:text-white inline-flex items-center gap-1 bg-white dark:bg-neutral-800 px-2 py-0.5 border border-black dark:border-neutral-700 rounded-md text-[11px] shadow-[1px_1px_0px_0px_#000]">
                   <span>{getCategoryEmoji(insight.topCategory)}</span>
-                  <span>{insight.topCategory} ({maskBalance(formatRupiah(insight.topCategoryAmount))})</span>
+                  <span>
+                    {insight.topCategory} (
+                    {maskBalance(formatRupiah(insight.topCategoryAmount))})
+                  </span>
                 </span>
               </p>
             )}
@@ -150,8 +173,8 @@ export default function WeeklyInsightBanner({ transactions, userId }: WeeklyInsi
 
         <button
           onClick={handleDismiss}
-          className="p-1 text-neutral-400 hover:text-black border border-transparent hover:border-black rounded-none cursor-pointer shrink-0"
-          title="Tutup ringkasan ini"
+          className="p-1.5 text-neutral-400 hover:text-black dark:hover:text-white border border-transparent hover:border-black dark:hover:border-neutral-600 rounded-lg cursor-pointer shrink-0 transition-all"
+          title={lang === 'en' ? 'Dismiss recap' : 'Tutup ringkasan ini'}
         >
           <X className="w-4 h-4 stroke-[2.5px]" />
         </button>

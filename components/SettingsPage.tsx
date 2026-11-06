@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2 } from 'lucide-react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2, Palette, Sun, Moon, Laptop } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
@@ -19,6 +19,8 @@ import {
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
 import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
+import { useTheme } from '../lib/themeContext';
+import { useLanguage } from '../lib/i18n';
 
 interface SettingsProps {
   user: {
@@ -42,6 +44,11 @@ interface SettingsProps {
 }
 
 export default function SettingsPage({ user, stats, trialDays, pricingPlans }: SettingsProps) {
+  const { lang } = useLanguage();
+  const { accentColor, setAccentColor, resetAccentColor, accentTextColor, themeMode, setThemeMode, presets } = useTheme();
+  const [customColorInput, setCustomColorInput] = useState<string | null>(null);
+  const displayColorInput = customColorInput ?? accentColor;
+
   const isPro = user.plan === 'pro';
   const [now] = useState(() => Date.now());
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -343,6 +350,204 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <p className="text-2xl font-black text-black">∞</p>
               <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mt-1">Limit/Bulan</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tema & Tampilan (Warna Aksen & Mode Gelap) */}
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-black dark:border-neutral-700 pb-4 gap-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Palette className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" />
+              {lang === 'en' ? 'Theme & Appearance' : 'Tema & Tampilan'}
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
+              {lang === 'en'
+                ? 'Customize accent color, dark mode, and UI style'
+                : 'Sesuaikan warna aksen aplikasi, mode gelap, dan tampilan visual Anda'}
+            </p>
+          </div>
+          <span
+            className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border border-black dark:border-neutral-700 rounded-md shadow-[1.5px_1.5px_0px_0px_#000] shrink-0"
+            style={{ backgroundColor: accentColor, color: accentTextColor }}
+          >
+            {accentColor.toUpperCase()}
+          </span>
+        </div>
+
+        <div className="space-y-6">
+          {/* Mode Tampilan (Light / Dark / System) */}
+          <div className="space-y-2">
+            <label className="block text-xs font-black uppercase tracking-wider text-black dark:text-neutral-200">
+              {lang === 'en' ? 'Display Mode' : 'Mode Tampilan Layar'}
+            </label>
+            <div className="grid grid-cols-3 gap-2.5 max-w-md">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setThemeMode('light');
+                }}
+                className={`py-2.5 px-3 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  themeMode === 'light'
+                    ? 'shadow-[2px_2px_0px_0px_#000]'
+                    : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50'
+                }`}
+                style={themeMode === 'light' ? { backgroundColor: accentColor, color: accentTextColor } : {}}
+              >
+                <Sun className="w-4 h-4 stroke-[2.5px]" />
+                <span>{lang === 'en' ? 'Light' : 'Terang'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setThemeMode('dark');
+                }}
+                className={`py-2.5 px-3 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  themeMode === 'dark'
+                    ? 'shadow-[2px_2px_0px_0px_#000]'
+                    : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50'
+                }`}
+                style={themeMode === 'dark' ? { backgroundColor: accentColor, color: accentTextColor } : {}}
+              >
+                <Moon className="w-4 h-4 stroke-[2.5px]" />
+                <span>{lang === 'en' ? 'Dark' : 'Gelap'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setThemeMode('system');
+                }}
+                className={`py-2.5 px-3 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  themeMode === 'system'
+                    ? 'shadow-[2px_2px_0px_0px_#000]'
+                    : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50'
+                }`}
+                style={themeMode === 'system' ? { backgroundColor: accentColor, color: accentTextColor } : {}}
+              >
+                <Laptop className="w-4 h-4 stroke-[2.5px]" />
+                <span>{lang === 'en' ? 'System' : 'Sistem'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Preset Warna Aksen Cepat */}
+          <div className="space-y-2">
+            <label className="block text-xs font-black uppercase tracking-wider text-black dark:text-neutral-200">
+              {lang === 'en' ? 'Quick Accent Color Presets' : 'Pilihan Warna Aksen Cepat'}
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {presets.map((preset) => {
+                const isSelected = accentColor.toLowerCase() === preset.hex.toLowerCase();
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setCustomColorInput(null);
+                      setAccentColor(preset.hex);
+                    }}
+                    className={`p-3 border-2 border-black dark:border-neutral-700 rounded-xl text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] ${
+                      isSelected
+                        ? 'bg-neutral-100 dark:bg-neutral-800 ring-2 ring-black dark:ring-white'
+                        : 'bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className="w-5 h-5 rounded-full border border-black shrink-0 shadow-[1px_1px_0px_0px_#000]"
+                        style={{ backgroundColor: preset.hex }}
+                      />
+                      <span className="text-xs font-bold text-black dark:text-white truncate">
+                        {preset.name}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span className="text-xs font-black text-black dark:text-white shrink-0">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Pilihan Warna Kustom (Color Wheel & Hex Input) */}
+          <div className="p-4 border-2 border-black dark:border-neutral-700 rounded-xl bg-[#FAF9F5] dark:bg-neutral-800/60 shadow-[3px_3px_0px_0px_#000] space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <label className="block text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                {lang === 'en' ? 'Custom Color (Hex / Palette)' : 'Warna Kustom (Hex / Palet Bebas)'}
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setCustomColorInput(null);
+                  resetAccentColor();
+                }}
+                className="text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white underline cursor-pointer"
+              >
+                {lang === 'en' ? 'Reset to Default (#FFE066)' : 'Kembalikan Default (#FFE066)'}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Native Color Picker Trigger */}
+              <div className="relative flex items-center justify-center">
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={(e) => {
+                    setCustomColorInput(null);
+                    setAccentColor(e.target.value);
+                  }}
+                  className="w-11 h-11 p-0.5 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] cursor-pointer bg-white"
+                  title={lang === 'en' ? 'Open color wheel' : 'Buka roda warna'}
+                />
+              </div>
+
+              {/* Hex Input */}
+              <div className="flex-1 min-w-[140px] max-w-xs">
+                <input
+                  type="text"
+                  value={displayColorInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCustomColorInput(val);
+                    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(val)) {
+                      setAccentColor(val);
+                    }
+                  }}
+                  placeholder="#FFE066"
+                  maxLength={7}
+                  className="w-full brutal-input uppercase text-xs font-black"
+                />
+              </div>
+
+              {/* Live Preview Button */}
+              <div className="shrink-0">
+                <button
+                  type="button"
+                  className="px-4 py-2.5 border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] transition-all"
+                  style={{ backgroundColor: accentColor, color: accentTextColor }}
+                >
+                  {lang === 'en' ? 'Button Preview' : 'Contoh Tombol'}
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
+              {lang === 'en'
+                ? `Smart contrast automatically sets button text to ${accentTextColor === '#000000' ? 'Black' : 'White'} for optimal readability.`
+                : `Kontras pintar otomatis menyesuaikan teks tombol menjadi ${accentTextColor === '#000000' ? 'Hitam' : 'Putih'} agar selalu nyaman dibaca.`}
+            </p>
           </div>
         </div>
       </div>

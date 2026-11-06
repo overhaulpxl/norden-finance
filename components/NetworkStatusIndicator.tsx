@@ -74,43 +74,55 @@ export default function NetworkStatusIndicator() {
   return (
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md select-none animate-in slide-in-from-top-2 duration-200">
       {!isOnline ? (
-        <div className="bg-[#fee2e2] border-[2.5px] border-black p-3 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 bg-red-600 text-white border border-black shrink-0">
+        <div className="bg-[#fee2e2] dark:bg-red-950/90 border-2 border-black dark:border-neutral-700 p-3 rounded-2xl shadow-[4px_4px_0px_0px_#000] flex items-center justify-between gap-2.5 text-black dark:text-white">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-1.5 bg-red-600 text-white border border-black rounded-lg shadow-[1px_1px_0px_0px_#000] shrink-0">
               <WifiOff className="w-4 h-4 stroke-[2.5px]" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black uppercase text-red-900 tracking-wider">
+              <p className="text-xs font-black uppercase text-red-900 dark:text-red-200 tracking-wider">
                 {lang === 'id' ? 'Koneksi Internet Terputus' : 'Offline Mode Active'}
               </p>
-              <p className="text-[10px] font-bold text-red-700 truncate">
+              <p className="text-[10px] font-bold text-red-700 dark:text-red-300 truncate">
                 {queueCount > 0
-                  ? (lang === 'id' ? `${queueCount} transaksi tersimpan lokal & siap sync.` : `${queueCount} transactions saved locally.`)
-                  : (lang === 'id' ? 'Transaksi tetap dapat dicatat & disimpan offline.' : 'Transactions will save locally until online.')}
+                  ? lang === 'id'
+                    ? `${queueCount} transaksi tersimpan lokal & siap sync.`
+                    : `${queueCount} transactions saved locally.`
+                  : lang === 'id'
+                  ? 'Transaksi tetap dapat dicatat & disimpan offline.'
+                  : 'Transactions will save locally until online.'}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="px-2.5 py-1 bg-white border border-black text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] active:translate-y-0.5 cursor-pointer flex items-center gap-1 shrink-0"
+            className="px-2.5 py-1 bg-white dark:bg-neutral-800 border border-black dark:border-neutral-700 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000] active:translate-y-0.5 cursor-pointer flex items-center gap-1 shrink-0 text-black dark:text-white"
           >
             <RefreshCw className="w-3 h-3" /> {lang === 'id' ? 'Coba Lagi' : 'Retry'}
           </button>
         </div>
       ) : (
-        <div className="bg-[#dcfce7] border-[2.5px] border-black p-3 shadow-[4px_4px_0px_0px_#000] flex items-center gap-2">
-          <div className="p-1.5 bg-emerald-700 text-white border border-black shrink-0">
-            {syncedCount > 0 ? <CheckCircle2 className="w-4 h-4 stroke-[2.5px]" /> : <Wifi className="w-4 h-4 stroke-[2.5px]" />}
+        <div className="bg-[#dcfce7] dark:bg-emerald-950/90 border-2 border-black dark:border-neutral-700 p-3 rounded-2xl shadow-[4px_4px_0px_0px_#000] flex items-center gap-2.5 text-black dark:text-white">
+          <div className="p-1.5 bg-emerald-700 text-white border border-black rounded-lg shadow-[1px_1px_0px_0px_#000] shrink-0">
+            {syncedCount > 0 ? (
+              <CheckCircle2 className="w-4 h-4 stroke-[2.5px]" />
+            ) : (
+              <Wifi className="w-4 h-4 stroke-[2.5px]" />
+            )}
           </div>
           <div>
-            <p className="text-xs font-black uppercase text-emerald-900 tracking-wider">
+            <p className="text-xs font-black uppercase text-emerald-900 dark:text-emerald-200 tracking-wider">
               {lang === 'id' ? 'Koneksi Terhubung Kembali' : 'Back Online'}
             </p>
-            <p className="text-[10px] font-bold text-emerald-700">
+            <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
               {syncedCount > 0
-                ? (lang === 'id' ? `${syncedCount} transaksi offline berhasil disinkronkan!` : `${syncedCount} offline transactions synced!`)
-                : (lang === 'id' ? 'Sistem online dan siap mencatat transaksi.' : 'System online and ready.')}
+                ? lang === 'id'
+                  ? `${syncedCount} transaksi offline berhasil disinkronkan!`
+                  : `${syncedCount} offline transactions synced!`
+                : lang === 'id'
+                ? 'Sistem online dan siap mencatat transaksi.'
+                : 'System online and ready.'}
             </p>
           </div>
         </div>

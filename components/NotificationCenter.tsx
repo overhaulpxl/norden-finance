@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bell, X, Check, Trash2, ShieldAlert, Trophy, CreditCard, CalendarCheck, Zap, Star, Flame, AlertCircle } from 'lucide-react';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, clearAllNotifications } from '../app/actions/notifications';
 import { triggerHaptic } from '../lib/haptics';
+import { useLanguage } from '../lib/i18n';
 
 interface Notification {
   id: string;
@@ -15,6 +16,7 @@ interface Notification {
 }
 
 export default function NotificationCenter() {
+  const { lang } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -92,26 +94,26 @@ export default function NotificationCenter() {
     const iconClass = "w-4 h-4 stroke-[2.5px] text-black";
     switch (type) {
       case 'BUDGET_ALERT':
-        return <div className="p-1.5 bg-[#fecaca] border-[1.5px] border-black"><ShieldAlert className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fecaca] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><ShieldAlert className={iconClass} /></div>;
       case 'GOAL_REACHED':
-        return <div className="p-1.5 bg-[#fef08a] border-[1.5px] border-black"><Trophy className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fef08a] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Trophy className={iconClass} /></div>;
       case 'PAYLATER_DUE':
       case 'DEBT_DUE':
-        return <div className="p-1.5 bg-[#fed7aa] border-[1.5px] border-black"><CreditCard className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fed7aa] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><CreditCard className={iconClass} /></div>;
       case 'SUBSCRIPTION_DUE':
-        return <div className="p-1.5 bg-[#dbeafe] border-[1.5px] border-black"><CalendarCheck className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#dbeafe] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><CalendarCheck className={iconClass} /></div>;
       case 'TRIAL_WARNING':
-        return <div className="p-1.5 bg-[#f5d0fe] border-[1.5px] border-black"><Zap className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#f5d0fe] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Zap className={iconClass} /></div>;
       case 'PAYMENT_APPROVED':
-        return <div className="p-1.5 bg-[#bbf7d0] border-[1.5px] border-black"><Check className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#bbf7d0] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Check className={iconClass} /></div>;
       case 'PAYMENT_REJECTED':
-        return <div className="p-1.5 bg-[#fca5a5] border-[1.5px] border-black"><X className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fca5a5] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><X className={iconClass} /></div>;
       case 'ACHIEVEMENT':
-        return <div className="p-1.5 bg-[#e9d5ff] border-[1.5px] border-black"><Star className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#e9d5ff] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Star className={iconClass} /></div>;
       case 'STREAK':
-        return <div className="p-1.5 bg-[#fed7aa] border-[1.5px] border-black"><Flame className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#fed7aa] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><Flame className={iconClass} /></div>;
       default:
-        return <div className="p-1.5 bg-[#e5e7eb] border-[1.5px] border-black"><AlertCircle className={iconClass} /></div>;
+        return <div className="p-1.5 bg-[#e5e7eb] border-2 border-black rounded-lg shadow-[1px_1px_0px_0px_#000]"><AlertCircle className={iconClass} /></div>;
     }
   };
 
@@ -125,11 +127,11 @@ export default function NotificationCenter() {
           setConfirmClear(false);
           fetchNotifications();
         }}
-        className="relative border-[2.5px] border-black bg-white p-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer rounded-none flex items-center justify-center"
+        className="relative border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 sm:p-2.5 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center text-black dark:text-white"
       >
-        <Bell className="w-5 h-5 text-black stroke-[2.5px]" />
+        <Bell className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5px]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-2.5 -right-2.5 bg-[#ff6b6b] text-white text-[9px] font-black border-[2px] border-black px-1.5 py-0.5 rounded-none shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+          <span className="absolute -top-2 -right-2 bg-[#ff6b6b] text-white text-[9px] font-black border-2 border-black px-1.5 py-0.2 rounded-full shadow-[1px_1px_0px_0px_#000]">
             {unreadCount}
           </span>
         )}
@@ -139,51 +141,58 @@ export default function NotificationCenter() {
       {isOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden select-none">
           <div 
-            className="absolute inset-0 bg-black/45 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute inset-y-0 right-0 max-w-full flex">
-            <div className="w-screen max-w-md bg-[#FAF9F5] border-l-[4px] border-black shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out translate-x-0">
+            <div className="w-screen max-w-md bg-[#FAF9F5] dark:bg-neutral-900 border-l-2 border-black dark:border-neutral-700 shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-out translate-x-0 text-black dark:text-white">
               
               {/* Header */}
-              <div className="p-5 border-b-[3px] border-black bg-white flex justify-between items-center">
+              <div className="p-4 sm:p-5 border-b-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-black uppercase tracking-wider text-black">Notifikasi</span>
+                  <span className="text-base sm:text-lg font-black uppercase tracking-wider">
+                    {lang === 'en' ? 'Notifications' : 'Notifikasi'}
+                  </span>
                   {unreadCount > 0 && (
-                    <span className="bg-[#FFE066] text-black text-[10px] font-black border-[1.5px] border-black px-2 py-0.5">
-                      {unreadCount} Baru
+                    <span
+                      className="text-black text-[10px] font-black border-2 border-black px-2 py-0.5 rounded-full shadow-[1px_1px_0px_0px_#000]"
+                      style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
+                    >
+                      {unreadCount} {lang === 'en' ? 'New' : 'Baru'}
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1 border-[2px] border-black bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                  className="p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                 >
-                  <X className="w-4 h-4 text-black stroke-[2.5px]" />
+                  <X className="w-4 h-4 stroke-[2.5px]" />
                 </button>
               </div>
 
               {/* Actions toolbar */}
               {notifications.length > 0 && (
-                <div className="px-5 py-2.5 border-b-[2px] border-black bg-white/70 flex justify-between gap-2 items-center">
+                <div className="px-4 sm:px-5 py-2.5 border-b-2 border-black dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/70 flex justify-between gap-2 items-center">
                   {confirmClear ? (
                     <div className="w-full flex items-center justify-between gap-2 animate-in fade-in">
-                      <span className="text-[10px] font-black uppercase text-red-600">Hapus semua notifikasi?</span>
+                      <span className="text-[10px] font-black uppercase text-red-600 dark:text-red-400">
+                        {lang === 'en' ? 'Clear all notifications?' : 'Hapus semua notifikasi?'}
+                      </span>
                       <div className="flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => setConfirmClear(false)}
-                          className="px-2.5 py-1 border-[2px] border-black bg-neutral-200 text-black text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                          className="px-2.5 py-1 border-2 border-black dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-700 text-black dark:text-white text-[10px] font-black uppercase rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                         >
-                          Batal
+                          {lang === 'en' ? 'Cancel' : 'Batal'}
                         </button>
                         <button
                           type="button"
                           onClick={handleClearAll}
                           disabled={loading}
-                          className="px-2.5 py-1 border-[2px] border-black bg-red-500 text-white text-[10px] font-black uppercase shadow-[1px_1px_0px_0px_#000] cursor-pointer disabled:opacity-50"
+                          className="px-2.5 py-1 border-2 border-black bg-red-500 text-white text-[10px] font-black uppercase rounded-lg shadow-[1px_1px_0px_0px_#000] cursor-pointer disabled:opacity-50"
                         >
-                          Ya, Hapus
+                          {lang === 'en' ? 'Yes, Clear' : 'Ya, Hapus'}
                         </button>
                       </div>
                     </div>
@@ -192,9 +201,9 @@ export default function NotificationCenter() {
                       <button
                         onClick={handleMarkAllAsRead}
                         disabled={loading || unreadCount === 0}
-                        className="flex-1 py-1.5 border-[2.5px] border-black bg-[#bbf7d0] hover:bg-[#a6ecbd] text-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+                        className="flex-1 py-1.5 px-2 border-2 border-black rounded-xl bg-[#bbf7d0] hover:bg-[#a6ecbd] text-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
                       >
-                        Tandai Semua Dibaca
+                        {lang === 'en' ? 'Mark All Read' : 'Tandai Semua Dibaca'}
                       </button>
                       <button
                         onClick={() => {
@@ -202,9 +211,10 @@ export default function NotificationCenter() {
                           setConfirmClear(true);
                         }}
                         disabled={loading}
-                        className="py-1.5 px-3 border-[2.5px] border-black bg-red-100 hover:bg-red-200 text-red-700 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+                        className="py-1.5 px-3 border-2 border-black rounded-xl bg-red-100 dark:bg-red-950/80 hover:bg-red-200 text-red-700 dark:text-red-300 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Hapus
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{lang === 'en' ? 'Clear' : 'Hapus'}</span>
                       </button>
                     </>
                   )}
@@ -212,23 +222,27 @@ export default function NotificationCenter() {
               )}
 
               {/* Scrollable list */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
                 {notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-64 text-center">
-                    <div className="w-16 h-16 border-[3px] border-black bg-white flex items-center justify-center mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                      <Bell className="w-8 h-8 text-neutral-300 stroke-[2px]" />
+                    <div className="w-16 h-16 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-2xl flex items-center justify-center mb-4 shadow-[4px_4px_0px_0px_#000]">
+                      <Bell className="w-8 h-8 text-neutral-300 dark:text-neutral-600 stroke-[2px]" />
                     </div>
-                    <p className="text-sm font-black text-black uppercase tracking-wider">Belum ada notifikasi</p>
-                    <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mt-1">Semua kabar keuangan Anda terpantau aman!</p>
+                    <p className="text-sm font-black uppercase tracking-wider">
+                      {lang === 'en' ? 'No notifications yet' : 'Belum ada notifikasi'}
+                    </p>
+                    <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
+                      {lang === 'en' ? 'All your finances are looking good!' : 'Semua kabar keuangan Anda terpantau aman!'}
+                    </p>
                   </div>
                 ) : (
                   notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className={`relative border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex gap-3 ${
+                      className={`relative border-2 border-black dark:border-neutral-700 rounded-2xl p-4 shadow-[3px_3px_0px_0px_#000] transition-all flex gap-3 ${
                         notif.isRead 
-                          ? 'bg-white text-neutral-800' 
-                          : 'bg-[#faf5d9] border-[#000] text-black font-semibold'
+                          ? 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200' 
+                          : 'bg-[#faf5d9] dark:bg-neutral-750 text-black dark:text-white font-semibold'
                       }`}
                     >
                       {/* Left icon wrapper */}
@@ -238,14 +252,14 @@ export default function NotificationCenter() {
 
                       {/* Content */}
                       <div className="flex-grow min-w-0 pr-6">
-                        <p className={`text-xs font-black uppercase tracking-wider ${notif.isRead ? 'text-neutral-900' : 'text-black'}`}>
+                        <p className={`text-xs font-black uppercase tracking-wider ${notif.isRead ? 'text-neutral-900 dark:text-neutral-100' : 'text-black dark:text-white'}`}>
                           {notif.title}
                         </p>
-                        <p className="text-xs text-neutral-600 font-bold uppercase tracking-wide mt-1 leading-relaxed">
+                        <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold uppercase tracking-wide mt-1 leading-relaxed">
                           {notif.body}
                         </p>
                         <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-2">
-                          {notif.createdAt.toLocaleDateString('id-ID', {
+                          {notif.createdAt.toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric',
@@ -259,10 +273,10 @@ export default function NotificationCenter() {
                       {!notif.isRead && (
                         <button
                           onClick={() => handleMarkAsRead(notif.id)}
-                          className="absolute top-3 right-3 p-1 border-[1.5px] border-black bg-white hover:bg-neutral-50 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[0.5px] hover:translate-y-[0.5px] hover:shadow-[0.5px_0.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
-                          title="Tandai sudah dibaca"
+                          className="absolute top-3 right-3 p-1 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded-lg shadow-[1px_1px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
+                          title={lang === 'en' ? 'Mark as read' : 'Tandai sudah dibaca'}
                         >
-                          <Check className="w-3.5 h-3.5 text-black stroke-[3px]" />
+                          <Check className="w-3.5 h-3.5 stroke-[3px]" />
                         </button>
                       )}
                     </div>
