@@ -26,6 +26,7 @@ import { getCategoryEmoji } from '../lib/categoryEmoji';
 import { triggerHaptic } from '../lib/haptics';
 import { useHideBalance } from '../lib/HideBalanceContext';
 import { lockApp, isPinSet } from '../lib/appLock';
+import { useLanguage } from '../lib/i18n';
 
 interface CommandPaletteModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export default function CommandPaletteModal({
   balances,
   userId,
 }: CommandPaletteModalProps) {
+  const { lang } = useLanguage();
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { isBalanceHidden, toggleHideBalance, maskBalance } = useHideBalance();
@@ -76,13 +78,14 @@ export default function CommandPaletteModal({
   }, [isOpen, handleClose]);
 
   const quickActions = useMemo(() => {
+    const isEn = lang === 'en';
     return [
       {
         id: 'new-tx',
-        title: 'Catat Transaksi Baru',
-        subtitle: 'Buka Smart Input dengan AI atau formulir manual',
+        title: isEn ? 'Record New Transaction' : 'Catat Transaksi Baru',
+        subtitle: isEn ? 'Open Smart Input or manual entry' : 'Buka Smart Input dengan AI atau formulir manual',
         icon: Plus,
-        category: 'Aksi Cepat',
+        category: isEn ? 'Quick Actions' : 'Aksi Cepat',
         action: () => {
           handleClose();
           onNewTransaction();
@@ -90,10 +93,14 @@ export default function CommandPaletteModal({
       },
       {
         id: 'toggle-balance',
-        title: isBalanceHidden ? 'Tampilkan Nominal Saldo' : 'Sembunyikan Nominal Saldo (Mode Privasi)',
-        subtitle: isBalanceHidden ? 'Tampilkan kembali angka saldo asli' : 'Tutupi saldo dengan asteris (••••••)',
+        title: isBalanceHidden
+          ? (isEn ? 'Show Balance Amount' : 'Tampilkan Nominal Saldo')
+          : (isEn ? 'Hide Balance Amount (Privacy Mode)' : 'Sembunyikan Nominal Saldo (Mode Privasi)'),
+        subtitle: isBalanceHidden
+          ? (isEn ? 'Reveal original balance figures' : 'Tampilkan kembali angka saldo asli')
+          : (isEn ? 'Mask balances with asterisks (••••••)' : 'Tutupi saldo dengan asteris (••••••)'),
         icon: isBalanceHidden ? Eye : EyeOff,
-        category: 'Aksi Cepat',
+        category: isEn ? 'Quick Actions' : 'Aksi Cepat',
         action: () => {
           toggleHideBalance();
           triggerHaptic('light');
@@ -102,10 +109,10 @@ export default function CommandPaletteModal({
       },
       {
         id: 'transfer',
-        title: 'Transfer Saldo Antar Dompet',
-        subtitle: 'Pindah saldo dari rekening bank ke e-wallet',
+        title: isEn ? 'Transfer Between Wallets' : 'Transfer Saldo Antar Dompet',
+        subtitle: isEn ? 'Move balance from bank to e-wallet' : 'Pindah saldo dari rekening bank ke e-wallet',
         icon: ArrowRightLeft,
-        category: 'Aksi Cepat',
+        category: isEn ? 'Quick Actions' : 'Aksi Cepat',
         action: () => {
           handleClose();
           onNavigate('wallet');
@@ -115,10 +122,10 @@ export default function CommandPaletteModal({
         ? [
             {
               id: 'lock-app',
-              title: 'Kunci Layar Sekarang (PIN)',
-              subtitle: 'Aktifkan layar pengaman 4-digit PIN segera',
+              title: isEn ? 'Lock Screen Now (PIN)' : 'Kunci Layar Sekarang (PIN)',
+              subtitle: isEn ? 'Activate 4-digit PIN security screen immediately' : 'Aktifkan layar pengaman 4-digit PIN segera',
               icon: Lock,
-              category: 'Aksi Cepat',
+              category: isEn ? 'Quick Actions' : 'Aksi Cepat',
               action: () => {
                 handleClose();
                 triggerHaptic('medium');
@@ -129,31 +136,32 @@ export default function CommandPaletteModal({
         : []),
       {
         id: 'download-pdf',
-        title: 'Unduh Laporan PDF Bulanan',
-        subtitle: 'Generate ringkasan PDF formal pemasukan & pengeluaran',
+        title: isEn ? 'Download Monthly PDF Report' : 'Unduh Laporan PDF Bulanan',
+        subtitle: isEn ? 'Generate formal PDF summary of income & expenses' : 'Generate ringkasan PDF formal pemasukan & pengeluaran',
         icon: FileText,
-        category: 'Aksi Cepat',
+        category: isEn ? 'Quick Actions' : 'Aksi Cepat',
         action: () => {
           handleClose();
           window.open('/api/export?format=pdf', '_blank');
         },
       },
     ];
-  }, [isBalanceHidden, onNewTransaction, handleClose, onNavigate, toggleHideBalance, userId]);
+  }, [lang, isBalanceHidden, onNewTransaction, handleClose, onNavigate, toggleHideBalance, userId]);
 
   const navItems = useMemo(() => {
+    const isEn = lang === 'en';
     return [
-      { id: 'overview', title: 'Beranda & Ringkasan', subtitle: 'Kekayaan bersih, Safe-to-Spend & tagihan', icon: Home, tab: 'overview' },
-      { id: 'wallet', title: 'Dompet & Rekening', subtitle: 'Kelola kas, bank & saldo e-wallet', icon: Wallet, tab: 'wallet' },
-      { id: 'goals', title: 'Target Tabungan & Wishlist', subtitle: 'Pantau impian & alokasi dana tabungan', icon: Target, tab: 'goals' },
-      { id: 'debts', title: 'Utang, Piutang & Cicilan', subtitle: 'Pencatatan pinjaman & jadwal paylater', icon: CreditCard, tab: 'goals' },
-      { id: 'history', title: 'Riwayat Transaksi', subtitle: 'Semua mutasi, filter & ekspor CSV', icon: History, tab: 'history' },
-      { id: 'reports', title: 'Laporan & Analitik', subtitle: 'Distribusi pengeluaran, kalender & rekap bulanan', icon: BarChart3, tab: 'reports' },
-      { id: 'automation', title: 'Otomasi & Langganan', subtitle: 'Transaksi berulang & pengingat otomatis', icon: Bot, tab: 'automation' },
-      { id: 'settings', title: 'Pengaturan & Keamanan Akun', subtitle: 'PIN lock, reset data, profil & paket Pro', icon: Settings, tab: 'settings' },
-      { id: 'help', title: 'Pusat Bantuan & Kontak', subtitle: 'WhatsApp admin & email dukungan resmi', icon: HelpCircle, tab: 'help' },
+      { id: 'overview', title: isEn ? 'Home & Overview' : 'Beranda & Ringkasan', subtitle: isEn ? 'Net worth, Safe-to-Spend & bills' : 'Kekayaan bersih, Safe-to-Spend & tagihan', icon: Home, tab: 'overview' },
+      { id: 'wallet', title: isEn ? 'Wallets & Accounts' : 'Dompet & Rekening', subtitle: isEn ? 'Manage cash, bank & e-wallet balances' : 'Kelola kas, bank & saldo e-wallet', icon: Wallet, tab: 'wallet' },
+      { id: 'goals', title: isEn ? 'Saving Goals & Wishlist' : 'Target Tabungan & Wishlist', subtitle: isEn ? 'Track savings & target funds' : 'Pantau impian & alokasi dana tabungan', icon: Target, tab: 'goals' },
+      { id: 'debts', title: isEn ? 'Debts & Installments' : 'Utang, Piutang & Cicilan', subtitle: isEn ? 'Track loans & paylater schedule' : 'Pencatatan pinjaman & jadwal paylater', icon: CreditCard, tab: 'goals' },
+      { id: 'history', title: isEn ? 'Transaction History' : 'Riwayat Transaksi', subtitle: isEn ? 'All movements, filters & export' : 'Semua mutasi, filter & ekspor CSV', icon: History, tab: 'history' },
+      { id: 'reports', title: isEn ? 'Reports & Analytics' : 'Laporan & Analitik', subtitle: isEn ? 'Spending breakdown & recap' : 'Distribusi pengeluaran, kalender & rekap bulanan', icon: BarChart3, tab: 'reports' },
+      { id: 'automation', title: isEn ? 'Automation & Subscriptions' : 'Otomasi & Langganan', subtitle: isEn ? 'Recurring transactions & reminders' : 'Transaksi berulang & pengingat otomatis', icon: Bot, tab: 'automation' },
+      { id: 'settings', title: isEn ? 'Settings & Security' : 'Pengaturan & Keamanan Akun', subtitle: isEn ? 'PIN lock, reset data & Pro plan' : 'PIN lock, reset data, profil & paket Pro', icon: Settings, tab: 'settings' },
+      { id: 'help', title: isEn ? 'Help & Support' : 'Pusat Bantuan & Kontak', subtitle: isEn ? 'WhatsApp admin & support email' : 'WhatsApp admin & email dukungan resmi', icon: HelpCircle, tab: 'help' },
     ];
-  }, []);
+  }, [lang]);
 
   // Filter actions & navigation based on query
   const q = query.toLowerCase().trim();
@@ -216,7 +224,7 @@ export default function CommandPaletteModal({
           <input
             ref={inputRef}
             type="text"
-            placeholder="Cari menu, aksi cepat, atau transaksi..."
+            placeholder={lang === 'en' ? 'Search menu, quick actions, or transactions...' : 'Cari menu, aksi cepat, atau transaksi...'}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 bg-transparent text-xs sm:text-sm font-black text-black outline-none uppercase placeholder:text-neutral-400 placeholder:normal-case"
@@ -240,7 +248,7 @@ export default function CommandPaletteModal({
           {filteredActions.length > 0 && (
             <div className="space-y-1">
               <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
-                Aksi Cepat
+                {lang === 'en' ? 'Quick Actions' : 'Aksi Cepat'}
               </span>
               {filteredActions.map((item) => {
                 const IconComponent = item.icon;
@@ -273,7 +281,7 @@ export default function CommandPaletteModal({
           {filteredNav.length > 0 && (
             <div className="pt-3 space-y-1">
               <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
-                Navigasi Menu
+                {lang === 'en' ? 'Menu Navigation' : 'Navigasi Menu'}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {filteredNav.map((item) => {
@@ -310,7 +318,7 @@ export default function CommandPaletteModal({
           {matchedBalances.length > 0 && (
             <div className="pt-3 space-y-1">
               <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
-                Dompet & Rekening
+                {lang === 'en' ? 'Wallets & Accounts' : 'Dompet & Rekening'}
               </span>
               {matchedBalances.map((wallet) => (
                 <div
@@ -348,7 +356,7 @@ export default function CommandPaletteModal({
           {matchedTransactions.length > 0 && (
             <div className="pt-3 space-y-1">
               <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider px-2 block mb-1">
-                Hasil Pencarian Transaksi
+                {lang === 'en' ? 'Transaction Results' : 'Hasil Pencarian Transaksi'}
               </span>
               {matchedTransactions.map((tx) => (
                 <div
@@ -364,7 +372,7 @@ export default function CommandPaletteModal({
                     <span className="text-base shrink-0">{getCategoryEmoji(tx.category?.name)}</span>
                     <div className="min-w-0">
                       <p className="text-xs font-black uppercase tracking-wider text-black truncate">
-                        {tx.category?.name || 'Lain-lain'}
+                        {tx.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain')}
                       </p>
                       <p className="text-[10px] font-bold text-neutral-500 truncate">
                         {tx.note || tx.wallet?.name || '-'} • {formatTanggal(tx.transactionDate)}
@@ -392,10 +400,10 @@ export default function CommandPaletteModal({
           {filteredActions.length === 0 && filteredNav.length === 0 && matchedBalances.length === 0 && matchedTransactions.length === 0 && (
             <div className="p-8 text-center space-y-1">
               <p className="text-xs font-black uppercase text-black">
-                Tidak ada menu atau transaksi yang cocok
+                {lang === 'en' ? 'No matching menu or transactions found' : 'Tidak ada menu atau transaksi yang cocok'}
               </p>
               <p className="text-[11px] font-bold text-neutral-500">
-                Coba gunakan kata kunci pencarian yang lebih singkat.
+                {lang === 'en' ? 'Try using shorter or different search keywords.' : 'Coba gunakan kata kunci pencarian yang lebih singkat.'}
               </p>
             </div>
           )}
@@ -403,8 +411,8 @@ export default function CommandPaletteModal({
 
         {/* Footer shortcuts hint */}
         <div className="p-2.5 border-t-2 border-black bg-[#FAF9F5] flex items-center justify-between text-[10px] font-bold text-neutral-500 px-4">
-          <span>Gunakan <strong>↑↓</strong> untuk navigasi</span>
-          <span><strong>ESC</strong> untuk menutup</span>
+          <span>{lang === 'en' ? 'Use ↑↓ to navigate' : 'Gunakan ↑↓ untuk navigasi'}</span>
+          <span>{lang === 'en' ? 'ESC to close' : 'ESC untuk menutup'}</span>
         </div>
       </div>
     </div>

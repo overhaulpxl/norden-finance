@@ -11,9 +11,11 @@ import { getCategoryEmoji } from '../lib/categoryEmoji';
 import { triggerHaptic } from '../lib/haptics';
 import { triggerUndoToast } from '../lib/undoToast';
 import { useHideBalance } from '../lib/HideBalanceContext';
+import { useLanguage } from '../lib/i18n';
 
 export default function TransactionTable({ transactions, balances = [] }: { transactions: Transaction[]; balances?: Balance[] }) {
   const router = useRouter();
+  const { lang } = useLanguage();
   const { maskBalance } = useHideBalance();
   const [transactionOverrides, setTransactionOverrides] = useState<Record<string, Transaction>>({});
   const [deletedTransactionIds, setDeletedTransactionIds] = useState<Set<string>>(() => new Set());
@@ -290,7 +292,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black stroke-[3px]" />
           <input
             type="text"
-            placeholder="Cari transaksi, catatan, tag..."
+            placeholder={lang === 'en' ? 'Search transactions, notes, tags...' : 'Cari transaksi, catatan, tag...'}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full brutal-input pl-9 pr-4 py-2 text-xs font-bold uppercase"
@@ -299,34 +301,34 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
 
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className={selectClass}>
-            <option value="all">Semua Bulan</option>
+            <option value="all">{lang === 'en' ? 'All Months' : 'Semua Bulan'}</option>
             {months.map(m => {
               const [y, mo] = m.split('-');
-              const label = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+              const label = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { month: 'short', year: 'numeric' });
               return <option key={m} value={m}>{label}</option>;
             })}
           </select>
 
           <select value={filterType} onChange={e => setFilterType(e.target.value)} className={selectClass}>
-            <option value="all">Semua Jenis</option>
-            <option value="masuk">Pemasukan (+)</option>
-            <option value="keluar">Pengeluaran (-)</option>
-            <option value="transfer">Transfer (⇆)</option>
+            <option value="all">{lang === 'en' ? 'All Types' : 'Semua Jenis'}</option>
+            <option value="masuk">{lang === 'en' ? 'Income (+)' : 'Pemasukan (+)'}</option>
+            <option value="keluar">{lang === 'en' ? 'Expense (-)' : 'Pengeluaran (-)'}</option>
+            <option value="transfer">{lang === 'en' ? 'Transfer (⇆)' : 'Transfer (⇆)'}</option>
           </select>
 
           <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={selectClass}>
-            <option value="all">Semua Kategori</option>
+            <option value="all">{lang === 'en' ? 'All Categories' : 'Semua Kategori'}</option>
             {categories.map(category => <option key={category} value={category}>{category}</option>)}
           </select>
 
           <select value={filterMethod} onChange={e => setFilterMethod(e.target.value)} className={selectClass}>
-            <option value="all">Semua Dompet</option>
+            <option value="all">{lang === 'en' ? 'All Wallets' : 'Semua Dompet'}</option>
             {methods.map(m => <option key={m} value={m}>{formatMethodName(m)}</option>)}
           </select>
 
           {uniqueTags.length > 0 && (
             <select value={filterTag} onChange={e => setFilterTag(e.target.value)} className={selectClass}>
-              <option value="all">Semua Tag</option>
+              <option value="all">{lang === 'en' ? 'All Tags' : 'Semua Tag'}</option>
               {uniqueTags.map(tag => <option key={tag} value={tag}>#{tag}</option>)}
             </select>
           )}
@@ -336,7 +338,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
               type="button"
               onClick={handleResetFilters}
               className="px-2.5 py-2 border-[2px] border-black bg-[#fecaca] hover:bg-red-200 text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer transition-colors"
-              title="Bersihkan semua filter"
+              title={lang === 'en' ? 'Clear all active filters' : 'Bersihkan semua filter'}
             >
               Reset ({activeFilterCount})
             </button>
@@ -346,9 +348,9 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
             <button
               onClick={() => exportTransactionsToCSV(filtered)}
               className="brutal-btn-light px-3 py-2 text-xs flex items-center gap-1.5 font-black uppercase tracking-wider cursor-pointer ml-auto lg:ml-0"
-              title="Unduh data hasil filter sebagai CSV"
+              title={lang === 'en' ? 'Download filtered data as CSV' : 'Unduh data hasil filter sebagai CSV'}
             >
-              <Download className="w-3.5 h-3.5 stroke-[2.5px]" /> Ekspor CSV
+              <Download className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? 'Export CSV' : 'Ekspor CSV'}
             </button>
           )}
         </div>
@@ -366,7 +368,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
             filterType === 'all' ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'
           }`}
         >
-          Semua ({transactions.length})
+          {lang === 'en' ? 'All' : 'Semua'} ({transactions.length})
         </button>
 
         <button
@@ -380,7 +382,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-red-600 shrink-0" />
-          <span>Pengeluaran ({transactions.filter((t) => t.type === 'keluar').length})</span>
+          <span>{lang === 'en' ? 'Expenses' : 'Pengeluaran'} ({transactions.filter((t) => t.type === 'keluar').length})</span>
         </button>
 
         <button
@@ -394,7 +396,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
-          <span>Pemasukan ({transactions.filter((t) => t.type === 'masuk').length})</span>
+          <span>{lang === 'en' ? 'Income' : 'Pemasukan'} ({transactions.filter((t) => t.type === 'masuk').length})</span>
         </button>
 
         <button
@@ -408,7 +410,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
           }`}
         >
           <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
-          <span>Transfer ({transactions.filter((t) => t.type === 'transfer').length})</span>
+          <span>{lang === 'en' ? 'Transfer' : 'Transfer'} ({transactions.filter((t) => t.type === 'transfer').length})</span>
         </button>
       </div>
 
@@ -417,7 +419,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-[#FAF9F5] border-[2px] border-black p-3 shadow-[2.5px_2.5px_0px_0px_#000]">
           <div className="space-y-0.5">
             <span className="text-[9px] font-black uppercase text-neutral-500 tracking-wider block">
-              Pengeluaran
+              {lang === 'en' ? 'Expense' : 'Pengeluaran'}
             </span>
             <p className="text-xs sm:text-sm font-black text-red-700 truncate">
               -{maskBalance(formatRupiah(filteredSummary.expense))}
@@ -426,7 +428,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
 
           <div className="space-y-0.5">
             <span className="text-[9px] font-black uppercase text-neutral-500 tracking-wider block">
-              Pemasukan
+              {lang === 'en' ? 'Income' : 'Pemasukan'}
             </span>
             <p className="text-xs sm:text-sm font-black text-emerald-700 truncate">
               +{maskBalance(formatRupiah(filteredSummary.income))}
@@ -435,7 +437,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
 
           <div className="col-span-2 sm:col-span-1 space-y-0.5 border-t sm:border-t-0 sm:border-l border-neutral-300 pt-1.5 sm:pt-0 sm:pl-3">
             <span className="text-[9px] font-black uppercase text-neutral-500 tracking-wider block">
-              Arus Kas Bersih
+              {lang === 'en' ? 'Net Cashflow' : 'Arus Kas Bersih'}
             </span>
             <p className={`text-xs sm:text-sm font-black truncate ${
               filteredSummary.net >= 0 ? 'text-emerald-800' : 'text-red-800'
@@ -449,9 +451,13 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
       <div className="space-y-2.5">
         {filtered.length === 0 ? (
           <div className="text-center py-12 bg-white border-[3px] border-black border-dashed rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-6 space-y-3">
-            <p className="text-black font-black text-sm uppercase tracking-wider">Tidak ada transaksi ditemukan</p>
+            <p className="text-black font-black text-sm uppercase tracking-wider">
+              {lang === 'en' ? 'No transactions found' : 'Tidak ada transaksi ditemukan'}
+            </p>
             <p className="text-neutral-500 font-bold text-xs uppercase tracking-wide">
-              {isFilterActive ? 'Coba sesuaikan kata kunci pencarian atau bersihkan filter aktif.' : 'Belum ada transaksi tercatat pada sistem.'}
+              {isFilterActive
+                ? (lang === 'en' ? 'Try adjusting your search terms or clearing active filters.' : 'Coba sesuaikan kata kunci pencarian atau bersihkan filter aktif.')
+                : (lang === 'en' ? 'No transactions recorded yet.' : 'Belum ada transaksi tercatat pada sistem.')}
             </p>
             {isFilterActive && (
               <button
@@ -459,7 +465,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 onClick={handleResetFilters}
                 className="mt-2 brutal-btn px-4 py-2 text-xs font-black uppercase tracking-wider"
               >
-                Bersihkan Filter
+                {lang === 'en' ? 'Clear Filters' : 'Bersihkan Filter'}
               </button>
             )}
           </div>
@@ -489,7 +495,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="text-sm shrink-0 select-none">{getCategoryEmoji(t.category?.name)}</span>
                     <h4 className="font-black text-xs sm:text-sm text-black uppercase tracking-wider truncate">
-                      {t.category?.name || 'Lain-lain'}
+                      {t.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain')}
                     </h4>
                   </div>
 
@@ -500,7 +506,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                         value={editNote}
                         onChange={e => setEditNote(e.target.value)}
                         className="bg-white border-[2px] border-black rounded-none px-2.5 py-1 text-xs text-black outline-none font-bold uppercase"
-                        placeholder="Catatan..."
+                        placeholder={lang === 'en' ? 'Note...' : 'Catatan...'}
                       />
                       <WalletSelect
                         wallets={balances}
@@ -522,7 +528,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                       <div className="flex flex-wrap items-center gap-1.5 text-xs text-neutral-400 font-bold uppercase tracking-wider">
                         <span className="text-black font-black truncate max-w-[200px]">{t.note || '-'}</span>
                         <span className="h-1 w-1 rounded-none bg-black shrink-0" />
-                        <span className="text-black font-black shrink-0">{formatMethodName(t.wallet?.name || 'Lain-lain')}</span>
+                        <span className="text-black font-black shrink-0">{formatMethodName(t.wallet?.name || (lang === 'en' ? 'Other' : 'Lain-lain'))}</span>
                         <span className="h-1 w-1 rounded-none bg-black shrink-0" />
                         <span className="text-neutral-500 shrink-0">{formatTanggal(t.transactionDate)}</span>
                       </div>
@@ -565,13 +571,13 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity justify-end shrink-0">
                   {editingId === t.id ? (
                     <>
-                      <button disabled={pendingMutationId === t.id} onClick={() => handleEditSave(t.id)} className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50" title="Simpan perubahan"><Check className="w-4 h-4 stroke-[3px]" /></button>
-                      <button disabled={pendingMutationId === t.id} onClick={() => setEditingId(null)} className="p-1.5 text-neutral-500 hover:bg-neutral-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50" title="Batal"><X className="w-4 h-4 stroke-[3px]" /></button>
+                      <button disabled={pendingMutationId === t.id} onClick={() => handleEditSave(t.id)} className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50" title={lang === 'en' ? 'Save changes' : 'Simpan perubahan'}><Check className="w-4 h-4 stroke-[3px]" /></button>
+                      <button disabled={pendingMutationId === t.id} onClick={() => setEditingId(null)} className="p-1.5 text-neutral-500 hover:bg-neutral-50 rounded-none transition-colors border border-transparent hover:border-black cursor-pointer disabled:opacity-50" title={lang === 'en' ? 'Cancel' : 'Batal'}><X className="w-4 h-4 stroke-[3px]" /></button>
                     </>
                   ) : deletingId === t.id ? (
                     <>
-                      <button disabled={pendingMutationId === t.id} onClick={() => handleDelete(t.id)} className="px-2 py-0.5 bg-red-600 text-white border border-black rounded-none text-[10px] font-black uppercase cursor-pointer disabled:opacity-50" title="Konfirmasi hapus">Ya</button>
-                      <button disabled={pendingMutationId === t.id} onClick={() => setDeletingId(null)} className="px-2 py-0.5 bg-white text-black border border-black rounded-none text-[10px] font-black uppercase cursor-pointer disabled:opacity-50" title="Batal">Batal</button>
+                      <button disabled={pendingMutationId === t.id} onClick={() => handleDelete(t.id)} className="px-2 py-0.5 bg-red-600 text-white border border-black rounded-none text-[10px] font-black uppercase cursor-pointer disabled:opacity-50" title={lang === 'en' ? 'Confirm delete' : 'Konfirmasi hapus'}>{lang === 'en' ? 'Yes' : 'Ya'}</button>
+                      <button disabled={pendingMutationId === t.id} onClick={() => setDeletingId(null)} className="px-2 py-0.5 bg-white text-black border border-black rounded-none text-[10px] font-black uppercase cursor-pointer disabled:opacity-50" title={lang === 'en' ? 'Cancel' : 'Batal'}>{lang === 'en' ? 'Cancel' : 'Batal'}</button>
                     </>
                   ) : (
                     <>
@@ -579,7 +585,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                         onClick={() => handleRepeat(t)}
                         disabled={repeatingId === t.id}
                         className="p-1.5 text-neutral-600 hover:text-black hover:bg-[#FFE066] rounded-none transition-colors cursor-pointer disabled:opacity-40"
-                        title="Ulangi transaksi ini untuk hari ini (1-Klik)"
+                        title={lang === 'en' ? 'Repeat this transaction for today (1-Click)' : 'Ulangi transaksi ini untuk hari ini (1-Klik)'}
                       >
                         {repeatingId === t.id ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -587,8 +593,8 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                           <RotateCcw className="w-3.5 h-3.5" />
                         )}
                       </button>
-                      <button onClick={() => { setEditingId(t.id); setEditAmount(t.amount.toString()); setEditNote(t.note || ''); setEditMethod(t.wallet?.name || ''); setEditTags((t.tags || []).map(tag => `#${tag}`).join(' ')); }} className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-none transition-colors cursor-pointer" title="Edit transaksi"><Edit2 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setDeletingId(t.id)} className="p-1.5 text-neutral-600 hover:text-red-650 hover:bg-red-50 rounded-none transition-colors cursor-pointer" title="Hapus transaksi"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { setEditingId(t.id); setEditAmount(t.amount.toString()); setEditNote(t.note || ''); setEditMethod(t.wallet?.name || ''); setEditTags((t.tags || []).map(tag => `#${tag}`).join(' ')); }} className="p-1.5 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-none transition-colors cursor-pointer" title={lang === 'en' ? 'Edit transaction' : 'Edit transaksi'}><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setDeletingId(t.id)} className="p-1.5 text-neutral-600 hover:text-red-650 hover:bg-red-50 rounded-none transition-colors cursor-pointer" title={lang === 'en' ? 'Delete transaction' : 'Hapus transaksi'}><Trash2 className="w-3.5 h-3.5" /></button>
                     </>
                   )}
                 </div>
@@ -617,10 +623,14 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 <span className="text-2xl select-none">{getCategoryEmoji(activeDetailTx.category?.name)}</span>
                 <div>
                   <h3 className="font-black text-sm uppercase tracking-wider text-black">
-                    {activeDetailTx.category?.name || 'Lain-lain'}
+                    {activeDetailTx.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain')}
                   </h3>
                   <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wide">
-                    {activeDetailTx.type === 'masuk' ? 'Pemasukan' : activeDetailTx.type === 'transfer' ? 'Transfer' : 'Pengeluaran'}
+                    {activeDetailTx.type === 'masuk'
+                      ? (lang === 'en' ? 'Income' : 'Pemasukan')
+                      : activeDetailTx.type === 'transfer'
+                      ? (lang === 'en' ? 'Transfer' : 'Transfer')
+                      : (lang === 'en' ? 'Expense' : 'Pengeluaran')}
                   </p>
                 </div>
               </div>
@@ -635,7 +645,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
             {/* Amount */}
             <div className="p-4 bg-[#FAF9F5] border-[2px] border-black text-center">
               <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">
-                Total Transaksi
+                {lang === 'en' ? 'Total Amount' : 'Total Transaksi'}
               </span>
               <h2 className={`text-2xl font-black ${
                 activeDetailTx.type === 'masuk' ? 'text-emerald-700' :
@@ -649,26 +659,26 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
             {/* Details Grid */}
             <div className="grid grid-cols-2 gap-2.5 text-xs font-bold">
               <div className="p-2.5 border border-black bg-white">
-                <span className="text-[10px] text-neutral-500 uppercase block font-black">Dompet</span>
+                <span className="text-[10px] text-neutral-500 uppercase block font-black">{lang === 'en' ? 'Wallet' : 'Dompet'}</span>
                 <span className="text-black font-black uppercase truncate block mt-0.5">
-                  {formatMethodName(activeDetailTx.wallet?.name || 'Lain-lain')}
+                  {formatMethodName(activeDetailTx.wallet?.name || (lang === 'en' ? 'Other' : 'Lain-lain'))}
                 </span>
               </div>
               <div className="p-2.5 border border-black bg-white">
-                <span className="text-[10px] text-neutral-500 uppercase block font-black">Tanggal</span>
+                <span className="text-[10px] text-neutral-500 uppercase block font-black">{lang === 'en' ? 'Date' : 'Tanggal'}</span>
                 <span className="text-black font-black truncate block mt-0.5">
                   {formatTanggal(activeDetailTx.transactionDate)}
                 </span>
               </div>
               <div className="p-2.5 border border-black bg-white col-span-2">
-                <span className="text-[10px] text-neutral-500 uppercase block font-black">Catatan</span>
+                <span className="text-[10px] text-neutral-500 uppercase block font-black">{lang === 'en' ? 'Note' : 'Catatan'}</span>
                 <span className="text-black font-bold block mt-0.5">
                   {activeDetailTx.note || '-'}
                 </span>
               </div>
               {(activeDetailTx.tags || []).length > 0 && (
                 <div className="p-2.5 border border-black bg-white col-span-2">
-                  <span className="text-[10px] text-neutral-500 uppercase block font-black mb-1">Tag</span>
+                  <span className="text-[10px] text-neutral-500 uppercase block font-black mb-1">{lang === 'en' ? 'Tags' : 'Tag'}</span>
                   <div className="flex flex-wrap gap-1">
                     {(activeDetailTx.tags || []).map((t) => (
                       <span key={t} className="px-1.5 py-0.5 bg-[#e0f2fe] border border-black text-[9px] font-black uppercase">
@@ -691,7 +701,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 className="py-3 px-2 border-[2px] border-black bg-[#FFE066] hover:bg-yellow-300 text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4 stroke-[2.5px]" />
-                <span className="text-[10px]">Ulangi</span>
+                <span className="text-[10px]">{lang === 'en' ? 'Repeat' : 'Ulangi'}</span>
               </button>
 
               <button
@@ -707,7 +717,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 className="py-3 px-2 border-[2px] border-black bg-white hover:bg-neutral-100 text-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
               >
                 <Edit2 className="w-4 h-4 stroke-[2.5px]" />
-                <span className="text-[10px]">Ubah</span>
+                <span className="text-[10px]">{lang === 'en' ? 'Edit' : 'Ubah'}</span>
               </button>
 
               <button
@@ -719,7 +729,7 @@ export default function TransactionTable({ transactions, balances = [] }: { tran
                 className="py-3 px-2 border-[2px] border-black bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex flex-col items-center justify-center gap-1 active:translate-y-0.5 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4 stroke-[2.5px]" />
-                <span className="text-[10px]">Hapus</span>
+                <span className="text-[10px]">{lang === 'en' ? 'Delete' : 'Hapus'}</span>
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { updateTransaction } from '../app/actions';
 import { addCustomNotification } from '../app/actions/notifications';
 import { formatCurrency, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { triggerHaptic } from '../lib/haptics';
+import { useLanguage } from '../lib/i18n';
 
 interface Props {
   transaction: Transaction;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function EditTransactionModal({ transaction, onClose }: Props) {
+  const { lang } = useLanguage();
   const [form, setForm] = useState({
     type: transaction.type,
     category: transaction.category?.name || 'Lain-lain',
@@ -45,11 +47,13 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
 
     if (res.success) {
       triggerHaptic('success');
-      setSuccess('Transaksi berhasil diperbarui!');
+      setSuccess(lang === 'en' ? 'Transaction updated successfully!' : 'Transaksi berhasil diperbarui!');
       // Add custom notification for premium user experience
       await addCustomNotification(
-        'Transaksi Diperbarui',
-        `Detail transaksi nominal ${formatCurrency(numericAmount)} kategori ${form.category} telah berhasil diubah.`,
+        lang === 'en' ? 'Transaction Updated' : 'Transaksi Diperbarui',
+        lang === 'en'
+          ? `Transaction of ${formatCurrency(numericAmount)} in ${form.category} has been updated.`
+          : `Detail transaksi nominal ${formatCurrency(numericAmount)} kategori ${form.category} telah berhasil diubah.`,
         'TRANSACTION_EDIT'
       );
       setTimeout(() => {
@@ -58,7 +62,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
       }, 1500);
     } else {
       triggerHaptic('warning');
-      setError(res.error || 'Gagal menyimpan');
+      setError(res.error || (lang === 'en' ? 'Failed to save' : 'Gagal menyimpan'));
     }
     setLoading(false);
   };
@@ -74,7 +78,9 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
       {/* Modal */}
       <div className="relative bg-white border-[3px] border-black rounded-none w-full max-w-md shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-5 border-b-[3px] border-black bg-white">
-          <h3 className="text-base font-black text-black uppercase tracking-wider">Edit Transaksi</h3>
+          <h3 className="text-base font-black text-black uppercase tracking-wider">
+            {lang === 'en' ? 'Edit Transaction' : 'Edit Transaksi'}
+          </h3>
           <button onClick={onClose} className="p-1 border-[2px] border-black bg-white hover:bg-neutral-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer">
             <X className="w-4 h-4 text-black stroke-[2.5px]" />
           </button>
@@ -95,25 +101,25 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Jenis</label>
+              <label className={labelClass}>{lang === 'en' ? 'Type' : 'Jenis'}</label>
               <select
                 value={form.type}
                 onChange={e => setForm({ ...form, type: e.target.value as TransactionType })}
                 className="w-full brutal-input px-3 py-2 text-sm font-black uppercase"
               >
-                <option value="masuk">Masuk</option>
-                <option value="keluar">Keluar</option>
+                <option value="masuk">{lang === 'en' ? 'Income' : 'Masuk'}</option>
+                <option value="keluar">{lang === 'en' ? 'Expense' : 'Keluar'}</option>
               </select>
             </div>
             <div>
-              <label className={labelClass}>Kategori</label>
+              <label className={labelClass}>{lang === 'en' ? 'Category' : 'Kategori'}</label>
               <input type="text" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className={inputClass} required />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Nominal (Rp)</label>
+              <label className={labelClass}>{lang === 'en' ? 'Amount (Rp)' : 'Nominal (Rp)'}</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -124,28 +130,28 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
               />
             </div>
             <div>
-              <label className={labelClass}>Metode / Dompet</label>
+              <label className={labelClass}>{lang === 'en' ? 'Method / Wallet' : 'Metode / Dompet'}</label>
               <input type="text" value={form.method} onChange={e => setForm({ ...form, method: e.target.value })} className={inputClass} required />
             </div>
           </div>
 
           <div>
-            <label className={labelClass}>Keterangan</label>
+            <label className={labelClass}>{lang === 'en' ? 'Note' : 'Keterangan'}</label>
             <input type="text" value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} className={inputClass} />
           </div>
 
           <div>
-            <label className={labelClass}>Tanggal & Waktu</label>
+            <label className={labelClass}>{lang === 'en' ? 'Date & Time' : 'Tanggal & Waktu'}</label>
             <input type="datetime-local" value={form.transaction_date} onChange={e => setForm({ ...form, transaction_date: e.target.value })} className="w-full brutal-input px-3 py-2 text-sm font-bold" required />
           </div>
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 brutal-btn-light py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer">
-              Batal
+              {lang === 'en' ? 'Cancel' : 'Batal'}
             </button>
             <button type="submit" disabled={loading} className="flex-1 brutal-btn py-2.5 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer">
               {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Save className="w-4 h-4 text-white stroke-[2.5px]" />}
-              Simpan
+              {lang === 'en' ? 'Save' : 'Simpan'}
             </button>
           </div>
         </form>
