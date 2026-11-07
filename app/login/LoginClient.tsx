@@ -183,7 +183,7 @@ export default function LoginClient() {
                 className="w-4 h-4 rounded border-2 border-black dark:border-neutral-600 accent-black dark:accent-yellow-400 cursor-pointer"
               />
               <label htmlFor="remember-me" className="text-xs font-bold text-neutral-700 dark:text-neutral-300 cursor-pointer">
-                {lang === 'en' ? 'Remember me on this device (14 days)' : 'Ingat saya di perangkat ini (14 hari)'}
+                {lang === 'en' ? 'Remember me on this device' : 'Ingat saya di perangkat ini'}
               </label>
             </div>
 
