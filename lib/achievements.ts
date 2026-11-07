@@ -88,7 +88,7 @@ export async function syncAchievements(
   const transactionCount = transactions.length;
   const bestStreak = bestTransactionStreak(transactions.map((transaction) => transaction.transactionDate));
   const totalBalance = balances.reduce((sum, balance) => sum + balance.currentBalance, 0);
-  const emergencyMonths = emergencyFundPlan?.monthlyExpense
+  const emergencyMonths = emergencyFundPlan?.monthlyExpense && emergencyFundPlan.monthlyExpense > 0
     ? totalBalance / emergencyFundPlan.monthlyExpense
     : 0;
 

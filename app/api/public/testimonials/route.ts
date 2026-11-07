@@ -43,17 +43,25 @@ export async function GET() {
       return testimonialResponse(FALLBACK_PUBLIC_TESTIMONIALS, 'fallback');
     }
 
-    const userIds = Array.from(new Set(publicFeedbacks.map((feedback) => feedback.userId)));
-    const feedbackProfiles = await prisma.profile.findMany({
-      where: { userId: { in: userIds } },
-      select: { userId: true, fullName: true },
-    });
+    const userIds = Array.from(
+      new Set(
+        publicFeedbacks
+          .map((feedback) => feedback.userId)
+          .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+      )
+    );
+    const feedbackProfiles = userIds.length > 0
+      ? await prisma.profile.findMany({
+          where: { userId: { in: userIds } },
+          select: { userId: true, fullName: true },
+        })
+      : [];
 
     const feedbackProfileMap = new Map(
       feedbackProfiles.map((feedbackProfile) => [feedbackProfile.userId, feedbackProfile.fullName]),
     );
     const publicTestimonials = publicFeedbacks.map((feedback) => ({
-      name: feedbackProfileMap.get(feedback.userId) || 'Pengguna Norden',
+      name: feedbackProfileMap.get(feedback.userId)?.trim() || 'Pengguna Norden',
       label: 'Pengguna Beta',
       rating: clampPublicRating(feedback.rating),
       message: feedback.message,

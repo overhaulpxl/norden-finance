@@ -26,8 +26,10 @@ export function formatCoverageMonths(value: number | null | undefined): string {
   return `${safeValue.toFixed(1)} bulan`;
 }
 
-export function formatTanggal(dateString: string | Date): string {
+export function formatTanggal(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  if (!date || isNaN(date.getTime())) return '-';
   return format(date, 'd MMM yyyy, HH:mm', { locale: id });
 }
 

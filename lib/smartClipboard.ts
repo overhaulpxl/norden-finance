@@ -26,9 +26,10 @@ export function parseBankNotificationText(rawText: string): ParsedBankText {
   const amountRegex = /(?:Rp\.?|IDR|sebesar)\s*([\d.,]+)/i;
   const matchAmount = text.match(amountRegex);
   if (matchAmount && matchAmount[1]) {
-    // Clean Indonesian formatted numbers: "150.000,00" or "150,000" or "150000"
-    let clean = matchAmount[1].replace(/,00$/, '').replace(/\.00$/, '');
-    clean = clean.replace(/[.,]/g, '');
+    // Clean Indonesian/English formatted numbers: "150.000,50", "150,000.00", "150.000", "150000"
+    // Strip decimal cents: 1 or 2 digits preceded by comma or dot at the end
+    const withoutCents = matchAmount[1].replace(/[,.]\d{1,2}$/, '');
+    const clean = withoutCents.replace(/[.,]/g, '');
     const num = parseInt(clean, 10);
     if (!isNaN(num) && num > 0) {
       amount = num;

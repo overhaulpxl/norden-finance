@@ -15,11 +15,18 @@ export async function addBudget(categoryInput: string, monthlyLimit: number) {
     assertPositiveInt(monthlyLimit, 'Limit bulanan');
 
     let category = await prisma.category.findFirst({
-      where: { id: categoryInput, userId },
+      where: {
+        userId,
+        OR: [
+          { id: categoryInput },
+          { name: { equals: categoryInput.trim(), mode: 'insensitive' } },
+        ],
+      },
     });
 
     if (!category) {
-      const name = categoryInput.charAt(0).toUpperCase() + categoryInput.slice(1).toLowerCase();
+      const trimmed = categoryInput.trim();
+      const name = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
       category = await prisma.category.upsert({
         where: { userId_name: { userId, name } },
         update: {},
