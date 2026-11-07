@@ -16,10 +16,13 @@ export function isDesktopDevice(): boolean {
     const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
-    const isTouchOnly = 'ontouchstart' in window && !window.matchMedia('(pointer: fine)').matches;
-    const isLargeScreen = window.innerWidth >= 1024;
-    if (isMobileUA || isTouchOnly) return false;
-    return isLargeScreen;
+    const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    if (isMobileUA || isIPadOS) return false;
+
+    const hasFinePointer = window.matchMedia('(pointer: fine) and (hover: hover)').matches;
+    if (hasFinePointer) return true;
+
+    return window.innerWidth >= 1024;
   } catch {
     return false;
   }

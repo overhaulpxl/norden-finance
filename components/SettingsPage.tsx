@@ -16,6 +16,7 @@ import {
   hashPin,
   isBiometricSupported,
   registerBiometrics,
+  isDesktopDevice,
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
 import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
@@ -70,6 +71,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [biometricDeviceSupport, setBiometricDeviceSupport] = useState(false);
   const [pwaInstalled, setPwaInstalled] = useState<boolean>(() => isPwaInstalled());
   const [isIos] = useState<boolean>(() => isIosDevice());
+  const [isDesktop] = useState<boolean>(() => isDesktopDevice());
 
   // PIN modal states
   const [pinModalOpen, setPinModalOpen] = useState(false);
@@ -661,7 +663,11 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] shrink-0 ${
             pinActive ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
           }`}>
-            {pinActive ? (lang === 'en' ? '✓ PIN Lock Active' : '✓ Kunci PIN Aktif') : (lang === 'en' ? 'Disabled' : 'Nonaktif')}
+            {pinActive
+              ? (isDesktop
+                  ? (lang === 'en' ? 'Active (Mobile Only)' : 'Aktif (Khusus HP)')
+                  : (lang === 'en' ? '✓ PIN Lock Active' : '✓ Kunci PIN Aktif'))
+              : (lang === 'en' ? 'Disabled' : 'Nonaktif')}
           </span>
         </div>
 
@@ -714,14 +720,20 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </button>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={handleLockNow}
-                  className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
-                  title={lang === 'en' ? 'Test lock screen right now' : 'Uji kunci layar sekarang juga'}
-                >
-                  <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? 'Test Lock Now' : 'Uji Kunci Sekarang'}
-                </button>
+                {!isDesktop ? (
+                  <button
+                    type="button"
+                    onClick={handleLockNow}
+                    className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+                    title={lang === 'en' ? 'Test lock screen right now' : 'Uji kunci layar sekarang juga'}
+                  >
+                    <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? 'Test Lock Now' : 'Uji Kunci Sekarang'}
+                  </button>
+                ) : (
+                  <span className="px-3 py-2 bg-neutral-100 dark:bg-neutral-800 border-2 border-dashed border-neutral-400 dark:border-neutral-600 rounded-xl text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                    {lang === 'en' ? 'Bypassed on PC' : 'Dilewati di PC'}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => openPinModal('change')}

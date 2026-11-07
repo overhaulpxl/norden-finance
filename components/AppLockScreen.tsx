@@ -149,23 +149,13 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [locked, handleKeyPress, handleDelete]);
 
-  // Auto-prompt biometrics once on screen load if enabled
-  useEffect(() => {
-    if (locked && biometricAvailable) {
-      const timer = setTimeout(() => {
-        handleBiometricAuth();
-      }, 350);
-      return () => clearTimeout(timer);
-    }
-  }, [locked, biometricAvailable, handleBiometricAuth]);
-
   // Auto-trigger biometric authentication if enabled on mobile
   useEffect(() => {
     if (!locked || !biometricAvailable || isDesktopDevice()) return;
 
     const timer = setTimeout(() => {
       handleBiometricAuth();
-    }, 400);
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [locked, biometricAvailable, handleBiometricAuth]);
@@ -180,6 +170,7 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
   const handleConfirmSignOut = async () => {
     setEmergencyLoading(true);
     try {
+      await fetch('/api/auth/session', { method: 'DELETE' });
       await signOut(auth);
       window.location.href = '/login';
     } catch {
