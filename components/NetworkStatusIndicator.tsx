@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { WifiOff, Wifi, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { triggerHaptic } from '../lib/haptics';
 import { getOfflineQueue, syncOfflineQueue } from '../lib/offlineQueue';
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 export default function NetworkStatusIndicator() {
   const { lang } = useLanguage();
   const router = useRouter();
+  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     return navigator.onLine;
@@ -44,11 +45,11 @@ export default function NetworkStatusIndicator() {
           router.refresh();
         }
 
-        const timer = setTimeout(() => {
+        if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = setTimeout(() => {
           setShowReconnected(false);
           setSyncedCount(0);
         }, 4000);
-        return () => clearTimeout(timer);
       }
     };
 
@@ -63,6 +64,7 @@ export default function NetworkStatusIndicator() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       window.removeEventListener('norden:offline-queue-changed', handleQueueChanged);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);

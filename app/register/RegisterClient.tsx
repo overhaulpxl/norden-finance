@@ -52,7 +52,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
       const targetEmail = 'email' in result && result.email ? result.email : email;
       router.push(`/verify-email?email=${encodeURIComponent(targetEmail)}`);
     } else if (result.success) {
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } else {
       setError(result.error || (lang === 'en' ? 'An error occurred during registration.' : 'Terjadi kesalahan saat pendaftaran.'));
     }
@@ -66,7 +66,7 @@ export default function RegisterClient({ trialDays }: { trialDays: number }) {
 
     setLoading(false);
     if (result.success) {
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } else {
       setError(result.error || (lang === 'en' ? 'Failed to sign up with Google.' : 'Gagal mendaftar dengan Google.'));
     }

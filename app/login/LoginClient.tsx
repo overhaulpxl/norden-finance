@@ -60,7 +60,7 @@ export default function LoginClient() {
 
     setLoading(false);
     if (result.success) {
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } else if ('requiresEmailVerification' in result && result.requiresEmailVerification) {
       const targetEmail = 'email' in result && result.email ? result.email : email;
       router.push(`/verify-email?email=${encodeURIComponent(targetEmail)}`);
@@ -77,7 +77,7 @@ export default function LoginClient() {
 
     setLoading(false);
     if (result.success) {
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } else {
       setError(result.error || (lang === 'en' ? 'Failed to sign in with Google.' : 'Gagal masuk dengan Google.'));
     }
