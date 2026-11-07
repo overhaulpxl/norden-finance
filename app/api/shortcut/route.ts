@@ -97,6 +97,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: false, error: getError(result) }, { status: 400 });
   } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('MAINTENANCE_ACTIVE')) {
+      return NextResponse.json(
+        { success: false, error: error.message, maintenance: true },
+        { status: 503 }
+      );
+    }
     const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
       { success: false, error: message },

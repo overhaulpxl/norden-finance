@@ -11,6 +11,7 @@ import { getAdminAuth } from '../../lib/firebaseAdmin';
 import { sendPasswordResetEmail, sendPinResetEmail } from '../../lib/authEmail';
 import { generatePinResetTokens, verifyPinResetToken } from '../../lib/pinResetToken';
 import { assertRateLimit } from '../../lib/rateLimit';
+import { assertNonEmpty, assertNonNegativeInt } from '../../lib/validators';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -20,13 +21,16 @@ export async function completeOnboarding(data: {
   try {
     const { user } = await requireUser(false);
     const userId = user.uid;
-    const walletName = data.walletName.trim().toUpperCase();
 
-    if (!data.fullName.trim()) throw new Error('Nama wajib diisi');
-    if (!walletName) throw new Error('Nama wallet wajib diisi');
-    if (!Number.isFinite(data.openingBalance) || data.openingBalance < 0) {
-      throw new Error('Saldo awal tidak valid');
+    assertNonEmpty(data.fullName, 'Nama');
+    assertNonEmpty(data.walletName, 'Nama wallet');
+    assertNonNegativeInt(data.openingBalance, 'Saldo awal');
+    if (data.openingBalance > 1_000_000_000_000) {
+      throw new Error('Saldo awal terlalu besar');
     }
+
+    const cleanFullName = data.fullName.trim().slice(0, 80);
+    const walletName = data.walletName.trim().toUpperCase().slice(0, 50);
 
     const currentProfile = await prisma.profile.findUnique({
       where: { userId },
@@ -47,7 +51,7 @@ export async function completeOnboarding(data: {
       await tx.profile.update({
         where: { userId },
         data: {
-          fullName: data.fullName.trim(),
+          fullName: cleanFullName,
           onboardingCompleted: true,
           ...(shouldActivateTrial ? { trialStartedAt: now, trialEndsAt } : {}),
         },
@@ -211,11 +215,13 @@ export async function submitFeedback(data: {
       throw new Error('Pesan ulasan wajib diisi');
     }
 
+    await assertRateLimit(`submit-feedback:${userId}`, 5, 15 * 60_000);
+
     const feedback = await prisma.feedback.create({
       data: {
         userId,
         rating: data.rating,
-        message: data.message.trim(),
+        message: data.message.trim().slice(0, 1000),
         status: 'open',
       },
     });
@@ -276,6 +282,9 @@ export async function sendPasswordResetLinkAction(targetEmail?: string) {
     if (!emailToUse) {
       return { success: false, error: 'Alamat email wajib diisi.' };
     }
+
+    // Rate limit: max 3 password reset requests per 15 minutes per email
+    await assertRateLimit(`password-reset-email:${emailToUse}`, 3, 15 * 60_000);
 
     // Verify user exists in Firebase Admin
     const adminAuth = getAdminAuth();

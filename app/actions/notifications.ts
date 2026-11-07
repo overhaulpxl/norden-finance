@@ -152,22 +152,23 @@ export async function syncNotifications(userId: string) {
       .reduce((sum, tx) => sum + tx.amount, 0);
 
     const ratio = budget.monthlyLimit > 0 ? spent / budget.monthlyLimit : 0;
+    const categoryName = budget.category?.name || 'Kategori';
     if (ratio >= 0.9) {
       await createNotificationIfUnique(
         'Budget hampir habis',
-        `Budget ${budget.category.name} sudah terpakai ${Math.round(ratio * 100)}% bulan ini.`,
+        `Budget ${categoryName} sudah terpakai ${Math.round(ratio * 100)}% bulan ini.`,
         'BUDGET_ALERT'
       );
     } else if (ratio >= 0.75) {
       await createNotificationIfUnique(
         'Budget terpakai 75%',
-        `Budget ${budget.category.name} sudah terpakai ${Math.round(ratio * 100)}% bulan ini.`,
+        `Budget ${categoryName} sudah terpakai ${Math.round(ratio * 100)}% bulan ini.`,
         'BUDGET_ALERT'
       );
     } else if (ratio >= 0.5) {
       await createNotificationIfUnique(
         'Budget terpakai 50%',
-        `Budget ${budget.category.name} sudah terpakai ${Math.round(ratio * 100)}% bulan ini.`,
+        `Budget ${categoryName} sudah terpakai ${Math.round(ratio * 100)}% bulan ini.`,
         'BUDGET_ALERT'
       );
     }

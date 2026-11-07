@@ -73,7 +73,15 @@ export async function POST(request: NextRequest) {
  * DELETE /api/auth/session
  * Clears the session cookie (logout).
  */
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  try {
+    assertSameOrigin(request);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('origin')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+  }
+
   const response = NextResponse.json({ success: true });
   response.cookies.set(SESSION_CONFIG.name, '', {
     ...SESSION_CONFIG.options,

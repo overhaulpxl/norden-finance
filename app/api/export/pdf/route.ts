@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../../lib/auth';
 import { getMonthlyReportData } from '../../../../lib/data/loaders';
 import { generateMonthlyReportPdf } from '../../../../lib/pdf/monthlyReport';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 
 export async function GET(req: Request) {
   try {
+    await assertRateLimit(rateLimitKey(req, 'api-export-pdf'), 10, 60_000);
+
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,6 +41,12 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error('PDF Export error:', error);
     return NextResponse.json({ error: 'Gagal membuat PDF' }, { status: 500 });
   }

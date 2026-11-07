@@ -48,6 +48,9 @@ export async function POST(req: Request) {
     if (error instanceof Error && error.message.includes('origin')) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
+    if (error instanceof Error && error.message.includes('MAINTENANCE_ACTIVE')) {
+      return NextResponse.json({ error: error.message, maintenance: true }, { status: 503 });
+    }
     const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

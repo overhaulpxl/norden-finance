@@ -83,7 +83,7 @@ export async function executeFinancialDataReset(
       },
     });
 
-    // Step E: Seed clean default categories so user can immediately record transactions
+    // Step E: Seed clean default categories and primary wallet so user can immediately record transactions
     const defaultCategories: Array<{ userId: string; name: string; type: 'masuk' | 'keluar' }> = [
       { userId: targetUserId, name: 'Makanan', type: 'keluar' },
       { userId: targetUserId, name: 'Transport', type: 'keluar' },
@@ -93,6 +93,14 @@ export async function executeFinancialDataReset(
       { userId: targetUserId, name: 'Lain-lain', type: 'keluar' },
     ];
     await tx.category.createMany({ data: defaultCategories });
+    await tx.balance.create({
+      data: {
+        userId: targetUserId,
+        name: 'CASH',
+        type: 'cash',
+        currentBalance: 0,
+      },
+    });
 
     // Step F: Append audit log entry within transaction
     const auditAction = actor.role === 'admin'

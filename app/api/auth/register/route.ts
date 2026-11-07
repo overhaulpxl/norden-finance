@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         prisma.profile.create({
           data: {
             userId,
-            fullName: fullName || null,
+            fullName: typeof fullName === 'string' && fullName.trim() ? fullName.trim().slice(0, 80) : null,
             role: 'user',
             plan: 'trial',
             onboardingCompleted: false,

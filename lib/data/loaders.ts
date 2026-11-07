@@ -379,8 +379,8 @@ export async function getMonthlyReportData(userId: string, month: number, year: 
   }));
 
   return {
-    userFullName: profile.fullName,
-    userPlan: profile.plan,
+    userFullName: profile?.fullName || 'Pengguna Norden',
+    userPlan: profile?.plan || 'trial',
     month: range.month,
     year: range.year,
     periodStart: range.periodStart,

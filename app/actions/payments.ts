@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { PaymentStatus, PlanType } from '@prisma/client';
 import { getPaymentSettings, getPricingPlans } from '../../lib/data/loaders';
+import { assertRateLimit } from '../../lib/rateLimit';
 
 async function validatePaymentInput(data: {
   billingType: string;
@@ -79,6 +80,8 @@ export async function submitPaymentRequest(data: {
   try {
     const { user } = await requireUser(false); // Can request upgrade even if trial ended
     const userId = user.uid;
+
+    await assertRateLimit(`submit-payment:${userId}`, 3, 60_000);
     await validatePaymentInput(data, userId);
 
     const existingPending = await prisma.paymentRequest.findFirst({
