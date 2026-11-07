@@ -67,7 +67,10 @@ export async function payPaylaterInstallment(id: string, payMethod: string) {
       const wallet = await tx.balance.findFirst({
         where: {
           userId,
-          name: { equals: payMethod.trim(), mode: 'insensitive' },
+          OR: [
+            { id: payMethod.trim() },
+            { name: { equals: payMethod.trim(), mode: 'insensitive' } },
+          ],
         },
       });
       if (!wallet) throw new Error('Dompet pembayaran tidak ditemukan');

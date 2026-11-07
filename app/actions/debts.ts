@@ -26,7 +26,7 @@ export async function addDebt(data: {
       assertPositiveInt(data.tenorMonths, 'Tenor');
       if (data.tenorMonths > 360) throw new Error('Tenor maksimal 360 bulan');
     }
-    if (data.interestRate !== undefined && (!Number.isFinite(data.interestRate) || data.interestRate < 0)) {
+    if (data.interestRate !== undefined && (!Number.isFinite(data.interestRate) || data.interestRate < 0 || data.interestRate > 1000)) {
       throw new Error('Bunga tidak valid');
     }
 
@@ -34,11 +34,11 @@ export async function addDebt(data: {
       data: {
         userId,
         type: data.type,
-        person: data.person,
+        person: data.person.trim().slice(0, 80),
         amount: data.amount,
         tenorMonths: data.tenorMonths || null,
         interestRate: data.interestRate || null,
-        note: data.note || null,
+        note: data.note?.trim().slice(0, 240) || null,
       },
     });
 

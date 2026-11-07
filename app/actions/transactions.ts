@@ -26,7 +26,10 @@ async function resolveCategory(userId: string, categoryName: string, type: Trans
   const existing = await prisma.category.findFirst({
     where: {
       userId,
-      name: { equals: trimmed, mode: 'insensitive' },
+      OR: [
+        { id: trimmed },
+        { name: { equals: trimmed, mode: 'insensitive' } },
+      ],
     },
   });
 
@@ -48,7 +51,10 @@ async function resolveWallet(userId: string, walletName: string): Promise<string
   const existing = await prisma.balance.findFirst({
     where: {
       userId,
-      name: { equals: trimmed, mode: 'insensitive' },
+      OR: [
+        { id: trimmed },
+        { name: { equals: trimmed, mode: 'insensitive' } },
+      ],
     },
   });
 
@@ -673,23 +679,35 @@ export async function updateTransaction(
     }
 
     await prisma.$transaction(async (db) => {
-      if (tx.walletId) {
-        const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
-        if (sourceWallet) {
-          await db.balance.update({
-            where: { id: tx.walletId },
-            data: { currentBalance: { decrement: walletDelta(tx.type, tx.amount) } },
-          });
+      if (tx.walletId === newWalletId) {
+        if (newWalletId) {
+          const netChange = walletDelta(newType, newAmount) - walletDelta(tx.type, tx.amount);
+          if (netChange !== 0) {
+            await db.balance.update({
+              where: { id: newWalletId },
+              data: { currentBalance: { increment: netChange } },
+            });
+          }
         }
-      }
+      } else {
+        if (tx.walletId) {
+          const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
+          if (sourceWallet) {
+            await db.balance.update({
+              where: { id: tx.walletId },
+              data: { currentBalance: { decrement: walletDelta(tx.type, tx.amount) } },
+            });
+          }
+        }
 
-      if (newWalletId) {
-        const targetWallet = await db.balance.findUnique({ where: { id: newWalletId } });
-        if (targetWallet) {
-          await db.balance.update({
-            where: { id: newWalletId },
-            data: { currentBalance: { increment: walletDelta(newType, newAmount) } },
-          });
+        if (newWalletId) {
+          const targetWallet = await db.balance.findUnique({ where: { id: newWalletId } });
+          if (targetWallet) {
+            await db.balance.update({
+              where: { id: newWalletId },
+              data: { currentBalance: { increment: walletDelta(newType, newAmount) } },
+            });
+          }
         }
       }
 

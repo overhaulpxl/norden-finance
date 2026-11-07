@@ -22,8 +22,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No image uploaded' }, { status: 400 });
     }
 
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'File harus berupa gambar' }, { status: 415 });
+    const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
+    if (!allowedImageTypes.has(file.type.toLowerCase())) {
+      return NextResponse.json({ error: 'File harus berupa gambar (JPG, PNG, atau WebP)' }, { status: 415 });
     }
 
     if (file.size > 5 * 1024 * 1024) {

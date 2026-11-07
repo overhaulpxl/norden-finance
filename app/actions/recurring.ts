@@ -36,7 +36,19 @@ function nextMonthlyRun(dayOfMonth: number, fromDate = new Date()) {
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
 async function resolveCategory(tx: DbClient, userId: string, categoryName: string, type: TransactionType) {
-  const name = categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
+  const trimmed = categoryName.trim();
+  const existing = await tx.category.findFirst({
+    where: {
+      userId,
+      OR: [
+        { id: trimmed },
+        { name: { equals: trimmed, mode: 'insensitive' } },
+      ],
+    },
+  });
+  if (existing) return existing;
+
+  const name = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
   return tx.category.upsert({
     where: { userId_name: { userId, name } },
     update: {},
@@ -45,7 +57,27 @@ async function resolveCategory(tx: DbClient, userId: string, categoryName: strin
 }
 
 async function resolveWallet(tx: DbClient, userId: string, walletName: string) {
-  const name = walletName.trim().toUpperCase();
+  const trimmed = walletName.trim();
+  const existing = await tx.balance.findFirst({
+    where: {
+      userId,
+      OR: [
+        { id: trimmed },
+        { name: { equals: trimmed, mode: 'insensitive' } },
+      ],
+    },
+  });
+  if (existing) {
+    if (existing.archivedAt) {
+      await tx.balance.update({
+        where: { id: existing.id },
+        data: { archivedAt: null },
+      });
+    }
+    return existing;
+  }
+
+  const name = trimmed.toUpperCase();
   const ewallets = ['DANA', 'GOPAY', 'OVO', 'SHOPEEPAY', 'LINKAJA'];
   const cashNames = ['CASH', 'TUNAI'];
   let type = 'bank';

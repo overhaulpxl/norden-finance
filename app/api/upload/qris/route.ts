@@ -15,9 +15,11 @@ function safeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'qris.jpg';
 }
 
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
+
 function assertImage(file: File) {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('File harus berupa gambar');
+  if (!ALLOWED_IMAGE_TYPES.has(file.type.toLowerCase())) {
+    throw new Error('File harus berupa gambar (JPG, PNG, atau WebP)');
   }
   if (file.size > 5 * 1024 * 1024) {
     throw new Error('Ukuran file maksimal 5MB');

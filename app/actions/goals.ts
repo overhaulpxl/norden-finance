@@ -14,10 +14,11 @@ export async function addSavingGoal(title: string, targetAmount: number, deadlin
     assertPositiveInt(targetAmount, 'Target');
     assertValidDate(deadline, 'Deadline');
 
+    const cleanTitle = title.trim().slice(0, 80);
     const goal = await prisma.savingGoal.create({
       data: {
         userId,
-        title,
+        title: cleanTitle,
         targetAmount,
         currentAmount: 0,
         deadline: deadline ? new Date(deadline) : null,
@@ -50,7 +51,7 @@ export async function updateSavingGoal(id: string, data: { title?: string; targe
     await prisma.savingGoal.update({
       where: { id },
       data: {
-        title: data.title ?? existing.title,
+        title: data.title !== undefined ? data.title.trim().slice(0, 80) : existing.title,
         targetAmount: data.targetAmount ?? existing.targetAmount,
         currentAmount: data.currentAmount ?? existing.currentAmount,
         deadline: data.deadline !== undefined

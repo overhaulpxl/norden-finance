@@ -20,7 +20,10 @@ export async function addWishlistItem(data: {
     assertValidDate(data.unlockDate, 'Tanggal unlock');
     if (data.url) {
       try {
-        new URL(data.url);
+        const parsedUrl = new URL(data.url);
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          throw new Error('Protokol URL tidak didukung');
+        }
       } catch {
         throw new Error('URL wishlist tidak valid');
       }
@@ -62,7 +65,10 @@ export async function markWishlistBought(id: string, walletName?: string) {
         const wallet = await tx.balance.findFirst({
           where: {
             userId,
-            name: { equals: walletName.trim(), mode: 'insensitive' },
+            OR: [
+              { id: walletName.trim() },
+              { name: { equals: walletName.trim(), mode: 'insensitive' } },
+            ],
           },
         });
         if (!wallet) throw new Error('Dompet tidak ditemukan');
