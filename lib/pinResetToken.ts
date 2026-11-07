@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomInt } from 'crypto';
 
 type PinResetPayload = {
   userId: string;
@@ -27,8 +27,8 @@ function sign(payload: string): string {
 }
 
 export function generatePinResetToken(userId: string): { token: string; code: string } {
-  // 6-digit numeric OTP code
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  // 6-digit numeric OTP code using cryptographically secure randomInt
+  const code = randomInt(100000, 1000000).toString();
   const exp = Date.now() + 15 * 60 * 1000; // 15 minutes
   const payloadStr = JSON.stringify({ userId, code, exp });
   const encodedPayload = base64UrlEncode(payloadStr);

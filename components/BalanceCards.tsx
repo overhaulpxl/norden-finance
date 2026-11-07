@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Balance } from '../types';
 import { formatRupiah, formatMethodName, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import {
@@ -46,6 +46,14 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
   // Modals for confirmation
   const [confirmArchiveWallet, setConfirmArchiveWallet] = useState<Balance | null>(null);
   const [confirmDeleteWallet, setConfirmDeleteWallet] = useState<Balance | null>(null);
+  const [deletedWalletIds, setDeletedWalletIds] = useState<Set<string>>(new Set());
+  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
 
   // Transfer states
   const [isTransferring, setIsTransferring] = useState(false);
@@ -60,7 +68,7 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
       (override) => !balances.some((balance) => balance.id === override.id)
     ),
     ...balances.map((balance) => balanceOverrides[balance.id] || balance),
-  ];
+  ].filter((balance) => !deletedWalletIds.has(balance.id));
 
   const activeBalances = localBalances.filter((balance) => !balance.archivedAt);
   const archivedBalances = localBalances.filter((balance) => balance.archivedAt);
@@ -94,7 +102,8 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
           ? 'Dompet baru berhasil ditambahkan!'
           : 'New wallet successfully added!'
       );
-      setTimeout(() => setSuccess(null), 5000);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(null), 5000);
       router.refresh();
     } else {
       triggerHaptic('warning');
@@ -119,7 +128,8 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
       setSuccess(
         lang === 'id' ? 'Dompet berhasil diarsipkan!' : 'Wallet successfully archived!'
       );
-      setTimeout(() => setSuccess(null), 4000);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(null), 4000);
       router.refresh();
     } else if (!res.success) {
       triggerHaptic('warning');
@@ -139,6 +149,11 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
     setConfirmDeleteWallet(null);
     if (res.success) {
       triggerHaptic('success');
+      setDeletedWalletIds((prev) => {
+        const next = new Set(prev);
+        next.add(walletId);
+        return next;
+      });
       setBalanceOverrides((current) => {
         const next = { ...current };
         delete next[walletId];
@@ -149,7 +164,8 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
           ? 'Dompet berhasil dihapus permanen!'
           : 'Wallet permanently deleted!'
       );
-      setTimeout(() => setSuccess(null), 4000);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(null), 4000);
       router.refresh();
     } else {
       triggerHaptic('warning');
@@ -172,7 +188,8 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
       setSuccess(
         lang === 'id' ? 'Dompet berhasil dipulihkan!' : 'Wallet successfully restored!'
       );
-      setTimeout(() => setSuccess(null), 5000);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(null), 5000);
       router.refresh();
     } else if (!res.success) {
       triggerHaptic('warning');
@@ -233,7 +250,8 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
           ? `Transfer ${formatRupiah(numericAmount)} dari ${source} ke ${target} berhasil!`
           : `Successfully transferred ${formatRupiah(numericAmount)} from ${source} to ${target}!`
       );
-      setTimeout(() => setSuccess(null), 5000);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(null), 5000);
       router.refresh();
     } else {
       triggerHaptic('warning');

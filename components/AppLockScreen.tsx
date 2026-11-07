@@ -82,8 +82,9 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
             removePinData(userId);
             unlockApp(userId);
             setLocked(false);
-            const cleanUrl = window.location.pathname;
-            window.history.replaceState({}, '', cleanUrl);
+            const url = new URL(window.location.href);
+            url.searchParams.delete('resetPinToken');
+            window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
           }
         } catch {
           // ignore
