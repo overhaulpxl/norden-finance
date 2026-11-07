@@ -263,7 +263,7 @@ export default function AppLayout({
               <button
                 type="button"
                 onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
-                aria-label="Buka menu navigasi"
+                aria-label={lang === 'en' ? 'Open navigation menu' : 'Buka menu navigasi'}
                 className="lg:hidden rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white"
               >
                 <Menu className="w-5 h-5" />
@@ -575,7 +575,7 @@ export default function AppLayout({
                 triggerHaptic('medium');
                 setShowModal(true);
               }}
-              aria-label="Catat Transaksi"
+              aria-label={lang === 'en' ? 'Record Transaction' : 'Catat Transaksi'}
               className="w-13 h-13 rounded-2xl border-2 border-black dark:border-neutral-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
               style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
             >

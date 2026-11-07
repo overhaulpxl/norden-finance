@@ -112,7 +112,7 @@ export default function LoginClient() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@email.com"
+                placeholder={lang === 'en' ? 'name@email.com' : 'nama@email.com'}
                 autoComplete="email"
                 className="w-full brutal-input px-3 py-2.5 text-xs font-bold"
               />
