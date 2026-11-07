@@ -11,6 +11,7 @@ import {
   rateLimitResponse,
 } from '../../../../lib/rateLimit';
 import { sendVerificationEmail } from '../../../../lib/authEmail';
+import { DEFAULT_EMAIL_FROM } from '../../../../lib/email';
 
 /**
  * POST /api/auth/register
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     let verificationEmailStatus: unknown = null;
     const provider = process.env.EMAIL_VERIFICATION_PROVIDER || 'firebase';
-    const emailFrom = process.env.EMAIL_FROM || '';
+    const emailFrom = process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM;
 
     let activeProvider = provider;
     if (provider === 'resend' && emailFrom.includes('onboarding@resend.dev')) {

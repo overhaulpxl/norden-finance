@@ -31,8 +31,13 @@ if (shortcutSecret && shortcutSecret.length < 32) {
 }
 
 const emailFrom = process.env.EMAIL_FROM || '';
-if (emailFrom && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailFrom)) {
-  weak.push('EMAIL_FROM must be a valid email address.');
+if (emailFrom) {
+  const rawEmail = emailFrom.includes('<') && emailFrom.includes('>')
+    ? emailFrom.replace(/.*<([^>]+)>.*/, '$1').trim()
+    : emailFrom.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    weak.push('EMAIL_FROM must be a valid email address or "Sender Name <email@domain.com>".');
+  }
 }
 
 if (missing.length || weak.length) {

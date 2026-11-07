@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import BrandLogo from './BrandLogo';
 import {
   Lock,
@@ -44,16 +44,26 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
   });
 
   const [pin, setPin] = useState<string>('');
+  const pinRef = useRef<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return isBiometricEnabled(userId);
   });
-  const [isDesktop] = useState<boolean>(() => {
+  const [isDesktop, setIsDesktop] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return isDesktopDevice();
   });
+
+  // Track window resize for responsive desktop/mobile layout switching
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(isDesktopDevice());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Reset PIN modal states
   const [showResetModal, setShowResetModal] = useState(false);
@@ -128,6 +138,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
       if (hashed === storedHash) {
         triggerHaptic('success');
         unlockApp(userId);
+        pinRef.current = '';
         setPin('');
         setErrorMsg(null);
         setLocked(false);
@@ -140,6 +151,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
         );
         setShake(true);
         setTimeout(() => setShake(false), 500);
+        pinRef.current = '';
         setPin('');
       }
     },
@@ -148,9 +160,10 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
 
   const handleKeyPress = useCallback(
     (digit: string) => {
-      if (pin.length >= 4) return;
+      if (pinRef.current.length >= 4) return;
       triggerHaptic('light');
-      const nextPin = pin + digit;
+      const nextPin = pinRef.current + digit;
+      pinRef.current = nextPin;
       setPin(nextPin);
       setErrorMsg(null);
 
@@ -158,12 +171,15 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
         verifyPin(nextPin);
       }
     },
-    [pin, verifyPin]
+    [verifyPin]
   );
 
   const handleDelete = useCallback(() => {
+    if (pinRef.current.length === 0) return;
     triggerHaptic('light');
-    setPin((prev) => prev.slice(0, -1));
+    const nextPin = pinRef.current.slice(0, -1);
+    pinRef.current = nextPin;
+    setPin(nextPin);
     setErrorMsg(null);
   }, []);
 

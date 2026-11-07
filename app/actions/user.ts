@@ -9,7 +9,8 @@ import { executeFinancialDataReset } from '../../lib/financialReset';
 import { getTrialDays } from '../../lib/data/loaders';
 import { getAdminAuth } from '../../lib/firebaseAdmin';
 import { sendPasswordResetEmail, sendPinResetEmail } from '../../lib/authEmail';
-import { generatePinResetToken, verifyPinResetToken } from '../../lib/pinResetToken';
+import { generatePinResetTokens, verifyPinResetToken } from '../../lib/pinResetToken';
+import { assertRateLimit } from '../../lib/rateLimit';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -301,7 +302,10 @@ export async function requestPinResetAction(targetUserId?: string) {
       return { success: false, error: 'Alamat email pengguna tidak ditemukan.' };
     }
 
-    const { token, code } = generatePinResetToken(userId);
+    // Rate limit: maximum 3 email reset requests per 15 minutes per user
+    await assertRateLimit(`pin-reset-request:${userId}`, 3, 15 * 60_000);
+
+    const { code, magicToken, sessionToken } = generatePinResetTokens(userId);
     const adminAuth = getAdminAuth();
     let userName: string | undefined;
     try {
@@ -311,10 +315,11 @@ export async function requestPinResetAction(targetUserId?: string) {
       // ignore
     }
 
+    // Send magic link and OTP code to user's private email
     const sendRes = await sendPinResetEmail({
       email: user.email,
       code,
-      token,
+      token: magicToken, // Capability token ONLY embedded in email link
       userName,
     });
 
@@ -322,7 +327,8 @@ export async function requestPinResetAction(targetUserId?: string) {
       return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
     }
 
-    return { success: true, email: user.email, token };
+    // Return sessionToken ONLY to client (which strictly requires 6-digit OTP code to verify)
+    return { success: true, email: user.email, token: sessionToken };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal mengirim email reset PIN.';
     return { success: false, error: message };
@@ -339,6 +345,9 @@ export async function confirmPinResetCodeAction(input: {
     if (user.uid !== input.userId) {
       return { success: false, error: 'Sesi akun tidak cocok.' };
     }
+
+    // Rate limit verification attempts: maximum 5 attempts per 15 minutes per user
+    await assertRateLimit(`pin-reset-verify:${user.uid}`, 5, 15 * 60_000);
 
     const verification = verifyPinResetToken(input.token, input.userId, input.code);
     if (!verification.valid) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '../../../../lib/firebaseAdmin';
 import { prisma } from '../../../../lib/prisma';
 import { sendVerificationEmail } from '../../../../lib/authEmail';
+import { DEFAULT_EMAIL_FROM } from '../../../../lib/email';
 import {
   assertRateLimit,
   rateLimitKey,
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
     }
 
     const provider = process.env.EMAIL_VERIFICATION_PROVIDER || 'firebase';
-    const emailFrom = process.env.EMAIL_FROM || '';
+    const emailFrom = process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM;
 
     let activeProvider = provider;
     if (provider === 'resend' && emailFrom.includes('onboarding@resend.dev')) {
