@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { X, Loader2, Save } from 'lucide-react';
 import { updateTransaction } from '../app/actions';
@@ -16,6 +16,16 @@ interface Props {
 
 export default function EditTransactionModal({ transaction, onClose }: Props) {
   const { lang } = useLanguage();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
   const [form, setForm] = useState({
     type: transaction.type,
     category: transaction.category?.name || 'Lain-lain',

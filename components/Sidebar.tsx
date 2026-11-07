@@ -56,10 +56,8 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       return;
     }
     startTransition(async () => {
-      const res = await logoutAction();
-      if (res.success) {
-        window.location.href = '/login';
-      }
+      await logoutAction();
+      window.location.href = '/login';
     });
   }
 

@@ -115,7 +115,11 @@ export async function registerAction(fullName: string, email: string, password: 
 export async function logoutAction() {
   try {
     // Clear session cookie on server
-    await fetch('/api/auth/session', { method: 'DELETE' });
+    try {
+      await fetch('/api/auth/session', { method: 'DELETE' });
+    } catch {
+      // Ignore network failures on cookie deletion
+    }
     // Sign out from Firebase client
     await signOut(auth);
     return { success: true };
