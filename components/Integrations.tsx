@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useTransition } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { AlertTriangle, CheckCircle2, Copy, Link2, Loader2, RotateCcw, ShieldCheck, Smartphone, Zap } from 'lucide-react';
 import { getShortcutEndpoint, regenerateShortcutToken } from '../app/actions';
 import { getPublicAppUrl } from '../lib/appUrl';
@@ -103,11 +103,20 @@ function GuideCard({
 
 export default function Integrations() {
   const { lang } = useLanguage();
+  const copyTimerRef = useRef<number | null>(null);
   const [endpoint, setEndpoint] = useState('');
   const [error, setError] = useState('');
   const [copiedKey, setCopiedKey] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) {
+        window.clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
 
   const displayEndpoint =
     endpoint ||
@@ -287,7 +296,10 @@ export default function Integrations() {
 
     void navigator.clipboard.writeText(endpoint).then(() => {
       setCopiedKey(key);
-      window.setTimeout(() => setCopiedKey(''), 1800);
+      if (copyTimerRef.current !== null) {
+        window.clearTimeout(copyTimerRef.current);
+      }
+      copyTimerRef.current = window.setTimeout(() => setCopiedKey(''), 1800);
     });
   }
 

@@ -48,11 +48,19 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
   ];
 
   const [confirmLogout, setConfirmLogout] = React.useState(false);
+  const logoutTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+    };
+  }, []);
 
   function handleLogout() {
     if (!confirmLogout) {
       setConfirmLogout(true);
-      setTimeout(() => setConfirmLogout(false), 3000);
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+      logoutTimerRef.current = setTimeout(() => setConfirmLogout(false), 3000);
       return;
     }
     startTransition(async () => {

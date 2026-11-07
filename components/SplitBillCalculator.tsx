@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Users, Copy, Check, Calculator, Sparkles, Percent } from 'lucide-react';
 import { triggerHaptic } from '../lib/haptics';
 import { formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
@@ -15,11 +15,18 @@ const TAX_PRESETS = [0, 5, 10, 11, 12];
 
 export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }: SplitBillCalculatorProps) {
   const { lang } = useLanguage();
+  const copyTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [totalBill, setTotalBill] = useState(() => (defaultAmount > 0 ? formatRupiahInput(defaultAmount.toString()) : ''));
   const [peopleCount, setPeopleCount] = useState<number>(2);
   const [taxPercent, setTaxPercent] = useState<number>(0);
   const [billTitle, setBillTitle] = useState('');
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const rawTotal = useMemo(() => parseRupiahInput(totalBill) || 0, [totalBill]);
 
@@ -65,7 +72,8 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
     try {
       await navigator.clipboard.writeText(summary);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2500);
     } catch {
       // fallback
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { X, Loader2, Save } from 'lucide-react';
 import { updateTransaction } from '../app/actions';
@@ -16,6 +16,7 @@ interface Props {
 
 export default function EditTransactionModal({ transaction, onClose }: Props) {
   const { lang } = useLanguage();
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -24,7 +25,10 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
   }, [onClose]);
   const [form, setForm] = useState({
     type: transaction.type,
@@ -74,7 +78,8 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
             } telah berhasil diubah.`,
         'TRANSACTION_EDIT'
       );
-      setTimeout(() => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
         setSuccess(null);
         onClose();
       }, 1200);
