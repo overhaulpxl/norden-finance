@@ -217,6 +217,22 @@ export async function processDueRecurringTransactions(limit = 50) {
     } catch (err: unknown) {
       console.error(`Failed to process recurring rule ${rule.id} for user ${rule.userId}:`, err);
       failedCount += 1;
+      try {
+        if (err instanceof Error && err.message.includes('Profil pengguna tidak ditemukan')) {
+          await prisma.recurringTransaction.update({
+            where: { id: rule.id },
+            data: { isActive: false },
+          });
+        } else {
+          // Delay next attempt by 1 hour to prevent hot retry loops
+          await prisma.recurringTransaction.update({
+            where: { id: rule.id },
+            data: { nextRunAt: new Date(Date.now() + 60 * 60 * 1000) },
+          });
+        }
+      } catch (recoveryErr) {
+        console.error(`Failed to update retry backoff for rule ${rule.id}:`, recoveryErr);
+      }
     }
   }
 

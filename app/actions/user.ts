@@ -1,6 +1,6 @@
 'use server';
 
-import { requireUser } from '../../lib/auth';
+import { requireUser, SESSION_CONFIG } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
@@ -64,13 +64,19 @@ export async function completeOnboarding(data: {
         });
       }
 
+      const ewallets = ['DANA', 'GOPAY', 'OVO', 'SHOPEEPAY', 'LINKAJA'];
+      const cashNames = ['CASH', 'TUNAI'];
+      let walletType = 'bank';
+      if (ewallets.includes(walletName)) walletType = 'ewallet';
+      if (cashNames.includes(walletName)) walletType = 'cash';
+
       await tx.balance.upsert({
         where: { userId_name: { userId, name: walletName } },
-        update: { currentBalance: data.openingBalance },
+        update: { currentBalance: data.openingBalance, type: walletType, archivedAt: null },
         create: {
           userId,
           name: walletName,
-          type: walletName === 'CASH' ? 'cash' : 'bank',
+          type: walletType,
           currentBalance: data.openingBalance,
         },
       });
@@ -155,11 +161,8 @@ export async function deleteUserAccountData() {
 
     // Clear session cookie on server
     const cookieStore = await cookies();
-    cookieStore.set('__session', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
+    cookieStore.set(SESSION_CONFIG.name, '', {
+      ...SESSION_CONFIG.options,
       maxAge: 0,
     });
 

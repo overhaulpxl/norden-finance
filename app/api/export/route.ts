@@ -6,7 +6,11 @@ import { getMonthlyReportData } from '../../../lib/data/loaders';
 const EXPORT_ROW_LIMIT = 5000;
 
 function csvEscape(value: unknown): string {
-  const text = String(value ?? '');
+  let text = String(value ?? '');
+  // Neutralize CSV formula injection (CWE-1236)
+  if (/^[=+\-@\t\r]/.test(text)) {
+    text = `'${text}`;
+  }
   if (/[",\n\r]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`;
   }
