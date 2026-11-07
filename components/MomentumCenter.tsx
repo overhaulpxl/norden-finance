@@ -129,7 +129,9 @@ export default function MomentumCenter({
   }
 
   const streaks = calculateStreaks(transactions, referenceDate);
-  const totalBalance = balances.reduce((sum, balance) => sum + balance.currentBalance, 0);
+  const totalBalance = balances
+    .filter((b) => !b.archivedAt)
+    .reduce((sum, balance) => sum + balance.currentBalance, 0);
   const monthlyExpense = emergencyFundPlan?.monthlyExpense || 0;
   const emergencyMonths = monthlyExpense > 0 ? totalBalance / monthlyExpense : 0;
   const monthExpense = currentMonthExpense(transactions, referenceDate);

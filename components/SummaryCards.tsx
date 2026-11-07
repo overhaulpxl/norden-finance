@@ -29,7 +29,9 @@ export default function SummaryCards({
   });
 
   const saldoBersih = totalMasuk - totalKeluar;
-  const totalSaldoReal = balances.reduce((acc, curr) => acc + curr.currentBalance, 0);
+  const totalSaldoReal = balances
+    .filter((b) => !b.archivedAt)
+    .reduce((acc, curr) => acc + curr.currentBalance, 0);
   const selisih = totalSaldoReal - saldoBersih;
 
   const cards = [

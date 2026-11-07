@@ -99,7 +99,7 @@ export function verifyPinResetToken(
   token: string,
   userId: string,
   code?: string
-): { valid: boolean; error?: string } {
+): { valid: boolean; exp?: number; signature?: string; error?: string } {
   try {
     const parts = token.split('.');
     if (parts.length !== 2) {
@@ -128,7 +128,7 @@ export function verifyPinResetToken(
 
     // Flow A: Magic link token (bearer authority from private email inbox)
     if (payload.type === 'magic_link') {
-      return { valid: true };
+      return { valid: true, exp: payload.exp, signature };
     }
 
     // Flow B: OTP session token (client modal submission, strictly requires matching 6-digit code)
@@ -149,7 +149,7 @@ export function verifyPinResetToken(
         return { valid: false, error: 'Kode verifikasi 6-digit salah' };
       }
 
-      return { valid: true };
+      return { valid: true, exp: payload.exp, signature };
     }
 
     // Legacy fallback (if any older payload is still valid within 15 mins)
@@ -157,7 +157,7 @@ export function verifyPinResetToken(
       if (!code || payload.code !== code.trim()) {
         return { valid: false, error: 'Kode verifikasi 6-digit salah' };
       }
-      return { valid: true };
+      return { valid: true, exp: payload.exp, signature };
     }
 
     return { valid: false, error: 'Tipe token tidak valid' };

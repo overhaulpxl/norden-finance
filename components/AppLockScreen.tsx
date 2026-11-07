@@ -301,6 +301,9 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
   const handleConfirmSignOut = async () => {
     setEmergencyLoading(true);
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`norden_unlocked_${userId}`);
+      }
       await fetch('/api/auth/session', { method: 'DELETE' });
       await signOut(auth);
       window.location.href = '/login';

@@ -354,6 +354,27 @@ export async function confirmPinResetCodeAction(input: {
       return { success: false, error: verification.error || 'Verifikasi reset PIN gagal.' };
     }
 
+    // Enforce single-use token consumption
+    if (verification.signature) {
+      const consumedKey = `consumed-pin-token:${verification.signature}`;
+      const alreadyConsumed = await prisma.rateLimitBucket.findUnique({
+        where: { key: consumedKey },
+      });
+      if (alreadyConsumed) {
+        return { success: false, error: 'Tautan atau kode reset PIN ini sudah pernah digunakan.' };
+      }
+
+      await prisma.rateLimitBucket.upsert({
+        where: { key: consumedKey },
+        create: {
+          key: consumedKey,
+          count: 1,
+          resetAt: new Date(verification.exp || Date.now() + 15 * 60 * 1000),
+        },
+        update: { count: { increment: 1 } },
+      });
+    }
+
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal memverifikasi kode reset PIN.';

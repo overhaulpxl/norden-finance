@@ -21,7 +21,9 @@ export default function HealthScore({ transactions, balances, debts }: { transac
       }
     });
 
-    const totalBalance = balances.reduce((acc, curr) => acc + curr.currentBalance, 0);
+    const totalBalance = balances
+      .filter((b) => !b.archivedAt)
+      .reduce((acc, curr) => acc + curr.currentBalance, 0);
     const totalDebt = debts.filter(d => d.type === 'hutang' && !d.isSettled).reduce((acc, curr) => acc + curr.amount, 0);
 
     // Savings Rate (30 points)

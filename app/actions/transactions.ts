@@ -482,17 +482,23 @@ export async function deleteTransaction(id: string) {
     await prisma.$transaction(async (db) => {
       if (tx.type === 'transfer') {
         if (tx.walletId) {
-          await db.balance.update({
-            where: { id: tx.walletId },
-            data: { currentBalance: { increment: tx.amount } },
-          });
+          const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
+          if (sourceWallet) {
+            await db.balance.update({
+              where: { id: tx.walletId },
+              data: { currentBalance: { increment: tx.amount } },
+            });
+          }
         }
 
         if (tx.transferToWalletId) {
-          await db.balance.update({
-            where: { id: tx.transferToWalletId },
-            data: { currentBalance: { decrement: tx.amount } },
-          });
+          const destWallet = await db.balance.findUnique({ where: { id: tx.transferToWalletId } });
+          if (destWallet) {
+            await db.balance.update({
+              where: { id: tx.transferToWalletId },
+              data: { currentBalance: { decrement: tx.amount } },
+            });
+          }
         } else {
           const match = tx.note?.match(/Transfer ke (.*?)(?:\s*-\s*|$)/i);
           const toWalletName = match ? match[1].trim() : null;
@@ -509,11 +515,14 @@ export async function deleteTransaction(id: string) {
           }
         }
       } else if (tx.walletId) {
-        const amountChange = tx.type === 'masuk' ? -tx.amount : tx.amount;
-        await db.balance.update({
-          where: { id: tx.walletId },
-          data: { currentBalance: { increment: amountChange } },
-        });
+        const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
+        if (sourceWallet) {
+          const amountChange = tx.type === 'masuk' ? -tx.amount : tx.amount;
+          await db.balance.update({
+            where: { id: tx.walletId },
+            data: { currentBalance: { increment: amountChange } },
+          });
+        }
       }
 
       await db.transaction.update({
@@ -548,23 +557,46 @@ export async function restoreTransaction(id: string) {
     await prisma.$transaction(async (db) => {
       if (tx.type === 'transfer') {
         if (tx.walletId) {
-          await db.balance.update({
-            where: { id: tx.walletId },
-            data: { currentBalance: { decrement: tx.amount } },
-          });
+          const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
+          if (sourceWallet) {
+            await db.balance.update({
+              where: { id: tx.walletId },
+              data: { currentBalance: { decrement: tx.amount } },
+            });
+          }
         }
         if (tx.transferToWalletId) {
-          await db.balance.update({
-            where: { id: tx.transferToWalletId },
-            data: { currentBalance: { increment: tx.amount } },
-          });
+          const destWallet = await db.balance.findUnique({ where: { id: tx.transferToWalletId } });
+          if (destWallet) {
+            await db.balance.update({
+              where: { id: tx.transferToWalletId },
+              data: { currentBalance: { increment: tx.amount } },
+            });
+          }
+        } else {
+          const match = tx.note?.match(/Transfer ke (.*?)(?:\s*-\s*|$)/i);
+          const toWalletName = match ? match[1].trim() : null;
+          if (toWalletName) {
+            const destWallet = await db.balance.findUnique({
+              where: { userId_name: { userId, name: toWalletName } },
+            });
+            if (destWallet) {
+              await db.balance.update({
+                where: { id: destWallet.id },
+                data: { currentBalance: { increment: tx.amount } },
+              });
+            }
+          }
         }
       } else if (tx.walletId) {
-        const amountChange = tx.type === 'masuk' ? tx.amount : -tx.amount;
-        await db.balance.update({
-          where: { id: tx.walletId },
-          data: { currentBalance: { increment: amountChange } },
-        });
+        const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
+        if (sourceWallet) {
+          const amountChange = tx.type === 'masuk' ? tx.amount : -tx.amount;
+          await db.balance.update({
+            where: { id: tx.walletId },
+            data: { currentBalance: { increment: amountChange } },
+          });
+        }
       }
 
       await db.transaction.update({
@@ -629,17 +661,23 @@ export async function updateTransaction(
 
     await prisma.$transaction(async (db) => {
       if (tx.walletId) {
-        await db.balance.update({
-          where: { id: tx.walletId },
-          data: { currentBalance: { decrement: walletDelta(tx.type, tx.amount) } },
-        });
+        const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
+        if (sourceWallet) {
+          await db.balance.update({
+            where: { id: tx.walletId },
+            data: { currentBalance: { decrement: walletDelta(tx.type, tx.amount) } },
+          });
+        }
       }
 
       if (newWalletId) {
-        await db.balance.update({
-          where: { id: newWalletId },
-          data: { currentBalance: { increment: walletDelta(newType, newAmount) } },
-        });
+        const targetWallet = await db.balance.findUnique({ where: { id: newWalletId } });
+        if (targetWallet) {
+          await db.balance.update({
+            where: { id: newWalletId },
+            data: { currentBalance: { increment: walletDelta(newType, newAmount) } },
+          });
+        }
       }
 
       await db.transaction.update({

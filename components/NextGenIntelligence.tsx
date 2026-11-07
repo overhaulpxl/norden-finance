@@ -412,7 +412,9 @@ export default function NextGenIntelligence({
       ? recentMonths.reduce((sum, item) => sum + item.expense, 0) / recentMonths.length
       : 0;
     const avgDailyExpense = avgExpense > 0 ? avgExpense / 30 : 0;
-    const totalBalance = balances.reduce((sum, balance) => sum + balance.currentBalance, 0);
+    const totalBalance = balances
+      .filter((b) => !b.archivedAt)
+      .reduce((sum, balance) => sum + balance.currentBalance, 0);
     const netDebt = debts
       .filter((debt) => !debt.isSettled)
       .reduce((sum, debt) => sum + (debt.type === 'piutang' ? -debt.amount : debt.amount), 0);

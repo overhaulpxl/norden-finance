@@ -640,8 +640,10 @@ export default function AppLayout({
               pricingPlans={pricingPlans}
               stats={{
                 transactionCount: transactions.length,
-                walletCount: balances.length,
-                balanceTotal: balances.reduce((a, b) => a + b.currentBalance, 0),
+                walletCount: balances.filter((b) => !b.archivedAt).length,
+                balanceTotal: balances
+                  .filter((b) => !b.archivedAt)
+                  .reduce((a, b) => a + b.currentBalance, 0),
               }}
             />
           )}
