@@ -124,13 +124,13 @@ export async function syncNotifications(userId: string) {
       } else if (daysLeft === 1) {
         await createNotificationIfUnique(
           'Trial berakhir besok',
-          'Trial 14 hari Anda akan berakhir besok. Upgrade ke Pro sekarang untuk mempertahankan akses fitur lanjutan.',
+          'Masa trial Anda akan berakhir besok. Upgrade ke Pro sekarang untuk mempertahankan akses fitur lanjutan.',
           'TRIAL_WARNING'
         );
       } else if (daysLeft <= 3) {
         await createNotificationIfUnique(
           'Trial akan berakhir',
-          `Trial 14 hari Anda akan berakhir dalam ${daysLeft} hari. Nikmati terus fitur otomatisasi Norden.`,
+          `Masa trial Anda akan berakhir dalam ${daysLeft} hari. Nikmati terus fitur otomatisasi Norden.`,
           'TRIAL_WARNING'
         );
       }

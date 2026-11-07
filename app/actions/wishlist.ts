@@ -59,9 +59,11 @@ export async function markWishlistBought(id: string, walletName?: string) {
 
     await prisma.$transaction(async (tx) => {
       if (walletName) {
-        const walletUpper = walletName.trim().toUpperCase();
         const wallet = await tx.balance.findFirst({
-          where: { userId, name: walletUpper },
+          where: {
+            userId,
+            name: { equals: walletName.trim(), mode: 'insensitive' },
+          },
         });
         if (!wallet) throw new Error('Dompet tidak ditemukan');
 
@@ -73,7 +75,7 @@ export async function markWishlistBought(id: string, walletName?: string) {
 
         await tx.balance.update({
           where: { id: wallet.id },
-          data: { currentBalance: { decrement: existing.amount } },
+          data: { currentBalance: { decrement: existing.amount }, archivedAt: null },
         });
 
         await tx.transaction.create({

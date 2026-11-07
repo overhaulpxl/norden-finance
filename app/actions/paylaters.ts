@@ -59,14 +59,16 @@ export async function payPaylaterInstallment(id: string, payMethod: string) {
       throw new Error('Paylater sudah lunas');
     }
 
-    const walletName = payMethod.trim().toUpperCase();
     const paymentAmount = Math.min(existing.installmentAmount, existing.totalAmount);
     const remainingAfterPayment = existing.totalAmount - paymentAmount;
     const nextMonthsPaid = existing.monthsPaid + 1;
 
     await prisma.$transaction(async (tx) => {
       const wallet = await tx.balance.findFirst({
-        where: { userId, name: walletName },
+        where: {
+          userId,
+          name: { equals: payMethod.trim(), mode: 'insensitive' },
+        },
       });
       if (!wallet) throw new Error('Dompet pembayaran tidak ditemukan');
 
@@ -78,7 +80,7 @@ export async function payPaylaterInstallment(id: string, payMethod: string) {
 
       await tx.balance.update({
         where: { id: wallet.id },
-        data: { currentBalance: { decrement: paymentAmount } },
+        data: { currentBalance: { decrement: paymentAmount }, archivedAt: null },
       });
 
       await tx.transaction.create({
