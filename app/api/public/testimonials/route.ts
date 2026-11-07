@@ -6,6 +6,13 @@ import {
   isPublicSafeFeedback,
   type PublicTestimonial,
 } from '../../../../lib/landingFallbacks';
+import {
+  assertRateLimit,
+  rateLimitKey,
+  RateLimitExceededError,
+  RateLimitIpError,
+  rateLimitResponse,
+} from '../../../../lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +27,10 @@ function testimonialResponse(testimonials: PublicTestimonial[], source: 'databas
   );
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    await assertRateLimit(rateLimitKey(request, 'public-testimonials'), 60, 60_000);
+
     const reviewedFeedbacks = await prisma.feedback.findMany({
       where: {
         status: 'reviewed',
@@ -72,6 +81,12 @@ export async function GET() {
       publicTestimonials.length > 0 ? 'database' : 'fallback',
     );
   } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      return rateLimitResponse(error);
+    }
+    if (error instanceof RateLimitIpError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error('Failed to load public testimonials:', error);
     return testimonialResponse(FALLBACK_PUBLIC_TESTIMONIALS, 'fallback');
   }

@@ -132,8 +132,8 @@ export async function POST(request: NextRequest) {
       throw rlError;
     }
 
-    const { idToken } = await request.json();
-    if (!idToken) {
+    const { idToken } = await request.json().catch(() => ({}));
+    if (typeof idToken !== 'string' || !idToken.trim() || idToken.length > 4096) {
       return NextResponse.json({ ok: false, error: 'ID token is required', message: 'ID token is required' }, { status: 400 });
     }
 

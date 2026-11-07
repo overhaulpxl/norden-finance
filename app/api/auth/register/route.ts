@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
     await assertRateLimit(rateLimitKey(request, 'auth-register'), 10, 60_000);
-    const { idToken, fullName, createSession = true } = await request.json();
+    const { idToken, fullName, createSession = true } = await request.json().catch(() => ({}));
 
-    if (!idToken) {
+    if (typeof idToken !== 'string' || !idToken.trim() || idToken.length > 4096) {
       return NextResponse.json(
         { error: 'ID token is required' },
         { status: 400 }

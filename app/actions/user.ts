@@ -303,6 +303,9 @@ export async function sendPasswordResetLinkAction(targetEmail?: string) {
     if ('error' in sendRes && sendRes.error) {
       return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
     }
+    if ('skipped' in sendRes) {
+      return { success: false, error: 'Layanan pengiriman email belum dikonfigurasi pada server.' };
+    }
 
     return { success: true };
   } catch (error: unknown) {
@@ -347,6 +350,9 @@ export async function requestPinResetAction(targetUserId?: string) {
 
     if ('error' in sendRes && sendRes.error) {
       return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
+    }
+    if ('skipped' in sendRes) {
+      return { success: false, error: 'Layanan pengiriman email belum dikonfigurasi pada server.' };
     }
 
     // Return sessionToken ONLY to client (which strictly requires 6-digit OTP code to verify)

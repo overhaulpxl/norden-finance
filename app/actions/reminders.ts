@@ -115,13 +115,29 @@ export async function processDueEmailReminders(limit = 50) {
 
   for (const reminder of dueReminders) {
     try {
+      // Atomic claim to prevent concurrent cron workers sending duplicate emails
+      const claimed = await prisma.reminder.updateMany({
+        where: {
+          id: reminder.id,
+          emailSentAt: null,
+          completedAt: null,
+          emailAttemptCount: { lt: 3 },
+        },
+        data: {
+          emailAttemptCount: { increment: 1 },
+        },
+      });
+
+      if (claimed.count === 0) {
+        continue;
+      }
+
       const entitlement = await getUserEntitlement(reminder.userId);
       if (!entitlement.canAccessProFeatures) {
         await prisma.reminder.update({
           where: { id: reminder.id },
           data: {
             emailLastError: 'Pengiriman email membutuhkan langganan Norden Pro aktif.',
-            emailAttemptCount: { increment: 1 },
           },
         });
         failedCount += 1;
@@ -144,19 +160,25 @@ export async function processDueEmailReminders(limit = 50) {
         })[char] || char)
         .replace(/\n/g, '<br />');
 
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: firebaseUser.email,
         subject: cleanSubject,
         html: `<p>${escapedBody}</p><p>This reminder was sent by Norden Finance.</p>`,
         text: `${reminder.body}\n\nThis reminder was sent by Norden Finance.`,
       });
 
+      if ('error' in emailResult) {
+        throw new Error(emailResult.error);
+      }
+      if ('skipped' in emailResult) {
+        throw new Error('Layanan email belum dikonfigurasi.');
+      }
+
       await prisma.reminder.update({
         where: { id: reminder.id },
         data: {
           emailSentAt: now,
           emailLastError: null,
-          emailAttemptCount: { increment: 1 },
         },
       });
       await createAuditLog(reminder.userId, 'SEND_REMINDER_EMAIL', 'reminder', reminder.id);
@@ -167,7 +189,6 @@ export async function processDueEmailReminders(limit = 50) {
         where: { id: reminder.id },
         data: {
           emailLastError: message.slice(0, 500),
-          emailAttemptCount: { increment: 1 },
         },
       });
       failedCount += 1;

@@ -154,7 +154,9 @@ export function verifyPinResetToken(
 
     // Legacy fallback (if any older payload is still valid within 15 mins)
     if ('code' in payload && payload.code) {
-      if (!code || payload.code !== code.trim()) {
+      const codeA = Buffer.from(payload.code);
+      const codeB = Buffer.from(code?.trim() || '');
+      if (codeA.length !== codeB.length || !timingSafeEqual(codeA, codeB)) {
         return { valid: false, error: 'Kode verifikasi 6-digit salah' };
       }
       return { valid: true, exp: payload.exp, signature };

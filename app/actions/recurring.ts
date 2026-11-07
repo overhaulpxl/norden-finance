@@ -198,8 +198,12 @@ export async function processDueRecurringTransactions(limit = 50) {
       // Pro automation rules must not run for users who have fallen back to Free Basic.
       const entitlement = await getUserEntitlement(rule.userId);
       if (!entitlement.canAccessProFeatures) {
-        await prisma.recurringTransaction.update({
-          where: { id: rule.id },
+        await prisma.recurringTransaction.updateMany({
+          where: {
+            id: rule.id,
+            isActive: true,
+            nextRunAt: { lte: now },
+          },
           data: {
             nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
           },
@@ -208,7 +212,25 @@ export async function processDueRecurringTransactions(limit = 50) {
         continue;
       }
 
+      let wasCreated = false;
       await prisma.$transaction(async (tx) => {
+        // Atomic claim: verify rule is still active and due to prevent concurrent duplicate runs
+        const claimed = await tx.recurringTransaction.updateMany({
+          where: {
+            id: rule.id,
+            isActive: true,
+            nextRunAt: { lte: now },
+          },
+          data: {
+            lastRunAt: now,
+            nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
+          },
+        });
+
+        if (claimed.count === 0) {
+          return;
+        }
+
         const [category, wallet] = await Promise.all([
           resolveCategory(tx, rule.userId, rule.categoryName, rule.type as TransactionType),
           resolveWallet(tx, rule.userId, rule.walletName),
@@ -237,15 +259,12 @@ export async function processDueRecurringTransactions(limit = 50) {
           },
         });
 
-        await tx.recurringTransaction.update({
-          where: { id: rule.id },
-          data: {
-            lastRunAt: now,
-            nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
-          },
-        });
+        wasCreated = true;
       });
-      createdCount += 1;
+
+      if (wasCreated) {
+        createdCount += 1;
+      }
     } catch (err: unknown) {
       console.error(`Failed to process recurring rule ${rule.id} for user ${rule.userId}:`, err);
       failedCount += 1;
