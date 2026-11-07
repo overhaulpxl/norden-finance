@@ -186,6 +186,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     triggerHaptic('medium');
     lockApp(user.id);
   };
+
+  useEffect(() => {
+    if (!pinModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setPinModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pinModalOpen]);
   const monthlyPrice = pricingPlans.monthly?.price ?? null;
   const yearlyPrice = pricingPlans.yearly?.price ?? null;
   const yearlySavingsPercent = monthlyPrice && yearlyPrice
@@ -784,7 +795,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
       {/* PIN Setup / Change Modal */}
       {pinModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setPinModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
           <div className="bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_#000] space-y-4 animate-in zoom-in-95 duration-200 text-black dark:text-white">
             <div className="flex justify-between items-center border-b-2 border-black dark:border-neutral-700 pb-3">
               <h4 className="font-black text-sm uppercase tracking-wider text-black dark:text-white flex items-center gap-2">

@@ -133,11 +133,15 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
     }
   }, [userId, lang]);
 
-  // Handle keyboard typing for desktop users
+  // Handle keyboard typing for desktop users and Escape for emergency modal
   useEffect(() => {
-    if (!locked) return;
+    if (!locked && !showEmergencyModal) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showEmergencyModal) {
+        setShowEmergencyModal(false);
+        return;
+      }
       if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
         handleKeyPress(e.key);
       } else if (e.key === 'Backspace') {
@@ -147,7 +151,7 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [locked, handleKeyPress, handleDelete]);
+  }, [locked, showEmergencyModal, handleKeyPress, handleDelete]);
 
   // Auto-trigger biometric authentication if enabled on mobile
   useEffect(() => {
@@ -301,7 +305,14 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
       </div>
 
       {showEmergencyModal && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !emergencyLoading) {
+              setShowEmergencyModal(false);
+            }
+          }}
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
           <div className="bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl p-5 max-w-sm w-full shadow-[6px_6px_0px_0px_#000] space-y-4 animate-in zoom-in-95 text-black dark:text-white">
             <div className="flex items-center gap-2">
               <div

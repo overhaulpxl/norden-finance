@@ -243,6 +243,17 @@ export default function QuickInputModal({
     }
   }, [chatMessages, loading, mode]);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const clearCloseTimer = () => {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
@@ -797,7 +808,15 @@ export default function QuickInputModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          triggerHaptic('light');
+          onClose();
+        }
+      }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200"
+    >
       <div className="bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden rounded-2xl shadow-[4px_4px_0px_0px_#000] animate-in zoom-in-95 duration-200 text-black dark:text-white">
         {/* Header */}
         <div className="px-5 py-3.5 border-b-2 border-black dark:border-neutral-700 flex justify-between items-center bg-white dark:bg-neutral-900 shrink-0">

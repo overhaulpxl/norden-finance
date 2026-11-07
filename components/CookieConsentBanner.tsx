@@ -46,7 +46,7 @@ export default function CookieConsentBanner() {
     <div
       role="region"
       aria-label={lang === 'en' ? 'Cookie Consent Notice' : 'Pemberitahuan Persetujuan Cookie'}
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-300 select-none"
+      className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-300 select-none"
     >
       <div className="brutal-card p-4 bg-white dark:bg-neutral-900 border-[2.5px] border-black dark:border-neutral-700 shadow-[5px_5px_0px_0px_#000] flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">

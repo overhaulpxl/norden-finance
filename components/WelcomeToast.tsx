@@ -28,7 +28,7 @@ export default function WelcomeToast({ userId, fullName }: WelcomeToastProps) {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-[#fef08a] dark:bg-amber-950/90 border-2 border-black dark:border-neutral-700 p-4 rounded-2xl shadow-[4px_4px_0px_0px_#000] animate-in slide-in-from-bottom duration-300 select-none text-black dark:text-white">
+    <div className="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 left-4 sm:left-auto max-w-sm w-[calc(100%-2rem)] sm:w-full z-50 bg-[#fef08a] dark:bg-amber-950/90 border-2 border-black dark:border-neutral-700 p-4 rounded-2xl shadow-[4px_4px_0px_0px_#000] animate-in slide-in-from-bottom duration-300 select-none text-black dark:text-white">
       <div className="flex gap-3">
         <div
           className="flex-shrink-0 p-1.5 border-2 border-black rounded-xl text-black flex items-center justify-center shadow-[1px_1px_0px_0px_#000]"

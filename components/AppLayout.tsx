@@ -268,6 +268,8 @@ export default function AppLayout({
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setShowCommandPalette((prev) => !prev);
+      } else if (e.key === 'Escape') {
+        setSidebarOpen(false);
       }
     };
     const handleOpenQuickInput = () => setShowModal(true);
