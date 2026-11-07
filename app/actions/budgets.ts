@@ -13,6 +13,9 @@ export async function addBudget(categoryInput: string, monthlyLimit: number) {
 
     assertNonEmpty(categoryInput, 'Kategori');
     assertPositiveInt(monthlyLimit, 'Limit bulanan');
+    if (monthlyLimit > 1_000_000_000_000) {
+      throw new Error('Limit bulanan melebihi batas maksimal');
+    }
 
     let category = await prisma.category.findFirst({
       where: {
@@ -25,7 +28,7 @@ export async function addBudget(categoryInput: string, monthlyLimit: number) {
     });
 
     if (!category) {
-      const trimmed = categoryInput.trim();
+      const trimmed = categoryInput.trim().slice(0, 50);
       const name = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
       category = await prisma.category.upsert({
         where: { userId_name: { userId, name } },
@@ -54,6 +57,9 @@ export async function updateBudget(id: string, monthlyLimit: number) {
     const { user } = await requireUser(true);
     const userId = user.uid;
     assertPositiveInt(monthlyLimit, 'Limit bulanan');
+    if (monthlyLimit > 1_000_000_000_000) {
+      throw new Error('Limit bulanan melebihi batas maksimal');
+    }
 
     const existing = await prisma.budget.findFirst({
       where: { id, userId },

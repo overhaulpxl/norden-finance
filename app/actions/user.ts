@@ -128,8 +128,12 @@ export async function resetUserFinancialData() {
 
 export async function deleteUserAccountData() {
   try {
-    const { user } = await requireUser(false);
+    const { user, profile } = await requireUser(false);
     const userId = user.uid;
+
+    if (profile.role === 'admin') {
+      throw new Error('Akun admin tidak dapat dihapus melalui menu pengaturan.');
+    }
 
     // Delete everything in a secure transaction
     await prisma.$transaction(async (tx) => {

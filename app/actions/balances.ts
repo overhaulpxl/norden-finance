@@ -13,9 +13,12 @@ export async function updateBalance(name: string, amount: number, id?: string) {
   try {
     assertNonEmpty(name, 'Nama dompet');
     assertNonNegativeInt(amount, 'Saldo');
+    if (amount > 1_000_000_000_000) {
+      throw new Error('Saldo melebihi batas maksimal');
+    }
     const { user } = await requireUser('basic');
     const userId = user.uid;
-    const walletName = name.toUpperCase();
+    const walletName = name.trim().slice(0, 50).toUpperCase();
 
     // Determine wallet type
     const ewallets = ['DANA', 'GOPAY', 'OVO', 'SHOPEEPAY', 'LINKAJA'];

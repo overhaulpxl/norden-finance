@@ -18,16 +18,21 @@ export async function addPaylater(
     assertNonEmpty(itemName, 'Nama item');
     assertNonEmpty(platform, 'Platform');
     assertPositiveInt(totalAmount, 'Total paylater');
+    if (totalAmount > 1_000_000_000_000) {
+      throw new Error('Total paylater melebihi batas maksimal');
+    }
     assertPositiveInt(tenorMonths, 'Tenor');
     if (tenorMonths > 120) throw new Error('Tenor terlalu panjang');
 
+    const cleanItemName = itemName.trim().slice(0, 80);
+    const cleanPlatform = platform.trim().slice(0, 50);
     const installmentAmount = Math.ceil(totalAmount / tenorMonths);
 
     const paylater = await prisma.paylater.create({
       data: {
         userId,
-        itemName,
-        platform,
+        itemName: cleanItemName,
+        platform: cleanPlatform,
         totalAmount,
         installmentAmount,
         tenorMonths,

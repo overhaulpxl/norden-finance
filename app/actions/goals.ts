@@ -12,6 +12,9 @@ export async function addSavingGoal(title: string, targetAmount: number, deadlin
     const userId = user.uid;
     assertNonEmpty(title, 'Nama goal');
     assertPositiveInt(targetAmount, 'Target');
+    if (targetAmount > 1_000_000_000_000) {
+      throw new Error('Target tabungan melebihi batas maksimal');
+    }
     assertValidDate(deadline, 'Deadline');
 
     const cleanTitle = title.trim().slice(0, 80);
@@ -39,8 +42,18 @@ export async function updateSavingGoal(id: string, data: { title?: string; targe
     const { user } = await requireUser(true);
     const userId = user.uid;
     if (data.title !== undefined) assertNonEmpty(data.title, 'Nama goal');
-    if (data.targetAmount !== undefined) assertPositiveInt(data.targetAmount, 'Target');
-    if (data.currentAmount !== undefined) assertNonNegativeInt(data.currentAmount, 'Saldo goal');
+    if (data.targetAmount !== undefined) {
+      assertPositiveInt(data.targetAmount, 'Target');
+      if (data.targetAmount > 1_000_000_000_000) {
+        throw new Error('Target tabungan melebihi batas maksimal');
+      }
+    }
+    if (data.currentAmount !== undefined) {
+      assertNonNegativeInt(data.currentAmount, 'Saldo goal');
+      if (data.currentAmount > 1_000_000_000_000) {
+        throw new Error('Saldo tabungan melebihi batas maksimal');
+      }
+    }
     if (data.deadline) assertValidDate(data.deadline, 'Deadline');
 
     const existing = await prisma.savingGoal.findFirst({

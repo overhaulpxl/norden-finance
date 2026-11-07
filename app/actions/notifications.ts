@@ -5,6 +5,7 @@ import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { syncAchievements } from '../../lib/achievements';
 import { formatCurrency } from '../../lib/format';
+import { assertNonEmpty } from '../../lib/validators';
 
 function dayKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -319,8 +320,14 @@ export async function addCustomNotification(title: string, body: string, type: s
   const { user } = await requireUser(false);
   const userId = user.uid;
 
+  assertNonEmpty(title, 'Judul notifikasi');
+  assertNonEmpty(body, 'Isi notifikasi');
+  const cleanTitle = title.trim().slice(0, 100);
+  const cleanBody = body.trim().slice(0, 500);
+  const cleanType = (type || 'INFO').trim().slice(0, 30);
+
   await prisma.notification.create({
-    data: { userId, title, body, type, isRead: false },
+    data: { userId, title: cleanTitle, body: cleanBody, type: cleanType, isRead: false },
   });
 
   revalidatePath('/dashboard');

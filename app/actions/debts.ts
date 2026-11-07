@@ -22,6 +22,9 @@ export async function addDebt(data: {
     }
     assertNonEmpty(data.person, 'Nama');
     assertPositiveInt(data.amount, 'Nominal');
+    if (data.amount > 1_000_000_000_000) {
+      throw new Error('Nominal melebihi batas maksimal');
+    }
     if (data.tenorMonths !== undefined) {
       assertPositiveInt(data.tenorMonths, 'Tenor');
       if (data.tenorMonths > 360) throw new Error('Tenor maksimal 360 bulan');
