@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 import type { PublicTestimonial } from '../lib/landingFallbacks';
+import { useLanguage } from '../lib/i18n';
 
 type TestimonialsCarouselProps = {
   testimonials: PublicTestimonial[];
@@ -19,14 +20,19 @@ function getVisibleCount() {
 function TestimonialCard({
   testimonial,
   expanded,
+  lang,
 }: {
   testimonial: PublicTestimonial;
   expanded: boolean;
+  lang: string;
 }) {
   return (
     <div className="brutal-card p-6 bg-white dark:bg-neutral-900 text-black dark:text-white border-2 border-black dark:border-neutral-700 rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between min-h-[260px]">
       <div>
-        <div className="flex items-center gap-1.5 mb-4 text-[#FFE066]" aria-label={`${testimonial.rating} dari 5 bintang`}>
+        <div
+          className="flex items-center gap-1.5 mb-4 text-[#FFE066]"
+          aria-label={lang === 'en' ? `${testimonial.rating} out of 5 stars` : `${testimonial.rating} dari 5 bintang`}
+        >
           {Array.from({ length: 5 }).map((_, index) => (
             <Star
               key={index}
@@ -63,6 +69,7 @@ export default function TestimonialsCarousel({
   testimonials,
   testimonialsUrl = '/api/public/testimonials',
 }: TestimonialsCarouselProps) {
+  const { lang } = useLanguage();
   const [fetchedItems, setFetchedItems] = useState<PublicTestimonial[] | null>(null);
   const [visibleCount, setVisibleCount] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -163,6 +170,7 @@ export default function TestimonialsCarousel({
             key={`${testimonial.name}-${currentIndex}-${index}`}
             testimonial={testimonial}
             expanded={expanded}
+            lang={lang}
           />
         ))}
       </div>
@@ -174,7 +182,7 @@ export default function TestimonialsCarousel({
               type="button"
               onClick={goPrevious}
               className="h-11 w-11 inline-flex items-center justify-center bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 text-black dark:text-white shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFE066] dark:hover:bg-neutral-750 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
-              aria-label="Testimoni sebelumnya"
+              aria-label={lang === 'en' ? 'Previous testimonial' : 'Testimoni sebelumnya'}
             >
               <ArrowLeft className="w-4 h-4 stroke-[3px]" />
             </button>
@@ -182,7 +190,7 @@ export default function TestimonialsCarousel({
               type="button"
               onClick={goNext}
               className="h-11 w-11 inline-flex items-center justify-center bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 text-black dark:text-white shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFE066] dark:hover:bg-neutral-750 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer"
-              aria-label="Testimoni berikutnya"
+              aria-label={lang === 'en' ? 'Next testimonial' : 'Testimoni berikutnya'}
             >
               <ArrowRight className="w-4 h-4 stroke-[3px]" />
             </button>
@@ -198,7 +206,9 @@ export default function TestimonialsCarousel({
             }}
             className="bg-[#FFE066] text-black border-[3px] border-black font-black uppercase text-xs tracking-wider px-6 py-3 shadow-[4px_4px_0px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all rounded-none"
           >
-            {expanded ? 'Sembunyikan' : 'Lihat semua ulasan'}
+            {expanded
+              ? (lang === 'en' ? 'Hide' : 'Sembunyikan')
+              : (lang === 'en' ? 'View all reviews' : 'Lihat semua ulasan')}
           </button>
         )}
       </div>

@@ -562,13 +562,17 @@ export default function TransactionTable({
 
   const exportTransactionsToCSV = (txList: Transaction[]) => {
     if (txList.length === 0) return;
-    const headers = ['Tanggal', 'Jenis', 'Kategori', 'Nominal', 'Metode', 'Keterangan', 'Tags'];
+    const isEn = lang === 'en';
+    const headers = isEn
+      ? ['Date', 'Type', 'Category', 'Amount', 'Wallet', 'Note', 'Tags']
+      : ['Tanggal', 'Jenis', 'Kategori', 'Nominal', 'Metode', 'Keterangan', 'Tags'];
+    const otherLabel = isEn ? 'Other' : 'Lain-lain';
     const rows = txList.map((t) => [
       formatTanggal(t.transactionDate),
       t.type,
-      t.category?.name || 'Lain-lain',
+      t.category?.name || otherLabel,
       t.amount,
-      t.wallet?.name || 'Lain-lain',
+      t.wallet?.name || otherLabel,
       t.note || '-',
       (t.tags || []).join(' '),
     ]);
@@ -597,7 +601,7 @@ export default function TransactionTable({
     const amount = parseInt(editAmount.replace(/\D/g, ''), 10);
     if (!amount) return;
     if (!editMethod.trim()) {
-      setError('Pilih wallet terlebih dahulu');
+      setError(lang === 'en' ? 'Select a wallet first' : 'Pilih wallet terlebih dahulu');
       return;
     }
 
@@ -644,11 +648,11 @@ export default function TransactionTable({
       }
       setEditingId(null);
       triggerHaptic('success');
-      setSuccess('Transaksi berhasil diperbarui!');
+      setSuccess(lang === 'en' ? 'Transaction updated successfully!' : 'Transaksi berhasil diperbarui!');
       setTimeout(() => setSuccess(null), 5000);
       router.refresh();
     } else {
-      setError(res.error || 'Gagal memperbarui transaksi');
+      setError(res.error || (lang === 'en' ? 'Failed to update transaction' : 'Gagal memperbarui transaksi'));
     }
     setPendingMutationId(null);
   };
@@ -668,12 +672,16 @@ export default function TransactionTable({
       });
       setDeletingId(null);
       triggerHaptic('medium');
-      setSuccess('Transaksi berhasil dihapus!');
+      setSuccess(lang === 'en' ? 'Transaction deleted successfully!' : 'Transaksi berhasil dihapus!');
       setTimeout(() => setSuccess(null), 5000);
 
       // Trigger floating undo notification
+      const categoryLabel = targetTx?.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain');
+      const amountLabel = formatRupiah(targetTx?.amount || 0);
       triggerUndoToast({
-        message: `Transaksi "${targetTx?.category?.name || 'Lain-lain'}" (${formatRupiah(targetTx?.amount || 0)}) telah dihapus.`,
+        message: lang === 'en'
+          ? `Transaction "${categoryLabel}" (${amountLabel}) deleted.`
+          : `Transaksi "${categoryLabel}" (${amountLabel}) telah dihapus.`,
         onUndo: async () => {
           await restoreTransaction(id);
           setDeletedTransactionIds((current) => {
@@ -687,7 +695,7 @@ export default function TransactionTable({
 
       router.refresh();
     } else {
-      setError(res.error || 'Gagal menghapus transaksi');
+      setError(res.error || (lang === 'en' ? 'Failed to delete transaction' : 'Gagal menghapus transaksi'));
     }
     setPendingMutationId(null);
   };
@@ -705,20 +713,25 @@ export default function TransactionTable({
       const res = await addExplicitTransaction({
         type: tx.type,
         amount: tx.amount,
-        category: tx.category?.name || 'Lain-lain',
+        category: tx.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain'),
         wallet: tx.wallet?.name || 'Cash',
-        note: tx.note ? `${tx.note} (Ulang)` : 'Transaksi Diulang',
+        note: tx.note
+          ? `${tx.note} (${lang === 'en' ? 'Repeat' : 'Ulang'})`
+          : (lang === 'en' ? 'Repeated Transaction' : 'Transaksi Diulang'),
         transactionDate: new Date().toISOString(),
         tags: tx.tags || [],
       });
 
       if (!res.success) {
-        throw new Error(res.error || 'Gagal mengulangi transaksi');
+        throw new Error(res.error || (lang === 'en' ? 'Failed to repeat transaction' : 'Gagal mengulangi transaksi'));
       }
 
       triggerHaptic('success');
+      const repeatCatLabel = tx.category?.name || (lang === 'en' ? 'Other' : 'Lain-lain');
       setSuccess(
-        `Transaksi "${tx.category?.name || 'Lain-lain'}" berhasil dicatat untuk hari ini!`
+        lang === 'en'
+          ? `Transaction "${repeatCatLabel}" successfully recorded for today!`
+          : `Transaksi "${repeatCatLabel}" berhasil dicatat untuk hari ini!`
       );
       setTimeout(() => setSuccess(null), 4000);
 
@@ -728,7 +741,9 @@ export default function TransactionTable({
           : null;
       if (newTxId) {
         triggerUndoToast({
-          message: `Transaksi "${tx.category?.name || 'Lain-lain'}" (${formatRupiah(tx.amount)}) berhasil dicatat ulang.`,
+          message: lang === 'en'
+            ? `Transaction "${repeatCatLabel}" (${formatRupiah(tx.amount)}) successfully repeated.`
+            : `Transaksi "${repeatCatLabel}" (${formatRupiah(tx.amount)}) berhasil dicatat ulang.`,
           onUndo: async () => {
             await deleteTransaction(newTxId);
             router.refresh();
@@ -739,7 +754,9 @@ export default function TransactionTable({
       router.refresh();
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : 'Terjadi kesalahan saat mengulangi transaksi'
+        err instanceof Error
+          ? err.message
+          : (lang === 'en' ? 'An error occurred while repeating transaction' : 'Terjadi kesalahan saat mengulangi transaksi')
       );
     } finally {
       setRepeatingId(null);

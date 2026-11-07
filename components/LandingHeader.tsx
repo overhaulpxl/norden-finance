@@ -1,24 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, useMemo, useState } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { useLanguage } from '../lib/i18n';
 
 type LandingHeaderProps = {
   isLoggedIn?: boolean;
 };
 
-const sectionLinks = [
-  { href: '#home', label: 'Beranda' },
-  { href: '#features', label: 'Fitur' },
-  { href: '#philosophy', label: 'Filosofi' },
-  { href: '#pricing', label: 'Paket' },
-  { href: '#faq', label: 'FAQ' },
-];
-
 export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps) {
+  const { lang } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const sectionLinks = useMemo(
+    () => [
+      { href: '#home', label: lang === 'en' ? 'Home' : 'Beranda' },
+      { href: '#features', label: lang === 'en' ? 'Features' : 'Fitur' },
+      { href: '#philosophy', label: lang === 'en' ? 'Philosophy' : 'Filosofi' },
+      { href: '#pricing', label: lang === 'en' ? 'Pricing' : 'Paket' },
+      { href: '#faq', label: 'FAQ' },
+    ],
+    [lang]
+  );
 
   function handleSectionClick(event: MouseEvent<HTMLAnchorElement>, href: string) {
     setMobileOpen(false);
@@ -60,7 +65,7 @@ export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps
         className="bg-black text-white border-[3px] border-black font-black uppercase text-xs tracking-wider px-5 py-2.5 shadow-[3px_3px_0px_0px_#FFE066] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#FFE066] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all rounded-none"
         onClick={() => setMobileOpen(false)}
       >
-        Mulai Sekarang
+        {lang === 'en' ? 'Get Started' : 'Mulai Sekarang'}
       </Link>
     </>
   );
@@ -91,7 +96,11 @@ export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps
           type="button"
           className="md:hidden inline-flex h-10 w-10 items-center justify-center border-[2.5px] border-black bg-[#FFE066] text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
           onClick={() => setMobileOpen((open) => !open)}
-          aria-label={mobileOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+          aria-label={
+            mobileOpen
+              ? (lang === 'en' ? 'Close navigation menu' : 'Tutup menu navigasi')
+              : (lang === 'en' ? 'Open navigation menu' : 'Buka menu navigasi')
+          }
           aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X className="w-5 h-5 stroke-[3px]" /> : <Menu className="w-5 h-5 stroke-[3px]" />}

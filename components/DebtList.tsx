@@ -220,7 +220,7 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
             <input
               type="text"
               inputMode="numeric"
-              placeholder="Nominal (Rp)"
+              placeholder={lang === 'id' ? 'Nominal (Rp)' : 'Amount (Rp)'}
               value={amount}
               onChange={(e) => setAmount(formatRupiahInput(e.target.value))}
               className="flex-1 brutal-input px-4 py-2 text-xs font-bold bg-white dark:bg-neutral-900"

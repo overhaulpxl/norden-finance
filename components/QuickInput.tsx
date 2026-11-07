@@ -246,7 +246,7 @@ export default function QuickInput() {
           type="button"
           onClick={handlePasteClipboard}
           className="text-[10px] font-black uppercase tracking-wider px-2 py-1 border border-black dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-50 dark:hover:bg-neutral-700 shadow-[1px_1px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1 cursor-pointer"
-          title="Tempel teks notifikasi mutasi bank"
+          title={lang === 'id' ? 'Tempel teks notifikasi mutasi bank' : 'Paste bank notification text'}
         >
           <ClipboardPaste className="w-3 h-3" />
           <span>{lang === 'id' ? 'Tempel Mutasi' : 'Paste SMS'}</span>

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import BrandLogo from '../components/BrandLogo';
+import { useLanguage } from '../lib/i18n';
 
-const MESSAGES = [
+const MESSAGES_ID = [
   'Mengambil catatan transaksi...',
   'Menghitung saldo dompet & akun...',
   'Menganalisis ambang batas budget...',
@@ -12,15 +13,26 @@ const MESSAGES = [
   'Mempersiapkan dashboard premium...',
 ];
 
+const MESSAGES_EN = [
+  'Fetching transaction records...',
+  'Calculating wallet & account balances...',
+  'Analyzing budget thresholds...',
+  'Aligning savings goals...',
+  'Processing bill reminders...',
+  'Preparing premium dashboard...',
+];
+
 export default function Loading() {
+  const { lang } = useLanguage();
+  const messages = lang === 'en' ? MESSAGES_EN : MESSAGES_ID;
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % MESSAGES.length);
+      setMessageIndex((prev) => (prev + 1) % messages.length);
     }, 800);
     return () => clearInterval(interval);
-  }, []);
+  }, [messages.length]);
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAF9F5] dark:bg-neutral-950 select-none p-4 text-black dark:text-white">
@@ -63,7 +75,7 @@ export default function Loading() {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </span>
           <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider truncate">
-            {MESSAGES[messageIndex]}
+            {messages[messageIndex]}
           </span>
         </div>
       </div>

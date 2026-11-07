@@ -337,7 +337,7 @@ export default function BalanceCards({ balances }: { balances: Balance[] }) {
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="Rp 100.000"
+                placeholder={lang === 'id' ? 'Rp 100.000' : 'Rp 100,000'}
                 value={transferAmount}
                 onChange={(e) => setTransferAmount(formatRupiahInput(e.target.value))}
                 className="w-full brutal-input px-3 py-2 text-xs font-bold bg-white dark:bg-neutral-900"

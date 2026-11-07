@@ -163,7 +163,7 @@ export default function Wishlist({
             <input
               type="text"
               inputMode="numeric"
-              placeholder="Contoh: 750.000"
+              placeholder={lang === 'id' ? 'Contoh: 750.000' : 'E.g.: 750,000'}
               value={amount}
               onChange={(e) => setAmount(formatRupiahInput(e.target.value))}
               className="w-full brutal-input px-3.5 py-2 text-xs font-bold bg-white dark:bg-neutral-900"

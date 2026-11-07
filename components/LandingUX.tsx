@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { useLanguage } from '../lib/i18n';
 
 export default function LandingUX() {
+  const { lang } = useLanguage();
   const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
@@ -73,14 +75,14 @@ export default function LandingUX() {
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Norden Finance</p>
           <p className="text-xs font-black text-black uppercase tracking-wide truncate">
-            Mulai Atur Keuangan
+            {lang === 'en' ? 'Start Managing Finances' : 'Mulai Atur Keuangan'}
           </p>
         </div>
         <Link
           href="/register"
           className="bg-[#FFE066] text-black border-[2px] border-black px-4 py-2 font-black uppercase text-[10px] tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-1 shrink-0"
         >
-          Coba Gratis <ArrowRight className="w-3.5 h-3.5" />
+          {lang === 'en' ? 'Try Free' : 'Coba Gratis'} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
     </div>

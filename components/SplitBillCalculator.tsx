@@ -120,7 +120,7 @@ export default function SplitBillCalculator({ onUseMyShare, defaultAmount = 0 }:
             <input
               type="text"
               inputMode="numeric"
-              placeholder="Rp 150.000"
+              placeholder={lang === 'en' ? 'Rp 150,000' : 'Rp 150.000'}
               value={totalBill}
               onChange={(e) => setTotalBill(formatRupiahInput(e.target.value))}
               className="w-full brutal-input text-sm font-black text-black dark:text-white"

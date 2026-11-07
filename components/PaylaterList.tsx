@@ -243,7 +243,7 @@ export default function PaylaterList({
                 inputMode="numeric"
                 value={totalAmount}
                 onChange={(e) => setTotalAmount(formatRupiahInput(e.target.value))}
-                placeholder="Contoh: 1.500.000"
+                placeholder={lang === 'id' ? 'Contoh: 1.500.000' : 'E.g.: 1,500,000'}
                 className="w-full brutal-input px-4 py-2 text-xs font-bold bg-white dark:bg-neutral-900"
                 required
               />
@@ -257,7 +257,7 @@ export default function PaylaterList({
                 inputMode="numeric"
                 value={tenorMonths}
                 onChange={(e) => setTenorMonths(e.target.value.replace(/\D/g, ''))}
-                placeholder="Contoh: 12"
+                placeholder={lang === 'id' ? 'Contoh: 12' : 'E.g.: 12'}
                 className="w-full brutal-input px-4 py-2 text-xs font-bold bg-white dark:bg-neutral-900"
                 required
               />

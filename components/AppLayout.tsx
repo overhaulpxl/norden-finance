@@ -283,7 +283,7 @@ export default function AppLayout({
               <button
                 type="button"
                 onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
-                title="Cari menu, aksi cepat, atau transaksi (Ctrl+K)"
+                title={lang === 'en' ? 'Search menu, quick actions, or transactions (Ctrl+K)' : 'Cari menu, aksi cepat, atau transaksi (Ctrl+K)'}
                 className="p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white flex items-center gap-1.5"
               >
                 <Search className="w-4 h-4 stroke-[2.5px]" />
@@ -361,7 +361,7 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
                 className="brutal-btn-accent px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex"
-                title="Catat transaksi baru"
+                title={lang === 'en' ? 'Record new transaction' : 'Catat transaksi baru'}
               >
                 <span>{t('btn_new_transaction')}</span>
               </button>
