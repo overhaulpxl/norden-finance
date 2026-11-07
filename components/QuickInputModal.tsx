@@ -521,6 +521,7 @@ export default function QuickInputModal({
 
   // Option B: Save Directly
   const handleSaveReceiptSheet = async () => {
+    if (loading) return;
     if (receiptSubtotal <= 0) {
       triggerHaptic('warning');
       setMessage({
@@ -621,6 +622,7 @@ export default function QuickInputModal({
   // Manual submit handler
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     clearCloseTimer();
     setUndoTxId(null);
 
@@ -769,7 +771,7 @@ export default function QuickInputModal({
   };
 
   const handleUndo = async () => {
-    if (!undoTxId) return;
+    if (loading || !undoTxId) return;
 
     const targetId = undoTxId;
     clearCloseTimer();

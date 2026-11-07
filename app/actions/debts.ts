@@ -22,7 +22,10 @@ export async function addDebt(data: {
     }
     assertNonEmpty(data.person, 'Nama');
     assertPositiveInt(data.amount, 'Nominal');
-    if (data.tenorMonths !== undefined) assertPositiveInt(data.tenorMonths, 'Tenor');
+    if (data.tenorMonths !== undefined) {
+      assertPositiveInt(data.tenorMonths, 'Tenor');
+      if (data.tenorMonths > 360) throw new Error('Tenor maksimal 360 bulan');
+    }
     if (data.interestRate !== undefined && (!Number.isFinite(data.interestRate) || data.interestRate < 0)) {
       throw new Error('Bunga tidak valid');
     }

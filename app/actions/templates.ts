@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { createAuditLog } from '../../lib/audit';
-import { assertNonEmpty, assertPositiveInt } from '../../lib/validators';
+import { assertNonEmpty, assertPositiveInt32 } from '../../lib/validators';
 import type { TransactionType } from '../../types';
 import { addExplicitTransaction } from './transactions';
 
@@ -37,7 +37,7 @@ export async function upsertTransactionTemplate(data: {
     const userId = user.uid;
     assertNonEmpty(data.name, 'Nama template');
     assertTemplateType(data.type);
-    assertPositiveInt(data.amount, 'Nominal template');
+    assertPositiveInt32(data.amount, 'Nominal template');
     assertNonEmpty(data.categoryName, 'Kategori template');
     assertNonEmpty(data.walletName, 'Dompet template');
 

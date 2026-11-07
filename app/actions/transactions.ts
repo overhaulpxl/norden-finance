@@ -22,14 +22,17 @@ import {
  * Find or create a category by name for a user.
  */
 async function resolveCategory(userId: string, categoryName: string, type: TransactionType): Promise<string> {
-  const name = categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
-  
-  const existing = await prisma.category.findUnique({
-    where: { userId_name: { userId, name } },
+  const trimmed = categoryName.trim();
+  const existing = await prisma.category.findFirst({
+    where: {
+      userId,
+      name: { equals: trimmed, mode: 'insensitive' },
+    },
   });
 
   if (existing) return existing.id;
 
+  const name = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
   const created = await prisma.category.create({
     data: { userId, name, type },
   });
@@ -41,10 +44,12 @@ async function resolveCategory(userId: string, categoryName: string, type: Trans
  * Find or create a wallet/balance by name for a user.
  */
 async function resolveWallet(userId: string, walletName: string): Promise<string> {
-  const name = walletName.toUpperCase();
-
-  const existing = await prisma.balance.findUnique({
-    where: { userId_name: { userId, name } },
+  const trimmed = walletName.trim();
+  const existing = await prisma.balance.findFirst({
+    where: {
+      userId,
+      name: { equals: trimmed, mode: 'insensitive' },
+    },
   });
 
   if (existing) {
@@ -56,6 +61,8 @@ async function resolveWallet(userId: string, walletName: string): Promise<string
     }
     return existing.id;
   }
+
+  const name = trimmed.toUpperCase();
 
   // Determine wallet type
   const ewallets = ['DANA', 'GOPAY', 'OVO', 'SHOPEEPAY', 'LINKAJA'];

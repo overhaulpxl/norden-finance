@@ -33,14 +33,14 @@ export async function addSavingGoal(title: string, targetAmount: number, deadlin
   }
 }
 
-export async function updateSavingGoal(id: string, data: { title?: string; targetAmount?: number; currentAmount?: number; deadline?: string }) {
+export async function updateSavingGoal(id: string, data: { title?: string; targetAmount?: number; currentAmount?: number; deadline?: string | null }) {
   try {
     const { user } = await requireUser(true);
     const userId = user.uid;
     if (data.title !== undefined) assertNonEmpty(data.title, 'Nama goal');
     if (data.targetAmount !== undefined) assertPositiveInt(data.targetAmount, 'Target');
     if (data.currentAmount !== undefined) assertNonNegativeInt(data.currentAmount, 'Saldo goal');
-    assertValidDate(data.deadline, 'Deadline');
+    if (data.deadline) assertValidDate(data.deadline, 'Deadline');
 
     const existing = await prisma.savingGoal.findFirst({
       where: { id, userId },
@@ -53,7 +53,9 @@ export async function updateSavingGoal(id: string, data: { title?: string; targe
         title: data.title ?? existing.title,
         targetAmount: data.targetAmount ?? existing.targetAmount,
         currentAmount: data.currentAmount ?? existing.currentAmount,
-        deadline: data.deadline ? new Date(data.deadline) : existing.deadline,
+        deadline: data.deadline !== undefined
+          ? (data.deadline ? new Date(data.deadline) : null)
+          : existing.deadline,
       },
     });
 

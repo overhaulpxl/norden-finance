@@ -34,7 +34,11 @@ export async function GET(request: Request) {
   if (format === 'pdf') {
     const { generateMonthlyReportPdf } = await import('../../../lib/pdf/monthlyReport');
     const now = new Date();
-    const reportData = await getMonthlyReportData(user.uid, now.getMonth() + 1, now.getFullYear());
+    const yearStr = searchParams.get('year');
+    const monthStr = searchParams.get('month');
+    const year = yearStr ? parseInt(yearStr, 10) : now.getFullYear();
+    const month = monthStr ? parseInt(monthStr, 10) : (now.getMonth() + 1);
+    const reportData = await getMonthlyReportData(user.uid, month, year);
     const pdfBuffer = generateMonthlyReportPdf(reportData);
 
     const fileName = `Norden_Report_${reportData.year}_${reportData.month}.pdf`;

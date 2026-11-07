@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '../../lib/prisma';
 import { requireUser } from '../../lib/auth';
 import { createAuditLog } from '../../lib/audit';
-import { assertNonEmpty, assertPositiveInt } from '../../lib/validators';
+import { assertNonEmpty, assertPositiveInt32 } from '../../lib/validators';
 import { getUserEntitlement } from '../../lib/entitlements';
 import type { TransactionType } from '../../types';
 import type { Prisma } from '@prisma/client';
@@ -74,7 +74,7 @@ export async function addRecurringRule(data: {
     const userId = user.uid;
     assertNonEmpty(data.name, 'Nama transaksi berulang');
     if (!['masuk', 'keluar'].includes(data.type)) throw new Error('Jenis transaksi berulang tidak valid');
-    assertPositiveInt(data.amount, 'Nominal');
+    assertPositiveInt32(data.amount, 'Nominal');
     assertNonEmpty(data.categoryName, 'Kategori');
     assertNonEmpty(data.walletName, 'Dompet');
     const dayOfMonth = normalizeDay(data.dayOfMonth);
