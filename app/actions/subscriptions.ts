@@ -4,7 +4,7 @@ import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
-import { assertNonEmpty, assertPositiveInt } from '../../lib/validators';
+import { assertNonEmpty, assertPositiveInt, assertPositiveInt32 } from '../../lib/validators';
 import { addRecurringRule } from './recurring';
 import type { TransactionType } from '../../types';
 
@@ -52,7 +52,7 @@ export async function addRecurringTransaction(data: {
   note?: string;
   tags?: string[];
 }) {
-  assertPositiveInt(data.amount, 'Nominal');
+  assertPositiveInt32(data.amount, 'Nominal');
   assertNonEmpty(data.method, 'Metode pembayaran');
   const recurring = await addRecurringRule({
     name: data.note || data.category || 'Transaksi berulang',

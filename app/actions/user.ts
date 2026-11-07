@@ -147,6 +147,7 @@ export async function deleteUserAccountData() {
       await tx.reminder.deleteMany({ where: { userId } });
       await tx.streak.deleteMany({ where: { userId } });
       await tx.achievement.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
       await tx.paymentRequest.deleteMany({ where: { userId } });
       await tx.billingSubscription.deleteMany({ where: { userId } });
       await tx.feedback.deleteMany({ where: { userId } });
@@ -158,6 +159,15 @@ export async function deleteUserAccountData() {
       maxWait: 5000,
       timeout: 20000,
     });
+
+    try {
+      const adminAuth = getAdminAuth();
+      if (adminAuth.deleteUser) {
+        await adminAuth.deleteUser(userId);
+      }
+    } catch (authError) {
+      console.warn('Firebase Auth user deletion skipped or failed:', authError);
+    }
 
     // Clear session cookie on server
     const cookieStore = await cookies();

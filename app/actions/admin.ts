@@ -92,7 +92,7 @@ export async function getPendingPaymentRequests() {
 
 export async function approvePaymentRequest(requestId: string) {
   try {
-    const { profile } = await requireUser(true);
+    const { user, profile } = await requireUser(true);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -179,8 +179,7 @@ export async function approvePaymentRequest(requestId: string) {
       }
     });
 
-    const callerUser = await requireUser(true);
-    await createAuditLog(callerUser.user.uid, 'APPROVE_PAYMENT', 'paymentRequest', requestId);
+    await createAuditLog(user.uid, 'APPROVE_PAYMENT', 'paymentRequest', requestId);
     await sendPaymentStatusEmail({ userId: request.userId, type: 'approved' });
     
     revalidatePath('/norden-control-center');
@@ -194,7 +193,7 @@ export async function approvePaymentRequest(requestId: string) {
 
 export async function rejectPaymentRequest(requestId: string, adminNote: string) {
   try {
-    const { profile } = await requireUser(true);
+    const { user, profile } = await requireUser(true);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -244,8 +243,7 @@ export async function rejectPaymentRequest(requestId: string, adminNote: string)
       select: { userId: true, adminNote: true },
     });
 
-    const callerUser = await requireUser(true);
-    await createAuditLog(callerUser.user.uid, 'REJECT_PAYMENT', 'paymentRequest', requestId);
+    await createAuditLog(user.uid, 'REJECT_PAYMENT', 'paymentRequest', requestId);
     if (rejectedRequest) {
       await sendPaymentStatusEmail({
         userId: rejectedRequest.userId,
@@ -465,6 +463,10 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
 
     if (!targetProfile) {
       throw new Error('Profil pengguna tidak ditemukan.');
+    }
+
+    if (targetProfile.role === 'admin') {
+      throw new Error('Akun dengan role admin tidak dapat dihapus. Turunkan role menjadi user terlebih dahulu.');
     }
 
     await prisma.$transaction(async (tx) => {

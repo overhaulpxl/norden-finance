@@ -106,50 +106,57 @@ export function clearOfflineQueue() {
   window.dispatchEvent(new CustomEvent('norden:offline-queue-changed', { detail: { count: 0 } }));
 }
 
+let isSyncing = false;
+
 /**
  * Replay all pending offline transactions to the server sequentially.
  */
 export async function syncOfflineQueue(): Promise<{ synced: number; failed: number }> {
   if (typeof window === 'undefined') return { synced: 0, failed: 0 };
-  if (!navigator.onLine) return { synced: 0, failed: 0 };
+  if (!navigator.onLine || isSyncing) return { synced: 0, failed: 0 };
 
-  const queue = getOfflineQueue();
-  if (queue.length === 0) return { synced: 0, failed: 0 };
+  isSyncing = true;
+  try {
+    const queue = getOfflineQueue();
+    if (queue.length === 0) return { synced: 0, failed: 0 };
 
-  let synced = 0;
-  let failed = 0;
-  const remaining: QueuedItem[] = [];
+    let synced = 0;
+    let failed = 0;
+    const remaining: QueuedItem[] = [];
 
-  for (const item of queue) {
-    try {
-      let res;
-      if (item.type === 'smart') {
-        res = await processInput(item.input);
-      } else if (item.type === 'explicit') {
-        res = await addExplicitTransaction(item.data);
-      } else if (item.type === 'transfer') {
-        res = await addTransferTransaction(item.amount, item.fromWallet, item.toWallet, item.note, item.tags);
-      }
+    for (const item of queue) {
+      try {
+        let res;
+        if (item.type === 'smart') {
+          res = await processInput(item.input);
+        } else if (item.type === 'explicit') {
+          res = await addExplicitTransaction(item.data);
+        } else if (item.type === 'transfer') {
+          res = await addTransferTransaction(item.amount, item.fromWallet, item.toWallet, item.note, item.tags);
+        }
 
-      if (res && res.success) {
-        synced++;
-      } else {
+        if (res && res.success) {
+          synced++;
+        } else {
+          failed++;
+          remaining.push(item);
+        }
+      } catch {
         failed++;
         remaining.push(item);
       }
-    } catch {
-      failed++;
-      remaining.push(item);
     }
+
+    saveQueue(remaining);
+
+    window.dispatchEvent(
+      new CustomEvent('norden:offline-sync-complete', {
+        detail: { synced, failed, remaining: remaining.length },
+      })
+    );
+
+    return { synced, failed };
+  } finally {
+    isSyncing = false;
   }
-
-  saveQueue(remaining);
-
-  window.dispatchEvent(
-    new CustomEvent('norden:offline-sync-complete', {
-      detail: { synced, failed, remaining: remaining.length },
-    })
-  );
-
-  return { synced, failed };
 }
