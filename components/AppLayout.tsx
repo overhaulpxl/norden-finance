@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement } from '../types';
@@ -177,6 +177,7 @@ export default function AppLayout({
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const pullDistanceRef = useRef(0);
 
   // Pull-to-Refresh & Auto-dismiss keyboard on mobile
   useEffect(() => {
@@ -211,6 +212,7 @@ export default function AppLayout({
       const diffY = currentY - startY;
       if (diffY > 0) {
         const distance = Math.min(80, diffY * 0.4);
+        pullDistanceRef.current = distance;
         setPullDistance(distance);
       }
     };
@@ -219,7 +221,10 @@ export default function AppLayout({
       if (!isPulling) return;
       isPulling = false;
 
-      if (pullDistance >= 55) {
+      const currentDistance = pullDistanceRef.current;
+      pullDistanceRef.current = 0;
+
+      if (currentDistance >= 55) {
         triggerHaptic('medium');
         setRefreshing(true);
         setPullDistance(60);
@@ -242,7 +247,7 @@ export default function AppLayout({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [pullDistance, router]);
+  }, [router]);
 
   // Global shortcuts and Service Worker initialization
   useEffect(() => {

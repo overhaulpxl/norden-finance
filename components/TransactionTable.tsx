@@ -466,6 +466,11 @@ export default function TransactionTable({
     .sort()
     .reverse();
 
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthKey = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
   const categories = Array.from(
     new Set(visibleTransactions.map((t) => t.category?.name || 'Lain-lain'))
   ).sort();
@@ -1033,13 +1038,11 @@ export default function TransactionTable({
         <button
           type="button"
           onClick={() => {
-            const now = new Date();
-            const currKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            setFilterMonth(currKey);
+            setFilterMonth(currentMonthKey);
             triggerHaptic('light');
           }}
           className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
-            filterMonth === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+            filterMonth === currentMonthKey
               ? 'bg-[#FFE066] text-black font-black ring-2 ring-black dark:ring-neutral-400'
               : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100'
           }`}
@@ -1050,18 +1053,11 @@ export default function TransactionTable({
         <button
           type="button"
           onClick={() => {
-            const now = new Date();
-            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const lastKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
-            setFilterMonth(lastKey);
+            setFilterMonth(lastMonthKey);
             triggerHaptic('light');
           }}
           className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
-            (() => {
-              const now = new Date();
-              const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-              return filterMonth === `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
-            })()
+            filterMonth === lastMonthKey
               ? 'bg-[#FFE066] text-black font-black ring-2 ring-black dark:ring-neutral-400'
               : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100'
           }`}

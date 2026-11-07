@@ -25,7 +25,7 @@ import { formatRupiah, formatTanggal } from '../lib/format';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
 import { triggerHaptic } from '../lib/haptics';
 import { useHideBalance } from '../lib/HideBalanceContext';
-import { lockApp, isPinSet } from '../lib/appLock';
+import { lockApp, isPinSet, isDesktopDevice } from '../lib/appLock';
 import { useLanguage } from '../lib/i18n';
 
 interface CommandPaletteModalProps {
@@ -118,7 +118,7 @@ export default function CommandPaletteModal({
           onNavigate('wallet');
         },
       },
-      ...(isPinSet(userId)
+      ...(!isDesktopDevice() && isPinSet(userId)
         ? [
             {
               id: 'lock-app',

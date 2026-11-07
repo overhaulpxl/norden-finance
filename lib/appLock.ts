@@ -27,7 +27,6 @@ export function isDesktopDevice(): boolean {
 
 export function isPinSet(userId: string): boolean {
   if (typeof window === 'undefined') return false;
-  if (isDesktopDevice()) return false;
   try {
     const enabled = localStorage.getItem(`norden_pin_enabled_${userId}`);
     const hash = localStorage.getItem(`norden_pin_hash_${userId}`);
