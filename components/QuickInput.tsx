@@ -342,6 +342,10 @@ export default function QuickInput() {
               setInput((prev) => {
                 const trimmed = prev.trim();
                 if (!trimmed) return amt;
+                const amountSuffixRegex = /(?:rp\.?\s*)?\d+(?:[.,]\d+)?\s*(?:k|rb|ribu|jt|juta)?$/i;
+                if (amountSuffixRegex.test(trimmed)) {
+                  return trimmed.replace(amountSuffixRegex, amt);
+                }
                 return `${trimmed} ${amt}`;
               });
             }}

@@ -34,7 +34,7 @@ export default function LoginClient() {
             body: JSON.stringify({ idToken, rememberMe: true }),
           });
           if (res.ok && isMounted) {
-            router.replace('/dashboard');
+            window.location.replace('/dashboard');
             return;
           }
         } catch {

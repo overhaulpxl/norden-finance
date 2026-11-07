@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Balance, Transaction } from '../types';
 import { formatRupiah, formatTanggal, formatMethodName } from '../lib/format';
@@ -710,6 +710,18 @@ export default function TransactionTable({
 
   const [repeatingId, setRepeatingId] = useState<string | null>(null);
   const [activeDetailTx, setActiveDetailTx] = useState<Transaction | null>(null);
+
+  useEffect(() => {
+    if (!mobileFilterOpen && !activeDetailTx) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileFilterOpen(false);
+        setActiveDetailTx(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileFilterOpen, activeDetailTx]);
 
   const handleRepeat = async (tx: Transaction) => {
     if (pendingMutationId || repeatingId) return;
