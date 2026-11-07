@@ -503,8 +503,11 @@ export async function deleteTransaction(id: string) {
           const match = tx.note?.match(/Transfer ke (.*?)(?:\s*-\s*|$)/i);
           const toWalletName = match ? match[1].trim() : null;
           if (toWalletName) {
-            const destWallet = await db.balance.findUnique({
-              where: { userId_name: { userId, name: toWalletName } },
+            const destWallet = await db.balance.findFirst({
+              where: {
+                userId,
+                name: { equals: toWalletName, mode: 'insensitive' },
+              },
             });
             if (destWallet) {
               await db.balance.update({
@@ -577,8 +580,11 @@ export async function restoreTransaction(id: string) {
           const match = tx.note?.match(/Transfer ke (.*?)(?:\s*-\s*|$)/i);
           const toWalletName = match ? match[1].trim() : null;
           if (toWalletName) {
-            const destWallet = await db.balance.findUnique({
-              where: { userId_name: { userId, name: toWalletName } },
+            const destWallet = await db.balance.findFirst({
+              where: {
+                userId,
+                name: { equals: toWalletName, mode: 'insensitive' },
+              },
             });
             if (destWallet) {
               await db.balance.update({

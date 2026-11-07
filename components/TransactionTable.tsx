@@ -627,7 +627,9 @@ export default function TransactionTable({
       tags,
     });
     if (res.success) {
-      const wallet = balances.find((balance) => balance.name === editMethod);
+      const wallet = balances.find(
+        (balance) => balance.name.toUpperCase() === editMethod.toUpperCase()
+      );
       const currentTransaction = visibleTransactions.find(
         (transaction) => transaction.id === id
       );

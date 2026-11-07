@@ -32,6 +32,15 @@ export async function updateBalance(name: string, amount: number, id?: string) {
 
       if (!existing) throw new Error('Dompet tidak ditemukan');
 
+      if (existing.name !== walletName) {
+        const nameConflict = await prisma.balance.findUnique({
+          where: { userId_name: { userId, name: walletName } },
+        });
+        if (nameConflict && nameConflict.id !== id) {
+          throw new Error(`Dompet dengan nama ${walletName} sudah ada.`);
+        }
+      }
+
       const wallet = await prisma.balance.update({
         where: { id },
         data: {

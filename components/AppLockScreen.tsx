@@ -21,6 +21,7 @@ import {
   isBiometricEnabled,
   isAppUnlocked,
   unlockApp,
+  lockApp,
   removePinData,
   authenticateBiometrics,
   isDesktopDevice,
@@ -87,21 +88,31 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
       (async () => {
         try {
           const res = await confirmPinResetCodeAction({ userId, token: tokenFromUrl });
+          const url = new URL(window.location.href);
+          url.searchParams.delete('resetPinToken');
+          window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
+
           if (res.success) {
             triggerHaptic('success');
             removePinData(userId);
             unlockApp(userId);
             setLocked(false);
-            const url = new URL(window.location.href);
-            url.searchParams.delete('resetPinToken');
-            window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
+          } else {
+            triggerHaptic('warning');
+            setShowResetModal(true);
+            setResetError(
+              res.error ||
+                (lang === 'en'
+                  ? 'Magic link verification failed or expired.'
+                  : 'Tautan reset PIN tidak sah atau telah kedaluwarsa.')
+            );
           }
         } catch {
           // ignore
         }
       })();
     }
-  }, [userId]);
+  }, [userId, lang]);
 
   // Sync lock state
   useEffect(() => {
@@ -301,9 +312,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
   const handleConfirmSignOut = async () => {
     setEmergencyLoading(true);
     try {
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem(`norden_unlocked_${userId}`);
-      }
+      lockApp(userId);
       await fetch('/api/auth/session', { method: 'DELETE' });
       await signOut(auth);
       window.location.href = '/login';
