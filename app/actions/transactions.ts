@@ -128,52 +128,60 @@ function assertNoMissingExplicitWallet(input: string, wallets: Balance[]) {
 }
 
 async function updateStreak(userId: string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const streak = await prisma.streak.findUnique({ where: { userId } });
-  
-  if (!streak) {
-    await prisma.streak.create({
-      data: {
-        userId,
-        currentStreak: 1,
-        longestStreak: 1,
-        lastInputDate: today
-      }
-    });
-    return;
-  }
+    const streak = await prisma.streak.findUnique({ where: { userId } });
+    
+    if (!streak) {
+      await prisma.streak.upsert({
+        where: { userId },
+        create: {
+          userId,
+          currentStreak: 1,
+          longestStreak: 1,
+          lastInputDate: today,
+        },
+        update: {
+          lastInputDate: today,
+        },
+      });
+      return;
+    }
 
-  if (!streak.lastInputDate) {
-    await prisma.streak.update({
-      where: { userId },
-      data: { currentStreak: 1, longestStreak: Math.max(1, streak.longestStreak), lastInputDate: today }
-    });
-    return;
-  }
+    if (!streak.lastInputDate) {
+      await prisma.streak.update({
+        where: { userId },
+        data: { currentStreak: 1, longestStreak: Math.max(1, streak.longestStreak), lastInputDate: today },
+      });
+      return;
+    }
 
-  const lastDate = new Date(streak.lastInputDate);
-  lastDate.setHours(0, 0, 0, 0);
+    const lastDate = new Date(streak.lastInputDate);
+    lastDate.setHours(0, 0, 0, 0);
 
-  const diffTime = today.getTime() - lastDate.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+    const diffTime = today.getTime() - lastDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
 
-  if (diffDays === 1) {
-    const newStreak = streak.currentStreak + 1;
-    await prisma.streak.update({
-      where: { userId },
-      data: {
-        currentStreak: newStreak,
-        longestStreak: Math.max(newStreak, streak.longestStreak),
-        lastInputDate: today
-      }
-    });
-  } else if (diffDays > 1) {
-    await prisma.streak.update({
-      where: { userId },
-      data: { currentStreak: 1, lastInputDate: today }
-    });
+    if (diffDays === 1) {
+      const newStreak = streak.currentStreak + 1;
+      await prisma.streak.update({
+        where: { userId },
+        data: {
+          currentStreak: newStreak,
+          longestStreak: Math.max(newStreak, streak.longestStreak),
+          lastInputDate: today,
+        },
+      });
+    } else if (diffDays > 1) {
+      await prisma.streak.update({
+        where: { userId },
+        data: { currentStreak: 1, lastInputDate: today },
+      });
+    }
+  } catch (error) {
+    console.error('Streak update safely ignored error:', error);
   }
 }
 
@@ -410,6 +418,7 @@ export async function addExplicitTransaction(data: {
     });
 
     await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
+    await updateStreak(userId);
     revalidatePath('/dashboard');
     return { success: true, transactionId: newTx.id, action: 'transaction' };
   } catch (error: unknown) {
@@ -470,6 +479,7 @@ export async function addTransferTransaction(
     });
 
     await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
+    await updateStreak(userId);
     revalidatePath('/dashboard');
     return { success: true, transactionId: newTx.id, action: 'transaction' };
   } catch (error: unknown) {

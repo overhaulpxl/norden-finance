@@ -74,6 +74,10 @@ export async function upsertTransactionTemplate(data: {
     revalidatePath('/dashboard');
     return { success: true, data: template };
   } catch (error: unknown) {
+    const rawMessage = error instanceof Error ? error.message : '';
+    if (rawMessage.includes('Unique constraint') || rawMessage.includes('P2002')) {
+      return { success: false, error: `Template dengan nama "${data.name.trim()}" sudah ada.` };
+    }
     const message = error instanceof Error ? error.message : 'Gagal menyimpan template';
     return { success: false, error: message };
   }

@@ -32,9 +32,9 @@ export async function addWishlistItem(data: {
     const item = await prisma.wishlistItem.create({
       data: {
         userId,
-        name: data.name,
+        name: data.name.trim().slice(0, 80),
         amount: data.amount,
-        url: data.url || null,
+        url: data.url ? data.url.trim().slice(0, 500) : null,
         unlockDate: data.unlockDate ? new Date(data.unlockDate) : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         status: 'locked',
       },

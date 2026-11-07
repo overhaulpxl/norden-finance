@@ -20,6 +20,9 @@ export async function addSubscription(data: {
     assertNonEmpty(data.name, 'Nama subscription');
     assertNonEmpty(data.method, 'Metode pembayaran');
     assertPositiveInt(data.amount, 'Nominal');
+    if (data.amount > 1_000_000_000) {
+      throw new Error('Nominal subscription terlalu besar');
+    }
     if (!Number.isInteger(data.billingDay) || data.billingDay < 1 || data.billingDay > 31) {
       throw new Error('Tanggal tagihan harus 1-31');
     }
@@ -27,10 +30,10 @@ export async function addSubscription(data: {
     const sub = await prisma.appSubscription.create({
       data: {
         userId,
-        name: data.name,
+        name: data.name.trim().slice(0, 80),
         amount: data.amount,
         billingDay: data.billingDay,
-        method: data.method,
+        method: data.method.trim().slice(0, 50),
         isActive: true,
       },
     });
