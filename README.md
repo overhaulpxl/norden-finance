@@ -16,239 +16,143 @@
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma" alt="Prisma" />
-  <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=flat-square&logo=firebase" alt="Firebase" />
-  <img src="https://img.shields.io/badge/Gemini_AI-Powered-4285F4?style=flat-square&logo=google" alt="Gemini AI" />
-  <img src="https://img.shields.io/badge/PostgreSQL-DB-4169E1?style=flat-square&logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/TailwindCSS-4-06B6D4?style=flat-square&logo=tailwindcss" alt="TailwindCSS" />
+  <img src="https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma" alt="Prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-DB-4169E1?style=flat-square&logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=flat-square&logo=firebase" alt="Firebase" />
+  <img src="https://img.shields.io/badge/Supabase-Storage-3ECF8E?style=flat-square&logo=supabase" alt="Supabase Storage" />
+  <img src="https://img.shields.io/badge/Google_Gemini-AI-4285F4?style=flat-square&logo=google" alt="Google Gemini" />
+  <img src="https://img.shields.io/badge/Resend-Email-000000?style=flat-square&logo=resend" alt="Resend" />
 </p>
 
 ---
 
-## 🎯 Overview
+## 🧭 Overview & Brand Story
 
-**Norden Finance** is a premium SaaS personal finance tracker designed for individuals in Indonesia. It helps users understand, control, and improve their financial condition through **fast AI-powered transaction capture**, **strong analytics**, and **habit-forming retention mechanics**.
+**Norden** (*North* in Germanic languages) serves as the ultimate personal financial compass. 
 
-Built with a striking **Neo-Brutalist UI** design language — bold borders, sharp shadows, uppercase typography, and vibrant accent colors.
+Designed for individuals and creators in Indonesia, **Norden Finance** replaces cluttered spreadsheets and cumbersome expense apps with a striking, highly engaging **Neo-Brutalist** web application. It combines **sub-second natural language input**, **smart receipt scanning**, **deep analytics**, and **habit-forming retention mechanics** to give users complete clarity over their financial trajectory.
 
 ---
 
-## ✨ Features
+## ✨ Features Matrix
 
-### 🤖 AI-Powered Features
+### 🤖 AI-Powered Intelligence
+| Feature | Capabilities |
+|---|---|
+| **Smart Input (AI Parser)** | Parses natural language Indonesian expressions like `kopi 35k cash`, `gaji bca 8jt`, or `transfer bca ke gopay 150k` into structured transactions (amount, type, category, wallet, date) using Google Gemini 1.5 Flash. |
+| **Receipt Scanner (AI OCR)** | Extracts merchant names, timestamps, total amounts, and itemized breakdown from uploaded receipt images. |
+| **Financial Advisory Insights** | Generates dynamic spending pattern diagnostics, savings rate feedback, and budget optimization recommendations. |
 
-| Feature | Description |
-|---------|-------------|
-| **Smart Input (AI Parser)** | Type transactions in natural language like `kopi 35k cash` or `gaji bca 8jt` — Gemini AI auto-detects amount, type, wallet, category, and date |
-| **Receipt Scanner (AI OCR)** | Upload a receipt photo — Gemini AI extracts merchant name, total payment, items purchased, and date automatically |
-| **AI Financial Insights** | AI-powered analysis of spending patterns, largest categories, and savings opportunities |
+### 💰 Core Financial Engine
+| Feature | Capabilities |
+|---|---|
+| **Multi-Wallet Architecture** | Manage Bank accounts (BCA, BNI, Mandiri), E-Wallets (GoPay, OVO, DANA, ShopeePay), and Cash in a single unified view. |
+| **Atomic Balance Mutations** | Real-time balance calculations with net-delta adjustments on transaction edits and transfers. |
+| **Smart Clipboard Helper** | Detects bank SMS / banking app push notifications from clipboard and auto-fills transaction inputs. |
+| **Transaction CRUD & 5-Second Undo** | Instant optimistic mutations with time-windowed reversible undo actions. |
+| **Global Search & Filter** | Live multi-criteria filtering across notes, categories, wallets, tags, and date ranges. |
 
-### 💰 Core Financial Management
+### 📊 Analytics & Reporting
+| Feature | Capabilities |
+|---|---|
+| **Financial Health Score** | Algorithm measuring savings rate, active liquidity, debt-to-income ratio, and emergency fund buffer (0–100 scale). |
+| **Neo-Brutalist Monthly PDF** | Generates client-ready monthly financial statements using vector canvas drawing with zero external renderer dependencies (`jsPDF`). |
+| **Export Formats (CSV / JSON)** | One-click export with automated CSV formula injection neutralization (CWE-1236 protection). |
+| **Interactive Spending Charts** | Expense distribution by category and daily cashflow trends via Recharts. |
+| **No-Spend Day Calendar** | Highlights spending-free days to build mindful financial discipline. |
 
-| Feature | Description |
-|---------|-------------|
-| **Multi-Wallet System** | Manage BCA, BNI, DANA, GoPay, OVO, ShopeePay, Cash, and custom wallets in one dashboard |
-| **Transaction CRUD** | Full create, read, update, and soft-delete with 5-second undo action |
-| **Inter-Wallet Transfer** | Instant transfer between wallets with automatic balance updates |
-| **Balance Tracking** | Real-time total balance across all wallets |
-| **Manual & Quick Input** | Dual-mode: AI chat-style quick input or traditional form entry |
-| **Global Search** | Search across transactions, wallets, categories, hashtags, and notes |
-| **Transaction Tags** | Tag transactions with custom hashtags for flexible categorization |
+### 🎯 Planning, Goals & Emergency Reserve
+| Feature | Capabilities |
+|---|---|
+| **Category Budgets** | Set spending caps per category with threshold notifications at 50%, 75%, and 90%. |
+| **Saving Goals** | Target-based savings tracking with progress bars, deposit history, and deadline indicators. |
+| **Emergency Fund Calculator** | Calculates personal runway against 3, 6, and 12-month expense requirements with zero-division guards. |
+| **Smart Wishlist** | Curate purchases with lock periods and affordability checks to curb impulse buying. |
 
-### 📊 Dashboard & Analytics
+### 💳 Liabilities, Paylater & Subscriptions
+| Feature | Capabilities |
+|---|---|
+| **Debt & Receivable Tracker** | Manage *Hutang* (payables) and *Piutang* (receivables) with contact details, due dates, and settlement toggles. |
+| **Paylater Installments** | Track multi-month installment schedules across platforms with automated balance sync. |
+| **Recurring Subscriptions** | Schedule recurring fixed costs with billing day reminders. |
 
-| Feature | Description |
-|---------|-------------|
-| **Financial Health Score** | Composite score analyzing savings ratio, expense trends, budget adherence, and emergency fund coverage |
-| **Expense Charts** | Visual breakdown of spending by category with interactive Recharts graphs |
-| **Monthly Recap** | Monthly snapshot showing income, expenses, net cashflow, and comparisons |
-| **Financial Timeline** | Chronological view of all financial activities |
-| **No-Spend Calendar** | Visual calendar highlighting days with zero spending |
-| **Summary Cards** | At-a-glance metrics: total balance, monthly income, monthly expenses |
+### ⚡ Automation & Mobile Shortcuts
+| Feature | Capabilities |
+|---|---|
+| **Mobile OS Shortcuts & NFC** | Direct REST API endpoint (`POST /api/shortcut`) for Apple Shortcuts (iOS) and HTTP Shortcuts (Android). Log spending in < 2 seconds via NFC tap. |
+| **Automated Recurring Cron** | Monthly automated transaction scheduling with concurrency mutexes to prevent double-charging (`GET/POST /api/cron/recurring`). |
+| **Email & In-App Reminders** | Automated bill and budget alerts powered by Resend (`GET/POST /api/cron/reminders`). |
 
-### 🎯 Planning & Goals
-
-| Feature | Description |
-|---------|-------------|
-| **Budget Manager** | Set monthly spending limits per category with real-time tracking and alerts at 80%+ usage |
-| **Saving Goals** | Create savings targets with progress tracking and deadline management |
-| **Wishlist** | Track desired purchases with status (locked, ready, bought) and unlock dates |
-| **Emergency Fund Tracker** | Track emergency fund against 3-month, 6-month, and 12-month expense targets |
-
-### 💳 Debt & Billing
-
-| Feature | Description |
-|---------|-------------|
-| **Debt Tracker** | Track hutang (payables) and piutang (receivables) with tenor, interest rates, and settlement status |
-| **Paylater Manager** | Manage paylater installments across platforms with monthly payment tracking |
-| **Subscription Manager** | Monitor active subscriptions with billing day alerts and monthly costs |
-
-### 🔄 Automation Center
-
-| Feature | Description |
-|---------|-------------|
-| **Transaction Templates** | Save and reuse frequently used transactions with one-click execution |
-| **Favorite Templates** | Star templates for quick access |
-| **Recurring Transactions** | Automate monthly transactions (salary, rent, subscriptions) with day-of-month scheduling |
-| **Smart Reminders** | In-app and email reminders for bills, budgets, streaks, and trial expiry |
-
-### 🔥 Retention & Gamification
-
-| Feature | Description |
-|---------|-------------|
-| **Transaction Streaks** | Track consecutive days of transaction logging with current and best streak |
-| **Achievements** | Unlock badges: 7-day streak, 30-day streak, 100 transactions, Rp1M balance, savings goal reached, 3-month emergency fund |
-| **Momentum Center** | Unified hub for streaks, achievements, and smart reminders |
-
-### 📄 Export & Reporting
-
-| Feature | Description |
-|---------|-------------|
-| **PDF Reports** | Generate branded monthly PDF reports with income, expenses, charts, top categories, and ending balance |
-| **CSV Export** | Download transaction data as CSV |
-| **JSON Export** | Export raw data in JSON format |
-
-### 🔐 Authentication & Security
-
-| Feature | Description |
-|---------|-------------|
-| **Firebase Authentication** | Register, login, logout, forgot password, and email verification |
-| **Server-Side Sessions** | Secure session cookie management via Firebase Admin SDK |
-| **Onboarding Flow** | Guided setup: register → verify email → login → set name, first wallet, opening balance |
-| **Rate Limiting** | API rate limiting to prevent abuse |
-| **Input Validation** | Server-side validation on all inputs |
-| **Audit Logging** | Track all critical actions for accountability |
-| **Soft Delete** | Transactions are soft-deleted, never permanently lost |
-
-### 💎 Subscription & Payments
-
-| Feature | Description |
-|---------|-------------|
-| **Trial Plan** | 14-day free trial with full feature access |
-| **Pro Monthly** | Rp 19,000/month |
-| **Pro Yearly** | Rp 149,000/year (save 35%) |
-| **Manual Payment** | Transfer to BCA/BNI/QRIS → upload proof → admin reviews and approves |
-
-### 🛡️ Admin Control Center
-
-| Feature | Description |
-|---------|-------------|
-| **Platform Statistics** | View total users, revenue, active subscriptions |
-| **User Management** | View all users, manage roles (user/admin) |
-| **Payment Approval** | Review, approve, or reject payment proof submissions |
-| **Feedback Management** | View and manage user feedback |
-| **Payment Configuration** | Manage bank accounts and payment methods |
-
-### ⚖️ Legal & Account
-
-| Feature | Description |
-|---------|-------------|
-| **Privacy Policy** | Full privacy policy page at `/legal/privacy` |
-| **Terms of Service** | Full terms page at `/legal/terms` |
-| **Account Deletion** | Secure flow: Settings → Delete Account → type `DELETE` → confirm password → delete all data |
-| **Settings Page** | Manage profile, display name, preferences, and account actions |
+### 🛡️ Security, Privacy & Integrity
+| Feature | Capabilities |
+|---|---|
+| **Database-Backed Rate Limiter** | Atomic PostgreSQL UPSERT rate limiting per IP and client token across all sensitive endpoints. |
+| **CSRF & Origin Verification** | Strict origin validation (`assertSameOrigin`) with reverse-proxy header support (`x-forwarded-host`, `x-forwarded-proto`). |
+| **HMAC-SHA256 Shortcut Tokens** | Signed capability tokens with instant version-based revocation when resetting endpoints. |
+| **Timing-Safe Authentication** | Cryptographic constant-time comparison (`timingSafeEqual`) for all PIN resets, cron auth, and tokens. |
+| **Stored XSS File Quarantine** | Image uploads strictly limited to raster images (JPEG, PNG, WebP) with 5MB payload caps. SVG files blocked to eliminate stored SVG script injection. |
+| **Global Maintenance Freeze** | Instant fail-closed write freeze across all server actions, APIs, and raw queries via `MAINTENANCE_ACTIVE` 503 response. |
+| **Session Cookie Security** | Server-side Firebase Admin session cookies with `HttpOnly`, `SameSite=Lax`, and `Secure` attributes. |
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Next.js 16 (App Router, Server Components, Server Actions) |
-| **Language** | TypeScript 5 |
-| **UI** | React 19 + TailwindCSS 4 |
-| **Database** | PostgreSQL + Prisma ORM 5 |
-| **Auth** | Firebase Authentication + Firebase Admin SDK |
-| **Storage** | Firebase Storage (receipt uploads, payment proofs) |
-| **AI** | Google Gemini AI (natural language parsing, OCR) |
-| **Charts** | Recharts 3 |
-| **PDF** | jsPDF + jsPDF-AutoTable |
-| **Icons** | Lucide React |
-| **Design** | Neo-Brutalist UI System |
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend Framework** | [Next.js 16](https://nextjs.org/) (App Router, Turbopack) | Server Components, Server Actions, Route Handlers |
+| **UI Library** | [React 19](https://react.dev/) | Component rendering, concurrent transitions |
+| **Language** | [TypeScript 5](https://www.typescriptlang.org/) | Strict end-to-end type safety |
+| **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) | Neo-Brutalist design tokens, utility classes |
+| **Database & ORM** | [PostgreSQL](https://www.postgresql.org/) + [Prisma 5](https://www.prisma.io/) | Relational database schema, connection pooling |
+| **Authentication** | [Firebase Auth](https://firebase.google.com/) + Admin SDK | Client authentication & server session verification |
+| **Object Storage** | [Supabase Storage](https://supabase.com/storage) | Secure payment proofs & merchant QRIS assets |
+| **Artificial Intelligence** | [Google Gemini 1.5 Flash](https://ai.google.dev/) | Natural language financial parser & receipt OCR |
+| **Email Delivery** | [Resend](https://resend.com/) | Transactional verification, reminder, and reset emails |
+| **Data Visualization** | [Recharts 3](https://recharts.org/) | Responsive SVG charts and cashflow graphs |
+| **Document Generation** | [jsPDF](https://github.com/parallax/jsPDF) + AutoTable | Serverless vector monthly report PDF engine |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-my-app/
+norden-finance/
 ├── app/
-│   ├── actions/          # Server Actions (transactions, budgets, goals, etc.)
-│   ├── api/              # API Routes (auth, export, receipt scan, cron)
-│   ├── dashboard/        # Main dashboard page
-│   ├── login/            # Login page
-│   ├── register/         # Register page
-│   ├── forgot-password/  # Password recovery
-│   ├── onboarding/       # New user onboarding
-│   ├── upgrade/          # Subscription upgrade
-│   ├── legal/            # Privacy & Terms pages
-│   ├── norden-control-center/  # Admin panel
-│   └── page.tsx          # Landing page
-├── components/           # 30 React components
-│   ├── AppLayout.tsx     # Main app shell with sidebar
-│   ├── QuickInputModal.tsx  # AI-powered transaction input
-│   ├── TransactionTable.tsx # Transaction list with search
-│   ├── BalanceCards.tsx   # Wallet balance display
-│   ├── BudgetManager.tsx # Budget CRUD
-│   ├── SavingGoals.tsx   # Savings goal tracker
-│   ├── DebtList.tsx      # Debt & receivable tracker
-│   ├── PaylaterList.tsx  # Paylater installment tracker
-│   ├── SubscriptionManager.tsx # Subscription tracker
-│   ├── EmergencyFundTracker.tsx # Emergency fund
-│   ├── HealthScore.tsx   # Financial health score
-│   ├── ExpenseChart.tsx  # Expense breakdown charts
-│   ├── MomentumCenter.tsx # Streaks & achievements
-│   ├── AutomationCenter.tsx # Templates, recurring, reminders
-│   ├── MonthlyRecap.tsx  # Monthly financial snapshot
-│   ├── NoSpendCalendar.tsx # No-spend day calendar
-│   ├── FinancialTimeline.tsx # Transaction timeline
-│   ├── Wishlist.tsx      # Wishlist manager
-│   ├── SettingsPage.tsx  # User settings
-│   ├── HelpPage.tsx      # Help & documentation
-│   ├── Integrations.tsx  # Third-party integrations
-│   └── ...
-├── lib/                  # Utilities & services
-│   ├── aiParser.ts       # Gemini AI integration
-│   ├── auth.ts           # Auth helpers
-│   ├── firebase.ts       # Firebase client config
-│   ├── firebaseAdmin.ts  # Firebase Admin SDK
-│   ├── prisma.ts         # Prisma client
-│   ├── parser.ts         # Natural language parser
-│   ├── format.ts         # Currency formatting
-│   ├── rateLimit.ts      # Rate limiting
-│   ├── validators.ts     # Input validation
-│   └── ...
+│   ├── actions/                   # Server Actions (CRUD, transactions, budgets, etc.)
+│   ├── api/
+│   │   ├── auth/                  # Session, registration, verification routes
+│   │   ├── cron/                  # Recurring & reminder scheduled workers
+│   │   ├── export/                # CSV, JSON, and PDF report stream handlers
+│   │   ├── log/                   # Direct transaction logging API
+│   │   ├── public/testimonials/   # Rate-limited public feedback feed
+│   │   ├── scan-receipt/          # OCR image receipt processing
+│   │   ├── shortcut/              # Signed Mobile Shortcut & NFC entrypoint
+│   │   └── upload/                # Quarantined image upload endpoints
+│   ├── dashboard/                 # Core user dashboard & financial hub
+│   ├── norden-control-center/     # Admin panel (user, payment, & setting management)
+│   ├── onboarding/                # New account initial configuration flow
+│   ├── upgrade/                   # Norden Pro subscription & payment portal
+│   └── page.tsx                   # Public Neo-Brutalist landing page
+├── components/                    # 30+ modular Neo-Brutalist UI components
+├── lib/
+│   ├── achievements.ts            # Gamification badge sync engine
+│   ├── aiParser.ts                # Google Gemini AI prompts & schema parsers
+│   ├── audit.ts                   # Secure audit log recording
+│   ├── auth.ts                    # Session cookie inspection & entitlement gates
+│   ├── data/loaders.ts            # High-performance cached data loaders
+│   ├── maintenance.ts             # Global write-freeze maintenance guard
+│   ├── pdf/monthlyReport.ts       # Neo-Brutalist PDF layout & vector graphics
+│   ├── prisma.ts                  # Extended Prisma Client with maintenance hooks
+│   ├── rateLimit.ts               # PostgreSQL atomic rate limiting engine
+│   ├── requestSecurity.ts         # Reverse-proxy aware CSRF & origin verification
+│   └── storage.ts                 # Supabase Storage client & path sanitizers
 ├── prisma/
-│   ├── schema.prisma     # Database schema (20+ models)
-│   └── migrations/       # Database migrations
-├── types/
-│   └── index.ts          # TypeScript type definitions
-└── scripts/              # Admin utility scripts
+│   └── schema.prisma              # 20+ relational database models & indexes
+├── public/                        # Static brand assets, icons, and fonts
+└── types/                         # Shared TypeScript interfaces & enumerations
 ```
-
-## 📖 Brand Story
-
-**Norden** (meaning *North* in Germanic languages) represents the ultimate financial compass. In a sea of boring financial spreadsheets and generic tracking apps, Norden Finance stands out. It is built to help individuals chart a course toward financial freedom, navigating budgets, debts, and savings with confidence. 
-
-Powered by a striking Neo-Brutalist design language, Norden turns transaction logging from a chore into a highly engaging, visual, and gamified routine.
-
----
-
-## 🏗️ Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Next.js 16 (App Router, Server Components, Server Actions) |
-| **Language** | TypeScript 5 |
-| **UI** | React 19 + TailwindCSS 4 |
-| **Database** | PostgreSQL + Prisma ORM 5 |
-| **Auth** | Firebase Authentication + Firebase Admin SDK |
-| **Storage** | Firebase Storage (receipt uploads, payment proofs) |
-| **AI** | Google Gemini AI (natural language parsing, OCR) |
-| **Charts** | Recharts 3 |
-| **PDF** | jsPDF + jsPDF-AutoTable |
-| **Icons** | Lucide React |
-| **Design** | Neo-Brutalist UI System |
 
 ---
 
@@ -256,132 +160,146 @@ Powered by a striking Neo-Brutalist design language, Norden turns transaction lo
 
 ### Prerequisites
 
-- Node.js 18+
-- PostgreSQL database
-- Firebase project (Auth + Storage)
-- Google Gemini API key
+- **Node.js**: `v18.18+` or `v20+`
+- **PostgreSQL**: Local instance or hosted service (Supabase, Neon, AWS RDS)
+- **Firebase Project**: Authentication enabled (Email/Password)
+- **Supabase Project**: Storage buckets (`payment-proofs`, `qris`) created
+- **Google Gemini API Key**: From Google AI Studio
+- **Resend API Key**: (Optional for local dev, required for emails)
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
+# 1. Clone repository
 git clone https://github.com/overhaulpxl/norden-finance.git
 cd norden-finance
 
 # 2. Install dependencies
 npm install
 
-# 3. Set up environment variables
+# 3. Configure environment variables
 cp .env.example .env.local
-# Fill in your DATABASE_URL, Firebase config, and GEMINI_API_KEY
 ```
 
-### 🗄️ Database Migrations
-
-This project uses Prisma Migrations to manage schema changes:
+### Database Setup
 
 ```bash
-# Local Development: Evolve schema and apply changes to shadow DB
+# Apply schema migrations to your development database
 npx prisma migrate dev
 
-# Production: Apply migrations to live database (non-interactive, safe)
-npx prisma migrate deploy
-
-# Generate Prisma Client types after updates
+# Generate Prisma Client types
 npx prisma generate
 ```
 
-### Environment Variables
+### Running Locally
 
-Configure these variables in your `.env.local` file:
+```bash
+# Start Next.js development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## ⚙️ Environment Variables
+
+Configure these variables inside `.env.local`:
 
 ```env
-# Database Connections
-DATABASE_URL=
-POSTGRES_URL=
-PRISMA_DATABASE_URL=
+# ─── Database Connections ───
+DATABASE_URL=postgresql://user:password@host:6543/postgres?pgbouncer=true
+DIRECT_URL=postgresql://user:password@host:5432/postgres
 
-# Firebase Client (Public Config)
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
+# ─── Public Application URL ───
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Firebase Admin SDK (Server-Only Credentials)
-FIREBASE_ADMIN_PROJECT_ID=
-FIREBASE_ADMIN_CLIENT_EMAIL=
-FIREBASE_ADMIN_PRIVATE_KEY=
+# ─── Firebase Client SDK (Public) ───
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-# Google Gemini AI Key
-GEMINI_API_KEY=
+# ─── Firebase Admin SDK (Server Only) ───
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@your_project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
-# Email Delivery (Resend Integration)
-RESEND_API_KEY=
-EMAIL_FROM=
+# ─── Google Gemini AI ───
+GEMINI_API_KEY=your_gemini_api_key
 
-# Application Config
-NEXT_PUBLIC_APP_URL=
-CRON_SECRET=
-SHORTCUT_TOKEN_SECRET=
+# ─── Cron & Shortcut Security ───
+CRON_SECRET=generate_at_least_32_random_characters
+SHORTCUT_TOKEN_SECRET=generate_another_secret_for_shortcuts
+
+# ─── Storage Configuration (Supabase Storage) ───
+SUPABASE_URL=https://your_supabase_project.supabase.co
+SUPABASE_SECRET_KEY=your_supabase_service_role_key
+
+# ─── Email Delivery (Resend) ───
+RESEND_API_KEY=re_your_resend_api_key
+EMAIL_FROM=Norden Finance <noreply@nordenfinance.site>
+EMAIL_VERIFICATION_PROVIDER=firebase # 'firebase' or 'resend'
+
+# ─── Optional Maintenance Mode ───
+MAINTENANCE_MODE=false
 ```
 
 ---
 
-## ⚡ Mobile Shortcuts & NFC Stickers
+## 📱 Mobile OS Shortcuts & NFC Setup
 
-Norden Finance supports logging transactions directly from mobile OS automation engines (Apple Shortcuts on iOS, HTTP Shortcuts on Android) and NFC stickers:
+Norden Finance enables hands-free, frictionless spending tracking directly from your phone's lock screen or via NFC tags:
 
-1. **Endpoint format**: `/api/shortcut?token=<your-private-token>`
-2. **Method**: `POST`
-3. **Payload**: JSON format containing `{ "text": "your transaction text here" }` (e.g. `kopi 15k gopay`).
-4. **Action**: The endpoint parses the input using Gemini AI and records the transaction in your active wallet instantly, without requiring you to open a browser.
-
----
-
-## 🛡️ Security & Authentication
-
-- **Token Security**: Shortcut tokens are cryptographically signed using HMAC-SHA256 based on the user's Firebase UID and a server-side secret (`SHORTCUT_TOKEN_SECRET` / `CRON_SECRET`).
-- **Token Rotation**: If a device is lost or a token is compromised, users can click **Reset Token** on the Integrations page. This increments the database token version, immediately invalidating the old endpoint.
-- **Origin Protection**: The endpoint restricts non-token calls to the same origin (`assertSameOrigin`), blocking CSRF and unauthorized cross-site requests.
-- **Rate Limiting**: Request limits are enforced per-token and per-IP to mitigate denial-of-service and brute-force scanner attacks.
+1. Navigate to **Dashboard → Integrations**.
+2. Copy your personal **Mobile Shortcut Endpoint URL**:
+   ```
+   https://nordenfinance.site/api/shortcut?token=<your_signed_hmac_token>
+   ```
+3. In **Apple Shortcuts** (iOS) or **HTTP Shortcuts** (Android):
+   - Add a `Get Contents of URL` action.
+   - Set method to `POST`.
+   - Set Body type to `JSON` with `{ "text": "Shortcut Input" }`.
+4. Trigger via Siri, Lock Screen Widget, or write the URL to an NFC sticker placed on your wallet or desk.
+5. If your phone or NFC tag is misplaced, click **Reset Token** on the Integrations page to immediately revoke all previous links.
 
 ---
 
-## ☁️ Vercel Deployment Notes
+## 🎨 Neo-Brutalist Design Philosophy
 
-This project is fully ready for deployment on **Vercel** (Free/Hobby tier):
-1. Connect your GitHub repository to Vercel.
-2. Add the environment variables specified in the `Environment Variables` section above.
-3. During build, Vercel will trigger the `postinstall` script to run `prisma generate`.
-4. Deploy the live database schema from your local terminal using `npx prisma migrate deploy` before testing.
-5. Refer to `DEPLOYMENT_GUIDE.md` for a comprehensive step-by-step setup walkthrough.
+The interface is built strictly around **Neo-Brutalist** UI principles:
+
+- **Heavy Strokes**: `2.5px` to `3px` solid black borders (`border-black`).
+- **Hard Block Shadows**: High-contrast, unblurred offset drop shadows (`4px 4px 0px 0px #000`).
+- **Sharp Geometry**: Zero border-radius on buttons, cards, inputs, and modals (`rounded-none`).
+- **High-Contrast Palette**: Cream/white canvases punctuated by `#FFE066` (Gold), `#4B6DFE` (Cobalt Blue), `#2ECC71` (Emerald Green), and `#FF6B6B` (Coral Red).
+- **Physical Press Feedback**: Interactive active states shift translation by `2px` while reducing shadow depth to mimic physical buttons.
 
 ---
 
-## 🎨 Design System
+## 🧪 Testing, Quality & Production Verification
 
-Norden uses a **Neo-Brutalist** design system characterized by:
+All commits must pass the three-tier quality gate:
 
-- **Bold borders** — 2.5px–3px solid black borders on all components
-- **Hard shadows** — Offset box shadows (`4px 4px 0px 0px #000`)
-- **No border-radius** — Sharp corners throughout
-- **Uppercase typography** — All-caps with wide letter-spacing
-- **High contrast** — Black text on white/cream backgrounds
-- **Accent colors** — `#FFE066` (gold), `#4B6DFE` (blue), `#2ECC71` (green), `#FF6B6B` (red)
-- **Micro-animations** — Hover wiggle, float, heartbeat, and spring effects
-- **Interactive feedback** — Active press-down with shadow reduction
+```bash
+# 1. TypeScript Static Analysis (Zero Errors)
+npx tsc --noEmit
+
+# 2. ESLint Code Hygiene (Zero Warnings)
+npm run lint
+
+# 3. Turbopack Production Build
+npm run build
+```
 
 ---
 
 ## 📄 License
 
-This project is **proprietary software**. All rights reserved.
-
----
+Proprietary software. Copyright © 2026 **Norden Finance**. All rights reserved.
 
 <p align="center">
-  Built with ❤️ by <a href="https://github.com/overhaulpxl">@overhaulpxl</a>
+  Crafted with focus by <a href="https://github.com/overhaulpxl">@overhaulpxl</a>
 </p>

@@ -16,18 +16,39 @@ const NOINDEX_ROUTES = [
   '/api/:path*',
 ];
 
+const SECURITY_HEADERS = [
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+];
+
 const nextConfig: NextConfig = {
   devIndicators: false,
   async headers() {
-    return NOINDEX_ROUTES.map((source) => ({
-      source,
-      headers: [
-        {
-          key: 'X-Robots-Tag',
-          value: 'noindex, nofollow',
-        },
-      ],
-    }));
+    return [
+      {
+        source: '/:path*',
+        headers: SECURITY_HEADERS,
+      },
+      ...NOINDEX_ROUTES.map((source) => ({
+        source,
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+        ],
+      })),
+    ];
   },
 };
 
