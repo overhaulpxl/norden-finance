@@ -9,11 +9,16 @@ export type SendEmailResult = { sent: true } | { skipped: true } | { error: stri
 
 export { getPublicAppUrl as getAppUrl } from './appUrl';
 
+export const DEFAULT_EMAIL_FROM = 'Norden Finance <noreply@nordenfinance.site>';
+
 export async function sendEmail({ to, subject, html, text }: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
+  const configuredFrom = process.env.EMAIL_FROM;
+  const from = (configuredFrom && !configuredFrom.includes('onboarding@resend.dev'))
+    ? configuredFrom
+    : DEFAULT_EMAIL_FROM;
 
-  if (!apiKey || !from) {
+  if (!apiKey) {
     console.warn('Resend is not configured. Email skipped.');
     return { skipped: true };
   }

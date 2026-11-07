@@ -2,6 +2,7 @@ import { getAdminAuth } from './firebaseAdmin';
 import { getAppUrl, sendEmail } from './email';
 import { getVerificationEmailHtml } from './email/templates/verificationEmail';
 import { getPasswordResetEmailHtml } from './email/templates/passwordResetEmail';
+import { getPinResetEmailHtml } from './email/templates/pinResetEmail';
 
 export async function sendVerificationEmail({
   email,
@@ -65,5 +66,41 @@ export async function sendPasswordResetEmail({
     ].join('\n'),
   });
 }
+
+export async function sendPinResetEmail({
+  email,
+  code,
+  token,
+  userName,
+}: {
+  email: string;
+  code: string;
+  token: string;
+  userName?: string | null;
+}) {
+  const appUrl = getAppUrl();
+  const resetLink = `${appUrl}/dashboard?resetPinToken=${encodeURIComponent(token)}`;
+
+  return sendEmail({
+    to: email,
+    subject: 'Reset PIN Keamanan Norden Finance',
+    html: getPinResetEmailHtml({ code, resetLink, userName }),
+    text: [
+      'Reset PIN Keamanan Norden Finance',
+      '',
+      userName ? `Halo ${userName},` : 'Halo,',
+      `Kode verifikasi reset PIN Anda: ${code}`,
+      'Berlaku selama 15 menit.',
+      '',
+      'Atau buka tautan berikut untuk membuka kunci dan mereset PIN:',
+      resetLink,
+      '',
+      'Jika Anda tidak meminta reset PIN, abaikan email ini.',
+      '',
+      'Norden Finance - Track your money. Find your direction.',
+    ].join('\n'),
+  });
+}
+
 
 

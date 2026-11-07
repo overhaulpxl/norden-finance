@@ -115,3 +115,32 @@ export async function restoreBalance(id: string) {
     return { success: false, error: message };
   }
 }
+
+/**
+ * Permanently delete a wallet/balance from the database.
+ * Associated transactions will safely have walletId set to null.
+ */
+export async function deleteBalancePermanently(id: string) {
+  try {
+    const { user } = await requireUser('basic');
+    const userId = user.uid;
+
+    const existing = await prisma.balance.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existing) throw new Error('Dompet tidak ditemukan');
+
+    await prisma.balance.delete({
+      where: { id },
+    });
+
+    await createAuditLog(userId, 'DELETE_BALANCE_PERMANENT', 'balance', id);
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal menghapus dompet secara permanen';
+    return { success: false, error: message };
+  }
+}
+

@@ -8,7 +8,8 @@ import { buildShortcutEndpoint, getShortcutEndpointForUser, signShortcutToken } 
 import { executeFinancialDataReset } from '../../lib/financialReset';
 import { getTrialDays } from '../../lib/data/loaders';
 import { getAdminAuth } from '../../lib/firebaseAdmin';
-import { sendPasswordResetEmail } from '../../lib/authEmail';
+import { sendPasswordResetEmail, sendPinResetEmail } from '../../lib/authEmail';
+import { generatePinResetToken, verifyPinResetToken } from '../../lib/pinResetToken';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -286,4 +287,69 @@ export async function sendPasswordResetLinkAction(targetEmail?: string) {
     return { success: false, error: message };
   }
 }
+
+export async function requestPinResetAction(targetUserId?: string) {
+  try {
+    const { user } = await requireUser(false);
+    const userId = targetUserId || user.uid;
+
+    if (userId !== user.uid) {
+      return { success: false, error: 'Akses ditolak.' };
+    }
+
+    if (!user.email) {
+      return { success: false, error: 'Alamat email pengguna tidak ditemukan.' };
+    }
+
+    const { token, code } = generatePinResetToken(userId);
+    const adminAuth = getAdminAuth();
+    let userName: string | undefined;
+    try {
+      const userRecord = await adminAuth.getUser(userId);
+      userName = userRecord.displayName || undefined;
+    } catch {
+      // ignore
+    }
+
+    const sendRes = await sendPinResetEmail({
+      email: user.email,
+      code,
+      token,
+      userName,
+    });
+
+    if ('error' in sendRes && sendRes.error) {
+      return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
+    }
+
+    return { success: true, email: user.email, token };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal mengirim email reset PIN.';
+    return { success: false, error: message };
+  }
+}
+
+export async function confirmPinResetCodeAction(input: {
+  userId: string;
+  token: string;
+  code?: string;
+}) {
+  try {
+    const { user } = await requireUser(false);
+    if (user.uid !== input.userId) {
+      return { success: false, error: 'Sesi akun tidak cocok.' };
+    }
+
+    const verification = verifyPinResetToken(input.token, input.userId, input.code);
+    if (!verification.valid) {
+      return { success: false, error: verification.error || 'Verifikasi reset PIN gagal.' };
+    }
+
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal memverifikasi kode reset PIN.';
+    return { success: false, error: message };
+  }
+}
+
 

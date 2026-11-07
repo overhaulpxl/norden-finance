@@ -76,7 +76,6 @@ export function removePinData(userId: string): void {
 
 export function isAppUnlocked(userId: string): boolean {
   if (typeof window === 'undefined') return true;
-  if (isDesktopDevice()) return true;
   if (!isPinSet(userId)) return true;
   try {
     return sessionStorage.getItem(`norden_unlocked_${userId}`) === 'true';

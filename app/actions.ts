@@ -69,6 +69,9 @@ export async function updateBalance(name: string, balance: number, id?: string) 
 export async function deleteBalance(id: string) {
   return balances.deleteBalance(id);
 }
+export async function deleteBalancePermanently(id: string) {
+  return balances.deleteBalancePermanently(id);
+}
 export async function restoreBalance(id: string) {
   return balances.restoreBalance(id);
 }
