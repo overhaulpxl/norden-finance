@@ -328,6 +328,30 @@ export default function QuickInput() {
         </button>
       </form>
 
+      {/* Quick Amount Suggestion Chips */}
+      <div className="flex items-center gap-1.5 pt-2.5 overflow-x-auto scrollbar-none">
+        <span className="text-[10px] font-black uppercase text-neutral-400 dark:text-neutral-500 shrink-0">
+          {lang === 'id' ? 'Nominal:' : 'Amount:'}
+        </span>
+        {['10rb', '20rb', '50rb', '100rb', '200rb', '500rb'].map((amt) => (
+          <button
+            key={amt}
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setInput((prev) => {
+                const trimmed = prev.trim();
+                if (!trimmed) return amt;
+                return `${trimmed} ${amt}`;
+              });
+            }}
+            className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md border border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-[#FFE066] hover:text-black dark:hover:bg-[#FFE066] dark:hover:text-black transition-colors cursor-pointer shrink-0"
+          >
+            +{amt}
+          </button>
+        ))}
+      </div>
+
       {message && (
         <div
           className={`mt-3 flex items-center justify-between gap-3 p-2.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-bold ${

@@ -7,7 +7,7 @@ import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget,
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
-import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search, Repeat2, FileText, Settings, HelpCircle } from 'lucide-react';
+import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search, Repeat2, FileText, Settings, HelpCircle, Loader2, ArrowDown } from 'lucide-react';
 const WelcomeToast = dynamic(() => import('./WelcomeToast'), {
   ssr: false,
 });
@@ -175,6 +175,74 @@ export default function AppLayout({
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Pull-to-Refresh & Auto-dismiss keyboard on mobile
+  useEffect(() => {
+    let startY = 0;
+    let isPulling = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // Auto-dismiss keyboard when tapping outside input/textarea/select/button
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        !['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName) &&
+        !target.closest('input, textarea, select, button, form')
+      ) {
+        if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+          (document.activeElement as HTMLElement).blur();
+        }
+      }
+
+      // Check if at top of page for pull-to-refresh
+      if (window.scrollY <= 0 && e.touches.length === 1) {
+        startY = e.touches[0].clientY;
+        isPulling = true;
+      } else {
+        isPulling = false;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isPulling || window.scrollY > 0) return;
+      const currentY = e.touches[0].clientY;
+      const diffY = currentY - startY;
+      if (diffY > 0) {
+        const distance = Math.min(80, diffY * 0.4);
+        setPullDistance(distance);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isPulling) return;
+      isPulling = false;
+
+      if (pullDistance >= 55) {
+        triggerHaptic('medium');
+        setRefreshing(true);
+        setPullDistance(60);
+        router.refresh();
+        setTimeout(() => {
+          setRefreshing(false);
+          setPullDistance(0);
+        }, 1000);
+      } else {
+        setPullDistance(0);
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pullDistance, router]);
 
   // Global shortcuts and Service Worker initialization
   useEffect(() => {
@@ -197,8 +265,14 @@ export default function AppLayout({
         setShowCommandPalette((prev) => !prev);
       }
     };
+    const handleOpenQuickInput = () => setShowModal(true);
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('norden_open_quick_input', handleOpenQuickInput);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('norden_open_quick_input', handleOpenQuickInput);
+    };
   }, []);
 
   const handleTabChange = (tab: typeof activeTab) => {
@@ -235,6 +309,37 @@ export default function AppLayout({
       <WelcomeToast userId={user.id} fullName={user.fullName} />
       <GlobalUndoToast />
       <NetworkStatusIndicator />
+
+      {/* Pull-to-Refresh Indicator on Mobile */}
+      {pullDistance > 0 && (
+        <div
+          className="fixed top-3 left-1/2 -translate-x-1/2 z-50 lg:hidden flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-full shadow-[2px_2px_0px_0px_#000] text-black dark:text-white text-xs font-black uppercase tracking-wider transition-all"
+          style={{ transform: `translate(-50%, ${Math.min(20, pullDistance * 0.3)}px)` }}
+        >
+          {refreshing ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-black dark:text-white" />
+              <span>{lang === 'id' ? 'Memperbarui...' : 'Refreshing...'}</span>
+            </>
+          ) : (
+            <>
+              <ArrowDown
+                className="w-3.5 h-3.5 stroke-[3px] transition-transform duration-200"
+                style={{ transform: pullDistance >= 55 ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+              <span>
+                {pullDistance >= 55
+                  ? lang === 'id'
+                    ? 'Lepas untuk muat ulang'
+                    : 'Release to refresh'
+                  : lang === 'id'
+                  ? 'Tarik untuk muat ulang'
+                  : 'Pull to refresh'}
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Mobile Overlay */}
       {sidebarOpen && (

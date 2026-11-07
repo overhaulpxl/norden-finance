@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '../lib/auth';
 import {
   Check,
   MessageSquare,
@@ -25,7 +27,7 @@ import {
 } from '../lib/landingFallbacks';
 import { formatCurrency } from '../lib/format';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: {
@@ -37,7 +39,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect('/dashboard');
+  }
+
   const trialDays = LANDING_TRIAL_DAYS;
   const monthlyPrice = LANDING_MONTHLY_PRICE;
   const yearlyPrice = LANDING_YEARLY_PRICE;

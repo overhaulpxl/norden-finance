@@ -4,7 +4,7 @@ import { getAdminAuth } from './firebaseAdmin';
 import { getUserEntitlement } from './entitlements';
 
 const SESSION_COOKIE_NAME = '__session';
-const SESSION_EXPIRY_DAYS = 5;
+const SESSION_EXPIRY_DAYS = 14;
 
 export interface AuthUser {
   uid: string;
@@ -105,12 +105,27 @@ export async function requireUser(requirement: AccessRequirement = 'read') {
  */
 export const SESSION_CONFIG = {
   name: SESSION_COOKIE_NAME,
-  expiresIn: SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000, // 5 days in ms
+  expiresIn: SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000, // 14 days in ms
   options: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     path: '/',
-    maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60, // 5 days in seconds
+    maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60, // 14 days in seconds
   },
 };
+
+export function getSessionConfig(rememberMe: boolean = true) {
+  const expiryDays = rememberMe ? SESSION_EXPIRY_DAYS : 1;
+  return {
+    name: SESSION_COOKIE_NAME,
+    expiresIn: expiryDays * 24 * 60 * 60 * 1000,
+    options: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+      maxAge: expiryDays * 24 * 60 * 60,
+    },
+  };
+}

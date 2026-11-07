@@ -4,6 +4,7 @@ import './globals.css';
 import { LanguageProvider } from '../lib/i18n';
 import { HideBalanceProvider } from '../lib/HideBalanceContext';
 import { ThemeProvider } from '../lib/themeContext';
+import CookieConsentBanner from '../components/CookieConsentBanner';
 
 const font = Outfit({ subsets: ['latin'] });
 
@@ -113,6 +114,7 @@ export default function RootLayout({
           <LanguageProvider>
             <HideBalanceProvider>
               {children}
+              <CookieConsentBanner />
             </HideBalanceProvider>
           </LanguageProvider>
         </ThemeProvider>

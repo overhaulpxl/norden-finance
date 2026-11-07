@@ -1,27 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginAction, loginWithGoogleAction } from '../authActions';
 import Link from 'next/link';
 import BrandLogo from '../../components/BrandLogo';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '../../lib/i18n';
+import { auth } from '../../lib/firebase';
 
 export default function LoginClient() {
   const { lang } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [restoringSession, setRestoringSession] = useState(false);
   const router = useRouter();
+
+  // Auto-restore session if Firebase client token is still valid (e.g. mobile/PWA reload)
+  useEffect(() => {
+    let isMounted = true;
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      if (!currentUser || !isMounted) return;
+      if (currentUser.emailVerified) {
+        try {
+          setRestoringSession(true);
+          const idToken = await currentUser.getIdToken();
+          const res = await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken, rememberMe: true }),
+          });
+          if (res.ok && isMounted) {
+            router.replace('/dashboard');
+            return;
+          }
+        } catch {
+          // Ignore, fallback to normal manual login
+        } finally {
+          if (isMounted) setRestoringSession(false);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const result = await loginAction(email, password);
+    const result = await loginAction(email, password, rememberMe);
 
     setLoading(false);
     if (result.success) {
@@ -139,13 +174,30 @@ export default function LoginClient() {
               />
             </div>
 
+            <div className="flex items-center gap-2 pt-1 select-none">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-2 border-black dark:border-neutral-600 accent-black dark:accent-yellow-400 cursor-pointer"
+              />
+              <label htmlFor="remember-me" className="text-xs font-bold text-neutral-700 dark:text-neutral-300 cursor-pointer">
+                {lang === 'en' ? 'Remember me on this device (14 days)' : 'Ingat saya di perangkat ini (14 hari)'}
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || restoringSession}
               className="w-full mt-2 py-3 brutal-btn bg-[#FFE066] text-black border-[2.5px] border-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] hover:bg-yellow-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
-              {loading ? (lang === 'en' ? 'Verifying...' : 'Memverifikasi...') : (lang === 'en' ? 'Sign in Now' : 'Masuk Sekarang')}
+              {(loading || restoringSession) && <Loader2 className="w-4 h-4 animate-spin text-black" />}
+              {restoringSession
+                ? (lang === 'en' ? 'Restoring session...' : 'Memulihkan sesi...')
+                : loading
+                ? (lang === 'en' ? 'Verifying...' : 'Memverifikasi...')
+                : (lang === 'en' ? 'Sign in Now' : 'Masuk Sekarang')}
             </button>
           </form>
         </div>

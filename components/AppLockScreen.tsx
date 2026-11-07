@@ -10,6 +10,7 @@ import {
   isAppUnlocked,
   unlockApp,
   authenticateBiometrics,
+  isDesktopDevice,
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
 import { auth } from '../lib/firebase';
@@ -158,7 +159,18 @@ export default function AppLockScreen({ userId }: AppLockScreenProps) {
     }
   }, [locked, biometricAvailable, handleBiometricAuth]);
 
-  if (!locked) return null;
+  // Auto-trigger biometric authentication if enabled on mobile
+  useEffect(() => {
+    if (!locked || !biometricAvailable || isDesktopDevice()) return;
+
+    const timer = setTimeout(() => {
+      handleBiometricAuth();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [locked, biometricAvailable, handleBiometricAuth]);
+
+  if (!locked || isDesktopDevice()) return null;
 
   const handleSignOutEmergency = () => {
     triggerHaptic('medium');

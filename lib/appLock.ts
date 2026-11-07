@@ -10,8 +10,24 @@ export async function hashPin(pin: string, userId: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+export function isDesktopDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    const isTouchOnly = 'ontouchstart' in window && !window.matchMedia('(pointer: fine)').matches;
+    const isLargeScreen = window.innerWidth >= 1024;
+    if (isMobileUA || isTouchOnly) return false;
+    return isLargeScreen;
+  } catch {
+    return false;
+  }
+}
+
 export function isPinSet(userId: string): boolean {
   if (typeof window === 'undefined') return false;
+  if (isDesktopDevice()) return false;
   try {
     const enabled = localStorage.getItem(`norden_pin_enabled_${userId}`);
     const hash = localStorage.getItem(`norden_pin_hash_${userId}`);
@@ -58,6 +74,7 @@ export function removePinData(userId: string): void {
 
 export function isAppUnlocked(userId: string): boolean {
   if (typeof window === 'undefined') return true;
+  if (isDesktopDevice()) return true;
   if (!isPinSet(userId)) return true;
   try {
     return sessionStorage.getItem(`norden_unlocked_${userId}`) === 'true';

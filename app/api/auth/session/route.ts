@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '../../../../lib/firebaseAdmin';
-import { SESSION_CONFIG } from '../../../../lib/auth';
+import { SESSION_CONFIG, getSessionConfig } from '../../../../lib/auth';
 import { assertSameOrigin } from '../../../../lib/requestSecurity';
 import {
   assertRateLimit,
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
     await assertRateLimit(rateLimitKey(request, 'auth-session'), 20, 60_000);
-    const { idToken } = await request.json();
+    const { idToken, rememberMe = true } = await request.json();
 
     if (!idToken) {
       return NextResponse.json(
@@ -38,14 +38,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sessionConfig = getSessionConfig(rememberMe !== false);
+
     // Create session cookie
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {
-      expiresIn: SESSION_CONFIG.expiresIn,
+      expiresIn: sessionConfig.expiresIn,
     });
 
     // Set the session cookie
     const response = NextResponse.json({ success: true });
-    response.cookies.set(SESSION_CONFIG.name, sessionCookie, SESSION_CONFIG.options);
+    response.cookies.set(sessionConfig.name, sessionCookie, sessionConfig.options);
 
     return response;
   } catch (error: unknown) {

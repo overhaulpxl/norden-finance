@@ -20,7 +20,7 @@ import {
   type ActionCodeSettings,
 } from 'firebase/auth';
 
-export async function loginAction(email: string, password: string) {
+export async function loginAction(email: string, password: string, rememberMe: boolean = true) {
   if (!email || !password) {
     return { success: false, error: 'Email dan password harus diisi' };
   }
@@ -41,7 +41,7 @@ export async function loginAction(email: string, password: string) {
     const res = await fetch('/api/auth/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
+      body: JSON.stringify({ idToken, rememberMe }),
     });
 
     if (!res.ok) {

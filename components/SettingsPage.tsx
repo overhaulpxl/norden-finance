@@ -693,8 +693,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {pinActive
                   ? (lang === 'en'
-                    ? 'App will automatically prompt for 4-digit PIN every time it opens or returns from background.'
-                    : 'Aplikasi akan otomatis meminta PIN 4-digit setiap kali dibuka atau kembali dari latar belakang (background).')
+                    ? 'App will prompt for 4-digit PIN on mobile devices (automatically bypassed on PC/desktop).'
+                    : 'Aplikasi akan otomatis meminta PIN 4-digit khusus di HP/ponsel (otomatis dilewati di PC/desktop).')
                   : (lang === 'en'
                     ? 'Enable PIN to prevent others from seeing balance and transactions when using your phone.'
                     : 'Aktifkan PIN untuk mencegah orang lain melihat saldo dan mutasi rekening saat meminjam ponsel Anda.')}

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Norden Finance — Track Your Money',
     short_name: 'Norden',
     description: 'Track your money. Find your direction.',
-    start_url: '/',
+    start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
     background_color: '#FAF9F5',

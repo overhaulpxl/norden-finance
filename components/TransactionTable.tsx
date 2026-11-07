@@ -17,6 +17,8 @@ import {
   RotateCcw,
   Loader2,
   Calendar,
+  SlidersHorizontal,
+  Plus,
 } from 'lucide-react';
 import {
   updateTransaction,
@@ -437,6 +439,7 @@ export default function TransactionTable({
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterMethod, setFilterMethod] = useState('all');
   const [filterTag, setFilterTag] = useState('all');
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState('');
@@ -823,79 +826,89 @@ export default function TransactionTable({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <select
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(e.target.value)}
-            className={selectClass}
+          {/* Mobile Filter Button (opens Bottom Sheet) */}
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setMobileFilterOpen(true);
+            }}
+            className="lg:hidden flex items-center gap-2 px-3 py-2 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 text-xs font-black uppercase tracking-wider rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer text-black dark:text-white"
           >
-            <option value="all">{lang === 'en' ? 'All Months' : 'Semua Bulan'}</option>
-            {months.map((m) => {
-              const [y, mo] = m.split('-');
-              const label = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString(
-                lang === 'en' ? 'en-US' : 'id-ID',
-                { month: 'short', year: 'numeric' }
-              );
-              return (
-                <option key={m} value={m}>
-                  {label}
-                </option>
-              );
-            })}
-          </select>
+            <SlidersHorizontal className="w-3.5 h-3.5 stroke-[2.5px]" />
+            <span>{lang === 'en' ? 'Filters' : 'Filter'}</span>
+            {activeFilterCount > 0 && (
+              <span className="w-5 h-5 rounded-full bg-[#FFE066] text-black border border-black flex items-center justify-center text-[10px] font-black">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
 
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className={selectClass}
-          >
-            <option value="all">{lang === 'en' ? 'All Types' : 'Semua Jenis'}</option>
-            <option value="masuk">{lang === 'en' ? 'Income (+)' : 'Pemasukan (+)'}</option>
-            <option value="keluar">{lang === 'en' ? 'Expense (-)' : 'Pengeluaran (-)'}</option>
-            <option value="transfer">{lang === 'en' ? 'Transfer (⇆)' : 'Transfer (⇆)'}</option>
-          </select>
-
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className={selectClass}
-          >
-            <option value="all">
-              {lang === 'en' ? 'All Categories' : 'Semua Kategori'}
-            </option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filterMethod}
-            onChange={(e) => setFilterMethod(e.target.value)}
-            className={selectClass}
-          >
-            <option value="all">{lang === 'en' ? 'All Wallets' : 'Semua Dompet'}</option>
-            {methods.map((m) => (
-              <option key={m} value={m}>
-                {formatMethodName(m)}
-              </option>
-            ))}
-          </select>
-
-          {uniqueTags.length > 0 && (
+          {/* Desktop Filter Dropdowns (hidden on mobile) */}
+          <div className="hidden lg:flex items-center gap-2">
             <select
-              value={filterTag}
-              onChange={(e) => setFilterTag(e.target.value)}
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
               className={selectClass}
             >
-              <option value="all">{lang === 'en' ? 'All Tags' : 'Semua Tag'}</option>
-              {uniqueTags.map((tag) => (
-                <option key={tag} value={tag}>
-                  #{tag}
+              <option value="all">{lang === 'en' ? 'All Months' : 'Semua Bulan'}</option>
+              {months.map((m) => {
+                const [y, mo] = m.split('-');
+                const label = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString(
+                  lang === 'en' ? 'en-US' : 'id-ID',
+                  { month: 'short', year: 'numeric' }
+                );
+                return (
+                  <option key={m} value={m}>
+                    {label}
+                  </option>
+                );
+              })}
+            </select>
+
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">
+                {lang === 'en' ? 'All Categories' : 'Semua Kategori'}
+              </option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
                 </option>
               ))}
             </select>
-          )}
+
+            <select
+              value={filterMethod}
+              onChange={(e) => setFilterMethod(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">{lang === 'en' ? 'All Wallets' : 'Semua Dompet'}</option>
+              {methods.map((m) => (
+                <option key={m} value={m}>
+                  {formatMethodName(m)}
+                </option>
+              ))}
+            </select>
+
+            {uniqueTags.length > 0 && (
+              <select
+                value={filterTag}
+                onChange={(e) => setFilterTag(e.target.value)}
+                className={selectClass}
+              >
+                <option value="all">{lang === 'en' ? 'All Tags' : 'Semua Tag'}</option>
+                {uniqueTags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    #{tag}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
           {isFilterActive && (
             <button
@@ -999,6 +1012,62 @@ export default function TransactionTable({
             {transactions.filter((t) => t.type === 'transfer').length})
           </span>
         </button>
+
+        <div className="h-5 w-[2px] bg-neutral-300 dark:bg-neutral-700 shrink-0 mx-1" />
+
+        <button
+          type="button"
+          onClick={() => {
+            setFilterMonth('all');
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
+            filterMonth === 'all'
+              ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-black font-black'
+              : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100'
+          }`}
+        >
+          {lang === 'en' ? 'All Months' : 'Semua Bulan'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            const now = new Date();
+            const currKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            setFilterMonth(currKey);
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
+            filterMonth === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+              ? 'bg-[#FFE066] text-black font-black ring-2 ring-black dark:ring-neutral-400'
+              : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100'
+          }`}
+        >
+          {lang === 'en' ? 'This Month' : 'Bulan Ini'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            const now = new Date();
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+            setFilterMonth(lastKey);
+            triggerHaptic('light');
+          }}
+          className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer shrink-0 ${
+            (() => {
+              const now = new Date();
+              const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+              return filterMonth === `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+            })()
+              ? 'bg-[#FFE066] text-black font-black ring-2 ring-black dark:ring-neutral-400'
+              : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100'
+          }`}
+        >
+          {lang === 'en' ? 'Last Month' : 'Bulan Lalu'}
+        </button>
       </div>
 
       {/* Filtered Financial Summary Strip */}
@@ -1056,7 +1125,7 @@ export default function TransactionTable({
                 ? 'No transactions recorded yet.'
                 : 'Belum ada transaksi tercatat pada sistem.'}
             </p>
-            {isFilterActive && (
+            {isFilterActive ? (
               <button
                 type="button"
                 onClick={handleResetFilters}
@@ -1064,6 +1133,20 @@ export default function TransactionTable({
               >
                 {lang === 'en' ? 'Clear Filters' : 'Bersihkan Filter'}
               </button>
+            ) : (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    window.dispatchEvent(new Event('norden_open_quick_input'));
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer rounded-xl"
+                >
+                  <Plus className="w-4 h-4 stroke-[3px]" />
+                  {lang === 'en' ? 'Record First Transaction' : 'Catat Transaksi Pertama'}
+                </button>
+              </div>
             )}
           </div>
         ) : (
@@ -1298,6 +1381,207 @@ export default function TransactionTable({
               >
                 <Trash2 className="w-4 h-4 stroke-[2.5px]" />
                 <span className="text-[10px]">{lang === 'en' ? 'Delete' : 'Hapus'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom Sheet Filter Modal */}
+      {mobileFilterOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileFilterOpen(false)}
+          />
+          <div className="relative bg-white dark:bg-neutral-900 border-t-[3px] border-black dark:border-neutral-700 rounded-t-2xl shadow-[0px_-4px_0px_0px_#000] p-5 max-h-[85vh] overflow-y-auto space-y-5 animate-in slide-in-from-bottom duration-200 z-10 text-black dark:text-white safe-bottom">
+            <div className="w-12 h-1.5 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto -mt-1 mb-2" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-5 h-5 stroke-[2.5px] text-black dark:text-white" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-black dark:text-white">
+                  {lang === 'en' ? 'Filter Transactions' : 'Filter Transaksi'}
+                </h3>
+                {activeFilterCount > 0 && (
+                  <span className="px-2 py-0.5 bg-[#FFE066] text-black text-[10px] font-black border border-black rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(false)}
+                className="p-1.5 rounded-lg border-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white cursor-pointer"
+                aria-label={lang === 'en' ? 'Close filter' : 'Tutup filter'}
+              >
+                <X className="w-4 h-4 stroke-[3px]" />
+              </button>
+            </div>
+
+            {/* Filter by Month */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                {lang === 'en' ? 'Month' : 'Bulan'}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setFilterMonth('all'); triggerHaptic('light'); }}
+                  className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                    filterMonth === 'all'
+                      ? 'bg-black text-white dark:bg-white dark:text-black shadow-[2px_2px_0px_0px_#000]'
+                      : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                  }`}
+                >
+                  {lang === 'en' ? 'All Months' : 'Semua Bulan'}
+                </button>
+                {months.map((m) => {
+                  const [y, mo] = m.split('-');
+                  const label = new Date(parseInt(y), parseInt(mo) - 1).toLocaleDateString(
+                    lang === 'en' ? 'en-US' : 'id-ID',
+                    { month: 'short', year: 'numeric' }
+                  );
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => { setFilterMonth(m); triggerHaptic('light'); }}
+                      className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                        filterMonth === m
+                          ? 'bg-[#FFE066] text-black font-black shadow-[2px_2px_0px_0px_#000]'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Filter by Category */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                {lang === 'en' ? 'Category' : 'Kategori'}
+              </label>
+              <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
+                <button
+                  type="button"
+                  onClick={() => { setFilterCategory('all'); triggerHaptic('light'); }}
+                  className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                    filterCategory === 'all'
+                      ? 'bg-black text-white dark:bg-white dark:text-black shadow-[2px_2px_0px_0px_#000]'
+                      : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                  }`}
+                >
+                  {lang === 'en' ? 'All Categories' : 'Semua Kategori'}
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => { setFilterCategory(cat); triggerHaptic('light'); }}
+                    className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                      filterCategory === cat
+                        ? 'bg-[#FFE066] text-black font-black shadow-[2px_2px_0px_0px_#000]'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter by Wallet */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                {lang === 'en' ? 'Wallet' : 'Dompet'}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setFilterMethod('all'); triggerHaptic('light'); }}
+                  className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                    filterMethod === 'all'
+                      ? 'bg-black text-white dark:bg-white dark:text-black shadow-[2px_2px_0px_0px_#000]'
+                      : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                  }`}
+                >
+                  {lang === 'en' ? 'All Wallets' : 'Semua Dompet'}
+                </button>
+                {methods.map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => { setFilterMethod(method); triggerHaptic('light'); }}
+                    className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                      filterMethod === method
+                        ? 'bg-[#FFE066] text-black font-black shadow-[2px_2px_0px_0px_#000]'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {formatMethodName(method)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tags if any */}
+            {uniqueTags.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                  Tag
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => { setFilterTag('all'); triggerHaptic('light'); }}
+                    className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                      filterTag === 'all'
+                        ? 'bg-black text-white dark:bg-white dark:text-black shadow-[2px_2px_0px_0px_#000]'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {lang === 'en' ? 'All Tags' : 'Semua Tag'}
+                  </button>
+                  {uniqueTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => { setFilterTag(tag); triggerHaptic('light'); }}
+                      className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 ${
+                        filterTag === tag
+                          ? 'bg-[#FFE066] text-black font-black shadow-[2px_2px_0px_0px_#000]'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white'
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Actions */}
+            <div className="flex items-center gap-3 pt-3 border-t-2 border-black dark:border-neutral-700">
+              {isFilterActive && (
+                <button
+                  type="button"
+                  onClick={() => { handleResetFilters(); triggerHaptic('medium'); }}
+                  className="flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/80 text-black dark:text-red-200 shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+                >
+                  {lang === 'en' ? 'Reset All' : 'Reset Semua'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => { setMobileFilterOpen(false); triggerHaptic('light'); }}
+                className="flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-black dark:border-neutral-700 bg-[#FFE066] text-black shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+              >
+                {lang === 'en' ? 'Apply Filter' : 'Terapkan Filter'}
               </button>
             </div>
           </div>
