@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma" alt="Prisma" />
   <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=flat-square&logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=flat-square&logo=firebase" alt="Firebase Auth" />
+  <img src="https://img.shields.io/badge/Resend-Email-000000?style=flat-square&logo=resend" alt="Resend" />
 </p>
 
 ---
@@ -39,7 +40,14 @@ Built with a bold Neo-Brutalist design language, it combines **natural language 
 - **Natural Language Parsing**: Log expenses in natural Indonesian phrasing (`gaji 8jt bca`, `beli buku 120k cash`).
 - **Smart Receipt Scanner**: Upload shopping receipts or invoices to extract total amount, date, and line items automatically.
 - **Clipboard Intelligence**: Detects incoming bank SMS or push notifications copied to your clipboard and prefills transaction details.
-- **Mobile Shortcuts & NFC**: Trigger quick expense logging in under 2 seconds via Apple Shortcuts, Android HTTP Shortcuts, or NFC tags (`/api/shortcut`).
+
+### 🧠 Next-Gen Financial Intelligence
+- **50/30/20 Ideal Allocator**: Automatically calculates Needs, Wants, and Savings targets from monthly income with one-click budget generation.
+- **30-Day Cashflow Projection**: Forecasts forward liquidity factoring recurring bills, active balances, and upcoming paylater installments.
+- **Budget Risk Forecasts**: Real-time burn-rate projection flagging overspend risks before month-end.
+- **Financial Habits & Subscription Review**: Pattern detection for frequent expenses (coffee tracker, busiest spend day) and stale subscription audits.
+- **Monthly Replay & Visual Share Cards**: Summary highlights and exportable high-res visual share cards (PNG) of monthly achievements and spend breakdowns.
+- **Daily Discipline Missions**: Gamified daily objectives (No Spend Day, transaction streak, saving goal updates) to build mindful financial habits.
 
 ### 💼 Money & Wallet Management
 - **Multi-Wallet Architecture**: Track Bank accounts (BCA, Mandiri, BNI, etc.), E-Wallets (GoPay, OVO, DANA, ShopeePay), and Physical Cash in one place.
@@ -51,14 +59,25 @@ Built with a bold Neo-Brutalist design language, it combines **natural language 
 ### 📊 Analytics & Reporting
 - **Financial Health Score**: Dynamic rating (0–100) assessing savings rate, emergency reserve, and debt-to-income balance.
 - **Client-Side Monthly Statement PDF**: Clean, branded vector PDF financial reports with zero external rendering services (`jsPDF`).
-- **Data Export**: Complete data export to CSV and JSON formats anytime.
+- **Data Export**: Complete data export to CSV (protected against CSV injection) and JSON formats anytime.
 - **Category Budgets**: Set monthly limits per category with warning thresholds at 50%, 75%, and 90%.
 
+### 🌐 Bilingual Localization
+- **Full ID / EN Support**: Instant language switching between Indonesian (`id`) and English (`en`) across all dashboard widgets, reports, forms, and dialogs.
+
 ### 🔒 Privacy & Device Security
-- **App Screen Lock**: Client-side 4-digit PIN lock with optional biometric unlock (WebAuthn / Touch ID / Face ID).
-- **Dual Reset Methods**: Reset forgotten PINs instantly using your account password or a 6-digit email confirmation code.
+- **App Screen Lock**: Client-side 4-digit PIN lock with full physical keyboard support (number keys 0–9 & Backspace) on desktop, plus optional biometric unlock (WebAuthn / Touch ID / Face ID) on mobile.
+- **Dual Reset Methods**: Reset forgotten PINs instantly using your account password or a 6-digit email confirmation OTP code with auto-unlock magic link.
 - **Emergency Sign Out**: One-click emergency sign out option that cleanly wipes cached local PIN data to prevent lock loops.
 - **Rate-Limited Actions**: Database-backed atomic rate limiting and timing-safe cryptographic comparisons on sensitive operations.
+
+### ✉️ Custom Auth & Email System
+- **Custom Domain Auth Handler**: In-app `/auth/action` handler for password reset and email verification, avoiding default Firebase screens.
+- **Official Brand Email Templates**: Polished, responsive email notifications featuring the official Norden Finance logo.
+- **Interactive Reset Form**: Live password length validation, confirmation match indicators, and show/hide visibility toggles.
+
+### 🚀 3-Step Quick Start Onboarding
+- **Workspace Activation Checklist**: Guides new users through creating a primary wallet, recording initial balance, and logging their first transaction.
 
 ---
 
@@ -137,7 +156,6 @@ Visit [http://localhost:3000](http://localhost:3000) to view the application.
 | `RESEND_API_KEY` | Resend API Key for transactional emails |
 | `EMAIL_FROM` | Verified sender address (e.g. `Norden Finance <noreply@nordenfinance.site>`) |
 | `CRON_SECRET` | Secret token for securing scheduled background jobs (`/api/cron/*`) |
-| `SHORTCUT_TOKEN_SECRET` | Secret key for signing mobile shortcut HMAC tokens |
 | `SUPABASE_URL` | Supabase project URL for object storage |
 | `SUPABASE_SECRET_KEY` | Supabase Service Role key |
 
@@ -157,24 +175,6 @@ npm run lint
 # Production build
 npm run build
 ```
-
----
-
-## 📱 Mobile OS Shortcut Setup
-
-To log expenses on-the-go via iOS Shortcuts, Android, or NFC tags:
-
-1. Open **Dashboard &rarr; Integrations**.
-2. Copy your signed shortcut endpoint URL:
-   ```
-   https://nordenfinance.site/api/shortcut?token=<your_signed_token>
-   ```
-3. In **Apple Shortcuts** (iOS) or **HTTP Shortcuts** (Android):
-   - Action: `Get Contents of URL` / HTTP POST
-   - Method: `POST`
-   - Headers: `Content-Type: application/json`
-   - Body: `{ "text": "kopi 25k bca" }`
-4. Tap your NFC sticker or run the shortcut from your lock screen widget.
 
 ---
 

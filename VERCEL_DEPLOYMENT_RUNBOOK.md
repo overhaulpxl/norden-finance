@@ -169,7 +169,7 @@ Firebase Authentication blocks sign-in, OAuth popups, and email verification red
 > ### Credential Safety Rules
 > - **Never commit secrets to Git or include them in documentation, reports, or prompts.**
 > - The project owner must enter all production secrets directly into **Vercel Project Settings > Environment Variables**.
-> - Secrets include: database passwords, Firebase Admin private keys, Resend API keys, Cron secrets, and Shortcut token secrets.
+> - Secrets include: database passwords, Firebase Admin private keys, Resend API keys, and Cron secrets.
 > - Client-visible variables (`NEXT_PUBLIC_*`) are bundled into browser JavaScript and are readable by any website visitor. Never store private credentials in `NEXT_PUBLIC_*` variables.
 > - **Firebase Auth Emulator must remain disabled in production.** Setting `FIREBASE_AUTH_EMULATOR_HOST` in production will cause `lib/firebaseAdmin.ts` to intentionally throw an error and abort server execution.
 
@@ -192,7 +192,6 @@ Derived directly from codebase usage (`app`, `lib`, `prisma`, `scripts`):
 | `FIREBASE_CLIENT_EMAIL` (or `FIREBASE_ADMIN_CLIENT_EMAIL`) | Server-only | **REQUIRED** | Production | Firebase Service Account JSON | Service account client email. If missing: server auth verification fails. | Checked at server startup. |
 | `FIREBASE_PRIVATE_KEY` (or `FIREBASE_ADMIN_PRIVATE_KEY`) | Server-only | **REQUIRED** | Production | Firebase Service Account JSON | Full RSA private key (including `-----BEGIN PRIVATE KEY-----` and `\n`). If missing: server auth verification fails. | Checked at server startup. |
 | `CRON_SECRET` | Server-only | **REQUIRED** | Production | Owner Generated | Cryptographic token (min 32 characters) protecting `/api/cron/*` endpoints from unauthorized invocation. If missing: cron jobs fail closed (HTTP 500). | Checked in `lib/cronAuth.ts`. |
-| `SHORTCUT_TOKEN_SECRET` | Server-only | Optional | Production | Owner Generated | Dedicated secret for iOS Shortcut / NFC tokens. If omitted: automatically falls back to `CRON_SECRET`. | Checked in `lib/shortcutToken.ts`. |
 | `EMAIL_VERIFICATION_PROVIDER` | Server-only | **REQUIRED** | Production | Configuration | Set to `firebase` (default) or `resend`. In production without custom domain email: must be `firebase`. | Checked in `app/api/auth/register/route.ts`. |
 | `EMAIL_FROM` | Server-only | Optional | Production | Resend Configuration | Sender display name & address (e.g. `Norden Finance <hello@nordenfinance.site>`). If missing: email sending fails. | Checked in `lib/email.ts`. |
 | `RESEND_API_KEY` | Server-only | Optional | Production | Resend Console | API key for reminder and verification emails via Resend. If missing: email delivery is skipped. | Checked in `lib/email.ts`. |
