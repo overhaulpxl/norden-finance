@@ -1,6 +1,6 @@
 # 🚀 Panduan Deployment Norden Finance ke Vercel (Gratis)
 
-Panduan ini menjelaskan langkah demi langkah untuk melakukan deployment aplikasi **Norden Finance** ke **Vercel** secara gratis, serta melakukan konfigurasi database PostgreSQL, Firebase, dan Gemini AI.
+Panduan ini menjelaskan langkah demi langkah untuk melakukan deployment aplikasi **Norden Finance** ke **Vercel** secara gratis, serta melakukan konfigurasi database PostgreSQL dan Firebase.
 
 ---
 
@@ -10,7 +10,6 @@ Untuk melakukan deployment secara gratis, Anda memerlukan akun di platform-platf
 1. **GitHub** (untuk menyimpan repositori kode Anda)
 2. **Vercel** (untuk hosting Next.js dan database PostgreSQL gratis)
 3. **Firebase Console** (untuk Firebase Authentication & Storage gratis)
-4. **Google AI Studio** (untuk mendapatkan Gemini API Key gratis)
 
 ---
 
@@ -112,20 +111,9 @@ Ini diperlukan agar server Next.js Anda dapat memverifikasi session cookie secar
 
 ---
 
-## 🛠️ Langkah 3: Dapatkan Gemini API Key Gratis
+## 🛠️ Langkah 3: Hubungkan ke GitHub & Deploy ke Vercel
 
-Gemini AI digunakan untuk fitur **Smart Input** (capture transaksi lewat bahasa natural) dan **Receipt Scanner** (Scan struk belanja).
-1. Buka [Google AI Studio](https://aistudio.google.com/).
-2. Login menggunakan akun Google Anda.
-3. Klik tombol **Get API Key** atau **Create API Key**.
-4. Klik **Create API Key in new project**.
-5. Salin API Key yang dihasilkan. Ini akan digunakan sebagai `GEMINI_API_KEY` di Vercel.
-
----
-
-## 🛠️ Langkah 4: Hubungkan ke GitHub & Deploy ke Vercel
-
-### 4.1 Push Code ke GitHub (Jika Belum)
+### 3.1 Push Code ke GitHub (Jika Belum)
 Pastikan kode Anda sudah berada di repositori GitHub pribadi Anda.
 ```bash
 git init
@@ -136,7 +124,7 @@ git branch -M main
 git push -u origin main
 ```
 
-### 4.2 Deploy ke Vercel
+### 3.2 Deploy ke Vercel
 1. Buka [Vercel](https://vercel.com/) dan login dengan akun GitHub Anda.
 2. Klik tombol **Add New...** > **Project**.
 3. Cari repositori Anda dan klik **Import**.
@@ -159,7 +147,6 @@ git push -u origin main
 | `FIREBASE_ADMIN_PROJECT_ID` | *Dari Service Account JSON* | Project ID dari Firebase Admin |
 | `FIREBASE_ADMIN_CLIENT_EMAIL` | *Dari Service Account JSON* | Email Client Firebase Admin |
 | `FIREBASE_ADMIN_PRIVATE_KEY` | *Dari Service Account JSON* | Key lengkap dengan tanda kutip & `\n` |
-| `GEMINI_API_KEY` | *(Opsional)* | API Key Google Gemini (opsional, sistem menggunakan local smart parser default) |
 | `CRON_SECRET` | *Minimal 32 karakter acak* | Secret token untuk otorisasi Vercel Cron jobs |
 | `NEXT_PUBLIC_APP_URL` | `https://nordenfinance.site` | URL domain production Anda |
 
@@ -167,7 +154,7 @@ git push -u origin main
 
 ---
 
-## 🛠️ Langkah 5: Migrasi Database ke Database Live (Production)
+## 🛠️ Langkah 4: Migrasi Database ke Database Live (Production)
 
 Setelah Vercel berhasil dideploy, Anda harus menjalankan migrasi database Prisma ke database live yang baru dibuat di Neon/Supabase menggunakan perintah migrasi production formal:
 
@@ -183,4 +170,4 @@ Setelah Vercel berhasil dideploy, Anda harus menjalankan migrasi database Prisma
 ---
 
 ## 🎉 Selesai!
-Aplikasi Anda kini sudah terpasang secara online di Vercel secara gratis dan terintegrasi dengan Firebase, PostgreSQL Cloud, serta Gemini AI. Setiap kali Anda melakukan `git push` ke branch `main`, Vercel akan otomatis melakukan deploy ulang versi terbaru aplikasi Anda.
+Aplikasi Anda kini sudah terpasang secara online di Vercel secara gratis dan terintegrasi dengan Firebase serta PostgreSQL Cloud. Setiap kali Anda melakukan `git push` ke branch `main`, Vercel akan otomatis melakukan deploy ulang versi terbaru aplikasi Anda.

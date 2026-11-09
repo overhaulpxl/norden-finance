@@ -21,7 +21,6 @@
   <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma" alt="Prisma" />
   <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=flat-square&logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=flat-square&logo=firebase" alt="Firebase Auth" />
-  <img src="https://img.shields.io/badge/Gemini_1.5-AI-4285F4?style=flat-square&logo=google" alt="Google Gemini" />
 </p>
 
 ---
@@ -30,14 +29,14 @@
 
 **Norden Finance** is a personal finance platform designed to replace messy spreadsheets and complex accounting tools with a fast, engaging web application.
 
-Built with a bold Neo-Brutalist design language, it combines **natural language expense logging** (`kopi 35k bca`, `makan siang 45k gopay`), **AI receipt scanning**, **multi-wallet balance tracking**, and **financial health analytics** to help you stay on top of your financial goals.
+Built with a bold Neo-Brutalist design language, it combines **natural language expense logging** (`kopi 35k bca`, `makan siang 45k gopay`), **smart receipt scanning**, **multi-wallet balance tracking**, and **financial health analytics** to help you stay on top of your financial goals.
 
 ---
 
 ## ✨ Key Capabilities
 
-### ⚡ Smart Logging & AI
-- **Natural Language Parsing**: Log expenses in natural Indonesian phrasing (`gaji 8jt bca`, `beli buku 120k cash`). Powered by Google Gemini 1.5 Flash.
+### ⚡ Smart Logging
+- **Natural Language Parsing**: Log expenses in natural Indonesian phrasing (`gaji 8jt bca`, `beli buku 120k cash`).
 - **Smart Receipt Scanner**: Upload shopping receipts or invoices to extract total amount, date, and line items automatically.
 - **Clipboard Intelligence**: Detects incoming bank SMS or push notifications copied to your clipboard and prefills transaction details.
 - **Mobile Shortcuts & NFC**: Trigger quick expense logging in under 2 seconds via Apple Shortcuts, Android HTTP Shortcuts, or NFC tags (`/api/shortcut`).
@@ -72,7 +71,6 @@ Built with a bold Neo-Brutalist design language, it combines **natural language 
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/)
 - **Authentication**: [Firebase Auth](https://firebase.google.com/) + Firebase Admin SDK (Session Cookies)
 - **File Storage**: [Supabase Storage](https://supabase.com/storage)
-- **AI Engine**: [Google Gemini 1.5 Flash](https://ai.google.dev/)
 - **Email Service**: [Resend](https://resend.com/)
 - **Charts & Export**: [Recharts](https://recharts.org/) & [jsPDF](https://github.com/parallax/jsPDF)
 
@@ -85,7 +83,6 @@ Built with a bold Neo-Brutalist design language, it combines **natural language 
 - **Node.js**: `v24+` (see `.nvmrc`)
 - **PostgreSQL**: Local instance or hosted (e.g. Supabase, Neon)
 - **Firebase Project**: Email/Password authentication enabled
-- **Google Gemini API Key**: For AI transaction parsing & receipt OCR
 - **Resend API Key**: (Optional for local testing; needed for email notifications)
 
 ### 1. Clone & Install
@@ -104,7 +101,7 @@ Copy the example environment file:
 cp .env.example .env.local
 ```
 
-Fill in your database URL, Firebase credentials, and API keys.
+Fill in your database URL and Firebase credentials.
 
 ### 3. Database Migration
 
@@ -137,7 +134,6 @@ Visit [http://localhost:3000](http://localhost:3000) to view the application.
 | `FIREBASE_PROJECT_ID` | Firebase Service Account Project ID |
 | `FIREBASE_CLIENT_EMAIL` | Firebase Service Account Client Email |
 | `FIREBASE_PRIVATE_KEY` | Firebase Service Account Private Key |
-| `GEMINI_API_KEY` | Google Gemini API Key for NLP & OCR |
 | `RESEND_API_KEY` | Resend API Key for transactional emails |
 | `EMAIL_FROM` | Verified sender address (e.g. `Norden Finance <noreply@nordenfinance.site>`) |
 | `CRON_SECRET` | Secret token for securing scheduled background jobs (`/api/cron/*`) |
