@@ -546,45 +546,44 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
               setShowResetModal(false);
             }
           }}
-          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
         >
-          <div className="bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_#000] space-y-4 animate-in zoom-in-95 text-black dark:text-white">
-            <div className="flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-3">
-              <div className="flex items-center gap-2">
-                <div
-                  className="p-1.5 border-2 border-black rounded-lg shadow-[1.5px_1.5px_0px_0px_#000]"
-                  style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
-                >
-                  <KeyRound className="w-4 h-4 text-black stroke-[2.5px]" />
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5 sm:p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-neutral-900 dark:text-neutral-100">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-700 dark:text-amber-400">
+                  <KeyRound className="w-4 h-4 stroke-[2.2px]" />
                 </div>
-                <h3 className="font-black text-sm uppercase tracking-wider">
+                <h3 className="font-bold text-sm tracking-tight">
                   {lang === 'en' ? 'Reset Security PIN' : 'Reset PIN Keamanan'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowResetModal(false)}
-                className="text-xs font-black px-2 py-1 border border-black dark:border-neutral-700 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="text-xs p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                aria-label="Close"
               >
                 ✕
               </button>
             </div>
 
             {/* Reset Method Tabs */}
-            <div className="grid grid-cols-2 p-1 bg-neutral-100 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black">
+            <div className="grid grid-cols-2 p-1 bg-neutral-100 dark:bg-neutral-800/80 rounded-xl text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => {
                   setResetMethod('password');
                   setResetError(null);
                 }}
-                className={`py-1.5 rounded-lg transition-all text-center cursor-pointer ${
+                className={`py-2 rounded-lg transition-all text-center cursor-pointer ${
                   resetMethod === 'password'
-                    ? 'bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 shadow-[1.5px_1.5px_0px_0px_#000] text-black dark:text-white'
-                    : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                    ? 'bg-white dark:bg-neutral-900 shadow-sm text-neutral-900 dark:text-white font-bold'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
                 }`}
               >
-                {lang === 'en' ? 'Password' : 'Kata Sandi'}
+                {lang === 'en' ? 'Account Password' : 'Kata Sandi Akun'}
               </button>
               <button
                 type="button"
@@ -592,10 +591,10 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                   setResetMethod('email');
                   setResetError(null);
                 }}
-                className={`py-1.5 rounded-lg transition-all text-center cursor-pointer ${
+                className={`py-2 rounded-lg transition-all text-center cursor-pointer ${
                   resetMethod === 'email'
-                    ? 'bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 shadow-[1.5px_1.5px_0px_0px_#000] text-black dark:text-white'
-                    : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                    ? 'bg-white dark:bg-neutral-900 shadow-sm text-neutral-900 dark:text-white font-bold'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
                 }`}
               >
                 {lang === 'en' ? 'Email Code' : 'Kode Email'}
@@ -604,10 +603,10 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
 
             {resetMethod === 'password' ? (
               <form onSubmit={handleResetWithPassword} className="space-y-4">
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                   {lang === 'en'
-                    ? 'Enter your account password to verify and reset your PIN immediately:'
-                    : 'Masukkan kata sandi akun Anda untuk verifikasi dan menghapus PIN:'}
+                    ? 'Enter your account password to verify your identity and remove the PIN from this device:'
+                    : 'Masukkan kata sandi akun Anda untuk verifikasi identitas dan menghapus PIN pada perangkat ini:'}
                 </p>
 
                 <div className="space-y-1">
@@ -617,14 +616,15 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                       value={accountPassword}
                       onChange={(e) => setAccountPassword(e.target.value)}
                       placeholder={lang === 'en' ? 'Account password' : 'Kata sandi akun'}
-                      className="w-full text-xs font-bold p-3 pr-10 bg-neutral-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl focus:outline-hidden focus:bg-[#FFE066]/20 text-black dark:text-white"
+                      className="w-full text-xs font-medium p-3 pr-10 bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-300 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#F5D547] focus:border-transparent transition-all"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-black dark:hover:text-white p-1 cursor-pointer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-1 cursor-pointer transition-colors"
                       tabIndex={-1}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -632,7 +632,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                 </div>
 
                 {resetError && (
-                  <div className="p-2.5 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 text-xs font-black uppercase rounded-xl flex items-center gap-1.5">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-medium rounded-xl flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
                     <span>{resetError}</span>
                   </div>
@@ -642,12 +642,12 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                   <button
                     type="submit"
                     disabled={resetLoading || !accountPassword.trim()}
-                    className="w-full py-3 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 rounded-xl font-black text-xs uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 px-4 bg-[#18181B] dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 rounded-xl font-semibold text-xs uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {resetLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <CheckCircle2 className="w-4 h-4 stroke-[2.5px]" />
+                      <CheckCircle2 className="w-4 h-4 stroke-[2.2px]" />
                     )}
                     <span>{lang === 'en' ? 'Verify & Reset PIN' : 'Verifikasi & Reset PIN'}</span>
                   </button>
@@ -658,22 +658,22 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                       setShowResetModal(false);
                       setShowEmergencyModal(true);
                     }}
-                    className="w-full py-2 text-center text-[11px] font-black uppercase text-neutral-500 hover:text-black dark:hover:text-white tracking-wider cursor-pointer underline"
+                    className="w-full py-1.5 text-center text-[11px] font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 tracking-wide cursor-pointer transition-colors"
                   >
-                    {lang === 'en' ? 'Emergency Sign Out Instead' : 'Keluar Akun (Emergency Sign Out)'}
+                    {lang === 'en' ? 'Forgot password too? Emergency Sign Out' : 'Lupa kata sandi juga? Keluar Akun (Emergency Sign Out)'}
                   </button>
                 </div>
               </form>
             ) : resetStep === 'request' ? (
               <div className="space-y-4">
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                   {lang === 'en'
-                    ? `We will send a 6-digit reset code to your registered email (${userEmail || 'account email'}).`
-                    : `Kami akan mengirimkan 6 digit kode reset ke email akun Anda (${userEmail || 'email akun'}).`}
+                    ? `We will send a 6-digit verification code and auto-unlock magic link to your registered email (${userEmail || 'account email'}).`
+                    : `Kami akan mengirimkan 6-digit kode verifikasi dan tautan instan ke email akun Anda (${userEmail || 'email akun'}).`}
                 </p>
 
                 {resetError && (
-                  <div className="p-2.5 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 text-xs font-black uppercase rounded-xl flex items-center gap-1.5">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-medium rounded-xl flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
                     <span>{resetError}</span>
                   </div>
@@ -684,12 +684,12 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                     type="button"
                     onClick={handleSendResetEmail}
                     disabled={resetLoading}
-                    className="w-full py-3 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 rounded-xl font-black text-xs uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 px-4 bg-[#18181B] dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 rounded-xl font-semibold text-xs uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {resetLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Mail className="w-4 h-4 stroke-[2.5px]" />
+                      <Mail className="w-4 h-4 stroke-[2.2px]" />
                     )}
                     <span>{lang === 'en' ? 'Send Code to Email' : 'Kirim Kode ke Email'}</span>
                   </button>
@@ -700,7 +700,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                       setShowResetModal(false);
                       setShowEmergencyModal(true);
                     }}
-                    className="w-full py-2 text-center text-[11px] font-black uppercase text-neutral-500 hover:text-black dark:hover:text-white tracking-wider cursor-pointer underline"
+                    className="w-full py-1.5 text-center text-[11px] font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 tracking-wide cursor-pointer transition-colors"
                   >
                     {lang === 'en' ? 'Emergency Sign Out Instead' : 'Keluar Akun (Emergency Sign Out)'}
                   </button>
@@ -709,16 +709,16 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
             ) : (
               <form onSubmit={handleVerifyResetCode} className="space-y-4">
                 {resetSuccessMsg && (
-                  <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/80 border-2 border-black dark:border-neutral-700 text-emerald-800 dark:text-emerald-200 text-xs font-black uppercase rounded-xl flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-200 text-xs font-medium rounded-xl flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                     <span>{resetSuccessMsg}</span>
                   </div>
                 )}
 
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                   {lang === 'en'
-                    ? 'Enter the 6-digit code sent to your email inbox:'
-                    : 'Masukkan 6 digit kode yang dikirim ke kotak masuk email Anda:'}
+                    ? 'Enter the 6-digit verification code sent to your inbox:'
+                    : 'Masukkan 6 digit kode verifikasi dari kotak masuk email Anda:'}
                 </p>
 
                 <div>
@@ -730,13 +730,13 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                     value={resetCode}
                     onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="123456"
-                    className="w-full text-center text-xl tracking-[0.5em] font-black p-3 bg-neutral-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl focus:outline-hidden focus:bg-[#FFE066]/20 text-black dark:text-white"
+                    className="w-full text-center text-2xl font-mono tracking-[0.4em] font-bold py-3 bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F5D547] focus:border-transparent text-neutral-900 dark:text-white transition-all"
                     autoFocus
                   />
                 </div>
 
                 {resetError && (
-                  <div className="p-2.5 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 text-xs font-black uppercase rounded-xl flex items-center gap-1.5">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-medium rounded-xl flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
                     <span>{resetError}</span>
                   </div>
@@ -746,12 +746,12 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                   <button
                     type="submit"
                     disabled={resetLoading || resetCode.length !== 6}
-                    className="w-full py-3 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 rounded-xl font-black text-xs uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 px-4 bg-[#18181B] dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 rounded-xl font-semibold text-xs uppercase tracking-wider transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {resetLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <CheckCircle2 className="w-4 h-4 stroke-[2.5px]" />
+                      <CheckCircle2 className="w-4 h-4 stroke-[2.2px]" />
                     )}
                     <span>{lang === 'en' ? 'Verify & Unlock' : 'Verifikasi & Buka Kunci'}</span>
                   </button>
@@ -760,7 +760,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                     <button
                       type="button"
                       onClick={() => setResetStep('request')}
-                      className="text-[11px] font-black uppercase text-neutral-500 hover:text-black dark:hover:text-white flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 flex items-center gap-1 cursor-pointer transition-colors"
                     >
                       <ArrowLeft className="w-3 h-3" />
                       {lang === 'en' ? 'Back' : 'Kembali'}
@@ -769,7 +769,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                       type="button"
                       onClick={handleSendResetEmail}
                       disabled={resetLoading}
-                      className="text-[11px] font-black uppercase text-neutral-500 hover:text-black dark:hover:text-white underline cursor-pointer"
+                      className="text-[11px] font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 underline cursor-pointer transition-colors"
                     >
                       {lang === 'en' ? 'Resend Code' : 'Kirim Ulang Kode'}
                     </button>
@@ -789,46 +789,43 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
               setShowEmergencyModal(false);
             }
           }}
-          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
         >
-          <div className="bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl p-5 max-w-sm w-full shadow-[6px_6px_0px_0px_#000] space-y-4 animate-in zoom-in-95 text-black dark:text-white">
-            <div className="flex items-center gap-2">
-              <div
-                className="p-1.5 border-2 border-black rounded-lg shadow-[1.5px_1.5px_0px_0px_#000]"
-                style={{ backgroundColor: 'var(--theme-accent, #FFE066)' }}
-              >
-                <LogOut className="w-4 h-4 text-black stroke-[2.5px]" />
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 text-neutral-900 dark:text-neutral-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 flex items-center justify-center text-red-600 dark:text-red-400">
+                <LogOut className="w-4 h-4 stroke-[2.2px]" />
               </div>
-              <h3 className="font-black text-sm uppercase tracking-wider">
+              <h3 className="font-bold text-sm tracking-tight">
                 {lang === 'en' ? 'Sign Out of Account?' : 'Keluar Dari Akun?'}
               </h3>
             </div>
             <div className="space-y-3">
-              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {lang === 'en'
                   ? 'You will be signed out to protect your financial data.'
                   : 'Anda akan dialihkan keluar (sign out) untuk mengamankan data keuangan Anda.'}
               </p>
 
-              <label className="flex items-start gap-2 pt-1 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={clearPinOnSignOut}
                   onChange={(e) => setClearPinOnSignOut(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-2 border-black accent-[#FFE066] cursor-pointer"
+                  className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-[#F5D547] cursor-pointer"
                 />
-                <span className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 leading-tight">
+                <span className="text-xs text-neutral-700 dark:text-neutral-300 leading-tight">
                   {lang === 'en'
                     ? 'Clear PIN from this device (Recommended if you forgot your PIN)'
                     : 'Hapus PIN dari perangkat ini (Disarankan jika Anda lupa PIN)'}
                 </span>
               </label>
             </div>
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setShowEmergencyModal(false)}
-                className="px-3 py-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-black uppercase rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                className="px-3.5 py-2 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-semibold rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-750 transition-colors cursor-pointer"
                 disabled={emergencyLoading}
               >
                 {lang === 'en' ? 'Cancel' : 'Batal'}
@@ -837,15 +834,11 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                 type="button"
                 onClick={handleConfirmSignOut}
                 disabled={emergencyLoading}
-                className="px-4 py-1.5 border-2 border-black rounded-xl text-xs font-black uppercase bg-red-500 text-white hover:bg-red-600 cursor-pointer shadow-[1.5px_1.5px_0px_0px_#000]"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 text-white hover:bg-red-700 cursor-pointer shadow-sm transition-colors"
               >
                 {emergencyLoading
-                  ? lang === 'en'
-                    ? 'Signing out...'
-                    : 'Keluar...'
-                  : lang === 'en'
-                  ? 'Yes, Sign Out'
-                  : 'Ya, Keluar Akun'}
+                  ? (lang === 'en' ? 'Signing out...' : 'Keluar...')
+                  : (lang === 'en' ? 'Yes, Sign Out' : 'Ya, Keluar Akun')}
               </button>
             </div>
           </div>

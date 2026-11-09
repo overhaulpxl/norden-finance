@@ -12,10 +12,21 @@ export async function sendVerificationEmail({
   userName?: string | null;
 }) {
   const appUrl = getAppUrl();
-  const verificationLink = await getAdminAuth().generateEmailVerificationLink(email, {
-    url: `${appUrl}/auth/verified`,
+  const rawVerificationLink = await getAdminAuth().generateEmailVerificationLink(email, {
+    url: `${appUrl}/dashboard`,
     handleCodeInApp: false,
   });
+
+  let verificationLink = rawVerificationLink;
+  try {
+    const parsed = new URL(rawVerificationLink);
+    const oobCode = parsed.searchParams.get('oobCode');
+    if (oobCode) {
+      verificationLink = `${appUrl}/auth/action?mode=verifyEmail&oobCode=${encodeURIComponent(oobCode)}`;
+    }
+  } catch {
+    // fallback to raw link
+  }
 
   return sendEmail({
     to: email,
@@ -42,10 +53,21 @@ export async function sendPasswordResetEmail({
   userName?: string | null;
 }) {
   const appUrl = getAppUrl();
-  const resetLink = await getAdminAuth().generatePasswordResetLink(email, {
-    url: `${appUrl}/auth/action`,
+  const rawResetLink = await getAdminAuth().generatePasswordResetLink(email, {
+    url: `${appUrl}/login`,
     handleCodeInApp: false,
   });
+
+  let resetLink = rawResetLink;
+  try {
+    const parsed = new URL(rawResetLink);
+    const oobCode = parsed.searchParams.get('oobCode');
+    if (oobCode) {
+      resetLink = `${appUrl}/auth/action?mode=resetPassword&oobCode=${encodeURIComponent(oobCode)}`;
+    }
+  } catch {
+    // fallback to raw link
+  }
 
   return sendEmail({
     to: email,
