@@ -22,6 +22,7 @@
   <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=flat-square&logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?style=flat-square&logo=firebase" alt="Firebase Auth" />
   <img src="https://img.shields.io/badge/Resend-Email-000000?style=flat-square&logo=resend" alt="Resend" />
+  <img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg?style=flat-square" alt="AGPL-3.0 License" />
 </p>
 
 ---
@@ -180,5 +181,5 @@ npm run build
 
 ## 📄 License
 
-Proprietary software. Copyright &copy; 2026 **Norden Finance**. All rights reserved.  
-Crafted with focus by [@overhaulpxl](https://github.com/overhaulpxl).
+Distributed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).  
+Copyright &copy; 2026 **Norden Finance** &mdash; [@overhaulpxl](https://github.com/overhaulpxl). All rights reserved.
