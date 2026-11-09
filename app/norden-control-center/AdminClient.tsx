@@ -568,7 +568,7 @@ export default function AdminClient({
         <div>
           <Link 
             href="/dashboard" 
-            className="inline-flex items-center gap-2 px-4 py-2 border-[2px] border-black bg-white rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-50 font-black text-xs uppercase tracking-wider transition-all mb-3"
+            className="inline-flex items-center gap-2 px-4 py-2 border-[2px] border-black bg-white text-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-neutral-50 font-black text-xs uppercase tracking-wider transition-all mb-3"
           >
             <ArrowLeft className="w-4 h-4 stroke-[3px]" /> Kembali ke Dasbor
           </Link>
@@ -829,9 +829,9 @@ export default function AdminClient({
                       <td className="p-3 border-r-[2px] border-black text-center">
                         <button
                           onClick={() => setSelectedProof(req.proofPath)}
-                          className="px-2.5 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider flex items-center gap-1 mx-auto cursor-pointer"
+                          className="px-2.5 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider flex items-center gap-1 mx-auto cursor-pointer"
                         >
-                          <Eye className="w-3.5 h-3.5" /> Lihat
+                          <Eye className="w-3.5 h-3.5 text-black" /> Lihat
                         </button>
                       </td>
                       <td className="p-3 border-r-[2px] border-black">
@@ -852,7 +852,7 @@ export default function AdminClient({
                             <button
                               onClick={() => handleApprove(req.id)}
                               disabled={loadingId !== null}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-[#bbf7d0] hover:bg-emerald-200 disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-[#bbf7d0] hover:bg-emerald-200 text-black disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
                               title="Setujui pembayaran dan aktifkan paket Pro"
                             >
                               {loadingId === req.id ? <Loader2 className="w-3.5 h-3.5 animate-spin text-black" /> : <Check className="w-3.5 h-3.5 text-black stroke-[3px]" />}
@@ -893,7 +893,7 @@ export default function AdminClient({
                 placeholder="CARI NAMA ATAU UID PENGGUNA..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border-[3px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all font-bold text-xs uppercase"
+                className="w-full pl-9 pr-4 py-2.5 border-[3px] border-black bg-white text-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all font-bold text-xs uppercase placeholder:text-neutral-500"
               />
             </div>
           </div>
@@ -952,9 +952,9 @@ export default function AdminClient({
                           <button
                             onClick={() => openPlanModal(u.userId, u.fullName, u.plan)}
                             disabled={loadingId !== null}
-                            className="px-2.5 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                            className="px-2.5 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
                           >
-                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin" /> : 'UBAH PAKET / DURASI'}
+                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin text-black" /> : 'UBAH PAKET / DURASI'}
                           </button>
                           <button
                             onClick={() => handleToggleRole(u.userId, u.role)}
@@ -1029,7 +1029,7 @@ export default function AdminClient({
                         {log.userName}
                       </td>
                       <td className="p-3 border-r-[2px] border-black">
-                        <span className="bg-neutral-100 border-[2px] border-black px-1.5 py-0.5 font-mono text-[10px]">
+                        <span className="bg-neutral-100 border-[2px] border-black px-1.5 py-0.5 font-mono text-[10px] text-black font-bold">
                           {log.action}
                         </span>
                       </td>
@@ -1089,7 +1089,7 @@ export default function AdminClient({
                     <button
                       onClick={() => handleToggleFeedback(fb.id, fb.status)}
                       disabled={loadingId !== null}
-                      className="px-3 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                      className="px-3 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
                     >
                       {fb.status === 'reviewed' ? 'Tandai Open' : 'Tandai Dibaca / Selesai'}
                     </button>
@@ -1139,7 +1139,7 @@ export default function AdminClient({
                   max="365"
                   value={trialDays}
                   onChange={(e) => setTrialDays(e.target.value)}
-                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold"
+                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold text-black"
                 />
                 <p className="mt-2 text-[10px] font-bold uppercase text-neutral-600">{pricingPreview.trialDays} hari gratis akses penuh</p>
               </div>
@@ -1161,7 +1161,7 @@ export default function AdminClient({
                   min="0"
                   value={monthlyPrice}
                   onChange={(e) => setMonthlyPrice(e.target.value)}
-                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold"
+                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold text-black"
                 />
                 <p className="mt-2 text-[10px] font-bold uppercase text-neutral-600">{formatCurrency(pricingPreview.monthlyPrice)} / bulan</p>
               </div>
@@ -1183,7 +1183,7 @@ export default function AdminClient({
                   min="0"
                   value={yearlyPrice}
                   onChange={(e) => setYearlyPrice(e.target.value)}
-                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold"
+                  className="mt-2 w-full border-[2px] border-black bg-white p-2 text-xs font-bold text-black"
                 />
                 <p className="mt-2 text-[10px] font-bold uppercase text-neutral-600">{formatCurrency(pricingPreview.yearlyPrice)} / tahun</p>
               </div>
@@ -1224,7 +1224,7 @@ export default function AdminClient({
                     type="text"
                     value={bcaNumber}
                     onChange={(e) => setBcaNumber(e.target.value)}
-                    className="w-full p-2 border-[2px] border-black rounded-none bg-white font-bold text-xs"
+                    className="w-full p-2 border-[2px] border-black rounded-none bg-white text-black font-bold text-xs"
                     required={bcaActive}
                     disabled={!bcaActive}
                   />
@@ -1235,7 +1235,7 @@ export default function AdminClient({
                     type="text"
                     value={bcaHolder}
                     onChange={(e) => setBcaHolder(e.target.value)}
-                    className="w-full p-2 border-[2px] border-black rounded-none bg-white font-bold text-xs"
+                    className="w-full p-2 border-[2px] border-black rounded-none bg-white text-black font-bold text-xs"
                     required={bcaActive}
                     disabled={!bcaActive}
                   />
@@ -1266,7 +1266,7 @@ export default function AdminClient({
                     type="text"
                     value={bniNumber}
                     onChange={(e) => setBniNumber(e.target.value)}
-                    className="w-full p-2 border-[2px] border-black rounded-none bg-white font-bold text-xs"
+                    className="w-full p-2 border-[2px] border-black rounded-none bg-white text-black font-bold text-xs"
                     required={bniActive}
                     disabled={!bniActive}
                   />
@@ -1277,7 +1277,7 @@ export default function AdminClient({
                     type="text"
                     value={bniHolder}
                     onChange={(e) => setBniHolder(e.target.value)}
-                    className="w-full p-2 border-[2px] border-black rounded-none bg-white font-bold text-xs"
+                    className="w-full p-2 border-[2px] border-black rounded-none bg-white text-black font-bold text-xs"
                     required={bniActive}
                     disabled={!bniActive}
                   />
@@ -1344,7 +1344,7 @@ export default function AdminClient({
                       value={qrisImage}
                       onChange={(e) => setQrisImage(e.target.value)}
                       placeholder="https://..."
-                      className="w-full p-2 border-[2px] border-black rounded-none bg-white font-bold text-xs"
+                      className="w-full p-2 border-[2px] border-black rounded-none bg-white text-black font-bold text-xs"
                       disabled={!qrisActive}
                     />
                   </div>
@@ -1415,7 +1415,7 @@ export default function AdminClient({
                 <textarea
                   value={rejectNote}
                   onChange={(e) => setRejectNote(e.target.value)}
-                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-bold text-xs uppercase"
+                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-bold text-xs uppercase bg-white text-black"
                   placeholder="CONTOH: BUKTI TRANSFER TIDAK TERBACA ATAU NOMINAL KURANG"
                   rows={4}
                   required
@@ -1463,7 +1463,7 @@ export default function AdminClient({
                   type="text"
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-black text-xs uppercase"
+                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-black text-xs uppercase bg-white text-black"
                   placeholder="DELETE"
                   autoFocus
                   disabled={loadingId === deleteModalUser.userId}
@@ -1515,7 +1515,7 @@ export default function AdminClient({
                   type="text"
                   value={resetConfirmText}
                   onChange={(e) => setResetConfirmText(e.target.value)}
-                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-black text-xs uppercase"
+                  className="w-full p-2.5 border-[2px] border-black rounded-none focus:outline-none font-black text-xs uppercase bg-white text-black"
                   placeholder="RESET KEUANGAN"
                   autoFocus
                   disabled={resetLoading}
@@ -1627,7 +1627,7 @@ export default function AdminClient({
                         max="3650"
                         value={customDays}
                         onChange={(e) => setCustomDays(e.target.value)}
-                        className="w-full p-2 border-[2px] border-black rounded-none font-bold text-xs uppercase"
+                        className="w-full p-2 border-[2px] border-black rounded-none font-bold text-xs uppercase bg-white text-black"
                         placeholder="MASUKKAN JUMLAH HARI"
                         required
                       />
@@ -1661,7 +1661,7 @@ export default function AdminClient({
               <button
                 type="button"
                 onClick={() => setConfirmActionModal(null)}
-                className="brutal-btn-light px-3 py-1.5 text-xs font-black uppercase cursor-pointer"
+                className="brutal-btn-light px-3 py-1.5 text-xs font-black uppercase text-black cursor-pointer"
               >
                 Batal
               </button>
