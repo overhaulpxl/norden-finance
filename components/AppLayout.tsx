@@ -282,10 +282,36 @@ export default function AppLayout({
     };
   }, []);
 
+  const lastBottomNavTapRef = useRef<{ tab: string; time: number }>({ tab: '', time: 0 });
+
+  const scrollToTop = () => {
+    triggerHaptic('medium');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+  };
+
   const handleTabChange = (tab: typeof activeTab) => {
     triggerHaptic('selection');
     setActiveTab(tab);
     setSidebarOpen(false);
+  };
+
+  const handleBottomNavClick = (tab: typeof activeTab) => {
+    const now = Date.now();
+    const isSameTab = lastBottomNavTapRef.current.tab === tab;
+    const isDoubleTap = isSameTab && (now - lastBottomNavTapRef.current.time < 500);
+
+    if (isDoubleTap) {
+      lastBottomNavTapRef.current = { tab: '', time: 0 };
+      scrollToTop();
+      return;
+    }
+
+    lastBottomNavTapRef.current = { tab, time: now };
+    handleTabChange(tab);
   };
 
   const levelInfo = (() => {
@@ -480,8 +506,12 @@ export default function AppLayout({
             </div>
           </div>
 
-          {/* Tier 2: Mobile Dedicated Full-Width Page Title Card (No More Truncation!) */}
-          <div className="lg:hidden mt-3 brutal-card p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_#000]">
+          {/* Tier 2: Mobile Dedicated Full-Width Page Title Card (Tap to scroll to top) */}
+          <div 
+            onClick={scrollToTop}
+            className="lg:hidden mt-3 brutal-card p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_#000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px] transition-transform select-none"
+            title={lang === 'en' ? 'Tap to scroll to top' : 'Ketuk untuk kembali ke atas'}
+          >
             <div className="flex items-center gap-2.5 min-w-0">
               <div
                 className="p-1.5 rounded-lg border border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_#000] shrink-0"
@@ -661,7 +691,9 @@ export default function AppLayout({
         <div className="flex justify-around items-center h-16 px-2">
           <button
             type="button"
-            onClick={() => handleTabChange('overview')}
+            onClick={() => handleBottomNavClick('overview')}
+            onDoubleClick={scrollToTop}
+            title={lang === 'en' ? 'Home (Tap twice to scroll to top)' : 'Beranda (Ketuk 2 kali untuk kembali ke atas)'}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
               activeTab === 'overview' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
@@ -672,7 +704,9 @@ export default function AppLayout({
 
           <button
             type="button"
-            onClick={() => handleTabChange('wallet')}
+            onClick={() => handleBottomNavClick('wallet')}
+            onDoubleClick={scrollToTop}
+            title={lang === 'en' ? 'Wallets (Tap twice to scroll to top)' : 'Dompet (Ketuk 2 kali untuk kembali ke atas)'}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
               activeTab === 'wallet' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
@@ -699,7 +733,9 @@ export default function AppLayout({
 
           <button
             type="button"
-            onClick={() => handleTabChange('goals')}
+            onClick={() => handleBottomNavClick('goals')}
+            onDoubleClick={scrollToTop}
+            title={lang === 'en' ? 'Goals (Tap twice to scroll to top)' : 'Target (Ketuk 2 kali untuk kembali ke atas)'}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
               activeTab === 'goals' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
@@ -710,7 +746,9 @@ export default function AppLayout({
 
           <button
             type="button"
-            onClick={() => handleTabChange('history')}
+            onClick={() => handleBottomNavClick('history')}
+            onDoubleClick={scrollToTop}
+            title={lang === 'en' ? 'History (Tap twice to scroll to top)' : 'Riwayat (Ketuk 2 kali untuk kembali ke atas)'}
             className={`flex flex-col items-center justify-center flex-1 py-1 cursor-pointer transition-colors ${
               activeTab === 'history' ? 'text-black dark:text-white font-black' : 'text-neutral-400 dark:text-neutral-500 hover:text-black dark:hover:text-white font-bold'
             }`}
