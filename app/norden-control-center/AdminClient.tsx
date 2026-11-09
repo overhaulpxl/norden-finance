@@ -674,41 +674,41 @@ export default function AdminClient({
         <div className="space-y-6">
           {/* Detailed Statistics Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="brutal-card p-4 bg-white">
+            <div className="brutal-card p-4 bg-white text-black">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs font-black uppercase text-neutral-500">Total Transaksi</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable || platformStats.unavailableMetrics?.transactions ? '-' : platformStats.totalTransactions}</h4>
+                  <p className="text-xs font-black uppercase text-neutral-600">Total Transaksi</p>
+                  <h4 className="text-2xl font-black mt-1 text-black">{platformStats.isUnavailable || platformStats.unavailableMetrics?.transactions ? '-' : platformStats.totalTransactions}</h4>
                 </div>
                 <Activity className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
             </div>
             
-            <div className="brutal-card p-4 bg-white">
+            <div className="brutal-card p-4 bg-white text-black">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs font-black uppercase text-neutral-500">Akun Finansial</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable || platformStats.unavailableMetrics?.financials ? '-' : platformStats.totalBalances}</h4>
+                  <p className="text-xs font-black uppercase text-neutral-600">Akun Finansial</p>
+                  <h4 className="text-2xl font-black mt-1 text-black">{platformStats.isUnavailable || platformStats.unavailableMetrics?.financials ? '-' : platformStats.totalBalances}</h4>
                 </div>
                 <Wallet className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
             </div>
 
-            <div className="brutal-card p-4 bg-white">
+            <div className="brutal-card p-4 bg-white text-black">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs font-black uppercase text-neutral-500">Anggaran Aktif</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable || platformStats.unavailableMetrics?.financials ? '-' : platformStats.totalBudgets}</h4>
+                  <p className="text-xs font-black uppercase text-neutral-600">Anggaran Aktif</p>
+                  <h4 className="text-2xl font-black mt-1 text-black">{platformStats.isUnavailable || platformStats.unavailableMetrics?.financials ? '-' : platformStats.totalBudgets}</h4>
                 </div>
                 <Target className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
             </div>
 
-            <div className="brutal-card p-4 bg-white">
+            <div className="brutal-card p-4 bg-white text-black">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs font-black uppercase text-neutral-500">Tabungan & Hutang</p>
-                  <h4 className="text-2xl font-black mt-1">{platformStats.isUnavailable || platformStats.unavailableMetrics?.financials ? '-' : platformStats.totalSavingGoals + platformStats.totalDebts}</h4>
+                  <p className="text-xs font-black uppercase text-neutral-600">Tabungan & Hutang</p>
+                  <h4 className="text-2xl font-black mt-1 text-black">{platformStats.isUnavailable || platformStats.unavailableMetrics?.financials ? '-' : platformStats.totalSavingGoals + platformStats.totalDebts}</h4>
                 </div>
                 <DollarSign className="w-8 h-8 text-neutral-400 stroke-[2px]" />
               </div>
@@ -717,11 +717,11 @@ export default function AdminClient({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Revenue Distribution breakdown */}
-            <div className="brutal-card p-6 bg-white space-y-4">
+            <div className="brutal-card p-6 bg-white space-y-4 text-black">
               <h3 className="text-sm font-black uppercase text-black">Detail Pembayaran & Pendapatan</h3>
               <div className="space-y-3">
                 <div>
-                  <div className="flex justify-between text-xs font-bold uppercase mb-1">
+                  <div className="flex justify-between text-xs font-bold uppercase mb-1 text-black">
                     <span>Approved payments ({platformStats.isUnavailable || platformStats.unavailableMetrics?.revenue ? '-' : platformStats.approvedPayments})</span>
                     <span>{platformStats.isUnavailable || platformStats.unavailableMetrics?.revenue ? '-' : formatCurrency(platformStats.totalRevenue)}</span>
                   </div>
@@ -738,7 +738,7 @@ export default function AdminClient({
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs font-bold uppercase mb-1">
+                  <div className="flex justify-between text-xs font-bold uppercase mb-1 text-black">
                     <span>Pending payments ({platformStats.isUnavailable || platformStats.unavailableMetrics?.revenue ? '-' : platformStats.pendingPayments})</span>
                     <span>{platformStats.isUnavailable || platformStats.unavailableMetrics?.revenue ? '-' : `${platformStats.pendingPayments} Permohonan`}</span>
                   </div>
@@ -755,7 +755,7 @@ export default function AdminClient({
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs font-bold uppercase mb-1">
+                  <div className="flex justify-between text-xs font-bold uppercase mb-1 text-black">
                     <span>Rejected payments ({platformStats.isUnavailable || platformStats.unavailableMetrics?.revenue ? '-' : platformStats.rejectedPayments})</span>
                     <span>{platformStats.isUnavailable || platformStats.unavailableMetrics?.revenue ? '-' : `${platformStats.rejectedPayments} Permohonan`}</span>
                   </div>
@@ -774,7 +774,7 @@ export default function AdminClient({
             </div>
 
             {/* Growth Graph Visualizer */}
-            <div className="brutal-card p-6 bg-white space-y-4">
+            <div className="brutal-card p-6 bg-white space-y-4 text-black">
               <h3 className="text-sm font-black uppercase text-black">Statistik & Pertumbuhan Pengguna</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="border-[2px] border-black p-4 bg-neutral-50 text-center">
@@ -796,7 +796,7 @@ export default function AdminClient({
 
       {/* TAB 2: Payment Requests */}
       {activeTab === 'payments' && (
-        <div className="brutal-card p-6 bg-white">
+        <div className="brutal-card p-6 bg-white text-black">
           <h3 className="text-base font-black text-black uppercase tracking-wider mb-6">Bukti Transfer & Persetujuan Paket</h3>
           
           {requests.length === 0 ? (
@@ -883,7 +883,7 @@ export default function AdminClient({
 
       {/* TAB 3: Users Management */}
       {activeTab === 'users' && (
-        <div className="brutal-card p-6 bg-white space-y-6">
+        <div className="brutal-card p-6 bg-white space-y-6 text-black">
           {/* Search bar */}
           <div className="flex gap-2 max-w-md">
             <div className="relative flex-1">
@@ -1002,7 +1002,7 @@ export default function AdminClient({
 
       {/* TAB 4: Audit Logs */}
       {activeTab === 'logs' && (
-        <div className="brutal-card p-6 bg-white space-y-4">
+        <div className="brutal-card p-6 bg-white space-y-4 text-black">
           <h3 className="text-base font-black text-black uppercase tracking-wider mb-2">Log Audit Keamanan & Tindakan Admin</h3>
           <p className="text-xs text-neutral-500 uppercase font-bold mb-4">Menampilkan hingga 100 tindakan administratif terakhir pada sistem.</p>
           
@@ -1047,7 +1047,7 @@ export default function AdminClient({
 
       {/* TAB 5: User Feedback */}
       {activeTab === 'feedbacks' && (
-        <div className="brutal-card p-6 bg-white space-y-4">
+        <div className="brutal-card p-6 bg-white space-y-4 text-black">
           <h3 className="text-base font-black text-black uppercase tracking-wider mb-6">Umpan Balik & Masukan Pengguna</h3>
 
           {feedbacks.length === 0 ? (
@@ -1103,7 +1103,7 @@ export default function AdminClient({
 
       {/* TAB 6: Payment Settings */}
       {activeTab === 'settings' && (
-        <div className="brutal-card p-6 bg-white space-y-6">
+        <div className="brutal-card p-6 bg-white space-y-6 text-black">
           <div>
             <h3 className="text-base font-black text-black uppercase tracking-wider mb-2">Konfigurasi Produk & Pembayaran</h3>
             <p className="text-xs text-neutral-500 uppercase font-bold">Sesuaikan harga paket, durasi trial, rekening BCA, BNI, dan QRIS Norden Finance.</p>

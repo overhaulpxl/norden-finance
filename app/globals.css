@@ -104,6 +104,23 @@
     box-shadow: 3px 3px 0px 0px #000000;
     color: #f5f5f5;
   }
+
+  /* Admin panel isolation from dark mode */
+  .admin-panel,
+  .admin-panel .brutal-card,
+  .admin-panel .brutal-card-static {
+    color: #000000;
+  }
+  .dark .admin-panel {
+    color: #000000;
+  }
+  .dark .admin-panel .brutal-card,
+  .dark .admin-panel .brutal-card-static {
+    background-color: #ffffff;
+    border-color: #000000;
+    box-shadow: 3px 3px 0px 0px #000000;
+    color: #000000;
+  }
   
   .brutal-btn {
     background-color: #000000;
