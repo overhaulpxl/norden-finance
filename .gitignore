@@ -55,7 +55,12 @@ firebase-service-account.json
 
 # agent harness & local artifacts
 .agents/
+.claude/
+.gemini/
+.kiro/
+.qoder/
 .opencode/
+.antigravity/
 logo.zip
 skills-lock.json
 supabase/.temp/

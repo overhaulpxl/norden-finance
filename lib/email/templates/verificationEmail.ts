@@ -1,4 +1,4 @@
-import { getButton, getEmailLayout, safeText } from './base';
+import { getButton, getEmailLayout, getLinkBox, safeText } from './base';
 
 export function getVerificationEmailHtml({
   verificationLink,
@@ -7,20 +7,29 @@ export function getVerificationEmailHtml({
   verificationLink: string;
   userName?: string | null;
 }) {
-  const greeting = userName ? `Hi ${safeText(userName)},` : 'Hi,';
+  const greeting = userName ? `Halo ${safeText(userName)},` : 'Halo,';
 
   return getEmailLayout({
-    title: 'Verify your Norden Finance account',
-    preheader: 'Verify your email address to activate your Norden Finance account.',
+    title: 'Verifikasi Akun Norden Finance',
+    preheader: 'Verifikasi alamat email Anda untuk mengaktifkan akun Norden Finance.',
     body: `
-      <h1 style="margin:0 0 16px;font-size:30px;line-height:1.1;font-weight:900;letter-spacing:-.01em;color:#111111;">Verify your email address</h1>
-      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">${greeting}</p>
-      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">Welcome to Norden Finance.</p>
-      <p style="margin:0 0 26px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">Please verify your email address to activate your account and start tracking your money with clarity.</p>
-      <div style="margin:0 0 28px;">${getButton('Verify Email', verificationLink)}</div>
-      <p style="margin:0 0 8px;font-size:13px;line-height:1.6;font-weight:800;color:#111111;">If the button does not work, copy and paste this link into your browser:</p>
-      <p style="margin:0;word-break:break-all;font-size:12px;line-height:1.6;font-weight:700;color:#333333;">${safeText(verificationLink)}</p>
+      <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:#18181B;">
+        Verifikasi Alamat Email Anda
+      </h1>
+      <p style="margin:0 0 14px;font-size:14px;line-height:1.6;font-weight:600;color:#27272A;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#52525B;">
+        Selamat datang di Norden Finance! Untuk mengaktifkan akun Anda dan mulai mengelola keuangan pribadi dengan lebih terarah, silakan verifikasi alamat email Anda:
+      </p>
+
+      ${getButton('Verifikasi Akun Sekarang', verificationLink)}
+
+      ${getLinkBox(verificationLink, 'Jika tombol di atas tidak dapat diklik, salin dan buka tautan berikut:')}
+
+      <div style="margin-top:24px;padding:12px 16px;background-color:#F4F4F5;border-radius:8px;font-size:12px;line-height:1.5;color:#71717A;">
+        Jika Anda tidak mendaftarkan akun di Norden Finance, Anda dapat mengabaikan email ini dengan aman.
+      </div>
     `,
   });
 }
-

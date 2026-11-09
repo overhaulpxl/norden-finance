@@ -1,23 +1,38 @@
 import { getButton, getEmailLayout, safeText } from './base';
-import { getAppUrl } from '../../email';
+import { getPublicAppUrl } from '../../appUrl';
 
 export function getPaymentApprovedEmailHtml({
   userName,
 }: {
   userName?: string | null;
 }) {
-  const appUrl = getAppUrl();
-  const greeting = userName ? `Hi ${safeText(userName)},` : 'Hi,';
+  const appUrl = getPublicAppUrl();
+  const greeting = userName ? `Halo ${safeText(userName)},` : 'Halo,';
 
   return getEmailLayout({
-    title: 'Norden Pro is now active',
-    preheader: 'Your Norden Pro subscription is now active.',
+    title: 'Langganan Norden Pro Aktif',
+    preheader: 'Pembayaran Anda telah disetujui. Akun Norden Pro Anda kini aktif.',
     body: `
-      <h1 style="margin:0 0 16px;font-size:30px;line-height:1.1;font-weight:900;color:#111111;">Norden Pro is now active</h1>
-      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">${greeting}</p>
-      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">Your payment has been approved.</p>
-      <p style="margin:0 0 26px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">Your Norden Pro subscription is now active.</p>
-      <div style="margin:0;">${getButton('Open Dashboard', `${appUrl}/dashboard`)}</div>
+      <div style="margin-bottom:16px;">
+        <span style="font-size:12px;font-weight:700;color:#15803D;background:#DCFCE7;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:0.04em;">
+          Pembayaran Disetujui
+        </span>
+      </div>
+      <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:#18181B;">
+        Selamat! Norden Pro Anda Kini Aktif
+      </h1>
+      <p style="margin:0 0 14px;font-size:14px;line-height:1.6;font-weight:600;color:#27272A;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#52525B;">
+        Bukti pembayaran langganan Norden Pro Anda telah berhasil diverifikasi oleh tim kami. Semua fitur eksklusif, analitik lanjutan, dan integrasi cerdas kini telah dapat Anda akses sepenuhnya.
+      </p>
+
+      ${getButton('Buka Dashboard Norden', `${appUrl}/dashboard`)}
+
+      <div style="margin-top:24px;padding:12px 16px;background-color:#F4F4F5;border-radius:8px;font-size:12px;line-height:1.5;color:#71717A;">
+        Terima kasih atas kepercayaan Anda menggunakan Norden Finance untuk mencapai tujuan finansial Anda.
+      </div>
     `,
   });
 }
@@ -29,22 +44,44 @@ export function getPaymentRejectedEmailHtml({
   userName?: string | null;
   adminNote?: string | null;
 }) {
-  const appUrl = getAppUrl();
-  const greeting = userName ? `Hi ${safeText(userName)},` : 'Hi,';
+  const appUrl = getPublicAppUrl();
+  const greeting = userName ? `Halo ${safeText(userName)},` : 'Halo,';
   const note = adminNote
-    ? `<p style="margin:0 0 22px;font-size:14px;line-height:1.7;font-weight:700;color:#111111;background:#fff4bf;border:3px solid #111111;padding:14px;">Admin note: ${safeText(adminNote)}</p>`
+    ? `<div style="margin:16px 0;padding:14px 16px;background-color:#FEF2F2;border-left:3px solid #EF4444;border-radius:6px;font-size:13px;line-height:1.6;color:#991B1B;">
+        <strong>Catatan Admin:</strong> ${safeText(adminNote)}
+      </div>`
     : '';
 
   return getEmailLayout({
-    title: 'Norden Pro payment needs review',
-    preheader: 'Your payment proof could not be verified.',
+    title: 'Pemeriksaan Pembayaran Norden Pro',
+    preheader: 'Bukti pembayaran Anda belum dapat diverifikasi.',
     body: `
-      <h1 style="margin:0 0 16px;font-size:30px;line-height:1.1;font-weight:900;color:#111111;">Norden Pro payment needs review</h1>
-      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">${greeting}</p>
-      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">Your payment proof could not be verified.</p>
-      <p style="margin:0 0 22px;font-size:16px;line-height:1.7;font-weight:700;color:#111111;">Please upload a new proof or contact support.</p>
+      <div style="margin-bottom:16px;">
+        <span style="font-size:12px;font-weight:700;color:#B91C1C;background:#FEE2E2;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:0.04em;">
+          Verifikasi Tertunda
+        </span>
+      </div>
+      <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:#18181B;">
+        Bukti Pembayaran Perlu Ditinjau Ulang
+      </h1>
+      <p style="margin:0 0 14px;font-size:14px;line-height:1.6;font-weight:600;color:#27272A;">
+        ${greeting}
+      </p>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#52525B;">
+        Kami belum dapat memverifikasi bukti pembayaran yang Anda kirimkan untuk aktivasi Norden Pro.
+      </p>
+
       ${note}
-      <div style="margin:0;">${getButton('Review Payment', `${appUrl}/upgrade`)}</div>
+
+      <p style="margin:16px 0;font-size:14px;line-height:1.6;color:#52525B;">
+        Silakan unggah kembali bukti transfer yang jelas dan sesuai melalui tautan berikut:
+      </p>
+
+      ${getButton('Tinjau &amp; Unggah Ulang Bukti', `${appUrl}/upgrade`)}
+
+      <div style="margin-top:24px;padding:12px 16px;background-color:#F4F4F5;border-radius:8px;font-size:12px;line-height:1.5;color:#71717A;">
+        Jika Anda membutuhkan bantuan lebih lanjut, silakan hubungi tim dukungan kami.
+      </div>
     `,
   });
 }
