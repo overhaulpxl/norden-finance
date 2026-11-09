@@ -14,6 +14,8 @@ import {
   Loader2,
   CheckCircle2,
   ArrowLeft,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import {
   hashPin,
@@ -28,7 +30,7 @@ import {
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
 import { auth } from '../lib/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { useLanguage } from '../lib/i18n';
 import { requestPinResetAction, confirmPinResetCodeAction } from '../app/actions/user';
 
@@ -68,6 +70,9 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
 
   // Reset PIN modal states
   const [showResetModal, setShowResetModal] = useState(false);
+  const [resetMethod, setResetMethod] = useState<'password' | 'email'>('password');
+  const [accountPassword, setAccountPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [resetStep, setResetStep] = useState<'request' | 'verify'>('request');
   const [resetToken, setResetToken] = useState<string>('');
   const [resetCode, setResetCode] = useState<string>('');
@@ -77,6 +82,7 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
 
   // Emergency Sign out modal state
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [clearPinOnSignOut, setClearPinOnSignOut] = useState(true);
   const [emergencyLoading, setEmergencyLoading] = useState(false);
 
   // Check URL for email auto-unlock link (?resetPinToken=...)
@@ -309,10 +315,61 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
     }
   };
 
+  const handleResetWithPassword = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!accountPassword.trim()) {
+      setResetError(lang === 'en' ? 'Please enter your account password.' : 'Masukkan kata sandi akun Anda.');
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      const emailToUse = userEmail || auth.currentUser?.email;
+      if (!emailToUse) {
+        throw new Error(lang === 'en' ? 'Account email not found.' : 'Email akun tidak ditemukan.');
+      }
+
+      await signInWithEmailAndPassword(auth, emailToUse, accountPassword.trim());
+      triggerHaptic('success');
+      removePinData(userId);
+      unlockApp(userId);
+      setLocked(false);
+      setShowResetModal(false);
+      setAccountPassword('');
+    } catch (err: unknown) {
+      triggerHaptic('warning');
+      const msg = err instanceof Error ? err.message : '';
+      if (
+        msg.includes('auth/wrong-password') ||
+        msg.includes('auth/invalid-credential') ||
+        msg.includes('invalid-login-credentials')
+      ) {
+        setResetError(lang === 'en' ? 'Incorrect account password.' : 'Kata sandi akun salah.');
+      } else if (msg.includes('auth/too-many-requests')) {
+        setResetError(
+          lang === 'en'
+            ? 'Too many failed attempts. Try again later.'
+            : 'Terlalu banyak percobaan gagal. Silakan coba lagi nanti.'
+        );
+      } else {
+        setResetError(
+          lang === 'en' ? 'Failed to verify account password.' : 'Gagal memverifikasi kata sandi akun.'
+        );
+      }
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleConfirmSignOut = async () => {
     setEmergencyLoading(true);
     try {
-      lockApp(userId);
+      if (clearPinOnSignOut) {
+        removePinData(userId);
+      } else {
+        lockApp(userId);
+      }
       await fetch('/api/auth/session', { method: 'DELETE' });
       await signOut(auth);
       window.location.href = '/login';
@@ -462,18 +519,20 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
             </button>
           </div>
 
-          {/* Reset PIN via email action */}
+          {/* Reset PIN action */}
           <div className="text-center pt-2">
             <button
               type="button"
               onClick={() => {
                 triggerHaptic('medium');
+                setResetError(null);
+                setResetSuccessMsg(null);
                 setShowResetModal(true);
               }}
               className="text-[11px] font-black uppercase text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white tracking-wider inline-flex items-center gap-1 cursor-pointer underline underline-offset-2"
             >
               <KeyRound className="w-3.5 h-3.5" />
-              {lang === 'en' ? 'Forgot PIN? Reset via Email' : 'Lupa PIN? Reset via Email'}
+              {lang === 'en' ? 'Forgot PIN? Reset PIN' : 'Lupa PIN? Reset PIN'}
             </button>
           </div>
         </div>
@@ -511,7 +570,101 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
               </button>
             </div>
 
-            {resetStep === 'request' ? (
+            {/* Reset Method Tabs */}
+            <div className="grid grid-cols-2 p-1 bg-neutral-100 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black">
+              <button
+                type="button"
+                onClick={() => {
+                  setResetMethod('password');
+                  setResetError(null);
+                }}
+                className={`py-1.5 rounded-lg transition-all text-center cursor-pointer ${
+                  resetMethod === 'password'
+                    ? 'bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 shadow-[1.5px_1.5px_0px_0px_#000] text-black dark:text-white'
+                    : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                {lang === 'en' ? 'Password' : 'Kata Sandi'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetMethod('email');
+                  setResetError(null);
+                }}
+                className={`py-1.5 rounded-lg transition-all text-center cursor-pointer ${
+                  resetMethod === 'email'
+                    ? 'bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 shadow-[1.5px_1.5px_0px_0px_#000] text-black dark:text-white'
+                    : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                {lang === 'en' ? 'Email Code' : 'Kode Email'}
+              </button>
+            </div>
+
+            {resetMethod === 'password' ? (
+              <form onSubmit={handleResetWithPassword} className="space-y-4">
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
+                  {lang === 'en'
+                    ? 'Enter your account password to verify and reset your PIN immediately:'
+                    : 'Masukkan kata sandi akun Anda untuk verifikasi dan menghapus PIN:'}
+                </p>
+
+                <div className="space-y-1">
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={accountPassword}
+                      onChange={(e) => setAccountPassword(e.target.value)}
+                      placeholder={lang === 'en' ? 'Account password' : 'Kata sandi akun'}
+                      className="w-full text-xs font-bold p-3 pr-10 bg-neutral-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl focus:outline-hidden focus:bg-[#FFE066]/20 text-black dark:text-white"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-black dark:hover:text-white p-1 cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {resetError && (
+                  <div className="p-2.5 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 text-xs font-black uppercase rounded-xl flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4 shrink-0" />
+                    <span>{resetError}</span>
+                  </div>
+                )}
+
+                <div className="space-y-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={resetLoading || !accountPassword.trim()}
+                    className="w-full py-3 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 rounded-xl font-black text-xs uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {resetLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 stroke-[2.5px]" />
+                    )}
+                    <span>{lang === 'en' ? 'Verify & Reset PIN' : 'Verifikasi & Reset PIN'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowResetModal(false);
+                      setShowEmergencyModal(true);
+                    }}
+                    className="w-full py-2 text-center text-[11px] font-black uppercase text-neutral-500 hover:text-black dark:hover:text-white tracking-wider cursor-pointer underline"
+                  >
+                    {lang === 'en' ? 'Emergency Sign Out Instead' : 'Keluar Akun (Emergency Sign Out)'}
+                  </button>
+                </div>
+              </form>
+            ) : resetStep === 'request' ? (
               <div className="space-y-4">
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
                   {lang === 'en'
@@ -650,11 +803,27 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
                 {lang === 'en' ? 'Sign Out of Account?' : 'Keluar Dari Akun?'}
               </h3>
             </div>
-            <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
-              {lang === 'en'
-                ? 'You will be signed out to protect your financial data.'
-                : 'Anda akan dialihkan keluar (sign out) untuk mengamankan data keuangan Anda.'}
-            </p>
+            <div className="space-y-3">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-bold leading-relaxed">
+                {lang === 'en'
+                  ? 'You will be signed out to protect your financial data.'
+                  : 'Anda akan dialihkan keluar (sign out) untuk mengamankan data keuangan Anda.'}
+              </p>
+
+              <label className="flex items-start gap-2 pt-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={clearPinOnSignOut}
+                  onChange={(e) => setClearPinOnSignOut(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-2 border-black accent-[#FFE066] cursor-pointer"
+                />
+                <span className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 leading-tight">
+                  {lang === 'en'
+                    ? 'Clear PIN from this device (Recommended if you forgot your PIN)'
+                    : 'Hapus PIN dari perangkat ini (Disarankan jika Anda lupa PIN)'}
+                </span>
+              </label>
+            </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"

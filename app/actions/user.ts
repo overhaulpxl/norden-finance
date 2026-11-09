@@ -305,7 +305,7 @@ export async function sendPasswordResetLinkAction(targetEmail?: string) {
     });
 
     if ('error' in sendRes && sendRes.error) {
-      return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
+      return { success: false, error: sendRes.error };
     }
     if ('skipped' in sendRes) {
       return { success: false, error: 'Layanan pengiriman email belum dikonfigurasi pada server.' };
@@ -353,7 +353,7 @@ export async function requestPinResetAction(targetUserId?: string) {
     });
 
     if ('error' in sendRes && sendRes.error) {
-      return { success: false, error: `Gagal mengirim email: ${sendRes.error}` };
+      return { success: false, error: sendRes.error };
     }
     if ('skipped' in sendRes) {
       return { success: false, error: 'Layanan pengiriman email belum dikonfigurasi pada server.' };

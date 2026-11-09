@@ -40,9 +40,26 @@ export async function sendEmail({ to, subject, html, text }: SendEmailInput): Pr
     });
 
     if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      const error = `Email provider rejected message: ${response.status} ${body.slice(0, 300)}`;
-      console.warn(error);
+      const rawBody = await response.text().catch(() => '');
+      let cleanErrorMessage = '';
+
+      try {
+        const json = JSON.parse(rawBody);
+        if (json.message) {
+          cleanErrorMessage = String(json.message);
+        }
+      } catch {
+        cleanErrorMessage = rawBody.slice(0, 300);
+      }
+
+      let error = cleanErrorMessage || `Email provider error (${response.status})`;
+      if (cleanErrorMessage.toLowerCase().includes('domain is not verified') || rawBody.toLowerCase().includes('domain is not verified')) {
+        error = `Domain email pengirim belum diverifikasi di Resend. Silakan verifikasi domain Anda di resend.com/domains.`;
+      } else if (cleanErrorMessage.toLowerCase().includes('testing emails') || rawBody.toLowerCase().includes('testing emails')) {
+        error = 'Akun Resend testing hanya dapat mengirim ke email pemilik akun. Verifikasi domain di resend.com/domains.';
+      }
+
+      console.warn(`Resend email rejected (${response.status}):`, rawBody);
       return { error };
     }
 
