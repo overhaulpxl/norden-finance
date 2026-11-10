@@ -19,7 +19,9 @@ import {
   Calendar,
   SlidersHorizontal,
   Plus,
+  UploadCloud,
 } from 'lucide-react';
+import ImportStatementModal from './ImportStatementModal';
 import {
   updateTransaction,
   deleteTransaction,
@@ -440,6 +442,7 @@ export default function TransactionTable({
   const [filterMethod, setFilterMethod] = useState('all');
   const [filterTag, setFilterTag] = useState('all');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState('');
@@ -940,11 +943,28 @@ export default function TransactionTable({
             </button>
           )}
 
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setShowImportModal(true);
+            }}
+            className="brutal-btn-light px-3 py-2 text-xs flex items-center gap-1.5 font-black uppercase tracking-wider cursor-pointer ml-auto lg:ml-0"
+            title={
+              lang === 'en'
+                ? 'Import bank statement CSV'
+                : 'Import mutasi rekening dari CSV / e-statement'
+            }
+          >
+            <UploadCloud className="w-3.5 h-3.5 stroke-[2.5px]" />{' '}
+            {lang === 'en' ? 'Import Statement' : 'Import Mutasi'}
+          </button>
+
           {filtered.length > 0 && (
             <button
               type="button"
               onClick={() => exportTransactionsToCSV(filtered)}
-              className="brutal-btn-light px-3 py-2 text-xs flex items-center gap-1.5 font-black uppercase tracking-wider cursor-pointer ml-auto lg:ml-0"
+              className="brutal-btn-light px-3 py-2 text-xs flex items-center gap-1.5 font-black uppercase tracking-wider cursor-pointer"
               title={
                 lang === 'en'
                   ? 'Download filtered data as CSV'
@@ -1597,6 +1617,15 @@ export default function TransactionTable({
           </div>
         </div>
       )}
+
+      <ImportStatementModal
+        balances={balances}
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={() => {
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

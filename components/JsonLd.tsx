@@ -1,15 +1,18 @@
+import { getPublicAppUrl } from '../lib/appUrl';
+
 export default function JsonLd() {
+  const baseUrl = getPublicAppUrl();
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': 'https://www.nordenfinance.site/#organization',
+        '@id': `${baseUrl}/#organization`,
         name: 'Norden Finance',
-        url: 'https://www.nordenfinance.site',
+        url: baseUrl,
         logo: {
           '@type': 'ImageObject',
-          url: 'https://www.nordenfinance.site/brand/norden-icon.png',
+          url: `${baseUrl}/brand/norden-icon.png`,
           width: 697,
           height: 697,
         },
@@ -19,22 +22,22 @@ export default function JsonLd() {
       },
       {
         '@type': 'WebSite',
-        '@id': 'https://www.nordenfinance.site/#website',
-        url: 'https://www.nordenfinance.site',
+        '@id': `${baseUrl}/#website`,
+        url: baseUrl,
         name: 'Norden Finance',
         description: 'Aplikasi pencatatan keuangan pribadi, budgeting, dan manajemen arus kas Indonesia.',
         publisher: {
-          '@id': 'https://www.nordenfinance.site/#organization',
+          '@id': `${baseUrl}/#organization`,
         },
         inLanguage: 'id-ID',
       },
       {
         '@type': 'SoftwareApplication',
-        '@id': 'https://www.nordenfinance.site/#software',
+        '@id': `${baseUrl}/#software`,
         name: 'Norden Finance',
         applicationCategory: 'FinanceApplication',
         operatingSystem: 'Web Browser',
-        url: 'https://www.nordenfinance.site',
+        url: baseUrl,
         description: 'Aplikasi keuangan pribadi untuk mencatat pemasukan dan pengeluaran harian, mengelola multi-rekening & e-wallet, mengatur anggaran bulanan, dan memantau target tabungan.',
         offers: [
           {

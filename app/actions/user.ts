@@ -414,4 +414,54 @@ export async function confirmPinResetCodeAction(input: {
   }
 }
 
+export async function saveUserAvatarAction(avatarBase64: string | null) {
+  try {
+    const { user } = await requireUser(false);
+    const key = `user_avatar_${user.uid}`;
+
+    if (!avatarBase64) {
+      await prisma.setting.deleteMany({ where: { key } });
+      revalidatePath('/dashboard');
+      return { success: true, avatarUrl: null };
+    }
+
+    if (avatarBase64.length > 2_500_000) {
+      return { success: false, error: 'Ukuran foto terlalu besar setelah dikompresi.' };
+    }
+
+    const isDataUri =
+      avatarBase64.startsWith('data:image/jpeg;base64,') ||
+      avatarBase64.startsWith('data:image/png;base64,') ||
+      avatarBase64.startsWith('data:image/webp;base64,');
+    const isHttps = avatarBase64.startsWith('https://');
+
+    if (!isDataUri && !isHttps) {
+      return { success: false, error: 'Format foto profil harus berupa gambar JPEG, PNG, atau WebP.' };
+    }
+
+    await prisma.setting.upsert({
+      where: { key },
+      update: { value: avatarBase64 },
+      create: { key, value: avatarBase64 },
+    });
+
+    revalidatePath('/dashboard');
+    return { success: true, avatarUrl: avatarBase64 };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal menyimpan foto profil.';
+    return { success: false, error: message };
+  }
+}
+
+export async function getUserAvatarAction() {
+  try {
+    const { user } = await requireUser(false);
+    const key = `user_avatar_${user.uid}`;
+    const setting = await prisma.setting.findUnique({ where: { key } });
+    return { success: true, avatarUrl: setting?.value || null };
+  } catch {
+    return { success: false, avatarUrl: null };
+  }
+}
+
 

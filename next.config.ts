@@ -33,6 +33,21 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'nordenfinance.vercel.app',
+          },
+        ],
+        destination: 'https://nordenfinance.site/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

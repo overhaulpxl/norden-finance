@@ -8,6 +8,10 @@ import CookieConsentBanner from '../components/CookieConsentBanner';
 
 const font = Outfit({ subsets: ['latin'] });
 
+import { getPublicAppUrl } from '../lib/appUrl';
+
+const appUrl = getPublicAppUrl();
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -18,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.nordenfinance.site'),
+  metadataBase: new URL(appUrl),
   title: {
     default: 'Norden Finance — Aplikasi Keuangan Pribadi',
     template: '%s | Norden Finance',
@@ -30,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Norden Finance — Aplikasi Keuangan Pribadi',
     description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
-    url: 'https://www.nordenfinance.site',
+    url: appUrl,
     siteName: 'Norden Finance',
     locale: 'id_ID',
     type: 'website',

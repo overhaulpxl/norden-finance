@@ -26,7 +26,7 @@ import {
   addRecurringTransaction,
   deleteTransaction,
 } from '../app/actions';
-import { Balance } from '../types';
+import { Balance, SavingGoal } from '../types';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { formatCurrency, formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { compressReceiptImage } from '../lib/imageCompression';
@@ -109,10 +109,12 @@ type ModalTab = 'quick' | 'manual' | 'receipt' | 'split';
 
 export default function QuickInputModal({
   balances,
+  savingGoals = [],
   onClose,
   onSuccess,
 }: {
   balances: Balance[];
+  savingGoals?: SavingGoal[];
   onClose: () => void;
   onSuccess?: () => void;
 }) {
@@ -204,6 +206,8 @@ export default function QuickInputModal({
   const [mTags, setMTags] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [showNumpad, setShowNumpad] = useState(false);
+  const [isAllocateGoal, setIsAllocateGoal] = useState(false);
+  const [selectedGoalId, setSelectedGoalId] = useState<string>('');
 
   // Option B: Receipt Attachment & 3-Column Quick Entry Sheet
   const [receiptImageThumbnail, setReceiptImageThumbnail] = useState<string | null>(null);
@@ -381,6 +385,13 @@ export default function QuickInputModal({
             lang === 'en'
               ? `✅ ${res.walletName} balance updated to ${formattedAmount}.`
               : `✅ Saldo ${res.walletName} berhasil diperbarui menjadi ${formattedAmount}.`;
+        } else if (res.result.type === 'transfer') {
+          const fromWallet = res.walletName || (lang === 'en' ? 'Source wallet' : 'Dompet asal');
+          const toWallet = res.transferToWalletName || res.result.transferToMethod || (lang === 'en' ? 'Destination wallet' : 'Dompet tujuan');
+          aiText =
+            lang === 'en'
+              ? `✅ Successfully transferred ${formattedAmount} from ${fromWallet} to ${toWallet}.`
+              : `✅ Berhasil transfer ${formattedAmount} dari ${fromWallet} ke ${toWallet}.`;
         } else {
           const item = res.result.note && res.result.note !== '-' ? res.result.note : (lang === 'en' ? 'Transaction' : 'Transaksi');
           const wallet = res.walletName || 'Cash';
@@ -708,7 +719,14 @@ export default function QuickInputModal({
 
     try {
       if (mType === 'transfer') {
-        res = await addTransferTransaction(amount, currentMethod, currentToMethod, mNote, tagsArray);
+        res = await addTransferTransaction(
+          amount,
+          currentMethod,
+          currentToMethod,
+          mNote,
+          tagsArray,
+          isAllocateGoal ? selectedGoalId : undefined
+        );
       } else {
         res = await addExplicitTransaction({
           type: mType,
@@ -1244,17 +1262,61 @@ export default function QuickInputModal({
 
               {/* Transfer Target / Category */}
               {mType === 'transfer' ? (
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    {lang === 'en' ? 'To Destination Wallet' : 'Ke Wallet Tujuan'}
-                  </label>
-                  <WalletSelect
-                    wallets={balances}
-                    value={currentToMethod}
-                    onChange={setMToMethod}
-                    className="w-full brutal-input text-xs uppercase font-bold"
-                    required
-                  />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
+                      {lang === 'en' ? 'To Destination Wallet' : 'Ke Wallet Tujuan'}
+                    </label>
+                    <WalletSelect
+                      wallets={balances}
+                      value={currentToMethod}
+                      onChange={setMToMethod}
+                      className="w-full brutal-input text-xs uppercase font-bold"
+                      required
+                    />
+                  </div>
+
+                  {savingGoals && savingGoals.length > 0 && (
+                    <div className="p-3 bg-[#fef9c3] dark:bg-yellow-950/30 border-2 border-black dark:border-neutral-700 rounded-xl space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={isAllocateGoal}
+                          onChange={(e) => {
+                            triggerHaptic('selection');
+                            setIsAllocateGoal(e.target.checked);
+                            if (e.target.checked && !selectedGoalId && savingGoals.length > 0) {
+                              setSelectedGoalId(savingGoals[0].id);
+                            }
+                          }}
+                          className="w-4 h-4 accent-black dark:accent-yellow-400 rounded cursor-pointer"
+                        />
+                        <span className="text-xs font-black uppercase text-black dark:text-white">
+                          {lang === 'en' ? 'Link to Saving Goal' : 'Alokasikan ke Target Tabungan'}
+                        </span>
+                      </label>
+                      {isAllocateGoal && (
+                        <div>
+                          <p className="text-[10px] font-bold text-neutral-600 dark:text-neutral-400 mb-1">
+                            {lang === 'en'
+                              ? 'Transfer amount will automatically increase this goal progress:'
+                              : 'Nominal transfer akan otomatis menambah progres tabungan target ini:'}
+                          </p>
+                          <select
+                            value={selectedGoalId}
+                            onChange={(e) => setSelectedGoalId(e.target.value)}
+                            className="w-full brutal-input text-xs font-bold bg-white dark:bg-neutral-800"
+                          >
+                            {savingGoals.map((g) => (
+                              <option key={g.id} value={g.id}>
+                                🎯 {g.title} ({formatRupiah(g.currentAmount)} / {formatRupiah(g.targetAmount)})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>

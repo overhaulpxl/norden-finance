@@ -29,6 +29,7 @@ export async function getDashboardData() {
       recurringTransactions: [],
       reminders: [],
       achievements: [],
+      portfolioAssets: [],
       profile: {
         role: fallbackProfile?.role || 'user',
         plan: fallbackProfile?.plan || 'trial',

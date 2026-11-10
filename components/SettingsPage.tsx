@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2, Palette, Sun, Moon, Laptop } from 'lucide-react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2, Palette, Sun, Moon, Laptop, Camera, Bell, BellRing } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
 import { forgotPasswordAction } from '../app/authActions';
+import { saveUserAvatarAction, getUserAvatarAction } from '../app/actions/user';
 import Link from 'next/link';
 import { MVP_FEATURES, MVP_FEATURES_EN } from '../lib/constants';
 import { formatCurrency } from '../lib/format';
@@ -84,9 +85,167 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [pinActionSuccess, setPinActionSuccess] = useState<string | null>(null);
   const [pinActionError, setPinActionError] = useState<string | null>(null);
 
+  // Avatar states
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(`norden_avatar_${user.id}`) || null;
+    }
+    return null;
+  });
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null);
+
+  // Notification states
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'unsupported';
+  });
+
   useEffect(() => {
     isBiometricSupported().then(setBiometricDeviceSupport);
-  }, []);
+
+    getUserAvatarAction().then((res) => {
+      if (res.success && res.avatarUrl) {
+        setAvatarUrl(res.avatarUrl);
+        localStorage.setItem(`norden_avatar_${user.id}`, res.avatarUrl);
+      }
+    });
+  }, [user.id]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAvatarError(null);
+    setAvatarSuccess(null);
+
+    // Max size: 5MB
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      triggerHaptic('warning');
+      setAvatarError(lang === 'en' ? 'Photo size exceeds 5MB limit.' : 'Ukuran foto melebihi batas 5MB.');
+      return;
+    }
+
+    setAvatarLoading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = async () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const size = 360;
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              setAvatarLoading(false);
+              return;
+            }
+
+            const minDim = Math.min(img.width, img.height);
+            const sx = (img.width - minDim) / 2;
+            const sy = (img.height - minDim) / 2;
+            ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+            const dataUrl = canvas.toDataURL('image/webp', 0.85);
+
+            setAvatarUrl(dataUrl);
+            localStorage.setItem(`norden_avatar_${user.id}`, dataUrl);
+            window.dispatchEvent(new Event('norden_avatar_updated'));
+
+            const res = await saveUserAvatarAction(dataUrl);
+            setAvatarLoading(false);
+            if (res.success) {
+              triggerHaptic('success');
+              setAvatarSuccess(lang === 'en' ? 'Profile photo updated!' : 'Foto profil berhasil diperbarui!');
+              setTimeout(() => setAvatarSuccess(null), 3000);
+            } else {
+              setAvatarError(res.error || (lang === 'en' ? 'Failed to save photo.' : 'Gagal menyimpan foto.'));
+            }
+          } catch {
+            setAvatarLoading(false);
+            setAvatarError(lang === 'en' ? 'Error processing photo.' : 'Gagal memproses foto.');
+          }
+        };
+        img.onerror = () => {
+          setAvatarLoading(false);
+          setAvatarError(lang === 'en' ? 'Invalid image file.' : 'File gambar tidak valid.');
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setAvatarLoading(false);
+      setAvatarError(lang === 'en' ? 'Failed to read file.' : 'Gagal membaca berkas foto.');
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setAvatarLoading(true);
+    setAvatarError(null);
+    try {
+      setAvatarUrl(null);
+      localStorage.removeItem(`norden_avatar_${user.id}`);
+      window.dispatchEvent(new Event('norden_avatar_updated'));
+      await saveUserAvatarAction(null);
+      triggerHaptic('success');
+      setAvatarSuccess(lang === 'en' ? 'Profile photo removed.' : 'Foto profil berhasil dihapus.');
+      setTimeout(() => setAvatarSuccess(null), 3000);
+    } catch {
+      setAvatarError(lang === 'en' ? 'Failed to remove photo.' : 'Gagal menghapus foto.');
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleRequestNotification = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      triggerHaptic('warning');
+      return;
+    }
+
+    triggerHaptic('medium');
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+
+      if (permission === 'granted') {
+        triggerHaptic('success');
+        localStorage.setItem('norden_browser_notification_enabled', 'true');
+
+        new Notification('Norden Finance', {
+          body:
+            lang === 'en'
+              ? 'Notifications enabled! Norden will remind you to track cashflow.'
+              : 'Notifikasi aktif! Norden akan mengingatkan Anda untuk mencatat transaksi dan arus kas.',
+          icon: '/brand/norden-icon.png',
+        });
+      } else {
+        triggerHaptic('warning');
+        localStorage.setItem('norden_browser_notification_enabled', 'false');
+      }
+    } catch {
+      triggerHaptic('warning');
+    }
+  };
+
+  const handleTestNotification = () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      triggerHaptic('light');
+      new Notification('Norden Finance ⚡', {
+        body:
+          lang === 'en'
+            ? 'Reminder: Have you logged all your transactions today?'
+            : 'Pengingat Harian: Sudahkah Anda mencatat mutasi dan pengeluaran hari ini?',
+        icon: '/brand/norden-icon.png',
+      });
+    }
+  };
 
   const openPinModal = (mode: 'setup' | 'change' | 'remove') => {
     setPinModalMode(mode);
@@ -101,10 +260,10 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     e.preventDefault();
     setPinModalError(null);
 
-    // Verify current PIN if in change or remove mode
+    // Verify current PIN if in change or remove mode (6 digits bank standard)
     if (pinModalMode === 'change' || pinModalMode === 'remove') {
-      if (currentPinInput.length !== 4) {
-        setPinModalError(lang === 'en' ? 'Current PIN must be 4 digits.' : 'PIN saat ini harus 4 digit angka.');
+      if (currentPinInput.length !== 6) {
+        setPinModalError(lang === 'en' ? 'Current PIN must be 6 digits.' : 'PIN saat ini harus 6 digit angka.');
         return;
       }
       const hashedCurrent = await hashPin(currentPinInput, user.id);
@@ -121,15 +280,15 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         setBiometricActive(false);
         setPinModalOpen(false);
         triggerHaptic('success');
-        setPinActionSuccess(lang === 'en' ? '4-digit PIN lock disabled.' : 'Kunci PIN 4-digit berhasil dinonaktifkan.');
+        setPinActionSuccess(lang === 'en' ? '6-digit PIN lock disabled.' : 'Kunci PIN 6-digit berhasil dinonaktifkan.');
         setTimeout(() => setPinActionSuccess(null), 4000);
         return;
       }
     }
 
-    // Setup or Change mode: validate new PIN
-    if (!/^\d{4}$/.test(newPinInput)) {
-      setPinModalError(lang === 'en' ? 'New PIN must be exactly 4 digits (0-9).' : 'PIN baru harus tepat 4 digit angka (0-9).');
+    // Setup or Change mode: validate new PIN (6 digits)
+    if (!/^\d{6}$/.test(newPinInput)) {
+      setPinModalError(lang === 'en' ? 'New PIN must be exactly 6 digits (0-9).' : 'PIN baru harus tepat 6 digit angka (0-9).');
       return;
     }
     if (newPinInput !== confirmPinInput) {
@@ -146,8 +305,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     triggerHaptic('success');
     setPinActionSuccess(
       pinModalMode === 'change'
-        ? (lang === 'en' ? '4-digit PIN updated!' : 'PIN 4-digit berhasil diperbarui!')
-        : (lang === 'en' ? '4-digit PIN lock activated!' : 'Kunci PIN 4-digit berhasil diaktifkan!')
+        ? (lang === 'en' ? '6-digit PIN updated!' : 'PIN 6-digit berhasil diperbarui!')
+        : (lang === 'en' ? '6-digit PIN lock activated!' : 'Kunci PIN 6-digit berhasil diaktifkan!')
     );
     setTimeout(() => setPinActionSuccess(null), 4000);
   };
@@ -156,7 +315,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     setPinActionError(null);
     if (!pinActive) {
       triggerHaptic('warning');
-      setPinActionError(lang === 'en' ? 'Enable 4-digit PIN first before turning on biometrics.' : 'Aktifkan PIN 4-digit terlebih dahulu sebelum menyalakan biometrik.');
+      setPinActionError(lang === 'en' ? 'Enable 6-digit PIN first before turning on biometrics.' : 'Aktifkan PIN 6-digit terlebih dahulu sebelum menyalakan biometrik.');
       setTimeout(() => setPinActionError(null), 5000);
       return;
     }
@@ -335,37 +494,101 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="w-14 h-14 rounded-none border-2 border-black dark:border-neutral-700 bg-black dark:bg-white flex items-center justify-center text-white dark:text-black font-black text-xl flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              {user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+          {avatarSuccess && (
+            <div className="p-3 border-2 border-black dark:border-neutral-700 bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 shrink-0 stroke-[2.5px]" />
+              <span>{avatarSuccess}</span>
             </div>
-            <div>
-              <p className="text-lg font-black text-black dark:text-white uppercase tracking-wider">{user.fullName || 'User'}</p>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-wider">{user.email}</p>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
-                  user.effectivePlan === 'PRO_ACTIVE'
-                    ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
-                    : user.effectivePlan === 'PRO_PENDING'
-                    ? 'bg-amber-200 dark:bg-amber-950/80 text-black dark:text-amber-200'
-                    : user.effectivePlan === 'TRIAL'
-                    ? 'bg-[#fef08a] dark:bg-amber-950/80 text-black dark:text-amber-200'
-                    : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200'
-                }`}>
-                  {user.effectivePlan === 'PRO_ACTIVE'
-                    ? 'Pro Plan 👑'
-                    : user.effectivePlan === 'PRO_PENDING'
-                    ? (lang === 'en' ? 'Pro (Pending Verification ⏳)' : 'Pro (Menunggu Verifikasi ⏳)')
-                    : user.effectivePlan === 'TRIAL'
-                    ? (lang === 'en' ? `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} days)` : ''}` : `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} hari)` : ''}`)
-                    : 'Free Basic 🌱'}
-                </span>
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color} text-black`}>
-                  Lvl {levelInfo.level}: {levelInfo.name}
-                </span>
+          )}
+
+          {avatarError && (
+            <div className="p-3 border-2 border-black dark:border-neutral-700 bg-red-100 dark:bg-red-950/80 text-red-900 dark:text-red-200 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 animate-in fade-in">
+              <ShieldAlert className="w-4 h-4 shrink-0 stroke-[2.5px]" />
+              <span>{avatarError}</span>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 rounded-none border-2 border-black dark:border-neutral-700 bg-black dark:bg-white flex items-center justify-center text-white dark:text-black font-black text-2xl flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden group">
+                {avatarLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin text-[#FFE066] dark:text-black" />
+                ) : avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={avatarUrl}
+                    alt={user.fullName || 'User Avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()
+                )}
+              </div>
+
+              <div>
+                <p className="text-lg font-black text-black dark:text-white uppercase tracking-wider">{user.fullName || 'User'}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-wider">{user.email}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                    user.effectivePlan === 'PRO_ACTIVE'
+                      ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200'
+                      : user.effectivePlan === 'PRO_PENDING'
+                      ? 'bg-amber-200 dark:bg-amber-950/80 text-black dark:text-amber-200'
+                      : user.effectivePlan === 'TRIAL'
+                      ? 'bg-[#fef08a] dark:bg-amber-950/80 text-black dark:text-amber-200'
+                      : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200'
+                  }`}>
+                    {user.effectivePlan === 'PRO_ACTIVE'
+                      ? 'Pro Plan 👑'
+                      : user.effectivePlan === 'PRO_PENDING'
+                      ? (lang === 'en' ? 'Pro (Pending Verification ⏳)' : 'Pro (Menunggu Verifikasi ⏳)')
+                      : user.effectivePlan === 'TRIAL'
+                      ? (lang === 'en' ? `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} days)` : ''}` : `Trial ⚡${trialDaysLeft !== null ? ` (${trialDaysLeft} hari)` : ''}`)
+                      : 'Free Basic 🌱'}
+                  </span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-none border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${levelInfo.color} text-black`}>
+                    Lvl {levelInfo.level}: {levelInfo.name}
+                  </span>
+                </div>
               </div>
             </div>
+
+            {/* Avatar Actions */}
+            <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-200 dark:border-neutral-700">
+              <label
+                className={`px-3 py-2 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer flex items-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
+                  avatarLoading ? 'opacity-50 pointer-events-none' : ''
+                }`}
+              >
+                <Camera className="w-3.5 h-3.5 stroke-[2.5px]" />
+                <span>{avatarUrl ? (lang === 'en' ? 'Change Photo' : 'Ganti Foto') : (lang === 'en' ? 'Upload Photo' : 'Upload Foto')}</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleAvatarUpload}
+                  disabled={avatarLoading}
+                  className="hidden"
+                />
+              </label>
+
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={avatarLoading}
+                  className="px-2.5 py-2 bg-red-100 dark:bg-red-950/80 hover:bg-red-200 text-red-700 dark:text-red-200 border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1"
+                  title={lang === 'en' ? 'Remove custom avatar' : 'Hapus foto kustom'}
+                >
+                  <Trash2 className="w-3.5 h-3.5 stroke-[2.5px]" />
+                </button>
+              )}
+            </div>
           </div>
+          <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
+            {lang === 'en'
+              ? 'Max photo size 5MB (JPG, PNG, WebP). Compressed automatically to keep app snappy.'
+              : 'Ukuran foto maksimal 5MB (JPG, PNG, WebP). Dikompresi otomatis agar aplikasi tetap cepat.'}
+          </p>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="p-4 border-2 border-black dark:border-neutral-700 text-center rounded-none bg-white dark:bg-neutral-800 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
@@ -658,17 +881,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         </div>
       </div>
 
-      {/* Kunci Layar PIN (4 Digit) & Biometrik */}
+      {/* Kunci Layar PIN (6 Digit Standar Bank) & Biometrik */}
       <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-black dark:border-neutral-700 pb-4 gap-3">
           <div>
             <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Lock className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'PIN Screen Lock & Biometrics' : 'Kunci Layar PIN & Biometrik'}
+              <Lock className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'PIN Screen Lock (6-Digit) & Biometrics' : 'Kunci Layar PIN (6-Digit Bank) & Biometrik'}
             </h3>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
               {lang === 'en'
-                ? 'Protect balance and transaction privacy when your device is opened by others'
-                : 'Lindungi privasi saldo dan catatan transaksi saat HP dibuka orang lain'}
+                ? 'Standard 6-digit banking PIN protection for balance and transaction privacy'
+                : 'Proteksi PIN 6 digit standar perbankan untuk privasi saldo dan catatan mutasi'}
             </p>
           </div>
           <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] shrink-0 ${
@@ -677,7 +900,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             {pinActive
               ? (isDesktop
                   ? (lang === 'en' ? 'Active (Mobile Only)' : 'Aktif (Khusus HP)')
-                  : (lang === 'en' ? '✓ PIN Lock Active' : '✓ Kunci PIN Aktif'))
+                  : (lang === 'en' ? '✓ 6-Digit PIN Active' : '✓ PIN 6-Digit Aktif'))
               : (lang === 'en' ? 'Disabled' : 'Nonaktif')}
           </span>
         </div>
@@ -704,17 +927,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             <div className="space-y-1">
               <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
                 {pinActive
-                  ? (lang === 'en' ? '4-Digit PIN Protection Active' : 'Proteksi 4-Digit PIN Sedang Berjalan')
+                  ? (lang === 'en' ? '6-Digit PIN Protection Active' : 'Proteksi PIN 6-Digit Sedang Berjalan')
                   : (lang === 'en' ? 'Screen Protection Not Set' : 'Proteksi Layar Belum Terpasang')}
               </p>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                 {pinActive
                   ? (lang === 'en'
-                    ? 'App will prompt for 4-digit PIN to protect your financial data (enter via keyboard on PC).'
-                    : 'Aplikasi akan otomatis meminta PIN 4-digit saat dibuka (dapat diketik langsung via keyboard di PC).')
+                    ? 'App will prompt for standard 6-digit PIN to protect your financial data (enter via keyboard on PC).'
+                    : 'Aplikasi akan otomatis meminta PIN 6-digit saat dibuka (dapat diketik langsung via keyboard di PC).')
                   : (lang === 'en'
-                    ? 'Enable PIN to prevent others from seeing balance and transactions when opening the app.'
-                    : 'Aktifkan PIN untuk mencegah orang lain melihat saldo dan mutasi rekening saat membuka aplikasi.')}
+                    ? 'Enable standard 6-digit PIN to prevent others from seeing balance and transactions when opening the app.'
+                    : 'Aktifkan PIN 6-digit standar untuk mencegah orang lain melihat saldo dan mutasi rekening saat membuka aplikasi.')}
               </p>
             </div>
           </div>
@@ -727,7 +950,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 onClick={() => openPinModal('setup')}
                 className="px-4 py-2.5 bg-[#FFE066] hover:bg-yellow-300 text-black border-2 border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
               >
-                <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? '+ Set 4-Digit PIN' : '+ Pasang PIN 4-Digit'}
+                <Lock className="w-3.5 h-3.5 stroke-[2.5px]" /> {lang === 'en' ? '+ Set 6-Digit PIN' : '+ Pasang PIN 6-Digit'}
               </button>
             ) : (
               <>
@@ -808,7 +1031,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               <h4 className="font-black text-sm uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 {pinModalMode === 'setup'
-                  ? (lang === 'en' ? 'Set 4-Digit PIN' : 'Pasang PIN 4-Digit')
+                  ? (lang === 'en' ? 'Set 6-Digit PIN' : 'Pasang PIN 6-Digit')
                   : pinModalMode === 'change'
                   ? (lang === 'en' ? 'Change Security PIN' : 'Ubah PIN Keamanan')
                   : (lang === 'en' ? 'Disable PIN' : 'Nonaktifkan PIN')}
@@ -833,15 +1056,15 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               {(pinModalMode === 'change' || pinModalMode === 'remove') && (
                 <div>
                   <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
-                    {lang === 'en' ? 'Current PIN (4 Digits)' : 'PIN Saat Ini (4 Digit)'}
+                    {lang === 'en' ? 'Current PIN (6 Digits)' : 'PIN Saat Ini (6 Digit)'}
                   </label>
                   <input
                     type="password"
                     inputMode="numeric"
-                    maxLength={4}
-                    placeholder="••••"
+                    maxLength={6}
+                    placeholder="••••••"
                     value={currentPinInput}
-                    onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    onChange={(e) => setCurrentPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white dark:bg-neutral-800"
                     required
                     autoFocus
@@ -854,16 +1077,16 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   <div>
                     <label className="block text-[10px] font-black uppercase text-black dark:text-white mb-1">
                       {pinModalMode === 'change'
-                        ? (lang === 'en' ? 'New PIN (4 Digits)' : 'PIN Baru (4 Digit)')
-                        : (lang === 'en' ? 'Enter PIN (4 Digits)' : 'Masukkan PIN (4 Digit Angka)')}
+                        ? (lang === 'en' ? 'New PIN (6 Digits)' : 'PIN Baru (6 Digit)')
+                        : (lang === 'en' ? 'Enter PIN (6 Digits)' : 'Masukkan PIN (6 Digit Angka)')}
                     </label>
                     <input
                       type="password"
                       inputMode="numeric"
-                      maxLength={4}
-                      placeholder="••••"
+                      maxLength={6}
+                      placeholder="••••••"
                       value={newPinInput}
-                      onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) => setNewPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white dark:bg-neutral-800"
                       required
                       autoFocus={pinModalMode === 'setup'}
@@ -877,10 +1100,10 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                     <input
                       type="password"
                       inputMode="numeric"
-                      maxLength={4}
-                      placeholder="••••"
+                      maxLength={6}
+                      placeholder="••••••"
                       value={confirmPinInput}
-                      onChange={(e) => setConfirmPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      onChange={(e) => setConfirmPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="w-full brutal-input px-3 py-2 text-center text-lg font-black tracking-widest bg-white dark:bg-neutral-800"
                       required
                     />
@@ -1196,6 +1419,91 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </span>
             </div>
           </a>
+        </div>
+      </div>
+
+      {/* Notifikasi Web Browser */}
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 select-none text-black dark:text-white rounded-2xl shadow-[4px_4px_0px_0px_#000]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b-2 border-black dark:border-neutral-700 pb-3 gap-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Bell className="w-5 h-5 text-black dark:text-white stroke-[2.5px]" /> {lang === 'en' ? 'Daily Browser Reminders' : 'Notifikasi Pengingat Browser'}
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
+              {lang === 'en'
+                ? 'Get gentle reminders on this device to track daily transactions and maintain streaks'
+                : 'Dapatkan pengingat harian di perangkat ini untuk mencatat mutasi dan menjaga streak keuangan'}
+            </p>
+          </div>
+          <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+            notificationPermission === 'granted'
+              ? 'bg-[#bbf7d0] text-black'
+              : notificationPermission === 'denied'
+              ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-200'
+              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
+          }`}>
+            {notificationPermission === 'granted'
+              ? (lang === 'en' ? '✓ Notifications Active' : '✓ Notifikasi Aktif')
+              : notificationPermission === 'denied'
+              ? (lang === 'en' ? 'Blocked by Browser' : 'Diblokir Browser')
+              : (lang === 'en' ? 'Not Permitted' : 'Belum Diizinkan')}
+          </span>
+        </div>
+
+        <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-3 text-black dark:text-white">
+          <div className="flex items-start gap-3">
+            <div className={`p-2 border-[2px] border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] shrink-0 ${
+              notificationPermission === 'granted' ? 'bg-[#bbf7d0] dark:bg-emerald-950/80 text-black dark:text-emerald-200' : 'bg-[#FFE066] text-black'
+            }`}>
+              {notificationPermission === 'granted' ? <BellRing className="w-5 h-5 text-emerald-800 dark:text-emerald-300 stroke-[2.5px]" /> : <Bell className="w-5 h-5 stroke-[2.5px]" />}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                {notificationPermission === 'granted'
+                  ? (lang === 'en' ? 'Browser Notification Permission Granted' : 'Izin Notifikasi Web Sudah Aktif')
+                  : notificationPermission === 'denied'
+                  ? (lang === 'en' ? 'Notification Permission Denied' : 'Izin Notifikasi Tidak Diizinkan')
+                  : (lang === 'en' ? 'Allow Instant Reminders' : 'Aktifkan Pengingat Pencatatan')}
+              </p>
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
+                {notificationPermission === 'granted'
+                  ? (lang === 'en'
+                    ? 'Norden will send native system notifications to remind you to log your daily spending and avoid forgotten cash leaks.'
+                    : 'Norden dapat mengirimkan notifikasi sistem untuk mengingatkan Anda mencatat pengeluaran harian agar tidak ada pos bocor halus.')
+                  : notificationPermission === 'denied'
+                  ? (lang === 'en'
+                    ? 'Notifications are blocked in your browser settings. Please click the padlock or settings icon in your browser address bar to allow notifications.'
+                    : 'Notifikasi diblokir pada setelan peramban Anda. Klik ikon gembok atau setelan di bilah alamat browser untuk mengizinkannya.')
+                  : (lang === 'en'
+                    ? 'Click button below to enable native browser notifications without installing any heavy apps.'
+                    : 'Klik tombol di bawah untuk mengizinkan notifikasi browser langsung tanpa perlu unduh aplikasi berat.')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {notificationPermission !== 'granted' && notificationPermission !== 'denied' && (
+              <button
+                type="button"
+                onClick={handleRequestNotification}
+                className="px-4 py-2 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+              >
+                <Bell className="w-3.5 h-3.5 stroke-[2.5px]" />
+                <span>{lang === 'en' ? 'Allow Notifications' : 'Izinkan Notifikasi'}</span>
+              </button>
+            )}
+
+            {notificationPermission === 'granted' && (
+              <button
+                type="button"
+                onClick={handleTestNotification}
+                className="px-4 py-2 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-black dark:text-white border-[2px] border-black dark:border-neutral-700 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+              >
+                <BellRing className="w-3.5 h-3.5 stroke-[2.5px]" />
+                <span>{lang === 'en' ? 'Send Test Reminder' : 'Kirim Uji Coba Pengingat'}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

@@ -21,7 +21,7 @@ import {
 /**
  * Find or create a category by name for a user.
  */
-async function resolveCategory(userId: string, categoryName: string, type: TransactionType): Promise<string> {
+export async function resolveCategory(userId: string, categoryName: string, type: TransactionType): Promise<string> {
   const trimmed = categoryName.trim();
   const existing = await prisma.category.findFirst({
     where: {
@@ -46,7 +46,7 @@ async function resolveCategory(userId: string, categoryName: string, type: Trans
 /**
  * Find or create a wallet/balance by name for a user.
  */
-async function resolveWallet(userId: string, walletName: string): Promise<string> {
+export async function resolveWallet(userId: string, walletName: string): Promise<string> {
   const trimmed = walletName.trim();
   const existing = await prisma.balance.findFirst({
     where: {
@@ -76,6 +76,7 @@ async function resolveWallet(userId: string, walletName: string): Promise<string
   let type = 'bank';
   if (ewallets.includes(name)) type = 'ewallet';
   if (cashNames.includes(name)) type = 'cash';
+  if (name.includes('TABUNGAN') || name.includes('RENCANA') || name.includes('SIMPANAN')) type = 'savings';
 
   const created = await prisma.balance.create({
     data: { userId, name, type, currentBalance: 0 },
@@ -127,7 +128,7 @@ function assertNoMissingExplicitWallet(input: string, wallets: Balance[]) {
   }
 }
 
-async function updateStreak(userId: string) {
+export async function updateStreak(userId: string) {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -435,7 +436,8 @@ export async function addTransferTransaction(
   fromWallet: string,
   toWallet: string,
   note?: string,
-  tags?: string[]
+  tags?: string[],
+  savingGoalId?: string
 ) {
   try {
     assertPositiveAmount(amount);
@@ -453,6 +455,23 @@ export async function addTransferTransaction(
     ]);
 
     const newTx = await prisma.$transaction(async (tx) => {
+      let finalTags = normalizeTags(tags);
+      let noteSuffix = note ? ' - ' + note : '';
+
+      if (savingGoalId) {
+        const goal = await tx.savingGoal.findFirst({
+          where: { id: savingGoalId, userId },
+        });
+        if (goal) {
+          await tx.savingGoal.update({
+            where: { id: goal.id },
+            data: { currentAmount: { increment: amount } },
+          });
+          finalTags = Array.from(new Set([...finalTags, `goal:${goal.id}`, 'target-tabungan']));
+          noteSuffix += ` [Target: ${goal.title}]`;
+        }
+      }
+
       const created = await tx.transaction.create({
         data: {
           userId,
@@ -461,8 +480,8 @@ export async function addTransferTransaction(
           transferToWalletId: toWalletId,
           type: 'transfer',
           amount,
-          note: `Transfer ke ${toWallet.toUpperCase()}${note ? ' - ' + note : ''}`,
-          tags: normalizeTags(tags),
+          note: `Transfer ke ${toWallet.toUpperCase()}${noteSuffix}`,
+          tags: finalTags,
         },
       });
 
@@ -504,6 +523,18 @@ export async function deleteTransaction(id: string) {
 
     await prisma.$transaction(async (db) => {
       if (tx.type === 'transfer') {
+        const goalTag = tx.tags.find((t) => t.startsWith('goal:'));
+        if (goalTag) {
+          const goalId = goalTag.replace('goal:', '');
+          const goal = await db.savingGoal.findFirst({ where: { id: goalId, userId } });
+          if (goal) {
+            await db.savingGoal.update({
+              where: { id: goal.id },
+              data: { currentAmount: { decrement: Math.min(goal.currentAmount, tx.amount) } },
+            });
+          }
+        }
+
         if (tx.walletId) {
           const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
           if (sourceWallet) {
@@ -582,6 +613,18 @@ export async function restoreTransaction(id: string) {
 
     await prisma.$transaction(async (db) => {
       if (tx.type === 'transfer') {
+        const goalTag = tx.tags.find((t) => t.startsWith('goal:'));
+        if (goalTag) {
+          const goalId = goalTag.replace('goal:', '');
+          const goal = await db.savingGoal.findFirst({ where: { id: goalId, userId } });
+          if (goal) {
+            await db.savingGoal.update({
+              where: { id: goal.id },
+              data: { currentAmount: { increment: tx.amount } },
+            });
+          }
+        }
+
         if (tx.walletId) {
           const sourceWallet = await db.balance.findUnique({ where: { id: tx.walletId } });
           if (sourceWallet) {

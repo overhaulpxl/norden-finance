@@ -97,23 +97,42 @@ function sanitizeSvgText(text: string) {
   }[char] || char));
 }
 
-function wrapSvgText(text: string, maxChars: number, maxLines = 3) {
-  const words = text.split(/\s+/).filter(Boolean);
+function wrapSvgText(text: string, maxChars: number, maxLines = 4) {
+  if (!text || !text.trim()) return ['-'];
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return ['-'];
+
   const lines: string[] = [];
   let current = '';
 
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length > maxChars && current) {
-      lines.push(current);
-      current = word;
-      if (lines.length === maxLines - 1) break;
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const testLine = current ? `${current} ${word}` : word;
+
+    if (testLine.length <= maxChars) {
+      current = testLine;
     } else {
-      current = next;
+      if (lines.length === maxLines - 1) {
+        // Last line reached: fill as much as possible, append ellipsis if remaining
+        const remainingWords = [current, ...words.slice(i)].filter(Boolean).join(' ');
+        if (remainingWords.length > maxChars) {
+          const cut = remainingWords.slice(0, Math.max(10, maxChars - 3)).trimEnd();
+          lines.push(`${cut}...`);
+        } else {
+          lines.push(remainingWords);
+        }
+        current = '';
+        break;
+      }
+      if (current) lines.push(current);
+      current = word;
     }
   }
 
-  if (current && lines.length < maxLines) lines.push(current);
+  if (current && lines.length < maxLines) {
+    lines.push(current);
+  }
+
   return lines.length ? lines : ['-'];
 }
 
@@ -226,67 +245,66 @@ function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' 
       <rect x="58" y="58" width="964" height="1804" fill="#fff" stroke="#000" stroke-width="10"/>
 
       <!-- Header Bar with Shadow -->
-      <rect x="108" y="108" width="896" height="116" fill="#FFE066"/>
-      <rect x="92" y="92" width="896" height="116" fill="#000" stroke="#000" stroke-width="8"/>
-      <text x="136" y="166" font-family="${fontFam}" font-size="44" font-weight="900" fill="#FFE066" letter-spacing="2">NORDEN FINANCE</text>
-      <rect x="846" y="118" width="86" height="54" fill="#FFE066" stroke="#fff" stroke-width="4"/>
-      <text x="889" y="158" text-anchor="middle" font-family="${fontFam}" font-size="34" font-weight="900" fill="#000">N</text>
+      <rect x="108" y="108" width="896" height="104" fill="#FFE066"/>
+      <rect x="92" y="92" width="896" height="104" fill="#000" stroke="#000" stroke-width="8"/>
+      <text x="136" y="158" font-family="${fontFam}" font-size="42" font-weight="900" fill="#FFE066" letter-spacing="2">NORDEN FINANCE</text>
+      <rect x="856" y="112" width="76" height="50" fill="#FFE066" stroke="#fff" stroke-width="4"/>
+      <text x="894" y="148" text-anchor="middle" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">N</text>
 
-      <!-- Title -->
-      <text x="92" y="302" font-family="${fontFam}" font-size="76" font-weight="900" fill="#000">Monthly</text>
-      <text x="92" y="382" font-family="${fontFam}" font-size="76" font-weight="900" fill="#000">Wrapped</text>
-      <text x="96" y="432" font-family="${fontFam}" font-size="32" font-weight="800" fill="#525252">${sanitizeSvgText(data.month)}</text>
+      <!-- Title Area -->
+      <text x="92" y="275" font-family="${fontFam}" font-size="70" font-weight="900" fill="#000">Monthly</text>
+      <text x="92" y="348" font-family="${fontFam}" font-size="70" font-weight="900" fill="#000">Wrapped</text>
+      <text x="96" y="396" font-family="${fontFam}" font-size="28" font-weight="800" fill="#525252">${sanitizeSvgText(data.month)}</text>
 
       <!-- Total Pengeluaran Card -->
-      <rect x="108" y="506" width="896" height="285" fill="#000"/>
-      <rect x="92" y="490" width="896" height="285" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="138" y="566" font-family="${fontFam}" font-size="34" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'TOTAL PENGELUARAN' : 'TOTAL EXPENSES'}</text>
-      ${svgMultilineText({ text: data.totalExpense, x: 138, y: 680, maxChars: 18, maxLines: 1, lineHeight: 0, fontSize: 92 })}
+      <rect x="108" y="456" width="896" height="255" fill="#000"/>
+      <rect x="92" y="440" width="896" height="255" fill="#FFE066" stroke="#000" stroke-width="8"/>
+      <text x="138" y="510" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'TOTAL PENGELUARAN' : 'TOTAL EXPENSES'}</text>
+      ${svgMultilineText({ text: data.totalExpense, x: 138, y: 615, maxChars: 18, maxLines: 1, lineHeight: 0, fontSize: 84 })}
 
-      <!-- Kategori Utama Card -->
-      <rect x="108" y="851" width="416" height="250" fill="#000"/>
-      <rect x="92" y="835" width="416" height="250" fill="#fff" stroke="#000" stroke-width="8"/>
-      <rect x="126" y="866" width="110" height="38" rx="19" ry="19" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="181" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">${isId ? 'UTAMA' : 'TOP'}</text>
-      <text x="136" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">${isId ? 'Kategori Utama' : 'Top Category'}</text>
-      ${svgMultilineText({ text: data.topCategoryName, x: 136, y: 1010, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 40 })}
-      <text x="136" y="1055" font-family="${fontFam}" font-size="24" font-weight="900" fill="#737373">${sanitizeSvgText(data.topCategoryAmount)} · ${data.topCategoryPercent}%</text>
+      <!-- Row 1: Kategori Utama (Left) & Total Transaksi (Right) -->
+      <rect x="108" y="746" width="416" height="230" fill="#000"/>
+      <rect x="92" y="730" width="416" height="230" fill="#fff" stroke="#000" stroke-width="8"/>
+      <rect x="126" y="756" width="110" height="34" rx="17" ry="17" fill="#FFE066" stroke="#000" stroke-width="4"/>
+      <text x="181" y="779" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'UTAMA' : 'TOP'}</text>
+      <text x="136" y="836" font-family="${fontFam}" font-size="28" font-weight="900" fill="#000">${isId ? 'Kategori Utama' : 'Top Category'}</text>
+      ${svgMultilineText({ text: data.topCategoryName, x: 136, y: 885, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 36 })}
+      <text x="136" y="928" font-family="${fontFam}" font-size="22" font-weight="900" fill="#737373">${sanitizeSvgText(data.topCategoryAmount)} · ${data.topCategoryPercent}%</text>
 
-      <!-- Total Transaksi Card (Black theme with yellow shadow) -->
-      <rect x="588" y="851" width="416" height="250" fill="#FFE066"/>
-      <rect x="572" y="835" width="416" height="250" fill="#000" stroke="#000" stroke-width="8"/>
-      <rect x="606" y="866" width="130" height="38" rx="19" ry="19" fill="#fff" stroke="#000" stroke-width="4"/>
-      <text x="671" y="892" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">${isId ? 'AKTIVITAS' : 'ACTIVITY'}</text>
-      <text x="616" y="958" font-family="${fontFam}" font-size="30" font-weight="900" fill="#FFE066">${isId ? 'Total Transaksi' : 'Total Transactions'}</text>
-      ${svgMultilineText({ text: data.totalTransactions, x: 616, y: 1018, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 50, fill: '#fff' })}
+      <rect x="588" y="746" width="416" height="230" fill="#FFE066"/>
+      <rect x="572" y="730" width="416" height="230" fill="#000" stroke="#000" stroke-width="8"/>
+      <rect x="606" y="756" width="130" height="34" rx="17" ry="17" fill="#fff" stroke="#000" stroke-width="4"/>
+      <text x="671" y="779" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'AKTIVITAS' : 'ACTIVITY'}</text>
+      <text x="616" y="836" font-family="${fontFam}" font-size="28" font-weight="900" fill="#FFE066">${isId ? 'Total Transaksi' : 'Total Transactions'}</text>
+      ${svgMultilineText({ text: data.totalTransactions, x: 616, y: 896, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 48, fill: '#fff' })}
 
-      <!-- Cashflow Card (Black theme with yellow shadow) -->
-      <rect x="108" y="1156" width="416" height="250" fill="#FFE066"/>
-      <rect x="92" y="1140" width="416" height="250" fill="#000" stroke="#000" stroke-width="8"/>
-      <rect x="126" y="1171" width="130" height="38" rx="19" ry="19" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="191" y="1197" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">CASHFLOW</text>
-      <text x="136" y="1258" font-family="${fontFam}" font-size="30" font-weight="900" fill="#FFE066">Cashflow</text>
-      ${svgMultilineText({ text: data.cashflow, x: 136, y: 1323, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 46, fill: '#fff' })}
+      <!-- Row 2: Cashflow (Left) & Wallet Aktif (Right) -->
+      <rect x="108" y="1016" width="416" height="230" fill="#FFE066"/>
+      <rect x="92" y="1000" width="416" height="230" fill="#000" stroke="#000" stroke-width="8"/>
+      <rect x="126" y="1026" width="130" height="34" rx="17" ry="17" fill="#FFE066" stroke="#000" stroke-width="4"/>
+      <text x="191" y="1049" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">CASHFLOW</text>
+      <text x="136" y="1106" font-family="${fontFam}" font-size="28" font-weight="900" fill="#FFE066">Cashflow</text>
+      ${svgMultilineText({ text: data.cashflow, x: 136, y: 1166, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 44, fill: '#fff' })}
 
-      <!-- Wallet Aktif Card -->
-      <rect x="588" y="1156" width="416" height="250" fill="#000"/>
-      <rect x="572" y="1140" width="416" height="250" fill="#fff" stroke="#000" stroke-width="8"/>
-      <rect x="606" y="1171" width="110" height="38" rx="19" ry="19" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="661" y="1197" text-anchor="middle" font-family="${fontFam}" font-size="16" font-weight="900" fill="#000">${isId ? 'DOMPET' : 'WALLET'}</text>
-      <text x="616" y="1258" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">${isId ? 'Wallet Aktif' : 'Active Wallet'}</text>
-      ${svgMultilineText({ text: data.walletBalance, x: 616, y: 1323, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 40 })}
+      <rect x="588" y="1016" width="416" height="230" fill="#000"/>
+      <rect x="572" y="1000" width="416" height="230" fill="#fff" stroke="#000" stroke-width="8"/>
+      <rect x="606" y="1026" width="110" height="34" rx="17" ry="17" fill="#FFE066" stroke="#000" stroke-width="4"/>
+      <text x="661" y="1049" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'DOMPET' : 'WALLET'}</text>
+      <text x="616" y="1106" font-family="${fontFam}" font-size="28" font-weight="900" fill="#000">${isId ? 'Wallet Aktif' : 'Active Wallet'}</text>
+      ${svgMultilineText({ text: data.walletBalance, x: 616, y: 1166, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 38 })}
 
-      <!-- Insight Card -->
-      <rect x="108" y="1466" width="896" height="230" fill="#000"/>
-      <rect x="92" y="1450" width="896" height="230" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="136" y="1514" font-family="${fontFam}" font-size="32" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'INSIGHT BULAN INI' : 'MONTHLY INSIGHT'}</text>
-      ${svgMultilineText({ text: data.insight, x: 136, y: 1575, maxChars: 42, maxLines: 2, lineHeight: 42, fontSize: 28, fontWeight: 800 })}
+      <!-- Insight Card (Generous height so no text is ever clipped or lost) -->
+      <rect x="108" y="1286" width="896" height="340" fill="#000"/>
+      <rect x="92" y="1270" width="896" height="340" fill="#FFE066" stroke="#000" stroke-width="8"/>
+      <text x="136" y="1332" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'INSIGHT & STRATEGI BULAN INI' : 'MONTHLY INSIGHT & STRATEGY'}</text>
+      ${svgMultilineText({ text: data.insight, x: 136, y: 1386, maxChars: 46, maxLines: 5, lineHeight: 38, fontSize: 24, fontWeight: 800 })}
 
       <!-- Footer Brand Elements -->
-      <text x="92" y="1760" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Track your money. Find your direction.</text>
-      <rect x="866" y="1731" width="86" height="86" fill="#000"/>
-      <rect x="850" y="1715" width="86" height="86" fill="#FFE066" stroke="#000" stroke-width="6"/>
-      <text x="893" y="1776" text-anchor="middle" font-family="${fontFam}" font-size="52" font-weight="900" fill="#000">N</text>
+      <text x="92" y="1695" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Track your money. Find your direction.</text>
+      <text x="92" y="1735" font-family="${fontFam}" font-size="22" font-weight="800" fill="#525252">https://nordenfinance.site</text>
+      <rect x="866" y="1666" width="86" height="86" fill="#000"/>
+      <rect x="850" y="1650" width="86" height="86" fill="#FFE066" stroke="#000" stroke-width="6"/>
+      <text x="893" y="1710" text-anchor="middle" font-family="${fontFam}" font-size="52" font-weight="900" fill="#000">N</text>
     </svg>
   `;
 }
@@ -420,15 +438,39 @@ export default function NextGenIntelligence({
       .reduce((sum, debt) => sum + (debt.type === 'piutang' ? -debt.amount : debt.amount), 0);
     const netWorth = totalBalance - netDebt;
     const journeyBase = recentMonths.reduce((value, item) => value - item.net, netWorth);
-    const journey = recentMonths.reduce<{ runningWorth: number; points: Array<{ label: string; value: number }> }>((acc, item) => {
+    const rawJourney = recentMonths.reduce<{ runningWorth: number; points: Array<{ label: string; value: number }> }>((acc, item) => {
       const nextWorth = acc.runningWorth + item.net;
       return {
         runningWorth: nextWorth,
         points: [...acc.points, { label: item.label, value: Math.round(nextWorth) }],
       };
     }, { runningWorth: journeyBase, points: [] }).points;
+
+    const journey = [...rawJourney];
+    if (journey.length === 1) {
+      journey.unshift({ label: isId ? 'Awal' : 'Start', value: Math.round(journeyBase) });
+    } else if (journey.length === 0) {
+      journey.push(
+        { label: isId ? 'Awal' : 'Start', value: 0 },
+        { label: isId ? 'Saat ini' : 'Current', value: Math.round(netWorth) }
+      );
+    }
+
     const journeyStart = journey[0]?.value ?? netWorth;
     const journeyGrowth = journeyStart !== 0 ? ((netWorth - journeyStart) / Math.abs(journeyStart)) * 100 : 0;
+
+    const displayRecentMonths = [...recentMonths];
+    if (displayRecentMonths.length === 1) {
+      const prevDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      displayRecentMonths.unshift({
+        key: monthKey(prevDate),
+        label: monthFormat.format(prevDate),
+        income: 0,
+        expense: 0,
+        net: 0,
+        count: 0,
+      });
+    }
 
     const thisMonthTransactions = transactions.filter((transaction) => sameMonth(new Date(transaction.transactionDate), today));
     const todayTransactions = transactions.filter((transaction) => dayKey(new Date(transaction.transactionDate)) === dayKey(today));
@@ -542,7 +584,7 @@ export default function NextGenIntelligence({
 
     return {
       monthly,
-      recentMonths,
+      recentMonths: displayRecentMonths,
       currentMonth,
       priorMonth,
       avgIncome,

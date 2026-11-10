@@ -40,6 +40,12 @@ function aliasesForWallet(walletName: string) {
     aliases.add(normalizeWalletName(alias));
   }
 
+  // Handle compound words like "tabungan", "simpanan", "rencana"
+  const words = spaced.split(' ').filter((w) => w.length >= 3);
+  for (const w of words) {
+    aliases.add(w);
+  }
+
   return Array.from(aliases).filter(Boolean);
 }
 
@@ -93,12 +99,39 @@ export function detectWalletsFromInput(input: string, wallets: WalletLike[]): Wa
   const aliasMap = buildWalletAliasMap(wallets);
   const matches: WalletMatch[] = [];
   const seenWalletIds = new Set<string>();
+  const claimedSpans: Array<{ start: number; end: number }> = [];
 
-  for (const [alias, wallet] of aliasMap.entries()) {
-    const index = findAliasIndex(input, alias);
-    if (index < 0 || seenWalletIds.has(wallet.id)) continue;
-    seenWalletIds.add(wallet.id);
-    matches.push({ wallet, alias, index, source: 'input' });
+  const normalizedInput = normalizeText(input);
+
+  // Sort entries so longer aliases match first (e.g. 'bni tabungan' before 'bni')
+  const sortedEntries = Array.from(aliasMap.entries()).sort(
+    (a, b) => b[0].length - a[0].length
+  );
+
+  for (const [alias, wallet] of sortedEntries) {
+    if (seenWalletIds.has(wallet.id)) continue;
+    const normalizedAlias = normalizeText(alias);
+    if (!normalizedAlias) continue;
+
+    const escaped = normalizedAlias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(?<![a-z0-9])${escaped}(?![a-z0-9])`, 'gi');
+    let regexMatch: RegExpExecArray | null;
+
+    while ((regexMatch = regex.exec(normalizedInput)) !== null) {
+      const start = regexMatch.index;
+      const end = start + normalizedAlias.length;
+
+      const overlaps = claimedSpans.some(
+        (span) => Math.max(start, span.start) < Math.min(end, span.end)
+      );
+
+      if (!overlaps) {
+        claimedSpans.push({ start, end });
+        seenWalletIds.add(wallet.id);
+        matches.push({ wallet, alias, index: start, source: 'input' });
+        break;
+      }
+    }
   }
 
   return matches.sort((a, b) => a.index - b.index || b.alias.length - a.alias.length);
@@ -194,11 +227,13 @@ export function resolveTransferWalletsFromInput(input: string, wallets: WalletLi
 
   const lower = ' ' + normalizeText(input) + ' ';
 
-  // Check if any matched wallet explicitly follows 'ke' or 'to'
+  // Disambiguate with longer aliases first
+  const sortedByLength = [...matches].sort((a, b) => b.alias.length - a.alias.length);
+
   let toMatch: WalletMatch | null = null;
   let fromMatch: WalletMatch | null = null;
 
-  for (const match of matches) {
+  for (const match of sortedByLength) {
     const aliasNorm = normalizeText(match.alias);
     if (new RegExp(`\\s(?:ke|to)\\s+${aliasNorm}\\s`, 'i').test(lower)) {
       toMatch = match;
@@ -206,7 +241,8 @@ export function resolveTransferWalletsFromInput(input: string, wallets: WalletLi
     }
   }
 
-  for (const match of matches) {
+  for (const match of sortedByLength) {
+    if (match.wallet.id === toMatch?.wallet.id) continue;
     const aliasNorm = normalizeText(match.alias);
     if (new RegExp(`\\s(?:dari|from|pakai)\\s+${aliasNorm}\\s`, 'i').test(lower)) {
       fromMatch = match;
@@ -223,6 +259,6 @@ export function resolveTransferWalletsFromInput(input: string, wallets: WalletLi
     toMatch = matches.find((m) => m.wallet.id !== matches[0].wallet.id) || null;
   }
 
-  if (!fromMatch || !toMatch) return null;
+  if (!fromMatch || !toMatch || fromMatch.wallet.id === toMatch.wallet.id) return null;
   return { from: fromMatch, to: toMatch };
 }

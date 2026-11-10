@@ -231,7 +231,11 @@ export function parseType(input: string, isBalanceUpdate: boolean): TransactionT
 
   const lowerInput = input.toLowerCase();
 
-  if (/\b(tf|transfer)\b/i.test(lowerInput)) {
+  // Transfer verbs and phrasing patterns
+  if (
+    /\b(tf|transfer|pindah|pindahin|oper|kirim|move)\b/i.test(lowerInput) ||
+    /\b(?:dari|from)\s+.+\s+(?:ke|to)\b/i.test(lowerInput)
+  ) {
     return 'transfer';
   }
 
@@ -378,7 +382,7 @@ export function parseTransaction(input: string): ParseResult {
 
   if (type === 'transfer') {
     note = note
-      .replace(/\b(?:transfer|tf)\b/gi, ' ')
+      .replace(/\b(?:transfer|tf|pindah|pindahin|oper|kirim|move)\b/gi, ' ')
       .replace(/\b(?:ke|to|dari|from|pakai)\b/gi, ' ');
   }
 

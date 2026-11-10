@@ -96,13 +96,32 @@ const mockDataEmptyGoals: MonthlyReportData = {
   financialHealthScore: 42
 };
 
-function run() {
-  const pdfWithGoals = generateMonthlyReportPdf(mockDataWithGoals);
-  const pdfEmptyGoals = generateMonthlyReportPdf(mockDataEmptyGoals);
+const mockDataCompact: MonthlyReportData = {
+  ...mockDataWithGoals,
+  savingGoals: mockDataWithGoals.savingGoals,
+  recentTransactions: mockDataWithGoals.recentTransactions, // 3 tx
+};
 
-  fs.writeFileSync(path.join(process.cwd(), 'test-report-with-goals.pdf'), Buffer.from(pdfWithGoals));
-  fs.writeFileSync(path.join(process.cwd(), 'test-report-empty-goals.pdf'), Buffer.from(pdfEmptyGoals));
-  console.log('Mock PDFs generated successfully.');
+const mockDataMulti: MonthlyReportData = {
+  ...mockDataWithGoals,
+  recentTransactions: Array.from({ length: 15 }, (_, i) => ({
+    id: `tx-${i}`,
+    transactionDate: new Date('2026-06-05'),
+    type: (i % 3 === 0 ? 'masuk' : i % 3 === 1 ? 'keluar' : 'transfer') as 'masuk' | 'keluar' | 'transfer',
+    amount: (i + 1) * 75000,
+    note: `Transaksi mutasi testing nomor ${i + 1}`,
+    category: { name: i % 2 === 0 ? 'Belanja' : 'Makanan' },
+    wallet: { name: 'BCA' },
+  })),
+};
+
+function run() {
+  const pdfCompact = generateMonthlyReportPdf(mockDataCompact);
+  const pdfMulti = generateMonthlyReportPdf(mockDataMulti);
+
+  fs.writeFileSync(path.join(process.cwd(), 'test-report-compact.pdf'), Buffer.from(pdfCompact));
+  fs.writeFileSync(path.join(process.cwd(), 'test-report-multi.pdf'), Buffer.from(pdfMulti));
+  console.log('Mock PDFs (compact & multi) generated successfully.');
 }
 
 run();

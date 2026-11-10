@@ -12,6 +12,7 @@ interface SidebarProps {
   setActiveTab: (tab: SidebarTab) => void;
   onNewTransaction: () => void;
   user: {
+    id?: string;
     email: string;
     plan: 'trial' | 'pro';
     effectivePlan?: string;
@@ -49,6 +50,26 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
 
   const [confirmLogout, setConfirmLogout] = React.useState(false);
   const logoutTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const userId = user.id || user.email;
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(() => {
+    if (typeof window !== 'undefined' && userId) {
+      return localStorage.getItem(`norden_avatar_${userId}`);
+    }
+    return null;
+  });
+
+  React.useEffect(() => {
+    if (!userId) return;
+    const handleAvatarUpdate = () => {
+      setAvatarUrl(localStorage.getItem(`norden_avatar_${userId}`));
+    };
+    window.addEventListener('norden_avatar_updated', handleAvatarUpdate);
+    window.addEventListener('storage', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('norden_avatar_updated', handleAvatarUpdate);
+      window.removeEventListener('storage', handleAvatarUpdate);
+    };
+  }, [userId]);
 
   React.useEffect(() => {
     return () => {
@@ -75,14 +96,14 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
     : null;
 
   return (
-    <aside className="w-64 bg-[#FAF9F5] dark:bg-[#121215] text-black dark:text-white border-r-[3px] border-black dark:border-neutral-800 h-screen fixed left-0 top-0 flex flex-col pt-6 pb-6 z-10 select-none">
+    <aside className="w-64 bg-[#FAF9F5] dark:bg-[#121215] text-black dark:text-white border-r-[3px] border-black dark:border-neutral-800 h-full flex flex-col pt-6 pb-28 lg:pb-6 z-10 select-none overflow-y-auto overscroll-contain">
       {/* Logo */}
-      <div className="px-6 mb-8">
+      <div className="px-6 mb-8 shrink-0">
         <BrandLogo variant="horizontal" priority className="h-12 w-auto" />
       </div>
 
       {/* CTA Button */}
-      <div className="px-6 mb-8">
+      <div className="px-6 mb-8 shrink-0">
         <button 
           type="button"
           onClick={onNewTransaction}
@@ -95,7 +116,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+      <nav className="px-4 space-y-2 shrink-0">
         {menuItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -143,7 +164,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
 
       {/* Trial Banner */}
       {user.plan === 'trial' && trialDaysLeft !== null && (
-        <div className="px-4 mb-3">
+        <div className="px-4 mb-3 mt-4 shrink-0">
           <div className="p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.1)] text-center">
             <p className="text-[10px] font-black text-[#FF6B6B] uppercase tracking-wider">Trial</p>
             <p className="text-sm font-black text-black dark:text-white mt-0.5">
@@ -158,7 +179,7 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
 
       {/* Admin Panel Link */}
       {user.role === 'admin' && (
-        <div className="px-4 mb-3">
+        <div className="px-4 mb-3 mt-4 shrink-0">
           <Link 
             href="/norden-control-center" 
             className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-black dark:border-neutral-700 font-black uppercase text-xs rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer text-center"
@@ -171,11 +192,16 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, use
       )}
 
       {/* User Profile */}
-      <div className="px-4 mt-auto">
+      <div className="px-4 mt-auto pt-4 shrink-0">
         <div className="p-3 border-2 border-black dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-900 shadow-[2.5px_2.5px_0px_0px_#000] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.1)] flex flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg border-2 border-black dark:border-neutral-600 bg-[#2ECC71] flex items-center justify-center text-black font-black text-xs shrink-0">
-              {user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+            <div className="w-8 h-8 rounded-lg border-2 border-black dark:border-neutral-600 bg-[#2ECC71] flex items-center justify-center text-black font-black text-xs shrink-0 overflow-hidden">
+              {avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                user.fullName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-black dark:text-white truncate leading-tight uppercase tracking-wider">{user.fullName || 'User'}</p>

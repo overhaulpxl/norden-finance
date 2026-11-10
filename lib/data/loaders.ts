@@ -5,6 +5,7 @@ import { prisma } from '../prisma';
 import { syncAchievements } from '../achievements';
 import { DEFAULT_MONTHLY_PRICE, DEFAULT_PRICING, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from '../constants';
 import { getUserEntitlement } from '../entitlements';
+import type { PortfolioAsset } from '../../types';
 
 const INDONESIAN_MONTHS = [
   'Januari',
@@ -208,6 +209,7 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     templates,
     recurringTransactions,
     reminders,
+    portfolioSetting,
   ] = await Promise.all([
     db.transaction.findMany({
       where: { userId, deletedAt: null },
@@ -256,6 +258,7 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
       ],
       take: 50,
     }),
+    db.setting.findUnique({ where: { key: `portfolio_assets_${userId}` } }).catch(() => null),
   ]);
 
   const [achievements, entitlement] = await Promise.all([
@@ -267,6 +270,15 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     }),
     getUserEntitlement(userId),
   ]);
+
+  let portfolioAssets: PortfolioAsset[] = [];
+  if (portfolioSetting?.value) {
+    try {
+      portfolioAssets = JSON.parse(portfolioSetting.value);
+    } catch {
+      portfolioAssets = [];
+    }
+  }
 
   const dur = Math.round((performance.now() - t0) * 10) / 10;
   if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'preview') {
@@ -288,6 +300,7 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     recurringTransactions,
     reminders,
     achievements,
+    portfolioAssets,
     profile: {
       role: profile.role,
       plan: entitlement.isPro ? 'pro' : 'trial',

@@ -264,6 +264,22 @@ export interface Feedback {
   createdAt: Date | string;
 }
 
+export type AssetClass = 'emas' | 'saham' | 'reksadana' | 'kripto' | 'properti' | 'lainnya';
+
+export interface PortfolioAsset {
+  id: string;
+  userId?: string;
+  name: string;
+  assetClass: AssetClass;
+  quantity: number;
+  unit: string;
+  buyPrice: number;
+  currentPrice: number;
+  institution?: string;
+  notes?: string;
+  updatedAt?: Date | string;
+}
+
 export interface Setting {
   id: string;
   key: string;

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement } from '../types';
+import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget, AppSubscription, EmergencyFundPlan, TransactionTemplate, RecurringTransaction, Reminder, Achievement, PortfolioAsset } from '../types';
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
@@ -93,6 +93,14 @@ const FinancialTimeline = dynamic(() => import('./FinancialTimeline'), {
   ssr: false,
   loading: () => <PanelSkeleton />,
 });
+const CashflowCalendar = dynamic(() => import('./CashflowCalendar'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
+const PortfolioManager = dynamic(() => import('./PortfolioManager'), {
+  ssr: false,
+  loading: () => <PanelSkeleton />,
+});
 const NotificationCenter = dynamic(() => import('./NotificationCenter'), {
   ssr: false,
   loading: () => (
@@ -127,6 +135,7 @@ interface AppLayoutProps {
   recurringTransactions: RecurringTransaction[];
   reminders: Reminder[];
   achievements: Achievement[];
+  portfolioAssets?: PortfolioAsset[];
   trialDays: number;
   pricingPlans: {
     monthly: { price: number; name: string } | null;
@@ -150,6 +159,7 @@ export default function AppLayout({
   recurringTransactions,
   reminders,
   achievements,
+  portfolioAssets = [],
   trialDays,
   pricingPlans,
   dataError
@@ -177,6 +187,7 @@ export default function AppLayout({
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [historyView, setHistoryView] = useState<'table' | 'calendar' | 'timeline'>('table');
   const pullDistanceRef = useRef(0);
 
   // Pull-to-Refresh & Auto-dismiss keyboard on mobile
@@ -572,7 +583,10 @@ export default function AppLayout({
           )}
 
           {activeTab === 'wallet' && (
-            <BalanceCards balances={balances} />
+            <div className="space-y-6">
+              <BalanceCards balances={balances} />
+              <PortfolioManager initialAssets={portfolioAssets} />
+            </div>
           )}
 
           {activeTab === 'goals' && (
@@ -590,10 +604,71 @@ export default function AppLayout({
 
           {activeTab === 'history' && (
             <div className="space-y-6">
-              <div className="brutal-card p-4 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700">
-                <TransactionTable transactions={transactions} balances={balances} />
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setHistoryView('table');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                      historyView === 'table'
+                        ? 'bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]'
+                        : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    <span>📑</span>
+                    <span>{lang === 'id' ? 'Tabel Mutasi' : 'Table'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setHistoryView('calendar');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                      historyView === 'calendar'
+                        ? 'bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]'
+                        : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    <span>📅</span>
+                    <span>{lang === 'id' ? 'Kalender Arus Kas' : 'Cashflow Calendar'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setHistoryView('timeline');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                      historyView === 'timeline'
+                        ? 'bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]'
+                        : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    <span>⏳</span>
+                    <span>{lang === 'id' ? 'Lini Masa' : 'Timeline'}</span>
+                  </button>
+                </div>
               </div>
-              <FinancialTimeline transactions={transactions} />
+
+              {historyView === 'table' && (
+                <div className="brutal-card p-4 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700">
+                  <TransactionTable transactions={transactions} balances={balances} />
+                </div>
+              )}
+
+              {historyView === 'calendar' && (
+                <CashflowCalendar transactions={transactions} subscriptions={subscriptions} />
+              )}
+
+              {historyView === 'timeline' && (
+                <FinancialTimeline transactions={transactions} />
+              )}
             </div>
           )}
 
@@ -762,6 +837,7 @@ export default function AppLayout({
       {showModal && (
         <QuickInputModal
           balances={balances}
+          savingGoals={savingGoals}
           onClose={() => setShowModal(false)}
           onSuccess={() => router.refresh()}
         />

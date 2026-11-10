@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertPositiveInt, assertPositiveInt32 } from '../../lib/validators';
 import { addRecurringRule } from './recurring';
+import { resolveCategory, resolveWallet, updateStreak } from './transactions';
 import type { TransactionType } from '../../types';
 
 export async function addSubscription(data: {
@@ -119,6 +120,70 @@ export async function deleteSubscription(id: string) {
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal menghapus subscription';
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Record reimbursement / payment received from friends for shared/family subscriptions.
+ * Excess payment beyond expected share automatically becomes surplus/jajan host.
+ */
+export async function recordFamilySharingPayment(data: {
+  subscriptionName: string;
+  payerName: string;
+  amountPaid: number;
+  expectedShare?: number;
+  destinationWallet: string;
+}) {
+  try {
+    const { user } = await requireUser('basic');
+    const userId = user.uid;
+
+    assertPositiveInt(data.amountPaid, 'Nominal setoran');
+    assertNonEmpty(data.payerName, 'Nama teman');
+    assertNonEmpty(data.destinationWallet, 'Dompet tujuan');
+    assertNonEmpty(data.subscriptionName, 'Nama langganan');
+
+    const [walletId, categoryId] = await Promise.all([
+      resolveWallet(userId, data.destinationWallet),
+      resolveCategory(userId, 'Patungan Langganan', 'masuk'),
+    ]);
+
+    const surplus = data.expectedShare && data.expectedShare > 0
+      ? Math.max(0, data.amountPaid - data.expectedShare)
+      : 0;
+
+    const note = `Patungan ${data.subscriptionName.trim()} dari ${data.payerName.trim()}${
+      surplus > 0 ? ` (Surplus Host: Rp ${Math.round(surplus).toLocaleString('id-ID')})` : ''
+    }`;
+
+    const newTx = await prisma.$transaction(async (tx) => {
+      const created = await tx.transaction.create({
+        data: {
+          userId,
+          categoryId,
+          walletId,
+          type: 'masuk',
+          amount: data.amountPaid,
+          note,
+          tags: ['#patungan', '#family-sharing', data.subscriptionName.toLowerCase().replace(/\s+/g, '-')],
+        },
+      });
+
+      await tx.balance.update({
+        where: { id: walletId },
+        data: { currentBalance: { increment: data.amountPaid } },
+      });
+
+      return created;
+    });
+
+    await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
+    await updateStreak(userId);
+    revalidatePath('/dashboard');
+    return { success: true, transactionId: newTx.id, surplus };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal mencatat setoran patungan';
     return { success: false, error: message };
   }
 }

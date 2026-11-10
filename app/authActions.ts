@@ -151,7 +151,7 @@ export async function forgotPasswordAction(email: string) {
     const origin =
       typeof window !== 'undefined' && window.location.origin
         ? window.location.origin
-        : getPublicAppUrl('https://www.nordenfinance.site');
+        : getPublicAppUrl('https://nordenfinance.site');
     const actionCodeSettings: ActionCodeSettings = {
       url: `${origin}/auth/action`,
       handleCodeInApp: false,

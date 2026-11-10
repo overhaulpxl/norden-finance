@@ -38,8 +38,15 @@ export async function addExplicitTransaction(data: {
 }) {
   return transactions.addExplicitTransaction(data);
 }
-export async function addTransferTransaction(amount: number, fromWallet: string, toWallet: string, note?: string, tags?: string[]) {
-  return transactions.addTransferTransaction(amount, fromWallet, toWallet, note, tags);
+export async function addTransferTransaction(
+  amount: number,
+  fromWallet: string,
+  toWallet: string,
+  note?: string,
+  tags?: string[],
+  savingGoalId?: string
+) {
+  return transactions.addTransferTransaction(amount, fromWallet, toWallet, note, tags, savingGoalId);
 }
 export async function deleteTransaction(id: string) {
   return transactions.deleteTransaction(id);
@@ -158,6 +165,15 @@ export async function toggleSubscriptionActive(id: string) {
 export async function deleteSubscription(id: string) {
   return subscriptions.deleteSubscription(id);
 }
+export async function recordFamilySharingPayment(data: {
+  subscriptionName: string;
+  payerName: string;
+  amountPaid: number;
+  expectedShare?: number;
+  destinationWallet: string;
+}) {
+  return subscriptions.recordFamilySharingPayment(data);
+}
 
 // Emergency Fund
 export async function updateEmergencyFundPlan(monthlyExpense: number) {
@@ -256,6 +272,21 @@ export async function rejectPaymentRequest(id: string, note: string) {
 export async function getAllUsers() {
   return admin.getAllUsers();
 }
+
+// Statement Import
+export async function importStatementTransactions(
+  walletId: string,
+  rows: Array<{
+    dateStr: string;
+    type: 'masuk' | 'keluar' | 'transfer';
+    amount: number;
+    description: string;
+    category: string;
+  }>
+) {
+  const { importStatementTransactions: importFn } = await import('./actions/importStatement');
+  return importFn(walletId, rows);
+}
 export async function updateUserPlanManually(targetUserId: string, newPlan: PlanType, days?: number) {
   return admin.updateUserPlanManually(targetUserId, newPlan, days);
 }
@@ -306,4 +337,35 @@ export async function getShortcutEndpoint() {
 }
 export async function regenerateShortcutToken() {
   return userActions.regenerateShortcutToken();
+}
+
+// Portfolio & Investments
+export async function getPortfolioAssets() {
+  const { getPortfolioAssets: getFn } = await import('./actions/portfolio');
+  return getFn();
+}
+
+export async function savePortfolioAsset(data: {
+  id?: string;
+  name: string;
+  assetClass: import('../types').AssetClass;
+  quantity: number;
+  unit: string;
+  buyPrice: number;
+  currentPrice: number;
+  institution?: string;
+  notes?: string;
+}) {
+  const { savePortfolioAsset: saveFn } = await import('./actions/portfolio');
+  return saveFn(data);
+}
+
+export async function deletePortfolioAsset(id: string) {
+  const { deletePortfolioAsset: delFn } = await import('./actions/portfolio');
+  return delFn(id);
+}
+
+export async function revaluePortfolioAsset(id: string, newCurrentPrice: number) {
+  const { revaluePortfolioAsset: revFn } = await import('./actions/portfolio');
+  return revFn(id, newCurrentPrice);
 }

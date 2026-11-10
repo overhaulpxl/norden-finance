@@ -198,7 +198,7 @@ export default function UpcomingBills({
           </p>
         </div>
       ) : (
-        <div className="divide-y-2 divide-neutral-100 space-y-2">
+        <div className="divide-y-2 divide-neutral-200 dark:divide-neutral-800 space-y-3">
           {displayBills.map((bill) => {
             const isUrgent = bill.daysRemaining <= 3;
             const isSuccess = successId === bill.id;
@@ -207,7 +207,7 @@ export default function UpcomingBills({
             return (
               <div
                 key={bill.id}
-                className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                className="pt-3 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <div
@@ -220,12 +220,12 @@ export default function UpcomingBills({
                     <CreditCard className="w-4 h-4 stroke-[2.5px]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-black text-xs uppercase tracking-wider text-black dark:text-white truncate">
                         {bill.title}
                       </h4>
                       <span
-                        className={`text-[9px] font-black uppercase px-1.5 py-0.2 border border-black dark:border-neutral-700 rounded ${
+                        className={`text-[9px] font-black uppercase px-2 py-0.5 border border-black dark:border-neutral-700 rounded-md shrink-0 ${
                           isUrgent ? 'bg-red-500 text-white' : 'bg-[#FFE066] text-black'
                         }`}
                       >
@@ -238,7 +238,7 @@ export default function UpcomingBills({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0">
                   <span className="font-black text-xs sm:text-sm text-black dark:text-white tracking-wider">
                     {maskBalance(formatRupiah(bill.amount))}
                   </span>

@@ -146,9 +146,11 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
     };
   }, [userId]);
 
+  const PIN_LENGTH = 6;
+
   const verifyPin = useCallback(
     async (candidatePin: string) => {
-      if (candidatePin.length !== 4) return;
+      if (candidatePin.length !== PIN_LENGTH) return;
       const hashed = await hashPin(candidatePin, userId);
       const storedHash = localStorage.getItem(`norden_pin_hash_${userId}`);
 
@@ -177,14 +179,14 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
 
   const handleKeyPress = useCallback(
     (digit: string) => {
-      if (pinRef.current.length >= 4) return;
+      if (pinRef.current.length >= PIN_LENGTH) return;
       triggerHaptic('light');
       const nextPin = pinRef.current + digit;
       pinRef.current = nextPin;
       setPin(nextPin);
       setErrorMsg(null);
 
-      if (nextPin.length === 4) {
+      if (nextPin.length === PIN_LENGTH) {
         verifyPin(nextPin);
       }
     },
@@ -406,19 +408,19 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
           </h2>
           <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
             {isDesktop
-              ? (lang === 'en' ? 'Type 4 digits using your keyboard' : 'Ketik 4 digit PIN di keyboard Anda')
-              : (lang === 'en' ? '4-digit PIN to unlock Norden Finance' : '4 digit PIN untuk membuka aplikasi')}
+              ? (lang === 'en' ? 'Type 6 digits using your keyboard' : 'Ketik 6 digit PIN di keyboard Anda')
+              : (lang === 'en' ? '6-digit PIN to unlock Norden Finance' : '6 digit PIN untuk membuka aplikasi')}
           </p>
         </div>
 
-        {/* 4 Dots */}
-        <div className="flex items-center gap-4 py-2">
-          {[0, 1, 2, 3].map((index) => {
+        {/* 6 Dots */}
+        <div className="flex items-center gap-3 sm:gap-4 py-2">
+          {[0, 1, 2, 3, 4, 5].map((index) => {
             const isFilled = pin.length > index;
             return (
               <div
                 key={index}
-                className={`w-5 h-5 rounded-full border-2 border-black dark:border-neutral-700 transition-all ${
+                className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-black dark:border-neutral-700 transition-all ${
                   isFilled
                     ? 'bg-black dark:bg-white scale-110 shadow-[2px_2px_0px_0px_var(--theme-accent,#FFE066)]'
                     : 'bg-white dark:bg-neutral-800 shadow-[2px_2px_0px_0px_#000]'
@@ -448,8 +450,8 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
             </p>
             <p className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
               {lang === 'en'
-                ? 'Use number keys (0-9) to enter your 4-digit PIN, or Backspace to delete.'
-                : 'Gunakan tombol angka (0-9) untuk memasukkan 4 digit PIN, atau Backspace untuk menghapus.'}
+                ? 'Use number keys (0-9) to enter your 6-digit PIN, or Backspace to delete.'
+                : 'Gunakan tombol angka (0-9) untuk memasukkan 6 digit PIN, atau Backspace untuk menghapus.'}
             </p>
           </div>
 

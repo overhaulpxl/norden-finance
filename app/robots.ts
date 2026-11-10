@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { getPublicAppUrl } from '../lib/appUrl';
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = getPublicAppUrl();
   return {
     rules: [
       {
@@ -12,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://www.nordenfinance.site/sitemap.xml',
-    host: 'https://www.nordenfinance.site',
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

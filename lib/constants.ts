@@ -2,6 +2,9 @@ export const CANONICAL_ALIASES: Record<string, string[]> = {
   gopay: ['gopay', 'go pay', 'go-pay', 'gojek'],
   bni: ['bni', 'bank bni'],
   bca: ['bca', 'bank bca'],
+  mandiri: ['mandiri', 'bank mandiri', 'livin'],
+  bri: ['bri', 'bank bri', 'brimo'],
+  cimb: ['cimb', 'cimb niaga', 'octo'],
   dana: ['dana'],
   ovo: ['ovo'],
   cash: ['cash', 'tunai', 'uang tunai'],
@@ -11,12 +14,26 @@ export const CANONICAL_ALIASES: Record<string, string[]> = {
   blu: ['blu', 'bank blu'],
   paypal: ['paypal', 'pay pal'],
   linkaja: ['linkaja', 'link aja', 'link-aja'],
+  tabungan: [
+    'tabungan',
+    'tabungan rencana',
+    'rekening tabungan',
+    'simpanan',
+    'bni tabungan',
+    'bca tabungan',
+    'mandiri tabungan',
+    'bri tabungan',
+    'cimb tabungan',
+  ],
 };
 
 export const CANONICAL_WALLET_DISPLAY: Record<string, string> = {
   gopay: 'GoPay',
   bni: 'BNI',
   bca: 'BCA',
+  mandiri: 'Mandiri',
+  bri: 'BRI',
+  cimb: 'CIMB',
   dana: 'DANA',
   ovo: 'OVO',
   cash: 'Cash',
@@ -26,6 +43,7 @@ export const CANONICAL_WALLET_DISPLAY: Record<string, string> = {
   blu: 'blu',
   paypal: 'PayPal',
   linkaja: 'LinkAja',
+  tabungan: 'Tabungan',
 };
 
 export const METHOD_ALIASES: Record<string, string> = Object.entries(CANONICAL_ALIASES).reduce(
@@ -40,7 +58,7 @@ export const METHOD_ALIASES: Record<string, string> = Object.entries(CANONICAL_A
 
 export const TYPE_KEYWORDS = {
   masuk: ['masuk', 'dapet', 'dapat', 'terima', 'refund', 'gaji', 'bonus', 'jual', 'jualan', 'middleman', 'fee', 'topup'],
-  keluar: ['keluar', 'beli', 'bayar', 'jajan', 'makan', 'minum', 'bensin', 'langganan', 'parkir', 'ongkir', 'transfer', 'wd', 'tarik'],
+  keluar: ['keluar', 'beli', 'bayar', 'jajan', 'makan', 'minum', 'bensin', 'langganan', 'parkir', 'ongkir', 'wd', 'tarik'],
 };
 
 export const CATEGORY_KEYWORDS: Record<string, string[]> = {

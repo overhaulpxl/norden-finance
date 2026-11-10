@@ -77,7 +77,7 @@ function buildGoalProjection(goal: SavingGoal, monthlySavings: MonthlySavingPoin
       : 0;
   const remaining = Math.max(goal.targetAmount - goal.currentAmount, 0);
   const isCompleted = remaining <= 0;
-  const hasProjection = isCompleted || (monthlySavings.length >= 2 && avgMonthlySaving > 0);
+  const hasProjection = isCompleted || (monthlySavings.length >= 1 && avgMonthlySaving > 0);
   const monthsToComplete = isCompleted ? 0 : Math.ceil(remaining / avgMonthlySaving);
   const completionDate = hasProjection ? addMonths(new Date(), monthsToComplete) : null;
   const boostedMonths =
@@ -111,10 +111,26 @@ function buildGoalProjection(goal: SavingGoal, monthlySavings: MonthlySavingPoin
         target: goal.targetAmount,
       });
     }
-  } else if (chartData.length === 0) {
-    chartData.push({
-      label: lang === 'id' ? 'Saat ini' : 'Now',
-      saved: goal.currentAmount,
+  }
+
+  // Ensure minimum 2 data points for SVG line rendering (single-month baseline)
+  if (chartData.length === 0) {
+    chartData.push(
+      {
+        label: lang === 'id' ? 'Mulai' : 'Start',
+        saved: 0,
+        target: goal.targetAmount,
+      },
+      {
+        label: lang === 'id' ? 'Saat ini' : 'Now',
+        saved: goal.currentAmount,
+        target: goal.targetAmount,
+      }
+    );
+  } else if (chartData.length === 1) {
+    chartData.unshift({
+      label: lang === 'id' ? 'Mulai' : 'Start',
+      saved: 0,
       target: goal.targetAmount,
     });
   }

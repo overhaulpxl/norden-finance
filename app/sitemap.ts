@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { getPublicAppUrl } from '../lib/appUrl';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.nordenfinance.site';
+  const baseUrl = getPublicAppUrl();
   const currentDate = new Date('2026-11-01T00:00:00.000Z');
 
   return [

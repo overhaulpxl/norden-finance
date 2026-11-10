@@ -12,14 +12,14 @@ function getLogoImages() {
     try {
       const logoPath = path.join(process.cwd(), 'public', 'brand', 'norden-horizontal.png');
       logoBase64 = fs.readFileSync(logoPath).toString('base64');
-    } catch (e) {
-      console.error('Failed to load norden-horizontal.png', e);
+    } catch {
+      // Fallback to vector monogram if file not found
     }
     try {
       const iconPath = path.join(process.cwd(), 'public', 'brand', 'norden-icon.png');
       iconBase64 = fs.readFileSync(iconPath).toString('base64');
-    } catch (e) {
-      console.error('Failed to load norden-icon.png', e);
+    } catch {
+      // Fallback
     }
   }
   return { logoBase64, iconBase64 };
@@ -88,7 +88,7 @@ export interface MonthlyReportData {
   transactions?: MonthlyReportTransaction[];
 }
 
-// ─── Formatting Helpers ───
+// ─── Helpers ───
 
 function typeLabel(type: string): string {
   if (type === 'masuk') return 'Masuk';
@@ -114,26 +114,11 @@ export function drawWedge(doc: jsPDF, cx: number, cy: number, r: number, startDe
 }
 
 export function drawSparkle(doc: jsPDF, cx: number, cy: number, rx: number, ry: number) {
-  doc.setFillColor(244, 196, 48);
+  doc.setFillColor(17, 17, 17);
   doc.triangle(cx, cy - ry, cx - rx * 0.25, cy, cx + rx * 0.25, cy, 'F');
   doc.triangle(cx, cy + ry, cx - rx * 0.25, cy, cx + rx * 0.25, cy, 'F');
   doc.triangle(cx - rx, cy, cx, cy - ry * 0.25, cx, cy + ry * 0.25, 'F');
   doc.triangle(cx + rx, cy, cx, cy - ry * 0.25, cx, cy + ry * 0.25, 'F');
-}
-
-export function drawMiniLineChart(doc: jsPDF, x: number, y: number, w: number, h: number) {
-  const pts = [
-    { px: x, py: y + h * 0.8 },
-    { px: x + w * 0.25, py: y + h * 0.5 },
-    { px: x + w * 0.5, py: y + h * 0.65 },
-    { px: x + w * 0.75, py: y + h * 0.3 },
-    { px: x + w, py: y + h * 0.1 },
-  ];
-  doc.setDrawColor(244, 196, 48);
-  doc.setLineWidth(0.6);
-  for (let i = 0; i < pts.length - 1; i++) doc.line(pts[i].px, pts[i].py, pts[i + 1].px, pts[i + 1].py);
-  doc.setFillColor(244, 196, 48);
-  pts.forEach(p => doc.circle(p.px, p.py, 0.65, 'F'));
 }
 
 export function drawNeobrutalistCard(
@@ -143,27 +128,25 @@ export function drawNeobrutalistCard(
   w: number,
   h: number,
   fillColor: [number, number, number] = [255, 255, 255],
-  shadowOffset: number = 1.5
+  shadowOffset: number = 1.2
 ) {
+  // Shadow box
   doc.setFillColor(17, 17, 17);
   doc.rect(x + shadowOffset, y + shadowOffset, w, h, 'F');
 
+  // Surface card
   doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
   doc.setDrawColor(17, 17, 17);
-  doc.setLineWidth(0.65);
+  doc.setLineWidth(0.4);
   doc.rect(x, y, w, h, 'FD');
 }
 
-// ─── New N-Arrow Logo ───
-
 export function drawNordenLogo(doc: jsPDF, x: number, y: number, size: number) {
-  // Yellow square with black border
   doc.setFillColor(255, 224, 102);
   doc.setDrawColor(17, 17, 17);
-  doc.setLineWidth(0.6);
+  doc.setLineWidth(0.45);
   doc.roundedRect(x, y, size, size, 1.2, 1.2, 'FD');
 
-  // Black N monogram with integrated upward arrow
   const cx = x + size / 2;
   const cy = y + size / 2;
   const s = size * 0.32;
@@ -172,14 +155,10 @@ export function drawNordenLogo(doc: jsPDF, x: number, y: number, size: number) {
   doc.setDrawColor(17, 17, 17);
   doc.setLineCap('round');
 
-  // Left vertical stroke of N
   doc.line(cx - s, cy + s, cx - s, cy - s * 0.6);
-  // Diagonal of N
   doc.line(cx - s, cy - s * 0.6, cx + s, cy + s);
-  // Right vertical stroke (arrow shaft) going up
   doc.line(cx + s, cy + s, cx + s, cy - s);
 
-  // Arrow head at top of right stroke
   const ah = size * 0.12;
   doc.line(cx + s - ah, cy - s + ah, cx + s, cy - s);
   doc.line(cx + s + ah, cy - s + ah, cx + s, cy - s);
@@ -193,292 +172,372 @@ export function drawHeader(doc: jsPDF, data: MonthlyReportData) {
   const { logoBase64 } = getLogoImages();
 
   if (logoBase64) {
-    // Aspect ratio: 1030 x 360 -> ~2.86
-    // Width = 11.5 * 2.86 = 32.9mm
-    doc.addImage(logoBase64, 'PNG', 15, 14, 32.9, 11.5);
+    doc.addImage(logoBase64, 'PNG', 15, 12, 32, 11);
   } else {
-    drawNordenLogo(doc, 15, 14, 12);
-
+    drawNordenLogo(doc, 15, 12, 11);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(15);
+    doc.setFontSize(14);
     doc.setTextColor(17, 17, 17);
-    doc.text('NORDEN', 29.5, 21);
-
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text('FINANCE', 29.5, 25);
-  }
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(120, 120, 120);
-  doc.text('Monthly Report', 195, 17, { align: 'right' });
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(17, 17, 17);
-  doc.text(data.monthName, 195, 24.5, { align: 'right' });
-
-  // Yellow accent line
-  const monthWidth = doc.getTextWidth(data.monthName);
-  doc.setFillColor(244, 196, 48);
-  doc.rect(195 - monthWidth, 27, monthWidth, 1.2, 'F');
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(120, 120, 120);
-  doc.text(`Periode: ${data.periodLabel}`, 195, 32, { align: 'right' });
-  if (data.userFullName) {
-    doc.setFont('helvetica', 'normal');
+    doc.text('NORDEN', 28.5, 18.5);
     doc.setFontSize(6.5);
     doc.setTextColor(120, 120, 120);
-    doc.text(`Pengguna: ${data.userFullName}`, 15, 32);
+    doc.text('FINANCE', 28.5, 22.5);
+  }
+
+  // Right Header Info
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(120, 120, 120);
+  doc.text('MONTHLY FINANCIAL STATEMENT', 195, 15, { align: 'right' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(17, 17, 17);
+  doc.text(data.monthName, 195, 21.5, { align: 'right' });
+
+  // Accent line
+  const monthWidth = doc.getTextWidth(data.monthName);
+  doc.setFillColor(255, 224, 102);
+  doc.rect(195 - monthWidth, 23.5, monthWidth, 1.2, 'F');
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Periode: ${data.periodLabel}`, 195, 28, { align: 'right' });
+
+  if (data.userFullName) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Pemegang Akun: ${data.userFullName.toUpperCase()}`, 15, 28);
   }
 }
 
-export function drawHeroSummaryCard(doc: jsPDF, data: MonthlyReportData) {
-  const Y = 38;
-  const H = 48;
+export function drawHeroSummaryCard(doc: jsPDF, data: MonthlyReportData, y: number = 32) {
+  const H = 34;
 
-  // Draw Neobrutalist card with Norden Yellow background
-  drawNeobrutalistCard(doc, 15, Y, 180, H, [255, 224, 102]);
+  drawNeobrutalistCard(doc, 15, y, 180, H, [255, 224, 102]);
 
-  // Sparkle icon in dark/black
-  doc.setFillColor(17, 17, 17);
-  drawSparkle(doc, 21, Y + 6.5, 2.5, 2.5);
+  drawSparkle(doc, 20, y + 5.5, 2, 2);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(9.5);
   doc.setTextColor(17, 17, 17);
-  doc.text('Ringkasan Keuangan Anda', 26, Y + 7.5);
+  doc.text('Ringkasan Eksekutif Arus Kas', 24, y + 6.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(60, 60, 60);
-  doc.text('Berikut adalah ringkasan performa keuangan Anda untuk bulan ini.', 26, Y + 12.2);
+  doc.text('Performa konsolidasi mutasi dan likuiditas dana untuk bulan ini.', 24, y + 10.5);
 
-  // 5 metric columns
-  const metricY = Y + 25;
+  // 5 Columns
   const W = 36;
   const centers = [33, 69, 105, 141, 177];
-  const labels = ['TRANSAKSI', 'TOTAL INCOME', 'TOTAL EXPENSE', 'TRANSFER VOL.', 'CASHFLOW'];
+  const labels = ['TRANSAKSI', 'TOTAL MASUK', 'TOTAL KELUAR', 'VOLUME TRANSFER', 'ARUS KAS BERSIH'];
   const values = [
-    String(data.totalTransactions),
+    `${data.totalTransactions}`,
     formatCurrency(data.totalIncome),
     formatCurrency(data.totalExpense),
     formatCurrency(data.transferVolume),
     formatCurrency(data.cashflow),
   ];
-  
-  // High contrast neobrutalist colors for readability
-  const colors: [number, number, number][] = [
-    [17, 17, 17],       // Transaksi (black)
-    [27, 94, 32],       // Income (dark green)
-    [183, 28, 28],      // Expense (dark red)
-    [13, 71, 161],      // Transfer (dark blue)
-    data.cashflow >= 0 ? [27, 94, 32] : [183, 28, 28], // Cashflow (dark green or red)
-  ];
-  const subs = ['Transaksi', '', '', '', ''];
 
-  // Dividers
+  const colors: [number, number, number][] = [
+    [17, 17, 17],
+    [21, 128, 61],
+    [185, 28, 28],
+    [29, 78, 216],
+    data.cashflow >= 0 ? [21, 128, 61] : [185, 28, 28],
+  ];
+
+  // Column Dividers
   doc.setDrawColor(17, 17, 17);
   doc.setLineWidth(0.35);
-  for (let i = 1; i <= 4; i++) doc.line(15 + W * i, Y + 18, 15 + W * i, Y + 43);
+  for (let i = 1; i <= 4; i++) {
+    doc.line(15 + W * i, y + 15, 15 + W * i, y + 30);
+  }
 
   for (let i = 0; i < 5; i++) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(5.8);
+    doc.setFontSize(5.5);
     doc.setTextColor(80, 80, 80);
-    doc.text(labels[i], centers[i], metricY, { align: 'center' });
+    doc.text(labels[i], centers[i], y + 18, { align: 'center' });
 
     doc.setFont('helvetica', 'bold');
-    const valSize = i === 0 ? 13 : 9.5;
-    doc.setFontSize(valSize);
+    doc.setFontSize(i === 0 ? 11 : 8.5);
     doc.setTextColor(colors[i][0], colors[i][1], colors[i][2]);
-    doc.text(values[i], centers[i], metricY + 10, { align: 'center' });
-
-    if (subs[i]) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(80, 80, 80);
-      doc.text(subs[i], centers[i], metricY + 15, { align: 'center' });
-    }
+    doc.text(values[i], centers[i], y + 25.5, { align: 'center' });
   }
 }
 
 export function drawSectionTitle(doc: jsPDF, title: string, y: number) {
-  doc.setFillColor(244, 196, 48);
-  doc.rect(15, y, 1.6, 5, 'F');
+  doc.setFillColor(255, 224, 102);
+  doc.rect(15, y, 1.8, 4.5, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
+  doc.setFontSize(8.5);
   doc.setTextColor(17, 17, 17);
-  doc.text(title, 19.5, y + 3.8);
+  doc.text(title.toUpperCase(), 19, y + 3.4);
 }
 
 export function drawBalanceSummary(doc: jsPDF, data: MonthlyReportData, y: number) {
-  const H = 30;
+  const H = 23;
   const gap = 6;
+  const cardW = 87;
 
   // Card 1 — Saldo Dompet Aktif
-  drawNeobrutalistCard(doc, 15, y, 87, H, [255, 255, 255]);
+  drawNeobrutalistCard(doc, 15, y, cardW, H, [255, 255, 255]);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('Saldo Dompet Aktif', 22, y + 8);
+  doc.text('TOTAL SALDO DOMPET AKTIF', 21, y + 6);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
+  doc.setFontSize(12.5);
   doc.setTextColor(17, 17, 17);
-  doc.text(formatCurrency(data.activeWalletBalance), 22, y + 17);
+  doc.text(formatCurrency(data.activeWalletBalance), 21, y + 14);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
-  doc.setTextColor(120, 120, 120);
-  doc.text('Total saldo di semua dompet aktif', 22, y + 23);
+  doc.setFontSize(5.5);
+  doc.setTextColor(115, 115, 115);
+  doc.text('Konsolidasi saldo di seluruh rekening & e-wallet aktif', 21, y + 19);
 
   // Card 2 — Cashflow Bulan Ini
   const neg = data.cashflow < 0;
-  const bg: [number, number, number] = neg ? [255, 230, 230] : [220, 245, 225];
-  const valColor: [number, number, number] = neg ? [183, 28, 28] : [27, 94, 32];
-  const msg = neg ? 'Pengeluaran lebih besar dari pemasukan' : 'Pemasukan lebih besar dari pengeluaran';
+  const bg: [number, number, number] = neg ? [254, 242, 242] : [240, 253, 244];
+  const valColor: [number, number, number] = neg ? [185, 28, 28] : [21, 128, 61];
+  const msg = neg ? 'Peringatan: Pengeluaran melebihi pemasukan bulan ini' : 'Surplus: Pemasukan lebih besar dari pengeluaran';
 
-  drawNeobrutalistCard(doc, 15 + 87 + gap, y, 87, H, bg);
+  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, bg);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('Cashflow Bulan Ini', 115, y + 8);
+  doc.text('ARUS KAS BERSIH BULAN INI', 114, y + 6);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
+  doc.setFontSize(12.5);
   doc.setTextColor(valColor[0], valColor[1], valColor[2]);
-  doc.text(formatCurrency(data.cashflow), 115, y + 17);
+  doc.text(formatCurrency(data.cashflow), 114, y + 14);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
-  doc.setTextColor(80, 80, 80);
-  doc.text(msg, 115, y + 23);
+  doc.setFontSize(5.5);
+  doc.setTextColor(70, 70, 70);
+  doc.text(msg, 114, y + 19);
 }
 
 export function drawExpenseSection(doc: jsPDF, data: MonthlyReportData, y: number) {
-  const H = 38;
+  const H = 26;
   const gap = 6;
+  const cardW = 87;
 
-  // Left Card — Donut
-  drawNeobrutalistCard(doc, 15, y, 87, H, [255, 255, 255]);
+  // Left Card — Expense breakdown
+  drawNeobrutalistCard(doc, 15, y, cardW, H, [255, 255, 255]);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('Kategori Pengeluaran Terbesar', 22, y + 7);
+  doc.text('KATEGORI PENGELUARAN TERBESAR', 21, y + 6);
 
   if (data.totalExpense === 0) {
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(160, 160, 160);
-    doc.text('Belum ada data pengeluaran.', 58, y + 22, { align: 'center' });
+    doc.setFontSize(6.5);
+    doc.setTextColor(120, 120, 120);
+    doc.text('Belum ada data pengeluaran tercatat bulan ini.', 21, y + 14);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(5.5);
+    doc.setTextColor(140, 140, 140);
+    doc.text('Catat belanja harian untuk memetakan alokasi biaya.', 21, y + 19);
   } else {
-    const cx = 36, cy = y + 23, r = 11;
-    // Donut chart neobrutalist styling
-    drawWedge(doc, cx, cy, r, 0, 360, [240, 240, 240]);
+    const cx = 32, cy = y + 16, r = 8;
+    drawWedge(doc, cx, cy, r, 0, 360, [243, 244, 246]);
     drawWedge(doc, cx, cy, r, -90, -90 + data.largestExpensePercentage * 3.6, [255, 224, 102]);
     doc.setFillColor(255, 255, 255);
     doc.circle(cx, cy, r * 0.55, 'F');
 
-    // Central percentage text
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
+    doc.setFontSize(6.5);
     doc.setTextColor(17, 17, 17);
-    doc.text(`${data.largestExpensePercentage}%`, cx, cy + 2.5, { align: 'center' });
+    doc.text(`${data.largestExpensePercentage}%`, cx, cy + 2, { align: 'center' });
 
     // Legend
-    const lx = 54;
+    const lx = 46;
     doc.setFillColor(255, 224, 102);
     doc.setDrawColor(17, 17, 17);
-    doc.setLineWidth(0.4);
-    doc.rect(lx, y + 14, 3, 3, 'FD');
+    doc.setLineWidth(0.35);
+    doc.rect(lx, y + 11, 2.5, 2.5, 'FD');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7);
     doc.setTextColor(17, 17, 17);
     const catName = data.largestExpenseCategory || '-';
-    doc.text(catName.length > 12 ? catName.slice(0, 10) + '..' : catName, lx + 5, y + 16.5);
+    doc.text(catName.length > 14 ? catName.slice(0, 12) + '..' : catName, lx + 4.5, y + 13.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(17, 17, 17);
-    doc.text(formatCurrency(data.largestExpenseAmount), 97, y + 16.5, { align: 'right' });
+    doc.setFontSize(6.5);
+    doc.setTextColor(185, 28, 28);
+    doc.text(formatCurrency(data.largestExpenseAmount), 96, y + 13.5, { align: 'right' });
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
-    doc.setTextColor(120, 120, 120);
-    doc.text('Porsi total belanja', lx, y + 27);
+    doc.setFontSize(5.5);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Porsi terhadap total belanja', lx, y + 20);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
+    doc.setFontSize(6.5);
     doc.setTextColor(17, 17, 17);
-    doc.text(`${data.largestExpensePercentage}%`, 97, y + 27, { align: 'right' });
+    doc.text(`${data.largestExpensePercentage}%`, 96, y + 20, { align: 'right' });
   }
 
-  // Right Card — Cashflow & Savings Analysis
-  drawNeobrutalistCard(doc, 15 + 87 + gap, y, 87, H, [255, 255, 255]);
+  // Right Card — Cashflow & Savings Ratio
+  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, [255, 255, 255]);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('ANALISIS ALUR KAS & RASIO', 115, y + 7);
+  doc.text('ANALISIS ALUR KAS & RASIO TABUNGAN', 114, y + 6);
 
   if (data.totalIncome === 0) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
-    doc.setTextColor(130, 130, 130);
-    doc.text('Belum ada pendapatan tercatat bulan ini.', 115, y + 18);
+    doc.setTextColor(120, 120, 120);
+    doc.text('Belum ada pendapatan tercatat bulan ini.', 114, y + 14);
     doc.setFont('helvetica', 'italic');
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Catat pemasukan untuk memantau rasio tabungan.', 115, y + 24, { maxWidth: 75 });
+    doc.setFontSize(5.5);
+    doc.setTextColor(140, 140, 140);
+    doc.text('Input gaji/pemasukan untuk memantau rasio menabung.', 114, y + 19);
   } else {
     const expenseRatio = Math.round((data.totalExpense / data.totalIncome) * 100);
     const savingsRatio = 100 - expenseRatio;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6);
-    doc.setTextColor(120, 120, 120);
-    doc.text('RASIO PENGELUARAN', 115, y + 14);
-    doc.text('RASIO MENABUNG', 158, y + 14);
+    doc.setFontSize(5.5);
+    doc.setTextColor(115, 115, 115);
+    doc.text('RASIO BELANJA', 114, y + 12);
+    doc.text('RASIO MENABUNG', 155, y + 12);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(expenseRatio > 80 ? 183 : 17, expenseRatio > 80 ? 28 : 17, expenseRatio > 80 ? 28 : 17);
-    doc.text(`${expenseRatio}%`, 115, y + 21);
+    doc.setFontSize(10);
+    doc.setTextColor(expenseRatio > 80 ? 185 : 17, expenseRatio > 80 ? 28 : 17, expenseRatio > 80 ? 28 : 17);
+    doc.text(`${expenseRatio}%`, 114, y + 17.5);
 
-    doc.setTextColor(savingsRatio >= 20 ? 27 : 17, savingsRatio >= 20 ? 94 : 17, savingsRatio >= 20 ? 32 : 17);
-    doc.text(`${savingsRatio}%`, 158, y + 21);
+    doc.setTextColor(savingsRatio >= 20 ? 21 : 17, savingsRatio >= 20 ? 128 : 17, savingsRatio >= 20 ? 61 : 17);
+    doc.text(`${savingsRatio}%`, 155, y + 17.5);
 
-    // Dynamic advice sentence
     let advice = '';
-    if (savingsRatio >= 20) {
-      advice = 'Sangat baik! Anda berhasil menyisihkan >= 20% pendapatan.';
-    } else if (savingsRatio > 0) {
-      advice = 'Cukup sehat. Coba kurangi belanja non-primer agar rasio naik.';
-    } else {
-      advice = 'Peringatan: Belanja melebihi pemasukan (defisit)!';
-    }
+    if (savingsRatio >= 20) advice = 'Kondisi sehat! Anda berhasil menyisihkan >= 20% pendapatan.';
+    else if (savingsRatio > 0) advice = 'Cukup sehat. Kurangi belanja non-primer agar rasio naik.';
+    else advice = 'Peringatan: Belanja melebihi pemasukan (defisit)!';
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(5.8);
-    doc.setTextColor(80, 80, 80);
-    doc.text(advice, 115, y + 28, { maxWidth: 78 });
+    doc.setFontSize(5.5);
+    doc.setTextColor(70, 70, 70);
+    doc.text(advice, 114, y + 22, { maxWidth: 78 });
   }
 }
 
-export function drawRecentTransactions(doc: jsPDF, data: MonthlyReportData, y: number) {
+export function drawGoalsAndHealth(doc: jsPDF, data: MonthlyReportData, y: number) {
+  const H = 25;
+  const gap = 6;
+  const cardW = 87;
+
+  // Left Card — Score Card
+  drawNeobrutalistCard(doc, 15, y, cardW, H, [255, 255, 255]);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text('SKOR KESEHATAN FINANSIAL', 21, y + 6);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(17, 17, 17);
+  doc.text(`${data.financialHealthScore}`, 21, y + 15);
+
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text('/ 100', 21 + doc.getTextWidth(`${data.financialHealthScore}`) + 2, y + 15);
+
+  let statusText = 'Perlu Perhatian';
+  let statusBg: [number, number, number] = [254, 242, 242];
+  let statusBorder: [number, number, number] = [185, 28, 28];
+  if (data.financialHealthScore >= 80) {
+    statusText = 'Sangat Sehat';
+    statusBg = [240, 253, 244];
+    statusBorder = [21, 128, 61];
+  } else if (data.financialHealthScore >= 50) {
+    statusText = 'Cukup Sehat';
+    statusBg = [255, 251, 235];
+    statusBorder = [217, 119, 6];
+  }
+
+  const tw = doc.getTextWidth(statusText);
+  doc.setFillColor(statusBg[0], statusBg[1], statusBg[2]);
+  doc.setDrawColor(statusBorder[0], statusBorder[1], statusBorder[2]);
+  doc.setLineWidth(0.35);
+  doc.rect(21, y + 18, tw + 4, 4, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(5.5);
+  doc.setTextColor(statusBorder[0], statusBorder[1], statusBorder[2]);
+  doc.text(statusText, 23, y + 20.8);
+
+  // Right Card — Saving Goals
+  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, [255, 255, 255]);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text('TARGET TABUNGAN AKTIF', 114, y + 6);
+
+  if (data.savingGoals.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(6.5);
+    doc.setTextColor(130, 130, 130);
+    doc.text('Belum ada target tabungan aktif.', 114, y + 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Tambahkan target di tab Target & Utang untuk memantau progres.', 114, y + 19, { maxWidth: 75 });
+  } else {
+    const goals = data.savingGoals.slice(0, 2);
+    goals.forEach((goal, idx) => {
+      const gy = y + 12 + idx * 7.5;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(17, 17, 17);
+      const title = goal.title.length > 20 ? goal.title.slice(0, 18) + '..' : goal.title;
+      doc.text(title, 114, gy);
+
+      const barW = 46;
+      const barH = 2.2;
+      const barX = 114;
+      const barY = gy + 1.2;
+
+      doc.setFillColor(243, 244, 246);
+      doc.setDrawColor(17, 17, 17);
+      doc.setLineWidth(0.3);
+      doc.rect(barX, barY, barW, barH, 'FD');
+
+      const pct = goal.targetAmount > 0 ? Math.min(1, goal.currentAmount / goal.targetAmount) : 0;
+      if (pct > 0) {
+        doc.setFillColor(255, 224, 102);
+        doc.rect(barX, barY, barW * pct, barH, 'FD');
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5.5);
+      doc.setTextColor(60, 60, 60);
+      doc.text(`${Math.round(pct * 100)}%`, barX + barW + 2, barY + 1.8);
+    });
+  }
+}
+
+export function drawRecentTransactionsTable(doc: jsPDF, data: MonthlyReportData, y: number, transactions: MonthlyReportTransaction[] = data.recentTransactions) {
   let body: string[][];
-  const transactions = data.recentTransactions;
 
   if (transactions.length === 0) {
-    body = [['', '', 'Belum ada transaksi bulan ini.', '', '']];
+    body = [['-', '-', 'Belum ada transaksi mutasi bulan ini.', '-', '-']];
   } else {
     body = transactions.map(t => {
       const d = t.transactionDate ? new Date(t.transactionDate) : null;
@@ -487,38 +546,49 @@ export function drawRecentTransactions(doc: jsPDF, data: MonthlyReportData, y: n
         dateStr,
         typePrefix(t.type) + typeLabel(t.type),
         formatCurrency(t.amount),
-        t.category?.name || '-',
-        (t.note || '-').slice(0, 50),
+        t.category?.name || (t.type === 'transfer' ? 'Transfer' : 'Umum'),
+        (t.note || '-').slice(0, 45),
       ];
     });
   }
 
   autoTable(doc, {
     startY: y,
-    margin: { left: 15, right: 15 },
+    margin: { left: 15, right: 15, bottom: 26, top: 34 },
     head: [['TANGGAL', 'TIPE', 'JUMLAH', 'KATEGORI', 'CATATAN']],
     body,
     theme: 'grid',
+    didDrawPage: (hookData) => {
+      if (hookData.pageNumber > 2) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Lanjutan Buku Besar Transaksi — ${data.periodLabel}`, 15, 24);
+        doc.setDrawColor(210, 210, 210);
+        doc.setLineWidth(0.25);
+        doc.line(15, 27, 195, 27);
+      }
+    },
     headStyles: {
-      fillColor: [255, 224, 102], // Norden Yellow header
+      fillColor: [255, 224, 102],
       textColor: [17, 17, 17],
       fontStyle: 'bold',
-      fontSize: 6.5,
-      cellPadding: { top: 3.5, bottom: 3.5, left: 3, right: 3 },
+      fontSize: 6,
+      cellPadding: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
       lineWidth: 0.35,
       lineColor: [17, 17, 17],
     },
     bodyStyles: {
-      fontSize: 7,
+      fontSize: 6.5,
       textColor: [17, 17, 17],
-      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
+      cellPadding: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
       lineWidth: 0.35,
       lineColor: [17, 17, 17],
     },
     columnStyles: {
-      0: { cellWidth: 24 },
-      1: { cellWidth: 22 },
-      2: { cellWidth: 30, fontStyle: 'bold' },
+      0: { cellWidth: 22 },
+      1: { cellWidth: 20 },
+      2: { cellWidth: 28, fontStyle: 'bold' },
       3: { cellWidth: 26 },
       4: { cellWidth: 'auto' },
     },
@@ -528,163 +598,58 @@ export function drawRecentTransactions(doc: jsPDF, data: MonthlyReportData, y: n
           if (hook.column.index === 2) {
             hook.cell.styles.halign = 'center';
             hook.cell.styles.fontStyle = 'italic';
-            hook.cell.styles.textColor = [160, 160, 160];
+            hook.cell.styles.textColor = [140, 140, 140];
           }
           return;
         }
 
         const raw = String(hook.row.cells[1].raw);
         if (hook.column.index === 1 || hook.column.index === 2) {
-          if (raw.includes('Keluar')) hook.cell.styles.textColor = [183, 28, 28];
-          else if (raw.includes('Masuk')) hook.cell.styles.textColor = [27, 94, 32];
-          else if (raw.includes('Transfer')) hook.cell.styles.textColor = [13, 71, 161];
+          if (raw.includes('Keluar')) hook.cell.styles.textColor = [185, 28, 28];
+          else if (raw.includes('Masuk')) hook.cell.styles.textColor = [21, 128, 61];
+          else if (raw.includes('Transfer')) hook.cell.styles.textColor = [29, 78, 216];
         }
       }
     },
   });
 }
 
-export function drawGoalsAndHealth(doc: jsPDF, data: MonthlyReportData, y: number) {
-  const H = 28;
+export function drawPerformanceAndInsights(doc: jsPDF, data: MonthlyReportData, y: number) {
+  const H = 20;
   const gap = 6;
   const cardW = 87;
 
-  // Draw Score Card (Left)
-  drawNeobrutalistCard(doc, 15, y, cardW, H, [255, 255, 255]);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 100, 100);
-  doc.text('SKOR KESEHATAN FINANSIAL', 22, y + 8);
-
-  // Large score number
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(17, 17, 17);
-  doc.text(`${data.financialHealthScore}`, 22, y + 17);
-  
-  doc.setFontSize(9);
-  doc.setTextColor(120, 120, 120);
-  doc.text('/ 100', 22 + doc.getTextWidth(`${data.financialHealthScore}`) + 2, y + 17);
-
-  // Score description based on health
-  let statusText = 'Perlu Perhatian';
-  let statusBg = [255, 230, 230];
-  let statusBorder = [183, 28, 28];
-  if (data.financialHealthScore >= 80) {
-    statusText = 'Sangat Sehat';
-    statusBg = [220, 245, 225];
-    statusBorder = [27, 94, 32];
-  } else if (data.financialHealthScore >= 50) {
-    statusText = 'Cukup Sehat';
-    statusBg = [255, 243, 224];
-    statusBorder = [230, 81, 0];
-  }
-
-  // Draw status badge
-  const tw = doc.getTextWidth(statusText);
-  doc.setFillColor(statusBg[0], statusBg[1], statusBg[2]);
-  doc.setDrawColor(statusBorder[0], statusBorder[1], statusBorder[2]);
-  doc.setLineWidth(0.35);
-  doc.rect(22, y + 21, tw + 4, 4.5, 'FD');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6);
-  doc.setTextColor(statusBorder[0], statusBorder[1], statusBorder[2]);
-  doc.text(statusText, 24, y + 24.2);
-
-  // Draw Saving Goals Card (Right)
-  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, [255, 255, 255]);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 100, 100);
-  doc.text('TARGET TABUNGAN', 115, y + 8);
-
-  if (data.savingGoals.length === 0) {
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(6.5);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Belum ada target tabungan aktif.', 115, y + 16);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(5.5);
-    doc.setTextColor(160, 160, 160);
-    doc.text('Buat target tabungan di aplikasi untuk memantau progres.', 115, y + 21, { maxWidth: 75 });
-  } else {
-    // Render top 2 saving goals with custom visual progress bars
-    const goals = data.savingGoals.slice(0, 2);
-    goals.forEach((goal, idx) => {
-      const gy = y + 13 + idx * 8;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
-      doc.setTextColor(17, 17, 17);
-      const title = goal.title.length > 20 ? goal.title.slice(0, 18) + '..' : goal.title;
-      doc.text(title, 115, gy);
-
-      // Progress bar container (Neobrutalist track)
-      const barW = 45;
-      const barH = 2.5;
-      const barX = 115;
-      const barY = gy + 1.5;
-      
-      doc.setFillColor(245, 244, 240);
-      doc.setDrawColor(17, 17, 17);
-      doc.setLineWidth(0.35);
-      doc.rect(barX, barY, barW, barH, 'FD');
-      
-      const pct = goal.targetAmount > 0 ? Math.min(1, goal.currentAmount / goal.targetAmount) : 0;
-      if (pct > 0) {
-        doc.setFillColor(255, 224, 102); // Norden Yellow
-        doc.rect(barX, barY, barW * pct, barH, 'FD');
-      }
-
-      // Progress text
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(5.5);
-      doc.setTextColor(80, 80, 80);
-      const pctLabel = `${Math.round(pct * 100)}%`;
-      doc.text(pctLabel, barX + barW + 2, barY + 2.2);
-    });
-  }
-}
-
-export function drawAchievementsAndStreak(doc: jsPDF, data: MonthlyReportData, y: number) {
   const streakText = data.streak.currentStreak > 0
-    ? `${data.streak.currentStreak} hari berjalan (terbaik ${data.streak.longestStreak} hari).`
+    ? `${data.streak.currentStreak} hari aktif berturut-turut (terbaik ${data.streak.longestStreak} hari).`
     : 'Belum ada streak pencatatan bulan ini.';
   const achievementText = data.achievements.length > 0
-    ? data.achievements.slice(0, 3).map((achievement) => achievement.title).join(', ')
-    : 'Belum ada achievement bulan ini.';
+    ? data.achievements.slice(0, 2).map((a) => a.title).join(', ')
+    : 'Belum ada lencana baru.';
 
-  const H = 24;
-  drawNeobrutalistCard(doc, 15, y, 180, H, [255, 255, 255]);
-
+  // Left Card: Streak & Achievement
+  drawNeobrutalistCard(doc, 15, y, cardW, H, [255, 255, 255]);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('STREAK PENCATATAN', 22, y + 8);
-  doc.text('ACHIEVEMENT UNLOCKED', 105, y + 8);
+  doc.text('STREAK & LENCANA PENCAPAIAN', 21, y + 5.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6);
   doc.setTextColor(17, 17, 17);
-  doc.text(streakText, 22, y + 15, { maxWidth: 72 });
-  doc.text(achievementText, 105, y + 15, { maxWidth: 80 });
-}
+  doc.text(`🔥 ${streakText}`, 21, y + 11, { maxWidth: 78 });
+  doc.text(`🏆 ${achievementText}`, 21, y + 16, { maxWidth: 78 });
 
-export function drawMotivationBox(doc: jsPDF, y: number) {
-  const H = 18;
-  drawNeobrutalistCard(doc, 15, y, 180, H, [255, 247, 221]);
-
+  // Right Card: Financial Motivation
+  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, [255, 251, 235]);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(6.5);
   doc.setTextColor(17, 17, 17);
-  doc.text('Terus tingkatkan performa keuanganmu!', 22, y + 6.5);
+  doc.text('TIPS & INSIGHT FINANSIAL NORDEN', 114, y + 5.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(5.8);
   doc.setTextColor(60, 60, 60);
-  doc.text('Disiplin mencatat, bijak mengelola, dan konsisten menabung adalah kunci masa depan finansial yang lebih baik.', 22, y + 12);
+  doc.text('Disiplin mencatat pos jajan dan memisahkan rekening tabungan adalah kunci arus kas sehat tanpa takut bocor halus.', 114, y + 11, { maxWidth: 78 });
 }
 
 export function drawFooter(doc: jsPDF, data: MonthlyReportData) {
@@ -694,46 +659,46 @@ export function drawFooter(doc: jsPDF, data: MonthlyReportData) {
     const ph = doc.internal.pageSize.getHeight();
 
     // Divider
-    doc.setDrawColor(220, 220, 220);
+    doc.setDrawColor(210, 210, 210);
     doc.setLineWidth(0.25);
-    doc.line(15, ph - 23, 195, ph - 23);
+    doc.line(15, ph - 20, 195, ph - 20);
 
     // Generated label
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(5.5);
-    doc.setTextColor(160, 160, 160);
-    doc.text('Generated', 15, ph - 18.5);
+    doc.setFontSize(5);
+    doc.setTextColor(140, 140, 140);
+    doc.text('Generated via Norden Finance', 15, ph - 15.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.setTextColor(90, 90, 90);
-    doc.text(data.generatedDateLabel, 15, ph - 14.5);
+    doc.setFontSize(6);
+    doc.setTextColor(80, 80, 80);
+    doc.text(data.generatedDateLabel, 15, ph - 11.5);
 
     // Brand
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7);
     doc.setTextColor(17, 17, 17);
-    doc.text('Norden Finance', 15, ph - 8);
+    doc.text('Norden Finance', 15, ph - 6.5);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
-    doc.setTextColor(130, 130, 130);
-    doc.text('Track your money. Find your direction.', 38, ph - 8);
+    doc.setFontSize(5.5);
+    doc.setTextColor(120, 120, 120);
+    doc.text('• https://nordenfinance.site', 38, ph - 6.5);
 
-    // Right — Mini N-arrow logo
-    const lx = 188, ly = ph - 16;
+    // Mini icon logo
+    const lx = 188, ly = ph - 14;
     const { iconBase64 } = getLogoImages();
     if (iconBase64) {
-      doc.addImage(iconBase64, 'PNG', lx, ly, 7, 7);
+      doc.addImage(iconBase64, 'PNG', lx, ly, 6, 6);
     } else {
-      drawNordenLogo(doc, lx, ly, 7);
+      drawNordenLogo(doc, lx, ly, 6);
     }
 
     // Pagination
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.5);
-    doc.setTextColor(130, 130, 130);
-    doc.text(`Halaman ${i} dari ${total}`, 195, ph - 8, { align: 'right' });
+    doc.setFontSize(6);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Halaman ${i} dari ${total}`, 195, ph - 6.5, { align: 'right' });
   }
 }
 
@@ -742,44 +707,52 @@ export function drawFooter(doc: jsPDF, data: MonthlyReportData) {
 export function generateMonthlyReportPdf(data: MonthlyReportData): ArrayBuffer {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
+  const allTx = data.transactions && data.transactions.length > 0 ? data.transactions : data.recentTransactions;
+  const isCompactMode = allTx.length <= 4;
+
+  // 1. Header & Hero
   drawHeader(doc, data);
-  drawHeroSummaryCard(doc, data);
+  drawHeroSummaryCard(doc, data, 32);
 
-  drawSectionTitle(doc, 'Ringkasan Saldo', 92);
-  drawBalanceSummary(doc, data, 99);
+  // 2. Saldo & Arus Kas
+  drawSectionTitle(doc, 'Kondisi Kas & Likuiditas Dana', 70);
+  drawBalanceSummary(doc, data, 76);
 
-  drawSectionTitle(doc, 'Pengeluaran', 135);
-  drawExpenseSection(doc, data, 142);
+  // 3. Pengeluaran & Rasio
+  drawSectionTitle(doc, 'Pengeluaran & Rasio Tabungan', 103);
+  drawExpenseSection(doc, data, 109);
 
-  drawSectionTitle(doc, 'Transaksi Terbaru', 186);
-  drawRecentTransactions(doc, data, 193);
+  // 4. Target & Skor Kesehatan
+  drawSectionTitle(doc, 'Target & Skor Kesehatan Finansial', 139);
+  drawGoalsAndHealth(doc, data, 145);
 
-  const finalY = (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 220;
-  let nextY = finalY + 8;
-  if (nextY + 35 > 297 - 26) {
+  if (isCompactMode) {
+    // ─── SINGLE PAGE SMART FIT MODE (<= 5 Transaksi) ───
+    drawSectionTitle(doc, 'Mutasi Transaksi Bulan Ini', 174);
+    drawRecentTransactionsTable(doc, data, 180, allTx);
+
+    const finalY = (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 205;
+    const insightY = Math.max(finalY + 5, 208);
+
+    drawSectionTitle(doc, 'Performa & Insight Finansial', insightY);
+    drawPerformanceAndInsights(doc, data, insightY + 6);
+
+    drawFooter(doc, data);
+  } else {
+    // ─── MULTI PAGE EXECUTIVE MODE (> 5 Transaksi) ───
+    // Page 1 Finishes with Performance & Insights
+    drawSectionTitle(doc, 'Performa & Insight Finansial', 174);
+    drawPerformanceAndInsights(doc, data, 180);
+
+    // Page 2+: Dedicated Full Transaction Ledger
     doc.addPage();
-    nextY = 20;
-  }
-  drawSectionTitle(doc, 'Target & Kesehatan Finansial', nextY);
-  drawGoalsAndHealth(doc, data, nextY + 7);
-  
-  nextY = nextY + 7 + 28 + 8;
+    drawHeader(doc, data);
 
-  if (nextY + 24 > 297 - 26) {
-    doc.addPage();
-    nextY = 20;
-  }
-  drawAchievementsAndStreak(doc, data, nextY);
-  
-  nextY = nextY + 24 + 8;
+    drawSectionTitle(doc, 'Buku Besar Lengkap Mutasi Transaksi', 36);
+    drawRecentTransactionsTable(doc, data, 43, allTx);
 
-  if (nextY + 18 > 297 - 26) {
-    doc.addPage();
-    nextY = 20;
+    drawFooter(doc, data);
   }
-  drawMotivationBox(doc, nextY);
-
-  drawFooter(doc, data);
 
   return doc.output('arraybuffer');
 }

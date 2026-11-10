@@ -26,6 +26,7 @@ export async function updateBalance(name: string, amount: number, id?: string) {
     let type = 'bank';
     if (ewallets.includes(walletName)) type = 'ewallet';
     if (cashNames.includes(walletName)) type = 'cash';
+    if (walletName.includes('TABUNGAN') || walletName.includes('RENCANA') || walletName.includes('SIMPANAN')) type = 'savings';
 
     if (id) {
       // Update existing wallet
