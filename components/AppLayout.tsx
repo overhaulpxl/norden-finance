@@ -190,6 +190,18 @@ export default function AppLayout({
   const [historyView, setHistoryView] = useState<'table' | 'calendar' | 'timeline'>('table');
   const pullDistanceRef = useRef(0);
 
+  // Lock body scroll when mobile sidebar drawer is open to prevent background scrolling & gesture collision
+  useEffect(() => {
+    if (sidebarOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [sidebarOpen]);
+
   // Pull-to-Refresh & Auto-dismiss keyboard on mobile
   useEffect(() => {
     let startY = 0;
@@ -208,6 +220,12 @@ export default function AppLayout({
         }
       }
 
+      // Never trigger pull-to-refresh if touching inside sidebar aside or modal dialog
+      if (target?.closest('aside') || target?.closest('[role="dialog"]')) {
+        isPulling = false;
+        return;
+      }
+
       // Check if at top of page for pull-to-refresh
       if (window.scrollY <= 0 && e.touches.length === 1) {
         startY = e.touches[0].clientY;
@@ -218,7 +236,8 @@ export default function AppLayout({
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isPulling || window.scrollY > 0) return;
+      const target = e.target as HTMLElement | null;
+      if (!isPulling || window.scrollY > 0 || target?.closest('aside') || target?.closest('[role="dialog"]')) return;
       const currentY = e.touches[0].clientY;
       const diffY = currentY - startY;
       if (diffY > 0) {
@@ -388,18 +407,25 @@ export default function AppLayout({
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-slate-950/40 z-20 lg:hidden"
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out
-        lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] h-full max-h-dvh overflow-hidden transform transition-transform duration-300 ease-in-out
+        lg:translate-x-0 lg:w-64 lg:z-30
+        ${sidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none lg:pointer-events-auto'}
       `}>
-        <Sidebar user={user} activeTab={activeTab} setActiveTab={handleTabChange} onNewTransaction={() => { triggerHaptic('medium'); setShowModal(true); setSidebarOpen(false); }} levelInfo={levelInfo} />
+        <Sidebar
+          user={user}
+          activeTab={activeTab}
+          setActiveTab={handleTabChange}
+          onNewTransaction={() => { triggerHaptic('medium'); setShowModal(true); setSidebarOpen(false); }}
+          onClose={() => setSidebarOpen(false)}
+          levelInfo={levelInfo}
+        />
       </div>
 
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">

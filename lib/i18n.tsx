@@ -17,7 +17,7 @@ export const translations = {
     nav_help: 'Bantuan',
 
     // Header & Actions
-    btn_new_transaction: '+ Catat Transaksi',
+    btn_new_transaction: 'Catat Transaksi',
     btn_new_tx_short: '+ Catat',
     btn_hide_balance: 'Sembunyikan Saldo',
     btn_show_balance: 'Tampilkan Saldo',
@@ -122,7 +122,7 @@ export const translations = {
     nav_help: 'Help',
 
     // Header & Actions
-    btn_new_transaction: '+ New Transaction',
+    btn_new_transaction: 'New Transaction',
     btn_new_tx_short: '+ Record',
     btn_hide_balance: 'Hide Balance',
     btn_show_balance: 'Show Balance',

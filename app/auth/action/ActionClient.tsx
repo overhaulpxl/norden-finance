@@ -191,7 +191,7 @@ export default function ActionClient() {
       const origin =
         typeof window !== 'undefined' && window.location.origin
           ? window.location.origin
-          : 'https://nordenfinance.site';
+          : 'https://www.nordenfinance.site';
       await sendPasswordResetEmail(auth, restoredEmail, {
         url: `${origin}/auth/action`,
         handleCodeInApp: false,

@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
             value: 'nordenfinance.vercel.app',
           },
         ],
-        destination: 'https://nordenfinance.site/:path*',
+        destination: 'https://www.nordenfinance.site/:path*',
         permanent: true,
       },
     ];

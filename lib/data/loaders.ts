@@ -190,12 +190,9 @@ export async function getTrialDays(db: Db = prisma) {
 
 export async function getDashboardData(userId: string, db: Db = prisma) {
   const t0 = performance.now();
-  const profile = await getUserProfile(userId, db);
-  if (!profile) {
-    throw new Error('Profil tidak ditemukan.');
-  }
 
   const [
+    profile,
     transactions,
     balances,
     categories,
@@ -211,6 +208,7 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     reminders,
     portfolioSetting,
   ] = await Promise.all([
+    getUserProfile(userId, db),
     db.transaction.findMany({
       where: { userId, deletedAt: null },
       select: transactionListSelect,
@@ -260,6 +258,10 @@ export async function getDashboardData(userId: string, db: Db = prisma) {
     }),
     db.setting.findUnique({ where: { key: `portfolio_assets_${userId}` } }).catch(() => null),
   ]);
+
+  if (!profile) {
+    throw new Error('Profil tidak ditemukan.');
+  }
 
   const [achievements, entitlement] = await Promise.all([
     syncAchievements(db, userId, {

@@ -1,4 +1,4 @@
-export const DEFAULT_PUBLIC_APP_URL = 'https://nordenfinance.site';
+export const DEFAULT_PUBLIC_APP_URL = 'https://www.nordenfinance.site';
 
 export function getPublicAppUrl(fallback = DEFAULT_PUBLIC_APP_URL) {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
