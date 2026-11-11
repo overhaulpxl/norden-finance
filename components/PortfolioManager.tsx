@@ -154,6 +154,8 @@ export default function PortfolioManager({
   const [formCurrentPrice, setFormCurrentPrice] = useState('');
   const [formNotes, setFormNotes] = useState('');
   const [fetchingQuote, setFetchingQuote] = useState(false);
+  const [quoteSource, setQuoteSource] = useState<string | null>(null);
+  const lastFetchedKeyRef = React.useRef<string>('');
 
   // Revaluation Quick Modal
   const [revalAsset, setRevalAsset] = useState<PortfolioAsset | null>(null);
@@ -212,16 +214,81 @@ export default function PortfolioManager({
     triggerHaptic('light');
     setEditingAssetId(null);
     setFormClass(presetClass);
-    setFormName(presetClass === 'emas' ? 'Emas Batangan' : '');
-    setFormSymbol(presetClass === 'emas' ? 'XAU' : '');
+    const initialName =
+      presetClass === 'emas'
+        ? 'Emas Murni'
+        : presetClass === 'kripto'
+        ? 'Bitcoin'
+        : presetClass === 'saham'
+        ? 'Bank Central Asia'
+        : presetClass === 'reksadana'
+        ? 'AXA Saham Dinamis'
+        : '';
+    const initialSymbol =
+      presetClass === 'emas'
+        ? 'XAU'
+        : presetClass === 'kripto'
+        ? 'BTC'
+        : presetClass === 'saham'
+        ? 'BBCA'
+        : presetClass === 'reksadana'
+        ? 'BRK11'
+        : '';
+    setFormName(initialName);
+    setFormSymbol(initialSymbol);
     setFormInstitution('');
     setFormQuantity('1');
     setFormUnit(ASSET_CLASS_META[presetClass].defaultUnit);
     setFormBuyPrice('');
     setFormCurrentPrice('');
     setFormNotes('');
+    setQuoteSource(null);
     setError(null);
     setModalOpen(true);
+
+    if (initialSymbol || initialName) {
+      fetchLiveQuoteNow(presetClass, initialSymbol, initialName);
+    }
+  };
+
+  // Immediate live quote fetcher without debounce
+  const fetchLiveQuoteNow = async (assetClass: AssetClass, symbol: string, name: string) => {
+    if (assetClass !== 'emas' && assetClass !== 'saham' && assetClass !== 'kripto' && assetClass !== 'reksadana') {
+      setQuoteSource(null);
+      return;
+    }
+    const cleanSymbol = symbol.trim();
+    const cleanName = name.trim();
+    if (!cleanSymbol && !cleanName) return;
+
+    const currentKey = `${assetClass}:${cleanSymbol}:${cleanName}`;
+    lastFetchedKeyRef.current = currentKey;
+    setFetchingQuote(true);
+
+    try {
+      const params = new URLSearchParams({
+        assetClass,
+        symbol: cleanSymbol,
+        name: cleanName,
+      });
+      const res = await fetch(`/api/market/quote?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        const quote = data?.quote;
+        if (quote?.priceIdr) {
+          setFormCurrentPrice(formatRupiahInput(quote.priceIdr));
+          setFormBuyPrice((prev) => (!prev || prev === '0' ? formatRupiahInput(quote.priceIdr) : prev));
+          setQuoteSource(quote.source || 'Live Market');
+          setError(null);
+          return;
+        }
+      }
+      setQuoteSource(null);
+    } catch {
+      setQuoteSource(null);
+    } finally {
+      setFetchingQuote(false);
+    }
   };
 
   // Open Edit Modal
@@ -237,51 +304,69 @@ export default function PortfolioManager({
     setFormBuyPrice(formatRupiahInput(asset.buyPrice));
     setFormCurrentPrice(formatRupiahInput(asset.currentPrice));
     setFormNotes(asset.notes || '');
+    setQuoteSource(null);
+    lastFetchedKeyRef.current = `${asset.assetClass}:${asset.symbol || ''}:${asset.name}`;
     setError(null);
     setModalOpen(true);
   };
 
-  // Auto fetch live quote in form
-  const handleFetchLiveQuote = async () => {
-    const symbolOrName = formSymbol.trim() || formName.trim();
-    if (!symbolOrName) {
-      setError(isId ? 'Masukkan nama atau ticker/simbol terlebih dahulu' : 'Enter asset name or ticker symbol first');
+  // Debounced auto-fetch live quote as user types ticker or asset name
+  React.useEffect(() => {
+    if (!modalOpen) return;
+    if (formClass !== 'emas' && formClass !== 'saham' && formClass !== 'kripto' && formClass !== 'reksadana') {
       return;
     }
 
-    setFetchingQuote(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({
-        assetClass: formClass,
-        symbol: formSymbol.trim(),
-        name: formName.trim(),
-      });
-      const res = await fetch(`/api/market/quote?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        const quote = data?.quote;
-        if (quote?.priceIdr) {
-          setFormCurrentPrice(formatRupiahInput(quote.priceIdr));
-          if (!formBuyPrice) {
-            setFormBuyPrice(formatRupiahInput(quote.priceIdr));
-          }
-          if (quote.symbol && !formSymbol) {
-            setFormSymbol(quote.symbol);
-          }
-          triggerHaptic('success');
-        } else {
-          setError(isId ? 'Harga live belum ditemukan untuk simbol ini' : 'Live price not found for this symbol');
-        }
-      } else {
-        setError(isId ? 'Gagal mengambil harga live' : 'Failed to fetch live quote');
-      }
-    } catch {
-      setError(isId ? 'Koneksi harga pasar terganggu' : 'Market connection failed');
-    } finally {
-      setFetchingQuote(false);
+    const cleanSymbol = formSymbol.trim();
+    const cleanName = formName.trim();
+    if (!cleanSymbol && !cleanName) {
+      return;
     }
-  };
+
+    const currentKey = `${formClass}:${cleanSymbol}:${cleanName}`;
+    if (lastFetchedKeyRef.current === currentKey) {
+      return;
+    }
+
+    let isCancelled = false;
+    const timer = setTimeout(async () => {
+      setFetchingQuote(true);
+      try {
+        const params = new URLSearchParams({
+          assetClass: formClass,
+          symbol: cleanSymbol,
+          name: cleanName,
+        });
+        const res = await fetch(`/api/market/quote?${params.toString()}`);
+        if (!isCancelled && res.ok) {
+          const data = await res.json();
+          const quote = data?.quote;
+          if (quote?.priceIdr) {
+            lastFetchedKeyRef.current = currentKey;
+            setFormCurrentPrice(formatRupiahInput(quote.priceIdr));
+            setFormBuyPrice((prev) => (!prev || prev === '0' ? formatRupiahInput(quote.priceIdr) : prev));
+            setQuoteSource(quote.source || 'Live Market');
+            setError(null);
+          } else {
+            setQuoteSource(null);
+          }
+        } else if (!isCancelled) {
+          setQuoteSource(null);
+        }
+      } catch {
+        if (!isCancelled) setQuoteSource(null);
+      } finally {
+        if (!isCancelled) {
+          setFetchingQuote(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [modalOpen, formClass, formSymbol, formName]);
 
   // Trigger bulk refresh of live prices
   const handleRefreshAllLivePrices = async () => {
@@ -891,9 +976,28 @@ export default function PortfolioManager({
                           setFormClass(ac);
                           if (!editingAssetId) {
                             setFormUnit(meta.defaultUnit);
+                            let nextSymbol = '';
+                            let nextName = '';
                             if (ac === 'emas') {
-                              setFormSymbol('XAU');
-                              setFormName('Emas Batangan');
+                              nextSymbol = 'XAU';
+                              nextName = 'Emas Murni';
+                            } else if (ac === 'kripto') {
+                              nextSymbol = 'BTC';
+                              nextName = 'Bitcoin';
+                            } else if (ac === 'saham') {
+                              nextSymbol = 'BBCA';
+                              nextName = 'Bank Central Asia';
+                            } else if (ac === 'reksadana') {
+                              nextSymbol = 'BRK11';
+                              nextName = 'AXA Saham Dinamis';
+                            }
+                            setFormSymbol(nextSymbol);
+                            setFormName(nextName);
+                            setFormBuyPrice('');
+                            setFormCurrentPrice('');
+                            setQuoteSource(null);
+                            if (nextSymbol || nextName) {
+                              fetchLiveQuoteNow(ac, nextSymbol, nextName);
                             }
                           }
                         }}
@@ -942,15 +1046,25 @@ export default function PortfolioManager({
                     <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
                       {isId ? 'Ticker / Simbol' : 'Ticker / Symbol'}
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleFetchLiveQuote}
-                      disabled={fetchingQuote}
-                      className="text-[9px] font-black uppercase underline hover:opacity-80 transition-opacity text-blue-600 dark:text-blue-400 cursor-pointer flex items-center gap-1"
-                    >
-                      {fetchingQuote && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
-                      <span>{isId ? 'Ambil Harga Live' : 'Fetch Quote'}</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {fetchingQuote && (
+                        <span className="text-[9px] font-black uppercase text-amber-500 dark:text-amber-400 flex items-center gap-1">
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                          <span>{isId ? 'Sinkron harga...' : 'Fetching...'}</span>
+                        </span>
+                      )}
+                      {!fetchingQuote && quoteSource && (
+                        <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          <Check className="w-2.5 h-2.5 stroke-[3px]" />
+                          <span>{isId ? 'Harga Live' : 'Live Quote'}</span>
+                        </span>
+                      )}
+                      {!fetchingQuote && !quoteSource && (
+                        <span className="text-[9px] font-bold text-neutral-400 dark:text-neutral-500 uppercase">
+                          {isId ? 'Auto-Sync' : 'Auto-Sync'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <input
                     type="text"
@@ -967,6 +1081,119 @@ export default function PortfolioManager({
                     onChange={(e) => setFormSymbol(e.target.value.toUpperCase())}
                     className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none uppercase"
                   />
+
+                  {/* Quick-select chips */}
+                  {formClass === 'kripto' && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {['BTC', 'ETH', 'SOL', 'BNB', 'DOGE', 'XRP'].map((coin) => (
+                        <button
+                          key={coin}
+                          type="button"
+                          onClick={() => {
+                            setFormSymbol(coin);
+                            let coinName = 'Bitcoin';
+                            if (coin === 'ETH') coinName = 'Ethereum';
+                            else if (coin === 'SOL') coinName = 'Solana';
+                            else if (coin === 'BNB') coinName = 'BNB';
+                            else if (coin === 'DOGE') coinName = 'Dogecoin';
+                            else if (coin === 'XRP') coinName = 'XRP';
+                            setFormName(coinName);
+                            fetchLiveQuoteNow('kripto', coin, coinName);
+                          }}
+                          className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
+                            formSymbol === coin
+                              ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
+                              : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                          }`}
+                        >
+                          {coin}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {formClass === 'saham' && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {[
+                        { s: 'BBCA', n: 'Bank Central Asia' },
+                        { s: 'BBRI', n: 'Bank Rakyat Indonesia' },
+                        { s: 'BMRI', n: 'Bank Mandiri' },
+                        { s: 'TLKM', n: 'Telkom Indonesia' },
+                        { s: 'ASII', n: 'Astra International' },
+                        { s: 'BBNI', n: 'Bank Negara Indonesia' },
+                      ].map((st) => (
+                        <button
+                          key={st.s}
+                          type="button"
+                          onClick={() => {
+                            setFormSymbol(st.s);
+                            setFormName(st.n);
+                            fetchLiveQuoteNow('saham', st.s, st.n);
+                          }}
+                          className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
+                            formSymbol === st.s
+                              ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
+                              : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                          }`}
+                        >
+                          {st.s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {formClass === 'emas' && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {[
+                        { s: 'XAU', n: 'Emas Murni' },
+                        { s: 'ANTAM', n: 'Antam Logam Mulia' },
+                      ].map((g) => (
+                        <button
+                          key={g.s}
+                          type="button"
+                          onClick={() => {
+                            setFormSymbol(g.s);
+                            setFormName(g.n);
+                            fetchLiveQuoteNow('emas', g.s, g.n);
+                          }}
+                          className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
+                            formSymbol === g.s
+                              ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
+                              : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                          }`}
+                        >
+                          {g.s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {formClass === 'reksadana' && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {[
+                        { s: 'BRK11', n: 'AXA Saham Dinamis' },
+                        { s: 'SUCOR', n: 'Sucorinvest Stable Fund' },
+                        { s: 'BATAVIA', n: 'Batavia Dana Saham' },
+                      ].map((r) => (
+                        <button
+                          key={r.s}
+                          type="button"
+                          onClick={() => {
+                            setFormSymbol(r.s);
+                            setFormName(r.n);
+                            fetchLiveQuoteNow('reksadana', r.s, r.n);
+                          }}
+                          className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
+                            formSymbol === r.s
+                              ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
+                              : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                          }`}
+                        >
+                          {r.s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1055,6 +1282,56 @@ export default function PortfolioManager({
                   />
                 </div>
               </div>
+
+              {/* Real-time Dynamic Calculation Preview */}
+              {(() => {
+                const previewQty = parseFloat(formQuantity) || 0;
+                const previewBuy = parseRupiahInput(formBuyPrice) || 0;
+                const previewCur = parseRupiahInput(formCurrentPrice) || 0;
+                const previewTotalVal = previewQty * previewCur;
+                const previewTotalCost = previewQty * previewBuy;
+                const previewProfit = previewTotalVal - previewTotalCost;
+                const previewPct = previewTotalCost > 0 ? (previewProfit / previewTotalCost) * 100 : 0;
+
+                if (previewQty <= 0 || previewCur <= 0) return null;
+
+                return (
+                  <div className="p-2.5 bg-neutral-100 dark:bg-neutral-800/90 border-2 border-black dark:border-neutral-700 rounded-none flex items-center justify-between text-xs shadow-[2px_2px_0px_0px_#000]">
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-neutral-500 block">
+                        {isId ? 'Total Nilai Pasar' : 'Total Market Value'}
+                      </span>
+                      <span className="font-black text-sm text-black dark:text-white font-mono">
+                        {formatRupiah(previewTotalVal)}
+                      </span>
+                      <span className="text-[9px] font-bold text-neutral-500 block">
+                        {formQuantity} {formUnit} × {formatRupiah(previewCur)}
+                      </span>
+                    </div>
+                    {previewTotalCost > 0 && (
+                      <div className="text-right">
+                        <span className="text-[9px] font-black uppercase text-neutral-500 block">
+                          {isId ? 'Estimasi Untung/Rugi' : 'Estimated P/L'}
+                        </span>
+                        <span
+                          className={`font-black text-xs font-mono ${
+                            previewProfit >= 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`}
+                        >
+                          {previewProfit >= 0 ? '+' : ''}
+                          {formatRupiah(previewProfit)} ({previewProfit >= 0 ? '+' : ''}
+                          {previewPct.toFixed(1)}%)
+                        </span>
+                        <span className="text-[9px] font-bold text-neutral-500 block">
+                          {isId ? 'Modal' : 'Cost'}: {formatRupiah(previewTotalCost)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Optional Notes */}
               <div>
