@@ -7,7 +7,7 @@ import { Transaction, Balance, SavingGoal, Debt, WishlistItem, Paylater, Budget,
 import Sidebar from './Sidebar';
 import OverviewLayout from './OverviewLayout';
 import BrandLogo from './BrandLogo';
-import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search, Repeat2, FileText, Settings, HelpCircle, Loader2, ArrowDown } from 'lucide-react';
+import { Menu, Eye, EyeOff, Home, Wallet, Target, History, Plus, Search, Repeat2, FileText, Settings, HelpCircle, Loader2, ArrowDown, Calendar, Clock, Table } from 'lucide-react';
 const WelcomeToast = dynamic(() => import('./WelcomeToast'), {
   ssr: false,
 });
@@ -482,7 +482,7 @@ export default function AppLayout({
               </button>
 
               {/* Language Switcher [ ID | EN ] */}
-              <div className="flex border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] bg-white dark:bg-neutral-800 text-[11px] font-black uppercase tracking-wider overflow-hidden">
+              <div className="flex border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] bg-white dark:bg-neutral-800 text-[11px] font-black uppercase tracking-wider overflow-hidden">
                 <button
                   type="button"
                   onClick={() => { triggerHaptic('selection'); setLang('id'); }}
@@ -507,25 +507,25 @@ export default function AppLayout({
 
               {/* Level and PRO badge (Desktop only) */}
               <div className="hidden sm:flex items-center gap-2">
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] text-black ${levelInfo.color}`}>
+                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] text-black ${levelInfo.color}`}>
                   Lvl {levelInfo.level}: {levelInfo.name}
                 </span>
                 {user.effectivePlan === 'PRO_ACTIVE' && (
                   <span
-                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1"
+                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] flex items-center gap-1"
                     style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
                   >
-                    👑 PRO
+                    PRO
                   </span>
                 )}
                 {user.effectivePlan === 'PRO_PENDING' && (
-                  <span className="bg-amber-200 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
-                    ⏳ PRO (REVIEW)
+                  <span className="bg-amber-200 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                    PRO (REVIEW)
                   </span>
                 )}
                 {user.effectivePlan === 'FREE_BASIC' && (
-                  <span className="bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
-                    🌱 FREE BASIC
+                  <span className="bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                    FREE BASIC
                   </span>
                 )}
               </div>
@@ -546,12 +546,12 @@ export default function AppLayout({
           {/* Tier 2: Mobile Dedicated Full-Width Page Title Card (Tap to scroll to top) */}
           <div 
             onClick={scrollToTop}
-            className="lg:hidden mt-3 brutal-card p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_#000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px] transition-transform select-none"
+            className="lg:hidden mt-3 brutal-card p-3 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 flex items-center justify-between shadow-[2.5px_2.5px_0px_0px_#000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px] transition-transform select-none rounded-none"
             title={lang === 'en' ? 'Tap to scroll to top' : 'Ketuk untuk kembali ke atas'}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className="p-1.5 rounded-lg border border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_#000] shrink-0"
+                className="p-1.5 rounded-none border border-black dark:border-neutral-700 shadow-[1px_1px_0px_0px_#000] shrink-0"
                 style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
               >
                 {activeTab === 'overview' && <Home className="w-4 h-4 stroke-[2.5px]" />}
@@ -569,15 +569,15 @@ export default function AppLayout({
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-md shadow-[1px_1px_0px_0px_#000] text-black ${levelInfo.color}`}>
+              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-none shadow-[1px_1px_0px_0px_#000] text-black ${levelInfo.color}`}>
                 Lvl {levelInfo.level}
               </span>
               {user.effectivePlan === 'PRO_ACTIVE' && (
                 <span
-                  className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-md shadow-[1px_1px_0px_0px_#000]"
+                  className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-black rounded-none shadow-[1px_1px_0px_0px_#000]"
                   style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
                 >
-                  PRO 👑
+                  PRO
                 </span>
               )}
             </div>
@@ -631,20 +631,20 @@ export default function AppLayout({
           {activeTab === 'history' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000]">
+                <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2.5px_2.5px_0px_0px_#000]">
                   <button
                     type="button"
                     onClick={() => {
                       triggerHaptic('selection');
                       setHistoryView('table');
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-none text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
                       historyView === 'table'
                         ? 'bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]'
                         : 'text-neutral-500 hover:text-black dark:hover:text-white'
                     }`}
                   >
-                    <span>📑</span>
+                    <Table className="w-3.5 h-3.5 stroke-[2.5px]" />
                     <span>{lang === 'id' ? 'Tabel Mutasi' : 'Table'}</span>
                   </button>
 
@@ -654,13 +654,13 @@ export default function AppLayout({
                       triggerHaptic('selection');
                       setHistoryView('calendar');
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-none text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
                       historyView === 'calendar'
                         ? 'bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]'
                         : 'text-neutral-500 hover:text-black dark:hover:text-white'
                     }`}
                   >
-                    <span>📅</span>
+                    <Calendar className="w-3.5 h-3.5 stroke-[2.5px]" />
                     <span>{lang === 'id' ? 'Kalender Arus Kas' : 'Cashflow Calendar'}</span>
                   </button>
 
@@ -670,13 +670,13 @@ export default function AppLayout({
                       triggerHaptic('selection');
                       setHistoryView('timeline');
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-none text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
                       historyView === 'timeline'
                         ? 'bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]'
                         : 'text-neutral-500 hover:text-black dark:hover:text-white'
                     }`}
                   >
-                    <span>⏳</span>
+                    <Clock className="w-3.5 h-3.5 stroke-[2.5px]" />
                     <span>{lang === 'id' ? 'Lini Masa' : 'Timeline'}</span>
                   </button>
                 </div>

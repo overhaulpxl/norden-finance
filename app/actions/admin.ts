@@ -127,13 +127,7 @@ export async function approvePaymentRequest(requestId: string) {
         throw new Error('Permintaan pembayaran ini sudah diproses atau tidak lagi valid.');
       }
 
-      // 2. Update user profile to Pro plan
-      await tx.profile.update({
-        where: { userId: request.userId },
-        data: { plan: PlanType.pro },
-      });
-
-      // 3. Upsert subscription billing details (preserve already-paid future time upon renewal)
+      // 2. Upsert subscription billing details (preserve already-paid future time upon renewal)
       const billingDays = request.billingType === 'monthly' ? 30 : 365;
 
       const existingBilling = await tx.billingSubscription.findFirst({
@@ -156,6 +150,15 @@ export async function approvePaymentRequest(requestId: string) {
 
       const expiredAt = new Date(baseDate);
       expiredAt.setDate(expiredAt.getDate() + billingDays);
+
+      // Update user profile to Pro plan and sync expiry timestamp
+      await tx.profile.update({
+        where: { userId: request.userId },
+        data: {
+          plan: PlanType.pro,
+          trialEndsAt: expiredAt,
+        },
+      });
 
       if (existingBilling) {
         await tx.billingSubscription.update({
@@ -314,6 +317,8 @@ export async function updateUserPlanManually(targetUserId: string, newPlan: Plan
 
       if (newPlan === PlanType.pro && existingBilling && existingBilling.expiredAt && existingBilling.expiredAt > new Date()) {
         baseDate = new Date(existingBilling.expiredAt);
+      } else if (newPlan === PlanType.trial && targetProfile.trialEndsAt && targetProfile.trialEndsAt > new Date()) {
+        baseDate = new Date(targetProfile.trialEndsAt);
       }
 
       const expiredAt = new Date(baseDate);

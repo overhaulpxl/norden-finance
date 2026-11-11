@@ -349,12 +349,14 @@ export async function savePortfolioAsset(data: {
   id?: string;
   name: string;
   assetClass: import('../types').AssetClass;
+  symbol?: string;
   quantity: number;
   unit: string;
   buyPrice: number;
   currentPrice: number;
   institution?: string;
   notes?: string;
+  lastPriceUpdate?: string | null;
 }) {
   const { savePortfolioAsset: saveFn } = await import('./actions/portfolio');
   return saveFn(data);
@@ -368,4 +370,9 @@ export async function deletePortfolioAsset(id: string) {
 export async function revaluePortfolioAsset(id: string, newCurrentPrice: number) {
   const { revaluePortfolioAsset: revFn } = await import('./actions/portfolio');
   return revFn(id, newCurrentPrice);
+}
+
+export async function refreshPortfolioLivePrices() {
+  const { refreshPortfolioLivePrices: refreshFn } = await import('./actions/portfolio');
+  return refreshFn();
 }

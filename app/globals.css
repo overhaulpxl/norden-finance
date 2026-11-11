@@ -77,7 +77,7 @@
   .brutal-card {
     background-color: #ffffff;
     border: 2px solid #000000;
-    border-radius: 14px !important;
+    border-radius: 0px !important;
     box-shadow: 3px 3px 0px 0px #000000;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -95,7 +95,7 @@
   .brutal-card-static {
     background-color: #ffffff;
     border: 2px solid #000000;
-    border-radius: 14px !important;
+    border-radius: 0px !important;
     box-shadow: 3px 3px 0px 0px #000000;
   }
   .dark .brutal-card-static {
@@ -126,7 +126,7 @@
     background-color: #000000;
     color: #ffffff;
     border: 2px solid #000000;
-    border-radius: 12px !important;
+    border-radius: 0px !important;
     padding: 0.625rem 1.25rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -162,7 +162,7 @@
     background-color: #ffffff;
     color: #000000;
     border: 2px solid #000000;
-    border-radius: 12px !important;
+    border-radius: 0px !important;
     padding: 0.625rem 1.25rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -199,7 +199,7 @@
     background-color: var(--theme-accent, #FFE066);
     color: var(--theme-accent-text, #000000);
     border: 2px solid #000000;
-    border-radius: 12px !important;
+    border-radius: 0px !important;
     padding: 0.625rem 1.25rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -234,7 +234,7 @@
     background-color: #dc2626;
     color: #ffffff;
     border: 2px solid #000000;
-    border-radius: 12px !important;
+    border-radius: 0px !important;
     padding: 0.625rem 1.25rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -276,7 +276,7 @@
     background-color: #ffffff;
     color: #000000;
     border: 2px solid #000000;
-    border-radius: 10px !important;
+    border-radius: 0px !important;
     padding: 0.625rem 1rem;
     font-weight: 700;
     outline: none;
@@ -310,7 +310,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     border: 1.5px solid #000000;
-    border-radius: 8px !important;
+    border-radius: 0px !important;
     box-shadow: 1.5px 1.5px 0px 0px #000000;
     line-height: 1;
     white-space: nowrap;
@@ -361,7 +361,7 @@
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 999px;
+  border-radius: 0px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;

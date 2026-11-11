@@ -452,7 +452,7 @@ export default function OverviewLayout({
             <span>{formattedMonth}</span>
           </div>
 
-          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-lg shadow-[1.5px_1.5px_0px_0px_#000] ${
+          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-none shadow-[1.5px_1.5px_0px_0px_#000] ${
             user.effectivePlan === 'PRO_ACTIVE'
               ? 'bg-[#FFE066] text-black'
               : user.effectivePlan === 'PRO_PENDING'
@@ -462,19 +462,19 @@ export default function OverviewLayout({
               : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200'
           }`}>
             {user.effectivePlan === 'PRO_ACTIVE'
-              ? 'PRO 👑'
+              ? 'PRO'
               : user.effectivePlan === 'PRO_PENDING'
-              ? 'PRO (REVIEW ⏳)'
+              ? 'PRO (REVIEW)'
               : user.effectivePlan === 'TRIAL'
-              ? 'TRIAL ⚡'
-              : 'FREE BASIC 🌱'}
+              ? 'TRIAL'
+              : 'FREE BASIC'}
           </span>
         </div>
 
         <button 
           type="button"
           onClick={handleToggleCustomize}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-none bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <span>{isCustomizing ? t('btn_done_save') : t('btn_customize_layout')}</span>

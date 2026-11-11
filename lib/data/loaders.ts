@@ -382,7 +382,7 @@ export async function getMonthlyReportData(userId: string, month: number, year: 
     .map(([name, amount]) => ({ name, amount }))
     .sort((a, b) => b.amount - a.amount)[0] || null;
   const largestExpenseAmount = largestExpense?.amount || 0;
-  const recentTransactions = transactions.slice(0, 20).map((transaction) => ({
+  const allTransactions = transactions.map((transaction) => ({
     id: transaction.id,
     transactionDate: transaction.transactionDate,
     type: transaction.type,
@@ -392,6 +392,7 @@ export async function getMonthlyReportData(userId: string, month: number, year: 
     wallet: transaction.wallet ? { name: transaction.wallet.name } : null,
     transferToWallet: transaction.transferToWallet ? { name: transaction.transferToWallet.name } : null,
   }));
+  const recentTransactions = allTransactions.slice(0, 20);
 
   return {
     userFullName: profile?.fullName || 'Pengguna Norden',
@@ -442,7 +443,7 @@ export async function getMonthlyReportData(userId: string, month: number, year: 
     topCategoryName: largestExpense?.name || '',
     topCategoryAmount: largestExpenseAmount,
     topCategoryPercent: totalExpense > 0 ? Math.round((largestExpenseAmount / totalExpense) * 100) : 0,
-    transactions: recentTransactions,
+    transactions: allTransactions,
   };
 }
 
@@ -488,6 +489,17 @@ export async function getAdminStats(db: Db = prisma) {
   const feedbacks = await db.feedback.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT });
   const listedUsers = await db.profile.findMany({ orderBy: { createdAt: 'desc' }, take: ADMIN_PAGE_LIMIT });
   const auditLogs = await db.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
+
+  const listedUserIds = listedUsers.map((u) => u.userId);
+  const activeSubscriptions = listedUserIds.length > 0
+    ? await db.billingSubscription.findMany({
+        where: {
+          userId: { in: listedUserIds },
+          status: 'active',
+        },
+        orderBy: { expiredAt: 'desc' },
+      })
+    : [];
 
   // Step 2: Consolidated retrieval of noncritical platform summary statistics
   // Wrapped in a dedicated error boundary to prevent whole-page crash if pool times out.
@@ -749,6 +761,7 @@ export async function getAdminStats(db: Db = prisma) {
     paymentRequests,
     feedbacks,
     listedUsers,
+    activeSubscriptions,
     auditLogs,
     platformStats,
     statsError,

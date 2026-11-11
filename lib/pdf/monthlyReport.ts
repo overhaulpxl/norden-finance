@@ -145,7 +145,7 @@ export function drawNordenLogo(doc: jsPDF, x: number, y: number, size: number) {
   doc.setFillColor(255, 224, 102);
   doc.setDrawColor(17, 17, 17);
   doc.setLineWidth(0.45);
-  doc.roundedRect(x, y, size, size, 1.2, 1.2, 'FD');
+  doc.rect(x, y, size, size, 'FD');
 
   const cx = x + size / 2;
   const cy = y + size / 2;
@@ -153,7 +153,7 @@ export function drawNordenLogo(doc: jsPDF, x: number, y: number, size: number) {
 
   doc.setLineWidth(size * 0.08);
   doc.setDrawColor(17, 17, 17);
-  doc.setLineCap('round');
+  doc.setLineCap('square');
 
   doc.line(cx - s, cy + s, cx - s, cy - s * 0.6);
   doc.line(cx - s, cy - s * 0.6, cx + s, cy + s);
@@ -172,16 +172,18 @@ export function drawHeader(doc: jsPDF, data: MonthlyReportData) {
   const { logoBase64 } = getLogoImages();
 
   if (logoBase64) {
-    doc.addImage(logoBase64, 'PNG', 15, 12, 32, 11);
+    const logoW = 32;
+    const logoH = (32 * 191) / 523; // exactly 11.69mm (523:191 ratio)
+    doc.addImage(logoBase64, 'PNG', 15, 11, logoW, logoH);
   } else {
-    drawNordenLogo(doc, 15, 12, 11);
+    drawNordenLogo(doc, 15, 11, 11);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(17, 17, 17);
-    doc.text('NORDEN', 28.5, 18.5);
+    doc.text('NORDEN', 28.5, 17.5);
     doc.setFontSize(6.5);
     doc.setTextColor(120, 120, 120);
-    doc.text('FINANCE', 28.5, 22.5);
+    doc.text('FINANCE', 28.5, 21.5);
   }
 
   // Right Header Info
@@ -218,17 +220,23 @@ export function drawHeroSummaryCard(doc: jsPDF, data: MonthlyReportData, y: numb
 
   drawNeobrutalistCard(doc, 15, y, 180, H, [255, 224, 102]);
 
-  drawSparkle(doc, 20, y + 5.5, 2, 2);
+  // Brutalist sharp badge
+  doc.setFillColor(17, 17, 17);
+  doc.rect(21, y + 4.5, 34, 4.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(5.5);
+  doc.setTextColor(255, 224, 102);
+  doc.text('RINGKASAN EKSEKUTIF', 38, y + 7.7, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
   doc.setTextColor(17, 17, 17);
-  doc.text('Ringkasan Eksekutif Arus Kas', 24, y + 6.5);
+  doc.text('Arus Kas & Likuiditas Bulanan', 59, y + 7.8);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(60, 60, 60);
-  doc.text('Performa konsolidasi mutasi dan likuiditas dana untuk bulan ini.', 24, y + 10.5);
+  doc.text('Performa konsolidasi mutasi dan likuiditas dana untuk bulan ini.', 21, y + 12.5);
 
   // 5 Columns
   const W = 36;
@@ -254,19 +262,19 @@ export function drawHeroSummaryCard(doc: jsPDF, data: MonthlyReportData, y: numb
   doc.setDrawColor(17, 17, 17);
   doc.setLineWidth(0.35);
   for (let i = 1; i <= 4; i++) {
-    doc.line(15 + W * i, y + 15, 15 + W * i, y + 30);
+    doc.line(15 + W * i, y + 16, 15 + W * i, y + 31);
   }
 
   for (let i = 0; i < 5; i++) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(5.5);
     doc.setTextColor(80, 80, 80);
-    doc.text(labels[i], centers[i], y + 18, { align: 'center' });
+    doc.text(labels[i], centers[i], y + 19, { align: 'center' });
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(i === 0 ? 11 : 8.5);
     doc.setTextColor(colors[i][0], colors[i][1], colors[i][2]);
-    doc.text(values[i], centers[i], y + 25.5, { align: 'center' });
+    doc.text(values[i], centers[i], y + 26.5, { align: 'center' });
   }
 }
 
@@ -302,28 +310,25 @@ export function drawBalanceSummary(doc: jsPDF, data: MonthlyReportData, y: numbe
   doc.setTextColor(115, 115, 115);
   doc.text('Konsolidasi saldo di seluruh rekening & e-wallet aktif', 21, y + 19);
 
-  // Card 2 — Cashflow Bulan Ini
-  const neg = data.cashflow < 0;
-  const bg: [number, number, number] = neg ? [254, 242, 242] : [240, 253, 244];
-  const valColor: [number, number, number] = neg ? [185, 28, 28] : [21, 128, 61];
-  const msg = neg ? 'Peringatan: Pengeluaran melebihi pemasukan bulan ini' : 'Surplus: Pemasukan lebih besar dari pengeluaran';
+  // Card 2 — Total Perputaran Dana (Gross Turnover - removes duplicate cashflow card)
+  const grossTurnover = data.totalIncome + data.totalExpense + data.transferVolume;
 
-  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, bg);
+  drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, [255, 255, 255]);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(6.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('ARUS KAS BERSIH BULAN INI', 114, y + 6);
+  doc.text('TOTAL PERPUTARAN DANA (GROSS TURNOVER)', 114, y + 6);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12.5);
-  doc.setTextColor(valColor[0], valColor[1], valColor[2]);
-  doc.text(formatCurrency(data.cashflow), 114, y + 14);
+  doc.setTextColor(17, 17, 17);
+  doc.text(formatCurrency(grossTurnover), 114, y + 14);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(5.5);
   doc.setTextColor(70, 70, 70);
-  doc.text(msg, 114, y + 19);
+  doc.text(`Akumulasi mutasi masuk, keluar, dan transfer selama ${data.monthName}`, 114, y + 19);
 }
 
 export function drawExpenseSection(doc: jsPDF, data: MonthlyReportData, y: number) {
@@ -636,20 +641,20 @@ export function drawPerformanceAndInsights(doc: jsPDF, data: MonthlyReportData, 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6);
   doc.setTextColor(17, 17, 17);
-  doc.text(`🔥 ${streakText}`, 21, y + 11, { maxWidth: 78 });
-  doc.text(`🏆 ${achievementText}`, 21, y + 16, { maxWidth: 78 });
+  doc.text(`[STREAK] ${streakText}`, 21, y + 11, { maxWidth: 78 });
+  doc.text(`[PENCAPAIAN] ${achievementText}`, 21, y + 16, { maxWidth: 78 });
 
   // Right Card: Financial Motivation
   drawNeobrutalistCard(doc, 15 + cardW + gap, y, cardW, H, [255, 251, 235]);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(6.5);
   doc.setTextColor(17, 17, 17);
-  doc.text('TIPS & INSIGHT FINANSIAL NORDEN', 114, y + 5.5);
+  doc.text('INSIGHT & DISIPLIN KEUANGAN', 114, y + 5.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(5.8);
   doc.setTextColor(60, 60, 60);
-  doc.text('Disiplin mencatat pos jajan dan memisahkan rekening tabungan adalah kunci arus kas sehat tanpa takut bocor halus.', 114, y + 11, { maxWidth: 78 });
+  doc.text('Konsistensi mencatat pos transaksi harian dan memisahkan alokasi tabungan adalah fondasi arus kas yang sehat dan tahan krisis.', 114, y + 11, { maxWidth: 78 });
 }
 
 export function drawFooter(doc: jsPDF, data: MonthlyReportData) {
@@ -683,7 +688,7 @@ export function drawFooter(doc: jsPDF, data: MonthlyReportData) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.5);
     doc.setTextColor(120, 120, 120);
-    doc.text('• https://nordenfinance.site', 38, ph - 6.5);
+    doc.text('• https://www.nordenfinance.site', 38, ph - 6.5);
 
     // Mini icon logo
     const lx = 188, ly = ph - 14;

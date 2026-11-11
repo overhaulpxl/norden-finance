@@ -180,7 +180,7 @@ export async function syncNotifications(userId: string) {
     if (goal.currentAmount >= goal.targetAmount) {
       await createNotificationIfUnique(
         'Target tabungan tercapai',
-        `🎉 Selamat! Target "${goal.title}" berhasil dicapai.`,
+        `Selamat! Target "${goal.title}" berhasil dicapai.`,
         'GOAL_REACHED'
       );
     }
@@ -249,7 +249,7 @@ export async function syncNotifications(userId: string) {
   for (const ach of achievements) {
     await createNotificationIfUnique(
       'Achievement unlocked',
-      `🏆 Selamat! Anda membuka pencapaian "${ach.title}": ${ach.description}`,
+      `Selamat! Anda membuka pencapaian "${ach.title}": ${ach.description}`,
       'ACHIEVEMENT'
     );
   }
@@ -259,7 +259,7 @@ export async function syncNotifications(userId: string) {
   if (streaks.current >= 3) {
     await createNotificationIfUnique(
       'Streak milestone',
-      `🔥 Keren! Anda mempertahankan streak mencatat keuangan selama ${streaks.current} hari berturut-turut.`,
+      `Target tercapai: Anda mempertahankan streak mencatat keuangan selama ${streaks.current} hari berturut-turut.`,
       'STREAK'
     );
   }

@@ -4,6 +4,7 @@ import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { revalidatePath } from 'next/cache';
 import type { PortfolioAsset, AssetClass } from '../../types';
+import { getLiveQuoteForAsset } from '../../lib/marketData';
 
 function getPortfolioSettingKey(userId: string) {
   return `portfolio_assets_${userId}`;
@@ -34,12 +35,14 @@ export async function savePortfolioAsset(data: {
   id?: string;
   name: string;
   assetClass: AssetClass;
+  symbol?: string;
   quantity: number;
   unit: string;
   buyPrice: number;
   currentPrice: number;
   institution?: string;
   notes?: string;
+  lastPriceUpdate?: string | null;
 }) {
   try {
     const { user } = await requireUser('basic');
@@ -73,12 +76,14 @@ export async function savePortfolioAsset(data: {
           ...assets[idx],
           name: data.name.trim(),
           assetClass: data.assetClass,
+          symbol: data.symbol?.trim() || undefined,
           quantity: data.quantity,
           unit: data.unit.trim() || 'unit',
           buyPrice: data.buyPrice,
           currentPrice: data.currentPrice,
           institution: data.institution?.trim() || undefined,
           notes: data.notes?.trim() || undefined,
+          lastPriceUpdate: data.lastPriceUpdate ?? assets[idx].lastPriceUpdate,
           updatedAt: now,
         };
       } else {
@@ -91,12 +96,14 @@ export async function savePortfolioAsset(data: {
         userId: user.uid,
         name: data.name.trim(),
         assetClass: data.assetClass,
+        symbol: data.symbol?.trim() || undefined,
         quantity: data.quantity,
         unit: data.unit.trim() || 'unit',
         buyPrice: data.buyPrice,
         currentPrice: data.currentPrice,
         institution: data.institution?.trim() || undefined,
         notes: data.notes?.trim() || undefined,
+        lastPriceUpdate: data.lastPriceUpdate || null,
         updatedAt: now,
       };
       assets.unshift(newAsset);
@@ -112,6 +119,63 @@ export async function savePortfolioAsset(data: {
     return { success: true, assets };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal menyimpan aset portofolio';
+    return { success: false, error: message };
+  }
+}
+
+export async function refreshPortfolioLivePrices(): Promise<{
+  success: boolean;
+  assets?: PortfolioAsset[];
+  updatedCount?: number;
+  error?: string;
+}> {
+  try {
+    const { user } = await requireUser('basic');
+    const key = getPortfolioSettingKey(user.uid);
+
+    const setting = await prisma.setting.findUnique({
+      where: { key },
+    });
+
+    if (!setting?.value) {
+      return { success: true, assets: [], updatedCount: 0 };
+    }
+
+    const assets = JSON.parse(setting.value) as PortfolioAsset[];
+    let updatedCount = 0;
+
+    for (const asset of assets) {
+      try {
+        const quote = await getLiveQuoteForAsset({
+          assetClass: asset.assetClass,
+          symbol: asset.symbol,
+          name: asset.name,
+        });
+
+        if (quote && typeof quote.priceIdr === 'number' && quote.priceIdr > 0) {
+          asset.currentPrice = quote.priceIdr;
+          asset.lastPriceUpdate = quote.updatedAt;
+          if (quote.symbol && !asset.symbol) {
+            asset.symbol = quote.symbol;
+          }
+          asset.updatedAt = new Date().toISOString();
+          updatedCount++;
+        }
+      } catch (err) {
+        console.warn(`Failed to refresh quote for ${asset.name}:`, err);
+      }
+    }
+
+    await prisma.setting.upsert({
+      where: { key },
+      update: { value: JSON.stringify(assets) },
+      create: { key, value: JSON.stringify(assets) },
+    });
+
+    revalidatePath('/dashboard');
+    return { success: true, assets, updatedCount };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal memperbarui harga live aset';
     return { success: false, error: message };
   }
 }

@@ -271,12 +271,14 @@ export interface PortfolioAsset {
   userId?: string;
   name: string;
   assetClass: AssetClass;
+  symbol?: string;
   quantity: number;
   unit: string;
   buyPrice: number;
   currentPrice: number;
   institution?: string;
   notes?: string;
+  lastPriceUpdate?: string | null;
   updatedAt?: Date | string;
 }
 

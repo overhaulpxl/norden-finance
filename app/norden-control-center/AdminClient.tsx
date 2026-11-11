@@ -6,7 +6,7 @@ import { useState, useRef } from 'react';
 import { 
   ArrowLeft, Check, X, Eye, Loader2, MessageSquare, 
   Users, CreditCard, Search, Activity, Heart, Wallet, Target,
-  DollarSign, TrendingUp, HelpCircle, Star, Calendar, RefreshCw,
+  DollarSign, TrendingUp, HelpCircle, Star, Calendar, Clock, RefreshCw,
   Upload, Sliders, Trash2, RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
@@ -45,8 +45,10 @@ interface UserProfileItem {
   fullName: string;
   role: 'user' | 'admin';
   plan: 'trial' | 'pro';
+  onboardingCompleted?: boolean;
   trialStartedAt: string;
   trialEndsAt: string;
+  proEndsAt?: string | null;
   createdAt: string;
 }
 
@@ -133,6 +135,7 @@ interface AdminClientProps {
   initialPricingPlans: PricingPlans;
   currentAdminId: string;
   initialError?: string;
+  serverNowIso?: string;
 }
 
 export default function AdminClient({ 
@@ -144,7 +147,8 @@ export default function AdminClient({
   initialPaymentSettings,
   initialPricingPlans,
   currentAdminId,
-  initialError
+  initialError,
+  serverNowIso,
 }: AdminClientProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'payments' | 'users' | 'logs' | 'feedbacks' | 'settings'>('overview');
   
@@ -182,7 +186,7 @@ export default function AdminClient({
   const [planModalUserId, setPlanModalUserId] = useState<string | null>(null);
   const [planModalUserName, setPlanModalUserName] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<'trial' | 'pro'>('pro');
-  const [durationOption, setDurationOption] = useState<'30' | '90' | '365' | 'custom'>('30');
+  const [durationOption, setDurationOption] = useState<'7' | '14' | '30' | '90' | '365' | 'custom'>('30');
   const [customDays, setCustomDays] = useState('30');
   const [deleteModalUser, setDeleteModalUser] = useState<UserProfileItem | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -288,24 +292,25 @@ export default function AdminClient({
     setSuccess('');
 
     let daysVal = 30;
-    if (selectedPlan === 'pro') {
-      if (durationOption === 'custom') {
-        daysVal = parseInt(customDays) || 30;
-      } else {
-        daysVal = parseInt(durationOption);
-      }
+    if (durationOption === 'custom') {
+      daysVal = parseInt(customDays) || 30;
+    } else {
+      daysVal = parseInt(durationOption) || 30;
     }
 
     try {
       const res = await updateUserPlanManually(planModalUserId, selectedPlan, daysVal);
       if (res.success) {
-        setSuccess(`Paket pengguna "${planModalUserName}" berhasil diperbarui ke ${selectedPlan.toUpperCase()} (${selectedPlan === 'pro' ? daysVal + ' Hari' : 'Masa Trial'}).`);
+        setSuccess(`Paket pengguna "${planModalUserName}" berhasil diperbarui ke ${selectedPlan.toUpperCase()} (${daysVal} Hari).`);
         
         const targetUser = users.find(u => u.userId === planModalUserId);
         let newDateStr = new Date().toISOString();
         if (targetUser) {
           let base = new Date();
           if (selectedPlan === 'pro' && targetUser.plan === 'pro') {
+            const exp = new Date(targetUser.proEndsAt || targetUser.trialEndsAt);
+            if (exp > new Date()) base = exp;
+          } else if (selectedPlan === 'trial' && targetUser.plan === 'trial') {
             const exp = new Date(targetUser.trialEndsAt);
             if (exp > new Date()) base = exp;
           }
@@ -316,7 +321,8 @@ export default function AdminClient({
         setUsers(prev => prev.map(u => u.userId === planModalUserId ? { 
           ...u, 
           plan: selectedPlan,
-          trialEndsAt: newDateStr
+          trialEndsAt: newDateStr,
+          proEndsAt: selectedPlan === 'pro' ? newDateStr : null,
         } : u));
         
         setPlanModalUserId(null);
@@ -935,16 +941,51 @@ export default function AdminClient({
                         </span>
                       </td>
 
-                      <td className="p-3 border-r-[2px] border-black text-neutral-500">
-                        {u.plan === 'pro' ? (
-                          new Date(u.trialEndsAt).toLocaleDateString('id-ID', {
+                      <td className="p-3 border-r-[2px] border-black">
+                        {(() => {
+                          const nowMs = serverNowIso ? new Date(serverNowIso).getTime() : Date.now();
+                          const expiryIso = u.plan === 'pro' ? (u.proEndsAt || u.trialEndsAt) : u.trialEndsAt;
+                          const expiryDate = new Date(expiryIso);
+                          const diffMs = expiryDate.getTime() - nowMs;
+                          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                          const isExpired = diffMs <= 0;
+
+                          const formattedDate = expiryDate.toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric'
-                          })
-                        ) : (
-                          'Masa Trial'
-                        )}
+                          });
+                          const formattedTime = expiryDate.toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) + ' WIB';
+
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <div>
+                                {isExpired ? (
+                                  <span className="inline-block px-1.5 py-0.5 border border-black text-[9px] font-black uppercase bg-red-100 text-red-700 shadow-[1px_1px_0px_0px_#000]">
+                                    {u.plan === 'pro' ? 'Pro Habis' : 'Trial Habis'}
+                                  </span>
+                                ) : (
+                                  <span className={`inline-block px-1.5 py-0.5 border border-black text-[9px] font-black uppercase shadow-[1px_1px_0px_0px_#000] ${
+                                    diffDays <= 3
+                                      ? 'bg-amber-100 text-amber-900'
+                                      : u.plan === 'pro'
+                                      ? 'bg-[#bbf7d0] text-black'
+                                      : 'bg-blue-100 text-blue-900'
+                                  }`}>
+                                    {diffDays <= 0 ? 'Hari Terakhir' : `Sisa ${diffDays} Hari`}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
+                                <Clock className="w-3 h-3 stroke-[2.5px] text-neutral-500 shrink-0" />
+                                <span>{formattedDate}, {formattedTime}</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       <td className="p-3 text-center">
@@ -960,7 +1001,7 @@ export default function AdminClient({
                             onClick={() => handleToggleRole(u.userId, u.role)}
                             disabled={loadingId !== null || isSelf}
                             className={`px-2.5 py-1.5 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer disabled:opacity-30 ${
-                              u.role === 'admin' ? 'bg-red-100 hover:bg-red-200 text-red-750' : 'bg-[#fef08a] hover:bg-[#fde047] text-black'
+                              u.role === 'admin' ? 'bg-red-100 hover:bg-red-200 text-red-700' : 'bg-[#fef08a] hover:bg-[#fde047] text-black'
                             }`}
                             title={isSelf ? 'Anda tidak bisa mendegradasi role Anda sendiri' : ''}
                           >
@@ -1407,7 +1448,7 @@ export default function AdminClient({
               <X className="w-4 h-4 text-black stroke-[3px]" />
             </button>
             <h4 className="font-black text-black uppercase tracking-wider mb-4 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-red-650" /> Tolak Pembayaran
+              <MessageSquare className="w-5 h-5 text-red-600" /> Tolak Pembayaran
             </h4>
             <form onSubmit={handleRejectSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -1576,10 +1617,29 @@ export default function AdminClient({
                 </div>
               </div>
 
-              {selectedPlan === 'pro' && (
                 <div className="space-y-2 border-t-[2px] border-black pt-4">
-                  <label className="text-xs font-black uppercase text-black">Pilih Durasi Aktif / Ekstensi</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs font-black uppercase text-black">
+                    Pilih Durasi Aktif / Ekstensi ({selectedPlan.toUpperCase()})
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDurationOption('7')}
+                      className={`py-2 border-[2px] border-black font-black text-[10px] uppercase rounded-none transition-all cursor-pointer ${
+                        durationOption === '7' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'
+                      }`}
+                    >
+                      +7 Hari
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDurationOption('14')}
+                      className={`py-2 border-[2px] border-black font-black text-[10px] uppercase rounded-none transition-all cursor-pointer ${
+                        durationOption === '14' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'
+                      }`}
+                    >
+                      +14 Hari
+                    </button>
                     <button
                       type="button"
                       onClick={() => setDurationOption('30')}
@@ -1587,7 +1647,7 @@ export default function AdminClient({
                         durationOption === '30' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'
                       }`}
                     >
-                      +30 Hari (1 Bln)
+                      +30 Hari
                     </button>
                     <button
                       type="button"
@@ -1596,7 +1656,7 @@ export default function AdminClient({
                         durationOption === '90' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'
                       }`}
                     >
-                      +90 Hari (3 Bln)
+                      +90 Hari
                     </button>
                     <button
                       type="button"
@@ -1605,7 +1665,7 @@ export default function AdminClient({
                         durationOption === '365' ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'
                       }`}
                     >
-                      +365 Hari (1 Thn)
+                      +365 Hari
                     </button>
                     <button
                       type="button"
@@ -1634,7 +1694,6 @@ export default function AdminClient({
                     </div>
                   )}
                 </div>
-              )}
 
               <button
                 type="submit"

@@ -225,16 +225,10 @@ interface WrappedShareData {
 function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' | 'en' = 'id') {
   const width = 1080;
   const height = 1920;
-  const fontFam = "'Outfit', 'Plus Jakarta Sans', 'Arial Black', 'Impact', sans-serif";
+  const fontFam = "'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
   const isId = lang === 'id';
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <defs>
-        <style type="text/css">
-          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;display=swap');
-        </style>
-      </defs>
-
       <!-- Background and Decorative Grid -->
       <rect width="100%" height="100%" fill="${background}"/>
       <path d="M0 250H1080M0 580H1080M0 910H1080M0 1240H1080M0 1570H1080" stroke="#000" stroke-width="3" opacity="0.12"/>
@@ -265,7 +259,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' 
       <!-- Row 1: Kategori Utama (Left) & Total Transaksi (Right) -->
       <rect x="108" y="746" width="416" height="230" fill="#000"/>
       <rect x="92" y="730" width="416" height="230" fill="#fff" stroke="#000" stroke-width="8"/>
-      <rect x="126" y="756" width="110" height="34" rx="17" ry="17" fill="#FFE066" stroke="#000" stroke-width="4"/>
+      <rect x="126" y="756" width="110" height="34" fill="#FFE066" stroke="#000" stroke-width="4"/>
       <text x="181" y="779" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'UTAMA' : 'TOP'}</text>
       <text x="136" y="836" font-family="${fontFam}" font-size="28" font-weight="900" fill="#000">${isId ? 'Kategori Utama' : 'Top Category'}</text>
       ${svgMultilineText({ text: data.topCategoryName, x: 136, y: 885, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 36 })}
@@ -273,7 +267,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' 
 
       <rect x="588" y="746" width="416" height="230" fill="#FFE066"/>
       <rect x="572" y="730" width="416" height="230" fill="#000" stroke="#000" stroke-width="8"/>
-      <rect x="606" y="756" width="130" height="34" rx="17" ry="17" fill="#fff" stroke="#000" stroke-width="4"/>
+      <rect x="606" y="756" width="130" height="34" fill="#fff" stroke="#000" stroke-width="4"/>
       <text x="671" y="779" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'AKTIVITAS' : 'ACTIVITY'}</text>
       <text x="616" y="836" font-family="${fontFam}" font-size="28" font-weight="900" fill="#FFE066">${isId ? 'Total Transaksi' : 'Total Transactions'}</text>
       ${svgMultilineText({ text: data.totalTransactions, x: 616, y: 896, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 48, fill: '#fff' })}
@@ -281,14 +275,14 @@ function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' 
       <!-- Row 2: Cashflow (Left) & Wallet Aktif (Right) -->
       <rect x="108" y="1016" width="416" height="230" fill="#FFE066"/>
       <rect x="92" y="1000" width="416" height="230" fill="#000" stroke="#000" stroke-width="8"/>
-      <rect x="126" y="1026" width="130" height="34" rx="17" ry="17" fill="#FFE066" stroke="#000" stroke-width="4"/>
+      <rect x="126" y="1026" width="130" height="34" fill="#FFE066" stroke="#000" stroke-width="4"/>
       <text x="191" y="1049" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">CASHFLOW</text>
       <text x="136" y="1106" font-family="${fontFam}" font-size="28" font-weight="900" fill="#FFE066">Cashflow</text>
       ${svgMultilineText({ text: data.cashflow, x: 136, y: 1166, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 44, fill: '#fff' })}
 
       <rect x="588" y="1016" width="416" height="230" fill="#000"/>
       <rect x="572" y="1000" width="416" height="230" fill="#fff" stroke="#000" stroke-width="8"/>
-      <rect x="606" y="1026" width="110" height="34" rx="17" ry="17" fill="#FFE066" stroke="#000" stroke-width="4"/>
+      <rect x="606" y="1026" width="110" height="34" fill="#FFE066" stroke="#000" stroke-width="4"/>
       <text x="661" y="1049" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'DOMPET' : 'WALLET'}</text>
       <text x="616" y="1106" font-family="${fontFam}" font-size="28" font-weight="900" fill="#000">${isId ? 'Wallet Aktif' : 'Active Wallet'}</text>
       ${svgMultilineText({ text: data.walletBalance, x: 616, y: 1166, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 38 })}
@@ -301,7 +295,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' 
 
       <!-- Footer Brand Elements -->
       <text x="92" y="1695" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Track your money. Find your direction.</text>
-      <text x="92" y="1735" font-family="${fontFam}" font-size="22" font-weight="800" fill="#525252">https://nordenfinance.site</text>
+      <text x="92" y="1735" font-family="${fontFam}" font-size="22" font-weight="800" fill="#525252">https://www.nordenfinance.site</text>
       <rect x="866" y="1666" width="86" height="86" fill="#000"/>
       <rect x="850" y="1650" width="86" height="86" fill="#FFE066" stroke="#000" stroke-width="6"/>
       <text x="893" y="1710" text-anchor="middle" font-family="${fontFam}" font-size="52" font-weight="900" fill="#000">N</text>
@@ -317,18 +311,42 @@ function downloadSharePng({ data, background, lang }: { data: WrappedShareData; 
   const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(svgBlob);
 
-  image.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    context.drawImage(image, 0, 0);
+  const fallbackSvgDownload = () => {
     URL.revokeObjectURL(url);
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const fallbackUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = 'norden-monthly-wrapped-story.png';
-    link.href = canvas.toDataURL('image/png');
+    link.download = 'norden-monthly-wrapped.svg';
+    link.href = fallbackUrl;
     link.click();
+    setTimeout(() => URL.revokeObjectURL(fallbackUrl), 1000);
+  };
+
+  image.onload = () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        fallbackSvgDownload();
+        return;
+      }
+      context.drawImage(image, 0, 0);
+      URL.revokeObjectURL(url);
+      const link = document.createElement('a');
+      link.download = 'norden-monthly-wrapped-story.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.warn('Canvas export tainted or blocked, downloading SVG instead:', err);
+      fallbackSvgDownload();
+    }
+  };
+
+  image.onerror = () => {
+    console.warn('SVG image load failed, falling back to direct SVG download');
+    fallbackSvgDownload();
   };
 
   image.src = url;

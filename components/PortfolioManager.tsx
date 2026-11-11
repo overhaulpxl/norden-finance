@@ -10,6 +10,7 @@ import {
   savePortfolioAsset,
   deletePortfolioAsset,
   revaluePortfolioAsset,
+  refreshPortfolioLivePrices,
 } from '../app/actions';
 import {
   TrendingUp,
@@ -23,12 +24,12 @@ import {
   Zap,
   Building,
   Layers,
-  Sparkles,
   X,
   Check,
   Loader2,
   AlertTriangle,
   RotateCcw,
+  RefreshCw,
 } from 'lucide-react';
 
 interface PortfolioManagerProps {
@@ -54,8 +55,8 @@ const ASSET_CLASS_META: Record<
     icon: Coins,
     defaultUnit: 'gram',
     bgBadge: 'bg-amber-100 dark:bg-amber-950/70',
-    borderBadge: 'border-amber-500',
-    textColor: 'text-amber-900 dark:text-amber-300',
+    borderBadge: 'border-black dark:border-neutral-700',
+    textColor: 'text-black dark:text-amber-300',
   },
   saham: {
     labelId: 'Saham',
@@ -63,8 +64,8 @@ const ASSET_CLASS_META: Record<
     icon: LineChart,
     defaultUnit: 'lot',
     bgBadge: 'bg-blue-100 dark:bg-blue-950/70',
-    borderBadge: 'border-blue-500',
-    textColor: 'text-blue-900 dark:text-blue-300',
+    borderBadge: 'border-black dark:border-neutral-700',
+    textColor: 'text-black dark:text-blue-300',
   },
   reksadana: {
     labelId: 'Reksadana',
@@ -72,8 +73,8 @@ const ASSET_CLASS_META: Record<
     icon: PieChart,
     defaultUnit: 'unit',
     bgBadge: 'bg-purple-100 dark:bg-purple-950/70',
-    borderBadge: 'border-purple-500',
-    textColor: 'text-purple-900 dark:text-purple-300',
+    borderBadge: 'border-black dark:border-neutral-700',
+    textColor: 'text-black dark:text-purple-300',
   },
   kripto: {
     labelId: 'Kripto',
@@ -81,8 +82,8 @@ const ASSET_CLASS_META: Record<
     icon: Zap,
     defaultUnit: 'koin',
     bgBadge: 'bg-orange-100 dark:bg-orange-950/70',
-    borderBadge: 'border-orange-500',
-    textColor: 'text-orange-900 dark:text-orange-300',
+    borderBadge: 'border-black dark:border-neutral-700',
+    textColor: 'text-black dark:text-orange-300',
   },
   properti: {
     labelId: 'Properti',
@@ -90,8 +91,8 @@ const ASSET_CLASS_META: Record<
     icon: Building,
     defaultUnit: 'unit',
     bgBadge: 'bg-emerald-100 dark:bg-emerald-950/70',
-    borderBadge: 'border-emerald-500',
-    textColor: 'text-emerald-900 dark:text-emerald-300',
+    borderBadge: 'border-black dark:border-neutral-700',
+    textColor: 'text-black dark:text-emerald-300',
   },
   lainnya: {
     labelId: 'Lainnya',
@@ -99,8 +100,8 @@ const ASSET_CLASS_META: Record<
     icon: Layers,
     defaultUnit: 'unit',
     bgBadge: 'bg-neutral-100 dark:bg-neutral-800',
-    borderBadge: 'border-neutral-500',
-    textColor: 'text-neutral-900 dark:text-neutral-200',
+    borderBadge: 'border-black dark:border-neutral-700',
+    textColor: 'text-black dark:text-neutral-200',
   },
 };
 
@@ -120,19 +121,26 @@ export default function PortfolioManager({
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [formClass, setFormClass] = useState<AssetClass>('emas');
   const [formName, setFormName] = useState('');
+  const [formSymbol, setFormSymbol] = useState('');
   const [formInstitution, setFormInstitution] = useState('');
   const [formQuantity, setFormQuantity] = useState('');
   const [formUnit, setFormUnit] = useState('gram');
   const [formBuyPrice, setFormBuyPrice] = useState('');
   const [formCurrentPrice, setFormCurrentPrice] = useState('');
   const [formNotes, setFormNotes] = useState('');
+  const [fetchingQuote, setFetchingQuote] = useState(false);
 
   // Revaluation Quick Modal
   const [revalAsset, setRevalAsset] = useState<PortfolioAsset | null>(null);
   const [revalNewPrice, setRevalNewPrice] = useState('');
 
+  // Delete inline confirmation
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   // State feedback
   const [loading, setLoading] = useState(false);
+  const [refreshingLive, setRefreshingLive] = useState(false);
+  const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Overall Portfolio Metrics
@@ -179,7 +187,8 @@ export default function PortfolioManager({
     triggerHaptic('light');
     setEditingAssetId(null);
     setFormClass(presetClass);
-    setFormName('');
+    setFormName(presetClass === 'emas' ? 'Emas Batangan' : '');
+    setFormSymbol(presetClass === 'emas' ? 'XAU' : '');
     setFormInstitution('');
     setFormQuantity('1');
     setFormUnit(ASSET_CLASS_META[presetClass].defaultUnit);
@@ -196,6 +205,7 @@ export default function PortfolioManager({
     setEditingAssetId(asset.id);
     setFormClass(asset.assetClass);
     setFormName(asset.name);
+    setFormSymbol(asset.symbol || '');
     setFormInstitution(asset.institution || '');
     setFormQuantity(String(asset.quantity));
     setFormUnit(asset.unit);
@@ -204,6 +214,79 @@ export default function PortfolioManager({
     setFormNotes(asset.notes || '');
     setError(null);
     setModalOpen(true);
+  };
+
+  // Auto fetch live quote in form
+  const handleFetchLiveQuote = async () => {
+    const symbolOrName = formSymbol.trim() || formName.trim();
+    if (!symbolOrName) {
+      setError(isId ? 'Masukkan nama atau ticker/simbol terlebih dahulu' : 'Enter asset name or ticker symbol first');
+      return;
+    }
+
+    setFetchingQuote(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        assetClass: formClass,
+        symbol: formSymbol.trim(),
+        name: formName.trim(),
+      });
+      const res = await fetch(`/api/market/quote?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        const quote = data?.quote;
+        if (quote?.priceIdr) {
+          setFormCurrentPrice(formatRupiahInput(quote.priceIdr));
+          if (!formBuyPrice) {
+            setFormBuyPrice(formatRupiahInput(quote.priceIdr));
+          }
+          if (quote.symbol && !formSymbol) {
+            setFormSymbol(quote.symbol);
+          }
+          triggerHaptic('success');
+        } else {
+          setError(isId ? 'Harga live belum ditemukan untuk simbol ini' : 'Live price not found for this symbol');
+        }
+      } else {
+        setError(isId ? 'Gagal mengambil harga live' : 'Failed to fetch live quote');
+      }
+    } catch {
+      setError(isId ? 'Koneksi harga pasar terganggu' : 'Market connection failed');
+    } finally {
+      setFetchingQuote(false);
+    }
+  };
+
+  // Trigger bulk refresh of live prices
+  const handleRefreshAllLivePrices = async () => {
+    if (refreshingLive || assets.length === 0) return;
+    setRefreshingLive(true);
+    setRefreshNotice(null);
+    triggerHaptic('medium');
+
+    try {
+      const res = await refreshPortfolioLivePrices();
+      if (res.success && res.assets) {
+        setAssets(res.assets);
+        onAssetChange?.(res.assets);
+        triggerHaptic('success');
+        const count = res.updatedCount ?? 0;
+        setRefreshNotice(
+          isId
+            ? `${count} aset berhasil diperbarui dengan harga live pasar.`
+            : `${count} assets successfully synced with live market prices.`
+        );
+        setTimeout(() => setRefreshNotice(null), 5000);
+      } else {
+        triggerHaptic('warning');
+        setRefreshNotice(res.error || (isId ? 'Gagal sinkronisasi harga live' : 'Failed to sync live prices'));
+      }
+    } catch {
+      setRefreshNotice(isId ? 'Terjadi kesalahan saat sinkronisasi' : 'Error during price sync');
+    } finally {
+      setRefreshingLive(false);
+    }
   };
 
   // Open Revaluation Modal
@@ -240,6 +323,7 @@ export default function PortfolioManager({
     const res = await savePortfolioAsset({
       id: editingAssetId || undefined,
       name: formName,
+      symbol: formSymbol.trim() || undefined,
       assetClass: formClass,
       quantity: qty,
       unit: formUnit,
@@ -291,14 +375,11 @@ export default function PortfolioManager({
 
   // Delete Asset
   const handleDelete = async (id: string) => {
-    triggerHaptic('warning');
-    if (!window.confirm(isId ? 'Hapus aset ini dari portofolio?' : 'Delete this asset?')) {
-      return;
-    }
-
     setLoading(true);
+    triggerHaptic('warning');
     const res = await deletePortfolioAsset(id);
     setLoading(false);
+    setConfirmDeleteId(null);
 
     if (res.success) {
       triggerHaptic('success');
@@ -311,11 +392,11 @@ export default function PortfolioManager({
   return (
     <div className="space-y-6 select-none">
       {/* ─── Portfolio Metrics Master Card ─── */}
-      <div className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[4px_4px_0px_0px_#000] text-black dark:text-white">
+      <div className="brutal-card p-5 sm:p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_#000] text-black dark:text-white">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-black dark:border-neutral-700 pb-4 gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1.5 border-2 border-black rounded-lg bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]">
+              <span className="p-1.5 border-2 border-black rounded-none bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]">
                 <Coins className="w-4 h-4 stroke-[2.5px]" />
               </span>
               <h3 className="text-base sm:text-lg font-black uppercase tracking-wider">
@@ -324,28 +405,48 @@ export default function PortfolioManager({
             </div>
             <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
               {isId
-                ? 'Emas • Saham • Reksadana • Kripto • Properti'
-                : 'Gold • Stocks • Mutual Funds • Crypto • Property'}
+                ? 'Statistik Real-Time Emas • Saham • Kripto • Reksadana'
+                : 'Real-Time Stats Gold • Stocks • Crypto • Mutual Funds'}
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleOpenAdd('emas')}
-            className="px-3.5 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
-            style={{
-              backgroundColor: 'var(--theme-accent, #FFE066)',
-              color: 'var(--theme-accent-text, #000000)',
-            }}
-          >
-            <Plus className="w-4 h-4 stroke-[3px]" />
-            <span>{isId ? 'Tambah Aset' : 'Add Asset'}</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleRefreshAllLivePrices}
+              disabled={refreshingLive || assets.length === 0}
+              className="flex-1 sm:flex-none px-3.5 py-2 border-2 border-black dark:border-neutral-700 rounded-none text-xs font-black uppercase tracking-wider bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40"
+              title={isId ? 'Sinkronkan harga pasar terkini tanpa API key' : 'Sync live market quotes'}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 stroke-[2.5px] ${refreshingLive ? 'animate-spin' : ''}`} />
+              <span>{refreshingLive ? (isId ? 'Sinkron...' : 'Syncing...') : (isId ? 'Update Harga Live' : 'Live Quotes')}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleOpenAdd('emas')}
+              className="flex-1 sm:flex-none px-3.5 py-2 border-2 border-black rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              style={{
+                backgroundColor: 'var(--theme-accent, #FFE066)',
+                color: 'var(--theme-accent-text, #000000)',
+              }}
+            >
+              <Plus className="w-4 h-4 stroke-[3px]" />
+              <span>{isId ? 'Tambah Aset' : 'Add Asset'}</span>
+            </button>
+          </div>
         </div>
+
+        {refreshNotice && (
+          <div className="mt-3 p-2.5 bg-[#bbf7d0] dark:bg-emerald-950/80 border-2 border-black text-black dark:text-emerald-200 text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] flex items-center gap-2">
+            <Check className="w-4 h-4 stroke-[3px]" />
+            <span>{refreshNotice}</span>
+          </div>
+        )}
 
         {/* ─── Metric Stat Cards ─── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000]">
+          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000]">
             <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">
               {isId ? 'Total Nilai Terkini' : 'Current Market Value'}
             </p>
@@ -354,7 +455,7 @@ export default function PortfolioManager({
             </p>
           </div>
 
-          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000]">
+          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000]">
             <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">
               {isId ? 'Total Modal Beli' : 'Invested Capital'}
             </p>
@@ -363,7 +464,7 @@ export default function PortfolioManager({
             </p>
           </div>
 
-          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000]">
+          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000]">
             <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider flex items-center gap-1">
               {metrics.netProfitRp >= 0 ? (
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-600 stroke-[3px]" />
@@ -384,7 +485,7 @@ export default function PortfolioManager({
             </p>
           </div>
 
-          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000]">
+          <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000]">
             <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">
               {isId ? 'Imbal Hasil (%)' : 'Return Rate'}
             </p>
@@ -407,7 +508,7 @@ export default function PortfolioManager({
             <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500">
               {isId ? 'Distribusi Alokasi Portofolio' : 'Asset Allocation'}
             </span>
-            <div className="h-3 w-full bg-neutral-200 dark:bg-neutral-800 rounded-lg overflow-hidden flex border border-black">
+            <div className="h-3 w-full bg-neutral-200 dark:bg-neutral-800 rounded-none overflow-hidden flex border border-black">
               {(Object.keys(ASSET_CLASS_META) as AssetClass[]).map((ac) => {
                 const val = metrics.classDistribution[ac] || 0;
                 if (val <= 0) return null;
@@ -439,7 +540,7 @@ export default function PortfolioManager({
                 return (
                   <span
                     key={ac}
-                    className="flex items-center gap-1 px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 border border-black/30 dark:border-neutral-700 rounded-md"
+                    className="flex items-center gap-1 px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 border border-black rounded-none shadow-[1px_1px_0px_0px_#000]"
                   >
                     <span>{isId ? ASSET_CLASS_META[ac].labelId : ASSET_CLASS_META[ac].labelEn}:</span>
                     <span className="font-black">{pct.toFixed(1)}%</span>
@@ -459,7 +560,7 @@ export default function PortfolioManager({
             triggerHaptic('light');
             setSelectedFilter('all');
           }}
-          className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer shrink-0 transition-all ${
+          className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer shrink-0 transition-all ${
             selectedFilter === 'all'
               ? 'bg-black text-white dark:bg-white dark:text-black'
               : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
@@ -480,9 +581,9 @@ export default function PortfolioManager({
                 triggerHaptic('light');
                 setSelectedFilter(ac);
               }}
-              className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer shrink-0 flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer shrink-0 flex items-center gap-1.5 transition-all ${
                 selectedFilter === ac
-                  ? 'bg-[#FFE066] text-black'
+                  ? 'bg-[#FFE066] text-black font-black'
                   : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
               }`}
             >
@@ -496,9 +597,9 @@ export default function PortfolioManager({
 
       {/* ─── Assets Grid ─── */}
       {filteredAssets.length === 0 ? (
-        <div className="brutal-card p-12 text-center bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[4px_4px_0px_0px_#000] flex flex-col items-center justify-center gap-3">
-          <div className="p-4 border-2 border-black rounded-2xl bg-[#FFE066] text-black shadow-[2px_2px_0px_0px_#000]">
-            <Sparkles className="w-8 h-8 stroke-[2px]" />
+        <div className="brutal-card p-12 text-center bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none shadow-[4px_4px_0px_0px_#000] flex flex-col items-center justify-center gap-3">
+          <div className="p-4 border-2 border-black rounded-none bg-[#FFE066] text-black shadow-[2px_2px_0px_0px_#000]">
+            <Coins className="w-8 h-8 stroke-[2.5px]" />
           </div>
           <h4 className="text-base font-black uppercase tracking-wider text-black dark:text-white">
             {isId ? 'Belum Ada Aset Portofolio' : 'No Portfolio Assets Yet'}
@@ -511,7 +612,7 @@ export default function PortfolioManager({
           <button
             type="button"
             onClick={() => handleOpenAdd(selectedFilter === 'all' ? 'emas' : selectedFilter)}
-            className="mt-2 px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+            className="mt-2 px-4 py-2 border-2 border-black rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer"
             style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: '#000' }}
           >
             + {isId ? 'Tambah Aset Sekarang' : 'Add Asset Now'}
@@ -532,24 +633,32 @@ export default function PortfolioManager({
             return (
               <div
                 key={asset.id}
-                className="brutal-card p-4 sm:p-5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[3px_3px_0px_0px_#000] text-black dark:text-white flex flex-col justify-between gap-3 relative"
+                className="brutal-card p-4 sm:p-5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none shadow-[3px_3px_0px_0px_#000] text-black dark:text-white flex flex-col justify-between gap-3 relative"
               >
                 <div>
                   {/* Top Bar: Badge & Action Buttons */}
                   <div className="flex items-center justify-between gap-2 border-b-2 border-neutral-100 dark:border-neutral-800 pb-2.5">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 border ${meta.borderBadge} ${meta.bgBadge} ${meta.textColor} text-[10px] font-black uppercase rounded-lg`}
-                    >
-                      <Icon className="w-3 h-3 stroke-[2.5px]" />
-                      <span>{isId ? meta.labelId : meta.labelEn}</span>
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 border-2 ${meta.borderBadge} ${meta.bgBadge} ${meta.textColor} text-[10px] font-black uppercase rounded-none shadow-[1px_1px_0px_0px_#000]`}
+                      >
+                        <Icon className="w-3 h-3 stroke-[2.5px]" />
+                        <span>{isId ? meta.labelId : meta.labelEn}</span>
+                      </span>
+
+                      {asset.symbol && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider border border-black dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white rounded-none">
+                          {asset.symbol}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => handleOpenRevalue(asset)}
                         title={isId ? 'Perbarui Harga Terkini' : 'Update Current Price'}
-                        className="p-1.5 border border-black dark:border-neutral-700 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-[#FFE066] hover:text-black cursor-pointer shadow-[1px_1px_0px_0px_#000] transition-colors"
+                        className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-none bg-neutral-100 dark:bg-neutral-800 hover:bg-[#FFE066] hover:text-black cursor-pointer shadow-[1px_1px_0px_0px_#000] transition-colors"
                       >
                         <RotateCcw className="w-3 h-3 stroke-[2.5px]" />
                       </button>
@@ -557,20 +666,45 @@ export default function PortfolioManager({
                         type="button"
                         onClick={() => handleOpenEdit(asset)}
                         title={isId ? 'Edit Aset' : 'Edit Asset'}
-                        className="p-1.5 border border-black dark:border-neutral-700 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 cursor-pointer shadow-[1px_1px_0px_0px_#000] transition-colors"
+                        className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-none bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 cursor-pointer shadow-[1px_1px_0px_0px_#000] transition-colors"
                       >
                         <Edit2 className="w-3 h-3 stroke-[2.5px]" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(asset.id)}
+                        onClick={() => setConfirmDeleteId(confirmDeleteId === asset.id ? null : asset.id)}
                         title={isId ? 'Hapus Aset' : 'Delete Asset'}
-                        className="p-1.5 border border-black dark:border-neutral-700 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-red-500 hover:text-white cursor-pointer shadow-[1px_1px_0px_0px_#000] transition-colors"
+                        className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-none bg-neutral-100 dark:bg-neutral-800 hover:bg-red-500 hover:text-white cursor-pointer shadow-[1px_1px_0px_0px_#000] transition-colors"
                       >
                         <Trash2 className="w-3 h-3 stroke-[2.5px]" />
                       </button>
                     </div>
                   </div>
+
+                  {/* Inline Delete Confirmation */}
+                  {confirmDeleteId === asset.id && (
+                    <div className="mt-2 p-2 bg-red-100 dark:bg-red-950/90 border-2 border-black text-black dark:text-white text-xs font-bold flex items-center justify-between gap-2 shadow-[2px_2px_0px_0px_#000]">
+                      <span className="uppercase text-[10px] font-black text-red-900 dark:text-red-200">
+                        {isId ? 'Hapus aset ini?' : 'Delete asset?'}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(asset.id)}
+                          className="px-2 py-0.5 bg-red-600 text-white border border-black text-[10px] font-black uppercase cursor-pointer"
+                        >
+                          {isId ? 'Ya' : 'Yes'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="px-2 py-0.5 bg-white text-black border border-black text-[10px] font-black uppercase cursor-pointer"
+                        >
+                          {isId ? 'Batal' : 'No'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Asset Title & Platform */}
                   <div className="mt-2.5">
@@ -578,7 +712,7 @@ export default function PortfolioManager({
                       {asset.name}
                     </h4>
                     <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide flex items-center gap-1.5 mt-0.5">
-                      <span>🏛️ {asset.institution || (isId ? 'Pribadi / Fisik' : 'Direct')}</span>
+                      <span>{asset.institution || (isId ? 'Pribadi / Fisik' : 'Direct')}</span>
                       <span>•</span>
                       <span>
                         {asset.quantity} {asset.unit}
@@ -587,7 +721,7 @@ export default function PortfolioManager({
                   </div>
 
                   {/* Financial Values */}
-                  <div className="grid grid-cols-2 gap-2 mt-3 p-2 bg-[#FAF9F5] dark:bg-neutral-800/70 border-2 border-black/20 dark:border-neutral-700 rounded-xl text-left">
+                  <div className="grid grid-cols-2 gap-2 mt-3 p-2 bg-[#FAF9F5] dark:bg-neutral-800/70 border-2 border-black dark:border-neutral-700 rounded-none text-left shadow-[1px_1px_0px_0px_#000]">
                     <div>
                       <span className="text-[9px] font-bold uppercase text-neutral-500 block">
                         {isId ? 'Harga Beli Rata²' : 'Avg Buy Price'}
@@ -605,10 +739,16 @@ export default function PortfolioManager({
                       </span>
                     </div>
                   </div>
+
+                  {asset.lastPriceUpdate && (
+                    <div className="mt-1 text-[8px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest text-right">
+                      Live: {new Date(asset.lastPriceUpdate).toLocaleTimeString()}
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom Strip: Total Value & PnL */}
-                <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 flex justify-between items-end">
+                <div className="pt-2 border-t-2 border-neutral-200 dark:border-neutral-800 flex justify-between items-end">
                   <div>
                     <span className="text-[9px] font-black uppercase text-neutral-500 block">
                       {isId ? 'Total Nilai' : 'Total Value'}
@@ -642,11 +782,11 @@ export default function PortfolioManager({
       {/* ─── Modal Tambah / Edit Aset ─── */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="brutal-card w-full max-w-lg bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[6px_6px_0px_0px_#000] text-black dark:text-white flex flex-col overflow-hidden max-h-[90vh]">
+          <div className="brutal-card w-full max-w-lg bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none shadow-[6px_6px_0px_0px_#000] text-black dark:text-white flex flex-col overflow-hidden max-h-[90vh]">
             {/* Header */}
             <div className="p-4 sm:p-5 border-b-2 border-black dark:border-neutral-700 flex justify-between items-center bg-[#FAF9F5] dark:bg-neutral-800">
               <div className="flex items-center gap-2">
-                <span className="p-1.5 border-2 border-black rounded-lg bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]">
+                <span className="p-1.5 border-2 border-black rounded-none bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]">
                   <Coins className="w-4 h-4 stroke-[2.5px]" />
                 </span>
                 <h3 className="text-sm sm:text-base font-black uppercase tracking-wider">
@@ -662,17 +802,17 @@ export default function PortfolioManager({
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer shadow-[1.5px_1.5px_0px_0px_#000]"
+                className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-none hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer shadow-[1.5px_1.5px_0px_0px_#000]"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 stroke-[2.5px]" />
               </button>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmitForm} className="p-4 sm:p-5 overflow-y-auto space-y-4">
               {error && (
-                <div className="p-2.5 bg-red-100 dark:bg-red-950/70 border-2 border-black dark:border-red-800 text-red-800 dark:text-red-200 text-xs font-black uppercase rounded-xl flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                <div className="p-2.5 bg-red-100 dark:bg-red-950/70 border-2 border-black dark:border-red-800 text-red-800 dark:text-red-200 text-xs font-black uppercase rounded-none flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5px]" />
                   <span>{error}</span>
                 </div>
               )}
@@ -695,9 +835,13 @@ export default function PortfolioManager({
                           setFormClass(ac);
                           if (!editingAssetId) {
                             setFormUnit(meta.defaultUnit);
+                            if (ac === 'emas') {
+                              setFormSymbol('XAU');
+                              setFormName('Emas Batangan');
+                            }
                           }
                         }}
-                        className={`p-2 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase flex items-center justify-center gap-1.5 cursor-pointer shadow-[1.5px_1.5px_0px_0px_#000] ${
+                        className={`p-2 border-2 border-black dark:border-neutral-700 rounded-none text-xs font-black uppercase flex items-center justify-center gap-1.5 cursor-pointer shadow-[1.5px_1.5px_0px_0px_#000] ${
                           formClass === ac
                             ? 'bg-[#FFE066] text-black font-black'
                             : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
@@ -711,31 +855,63 @@ export default function PortfolioManager({
                 </div>
               </div>
 
-              {/* Asset Name */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                  {isId ? 'Nama Aset / Ticker' : 'Asset Name / Symbol'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={
-                    formClass === 'emas'
-                      ? 'Antam Logam Mulia'
-                      : formClass === 'saham'
-                      ? 'BBCA (Bank Central Asia)'
-                      : formClass === 'reksadana'
-                      ? 'Sucorinvest Stable Fund'
-                      : formClass === 'kripto'
-                      ? 'Bitcoin (BTC)'
-                      : formClass === 'properti'
-                      ? 'Rumah Tinggal BSD'
-                      : 'Nama Aset'
-                  }
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
-                />
+              {/* Asset Name & Ticker Symbol */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
+                    {isId ? 'Nama Aset' : 'Asset Name'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={
+                      formClass === 'emas'
+                        ? 'Antam Logam Mulia'
+                        : formClass === 'saham'
+                        ? 'Bank Central Asia'
+                        : formClass === 'reksadana'
+                        ? 'Sucorinvest Stable Fund'
+                        : formClass === 'kripto'
+                        ? 'Bitcoin'
+                        : 'Nama Aset'
+                    }
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                      {isId ? 'Ticker / Simbol' : 'Ticker / Symbol'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleFetchLiveQuote}
+                      disabled={fetchingQuote}
+                      className="text-[9px] font-black uppercase underline hover:opacity-80 transition-opacity text-blue-600 dark:text-blue-400 cursor-pointer flex items-center gap-1"
+                    >
+                      {fetchingQuote && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
+                      <span>{isId ? 'Ambil Harga Live' : 'Fetch Quote'}</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={
+                      formClass === 'emas'
+                        ? 'XAU / EMAS'
+                        : formClass === 'saham'
+                        ? 'BBCA atau BBCA.JK'
+                        : formClass === 'kripto'
+                        ? 'BTC atau ETH'
+                        : 'Simbol / Kode'
+                    }
+                    value={formSymbol}
+                    onChange={(e) => setFormSymbol(e.target.value.toUpperCase())}
+                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none uppercase"
+                  />
+                </div>
               </div>
 
               {/* Institution / Platform */}
@@ -758,7 +934,7 @@ export default function PortfolioManager({
                   }
                   value={formInstitution}
                   onChange={(e) => setFormInstitution(e.target.value)}
-                  className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                  className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                 />
               </div>
 
@@ -776,7 +952,7 @@ export default function PortfolioManager({
                     placeholder="10"
                     value={formQuantity}
                     onChange={(e) => setFormQuantity(e.target.value)}
-                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                   />
                 </div>
                 <div>
@@ -789,7 +965,7 @@ export default function PortfolioManager({
                     placeholder="gram / lot / unit / koin"
                     value={formUnit}
                     onChange={(e) => setFormUnit(e.target.value)}
-                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                   />
                 </div>
               </div>
@@ -806,7 +982,7 @@ export default function PortfolioManager({
                     placeholder="Rp 0"
                     value={formBuyPrice}
                     onChange={(e) => setFormBuyPrice(formatRupiahInput(e.target.value))}
-                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                   />
                 </div>
                 <div>
@@ -819,7 +995,7 @@ export default function PortfolioManager({
                     placeholder="Rp 0"
                     value={formCurrentPrice}
                     onChange={(e) => setFormCurrentPrice(formatRupiahInput(e.target.value))}
-                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                    className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                   />
                 </div>
               </div>
@@ -834,7 +1010,7 @@ export default function PortfolioManager({
                   placeholder="Target investasi jangka panjang 5 tahun"
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
-                  className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                  className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                 />
               </div>
 
@@ -843,14 +1019,14 @@ export default function PortfolioManager({
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                  className="px-4 py-2 border-2 border-black rounded-none text-xs font-black uppercase shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
                 >
                   {isId ? 'Batal' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2.5 bg-[#FFE066] text-black border-2 border-black rounded-xl text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-5 py-2.5 bg-[#FFE066] text-black border-2 border-black rounded-none text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 stroke-[3px]" />}
                   <span>{loading ? (isId ? 'Menyimpan...' : 'Saving...') : (isId ? 'Simpan Aset' : 'Save Asset')}</span>
@@ -864,10 +1040,10 @@ export default function PortfolioManager({
       {/* ─── Modal Revaluasi Cepat ─── */}
       {revalAsset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="brutal-card w-full max-w-sm bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[6px_6px_0px_0px_#000] text-black dark:text-white p-5 space-y-4">
+          <div className="brutal-card w-full max-w-sm bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none shadow-[6px_6px_0px_0px_#000] text-black dark:text-white p-5 space-y-4">
             <div className="flex justify-between items-center border-b-2 border-black dark:border-neutral-700 pb-3">
               <div className="flex items-center gap-2">
-                <span className="p-1.5 border border-black rounded-lg bg-[#FFE066] text-black">
+                <span className="p-1.5 border-2 border-black rounded-none bg-[#FFE066] text-black shadow-[1.5px_1.5px_0px_0px_#000]">
                   <RotateCcw className="w-3.5 h-3.5 stroke-[2.5px]" />
                 </span>
                 <h4 className="text-sm font-black uppercase tracking-wider">
@@ -877,9 +1053,9 @@ export default function PortfolioManager({
               <button
                 type="button"
                 onClick={() => setRevalAsset(null)}
-                className="p-1 border border-black rounded-lg cursor-pointer"
+                className="p-1 border-2 border-black rounded-none cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5 stroke-[2.5px]" />
               </button>
             </div>
 
@@ -901,7 +1077,7 @@ export default function PortfolioManager({
                   autoFocus
                   value={revalNewPrice}
                   onChange={(e) => setRevalNewPrice(formatRupiahInput(e.target.value))}
-                  className="w-full brutal-input p-2.5 text-sm font-black bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl"
+                  className="w-full brutal-input p-2.5 text-sm font-black bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                 />
               </div>
 
@@ -909,14 +1085,14 @@ export default function PortfolioManager({
                 <button
                   type="button"
                   onClick={() => setRevalAsset(null)}
-                  className="px-3 py-1.5 border border-black rounded-xl text-xs font-bold uppercase cursor-pointer"
+                  className="px-3 py-1.5 border-2 border-black rounded-none text-xs font-bold uppercase cursor-pointer"
                 >
                   {isId ? 'Batal' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-[#bbf7d0] dark:bg-emerald-800 text-black dark:text-white border-2 border-black rounded-xl text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#bbf7d0] dark:bg-emerald-800 text-black dark:text-white border-2 border-black rounded-none text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer flex items-center gap-1.5"
                 >
                   {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5 stroke-[3px]" />}
                   <span>{isId ? 'Simpan' : 'Save'}</span>

@@ -28,6 +28,7 @@ function ensureFirebaseAdminApp() {
 
     initializeApp({
       credential: cert(serviceAccount),
+      projectId: serviceAccount.projectId,
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     });
     return;
@@ -57,6 +58,7 @@ function ensureFirebaseAdminApp() {
 
     initializeApp({
       credential: cert(serviceAccount),
+      projectId: serviceAccount.projectId,
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     });
     return;

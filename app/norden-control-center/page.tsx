@@ -43,6 +43,7 @@ export default async function AdminPage() {
       paymentRequests: [],
       feedbacks: [],
       listedUsers: [],
+      activeSubscriptions: [],
       auditLogs: [],
       platformStats: {
         totalUsers: 0,
@@ -78,6 +79,7 @@ export default async function AdminPage() {
     paymentRequests,
     feedbacks,
     listedUsers,
+    activeSubscriptions,
     auditLogs,
     platformStats,
   } = adminStatsData;
@@ -94,6 +96,8 @@ export default async function AdminPage() {
   const { prisma } = await import('../../lib/prisma');
   const referencedProfiles = await prisma.profile.findMany({ where: { userId: { in: referencedProfileIds } } });
   const profilesMap = new Map(referencedProfiles.map(p => [p.userId, p]));
+  const subMap = new Map((activeSubscriptions || []).map(s => [s.userId, s]));
+  const serverNowIso = new Date().toISOString();
 
   const { getSignedUrl } = await import('../../lib/storage');
   const serializedRequests = await Promise.all(paymentRequests.map(async req => {
@@ -122,16 +126,21 @@ export default async function AdminPage() {
     };
   }));
 
-  const serializedUsers = listedUsers.map(u => ({
-    id: u.id,
-    userId: u.userId,
-    fullName: u.fullName || 'Tanpa Nama',
-    role: u.role,
-    plan: u.plan,
-    trialStartedAt: u.trialStartedAt.toISOString(),
-    trialEndsAt: u.trialEndsAt.toISOString(),
-    createdAt: u.createdAt.toISOString(),
-  }));
+  const serializedUsers = listedUsers.map(u => {
+    const sub = subMap.get(u.userId);
+    return {
+      id: u.id,
+      userId: u.userId,
+      fullName: u.fullName || 'Tanpa Nama',
+      role: u.role,
+      plan: u.plan,
+      onboardingCompleted: u.onboardingCompleted,
+      trialStartedAt: u.trialStartedAt.toISOString(),
+      trialEndsAt: u.trialEndsAt.toISOString(),
+      proEndsAt: sub?.expiredAt ? sub.expiredAt.toISOString() : null,
+      createdAt: u.createdAt.toISOString(),
+    };
+  });
 
   const serializedAuditLogs = auditLogs.map(log => ({
     id: log.id,
@@ -170,6 +179,7 @@ export default async function AdminPage() {
         initialPricingPlans={pricingPlans}
         currentAdminId={profile.userId}
         initialError={adminDataError}
+        serverNowIso={serverNowIso}
       />
     </div>
   );

@@ -1,0 +1,460 @@
+/**
+ * Free, keyless market statistics engine for Norden Finance.
+ * Integrates:
+ * - Gold / Emas: api.gold-api.com (XAU/USD converted to IDR/gram) with Yahoo GC=F fallback
+ * - Stocks / Saham: Yahoo Finance v8/finance/chart & v1/finance/search (IDX .JK and global stocks)
+ * - Crypto / Kripto: Indodax public ticker & CoinGecko v3 public price
+ * - FX: open.er-api.com USD/IDR live rate with Yahoo IDR=X fallback
+ */
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const memoryCache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string, ttlMs: number): T | null {
+  const entry = memoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > ttlMs) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCache<T>(key: string, data: T): void {
+  memoryCache.set(key, { data, timestamp: Date.now() });
+}
+
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+/**
+ * Live USD to IDR rate
+ */
+export async function getUsdIdrRate(): Promise<number> {
+  const cacheKey = 'fx_usd_idr';
+  const cached = getCached<number>(cacheKey, 60 * 60 * 1000); // 1 hour
+  if (cached) return cached;
+
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD', {
+      headers: { 'User-Agent': USER_AGENT },
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.IDR;
+      if (typeof rate === 'number' && rate > 5000) {
+        setCache(cacheKey, rate);
+        return rate;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch open.er-api.com rate, trying Yahoo:', err);
+  }
+
+  // Fallback to Yahoo IDR=X
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/IDR=X?interval=1d&range=1d', {
+      headers: { 'User-Agent': USER_AGENT },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (typeof price === 'number' && price > 5000) {
+        setCache(cacheKey, price);
+        return price;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed Yahoo FX fallback:', err);
+  }
+
+  return 16500; // safe fallback
+}
+
+/**
+ * Live Gold Price (IDR per gram)
+ * 1 Troy Ounce = 31.1034768 grams
+ */
+export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; updatedAt: string }> {
+  const cacheKey = 'gold_price_idr';
+  const cached = getCached<{ pricePerGramIdr: number; updatedAt: string }>(cacheKey, 15 * 60 * 1000); // 15 mins
+  if (cached) return cached;
+
+  const usdIdr = await getUsdIdrRate();
+
+  try {
+    const res = await fetch('https://api.gold-api.com/price/XAU', {
+      headers: { 'User-Agent': USER_AGENT },
+      next: { revalidate: 900 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const xauUsd = data?.price;
+      if (typeof xauUsd === 'number' && xauUsd > 100) {
+        const pricePerGramUsd = xauUsd / 31.1034768;
+        const pricePerGramIdr = Math.round(pricePerGramUsd * usdIdr);
+        const result = {
+          pricePerGramIdr,
+          updatedAt: data?.updatedAt || new Date().toISOString(),
+        };
+        setCache(cacheKey, result);
+        return result;
+      }
+    }
+  } catch (err) {
+    console.warn('api.gold-api.com failed, trying Yahoo GC=F:', err);
+  }
+
+  // Fallback: Yahoo Finance GC=F (Gold Futures)
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d', {
+      headers: { 'User-Agent': USER_AGENT },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const xauUsd = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (typeof xauUsd === 'number' && xauUsd > 100) {
+        const pricePerGramIdr = Math.round((xauUsd / 31.1034768) * usdIdr);
+        const result = {
+          pricePerGramIdr,
+          updatedAt: new Date().toISOString(),
+        };
+        setCache(cacheKey, result);
+        return result;
+      }
+    }
+  } catch (err) {
+    console.warn('Yahoo GC=F gold fallback failed:', err);
+  }
+
+  // Default fallback estimate
+  return { pricePerGramIdr: 1500000, updatedAt: new Date().toISOString() };
+}
+
+/**
+ * Live Stock / Saham Quote
+ */
+export async function getStockQuote(tickerInput: string): Promise<{
+  symbol: string;
+  name: string;
+  priceIdr: number;
+  rawPrice: number;
+  currency: string;
+  changePercent?: number;
+  updatedAt: string;
+} | null> {
+  const cleanTicker = tickerInput.trim().toUpperCase();
+  if (!cleanTicker) return null;
+
+  // If Indonesian stock without suffix (e.g. BBCA, BBRI), append .JK
+  const candidateSymbols = [cleanTicker];
+  if (!cleanTicker.includes('.')) {
+    candidateSymbols.unshift(`${cleanTicker}.JK`);
+  }
+
+  const usdIdr = await getUsdIdrRate();
+
+  for (const sym of candidateSymbols) {
+    const cacheKey = `stock_${sym}`;
+    const cached = getCached<{
+      symbol: string;
+      name: string;
+      priceIdr: number;
+      rawPrice: number;
+      currency: string;
+      changePercent?: number;
+      updatedAt: string;
+    }>(cacheKey, 5 * 60 * 1000); // 5 mins
+    if (cached) return cached;
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`;
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+      if (res.ok) {
+        const json = await res.json();
+        const meta = json?.chart?.result?.[0]?.meta;
+        const regularMarketPrice = meta?.regularMarketPrice;
+
+        if (typeof regularMarketPrice === 'number' && regularMarketPrice > 0) {
+          const currency = meta?.currency || 'IDR';
+          const shortName = meta?.shortName || sym;
+          let priceIdr = regularMarketPrice;
+
+          if (currency === 'USD') {
+            priceIdr = Math.round(regularMarketPrice * usdIdr);
+          } else if (currency === 'IDR') {
+            priceIdr = Math.round(regularMarketPrice);
+          }
+
+          let changePercent: number | undefined;
+          const prevClose = meta?.chartPreviousClose || meta?.previousClose;
+          if (typeof prevClose === 'number' && prevClose > 0) {
+            changePercent = Number((((regularMarketPrice - prevClose) / prevClose) * 100).toFixed(2));
+          }
+
+          const result = {
+            symbol: sym,
+            name: shortName,
+            priceIdr,
+            rawPrice: regularMarketPrice,
+            currency,
+            changePercent,
+            updatedAt: new Date().toISOString(),
+          };
+          setCache(cacheKey, result);
+          return result;
+        }
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Live Crypto / Kripto Quote
+ */
+const CRYPTO_COINGECKO_MAP: Record<string, string> = {
+  BTC: 'bitcoin',
+  BITCOIN: 'bitcoin',
+  ETH: 'ethereum',
+  ETHEREUM: 'ethereum',
+  USDT: 'tether',
+  TETHER: 'tether',
+  SOL: 'solana',
+  SOLANA: 'solana',
+  BNB: 'binancecoin',
+  XRP: 'ripple',
+  RIPPLE: 'ripple',
+  DOGE: 'dogecoin',
+  DOGECOIN: 'dogecoin',
+  ADA: 'cardano',
+  CARDANO: 'cardano',
+  AVAX: 'avalanche-2',
+  DOT: 'polkadot',
+  MATIC: 'matic-network',
+  POL: 'matic-network',
+  TRX: 'tron',
+  LINK: 'chainlink',
+  TON: 'the-open-network',
+};
+
+export async function getCryptoQuote(symbolInput: string): Promise<{
+  symbol: string;
+  name: string;
+  priceIdr: number;
+  changePercent?: number;
+  updatedAt: string;
+} | null> {
+  const clean = symbolInput.trim().toUpperCase();
+  if (!clean) return null;
+
+  const cacheKey = `crypto_${clean}`;
+  const cached = getCached<{
+    symbol: string;
+    name: string;
+    priceIdr: number;
+    changePercent?: number;
+    updatedAt: string;
+  }>(cacheKey, 3 * 60 * 1000); // 3 mins
+  if (cached) return cached;
+
+  // 1. Try Indodax API (Direct IDR price for Indonesian crypto pairs)
+  try {
+    const pair = `${clean.toLowerCase()}idr`;
+    const res = await fetch(`https://indodax.com/api/ticker/${pair}`, {
+      headers: { 'User-Agent': USER_AGENT },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const last = Number(data?.ticker?.last);
+      if (!Number.isNaN(last) && last > 0) {
+        const result = {
+          symbol: clean,
+          name: clean,
+          priceIdr: last,
+          updatedAt: new Date().toISOString(),
+        };
+        setCache(cacheKey, result);
+        return result;
+      }
+    }
+  } catch {
+    // fallback to CoinGecko
+  }
+
+  // 2. Try CoinGecko simple price
+  const cgId = CRYPTO_COINGECKO_MAP[clean] || clean.toLowerCase();
+  try {
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(cgId)}&vs_currencies=idr&include_24hr_change=true`;
+    const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+    if (res.ok) {
+      const data = await res.json();
+      const entry = data?.[cgId];
+      if (entry && typeof entry.idr === 'number') {
+        const result = {
+          symbol: clean,
+          name: clean,
+          priceIdr: Math.round(entry.idr),
+          changePercent: typeof entry.idr_24h_change === 'number' ? Number(entry.idr_24h_change.toFixed(2)) : undefined,
+          updatedAt: new Date().toISOString(),
+        };
+        setCache(cacheKey, result);
+        return result;
+      }
+    }
+  } catch (err) {
+    console.warn('CoinGecko fetch failed:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Universal Quote Dispatcher for any portfolio asset
+ */
+export async function getLiveQuoteForAsset(asset: {
+  assetClass: string;
+  symbol?: string;
+  name?: string;
+}): Promise<{
+  priceIdr: number;
+  symbol?: string;
+  source: string;
+  updatedAt: string;
+} | null> {
+  const { assetClass, symbol, name = '' } = asset;
+  const safeName = name.toLowerCase();
+  const query = symbol?.trim() || name.trim();
+
+  if (!query && !assetClass) return null;
+
+  if (assetClass === 'emas' || safeName.includes('emas') || safeName.includes('gold') || query.toUpperCase() === 'XAU') {
+    const gold = await getGoldPriceIdr();
+    return {
+      priceIdr: gold.pricePerGramIdr,
+      symbol: 'EMAS',
+      source: 'api.gold-api.com',
+      updatedAt: gold.updatedAt,
+    };
+  }
+
+  if (assetClass === 'kripto') {
+    const crypto = await getCryptoQuote(query);
+    if (crypto) {
+      return {
+        priceIdr: crypto.priceIdr,
+        symbol: crypto.symbol,
+        source: 'Indodax / CoinGecko',
+        updatedAt: crypto.updatedAt,
+      };
+    }
+  }
+
+  if (assetClass === 'saham') {
+    const stock = await getStockQuote(query);
+    if (stock) {
+      return {
+        priceIdr: stock.priceIdr,
+        symbol: stock.symbol,
+        source: 'Yahoo Finance',
+        updatedAt: stock.updatedAt,
+      };
+    }
+  }
+
+  // If reksadana or others, check if stock / crypto matches
+  if (assetClass === 'reksadana') {
+    // Check if user entered a fund ticker or code
+    const stock = await getStockQuote(query);
+    if (stock) {
+      return {
+        priceIdr: stock.priceIdr,
+        symbol: stock.symbol,
+        source: 'Market Feed',
+        updatedAt: stock.updatedAt,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Search Assets for auto-suggest in Portfolio Manager
+ */
+export async function searchMarketAssets(query: string, assetClass?: string): Promise<Array<{
+  symbol: string;
+  name: string;
+  assetClass: string;
+  priceEstimate?: number;
+}>> {
+  const cleanQ = query.trim();
+  if (!cleanQ || cleanQ.length < 2) return [];
+
+  const results: Array<{
+    symbol: string;
+    name: string;
+    assetClass: string;
+    priceEstimate?: number;
+  }> = [];
+
+  // Emas suggestion
+  if (cleanQ.toLowerCase().includes('emas') || cleanQ.toLowerCase().includes('gold') || cleanQ.toUpperCase() === 'XAU') {
+    const gold = await getGoldPriceIdr();
+    results.push({
+      symbol: 'EMAS',
+      name: 'Emas Murni (per Gram)',
+      assetClass: 'emas',
+      priceEstimate: gold.pricePerGramIdr,
+    });
+  }
+
+  // Crypto candidates
+  if (!assetClass || assetClass === 'kripto' || assetClass === 'all') {
+    const upper = cleanQ.toUpperCase();
+    for (const [sym, cgId] of Object.entries(CRYPTO_COINGECKO_MAP)) {
+      if (sym.includes(upper) || cgId.includes(cleanQ.toLowerCase())) {
+        if (!results.some((r) => r.symbol === sym)) {
+          results.push({
+            symbol: sym,
+            name: `${sym} (${cgId.charAt(0).toUpperCase() + cgId.slice(1)})`,
+            assetClass: 'kripto',
+          });
+        }
+      }
+      if (results.length >= 8) break;
+    }
+  }
+
+  // Stock search via Yahoo Finance
+  if (!assetClass || assetClass === 'saham' || assetClass === 'all') {
+    try {
+      const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanQ)}&quotesCount=6&newsCount=0`;
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+      if (res.ok) {
+        const data = await res.json();
+        const quotes = data?.quotes || [];
+        for (const q of quotes) {
+          if (q.symbol && (q.quoteType === 'EQUITY' || q.quoteType === 'ETF')) {
+            results.push({
+              symbol: q.symbol,
+              name: q.shortname || q.longname || q.symbol,
+              assetClass: 'saham',
+            });
+          }
+        }
+      }
+    } catch {
+      // Ignore search error
+    }
+  }
+
+  return results.slice(0, 10);
+}
