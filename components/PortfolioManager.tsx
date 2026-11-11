@@ -11,6 +11,7 @@ import {
   deletePortfolioAsset,
   revaluePortfolioAsset,
   refreshPortfolioLivePrices,
+  getMarketBenchmarksAction,
 } from '../app/actions';
 import {
   TrendingUp,
@@ -115,6 +116,30 @@ export default function PortfolioManager({
 
   const [assets, setAssets] = useState<PortfolioAsset[]>(initialAssets);
   const [selectedFilter, setSelectedFilter] = useState<AssetClass | 'all'>('all');
+  const [benchmarks, setBenchmarks] = useState<{
+    goldIdrPerGram: number;
+    ihsg: number;
+    usdIdr: number;
+    btIdr: number;
+    updatedAt: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await getMarketBenchmarksAction();
+        if (isMounted && res.success && res.benchmarks) {
+          setBenchmarks(res.benchmarks);
+        }
+      } catch {
+        // ignore benchmark load error
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Modal Add / Edit
   const [modalOpen, setModalOpen] = useState(false);
@@ -441,6 +466,37 @@ export default function PortfolioManager({
           <div className="mt-3 p-2.5 bg-[#bbf7d0] dark:bg-emerald-950/80 border-2 border-black text-black dark:text-emerald-200 text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] flex items-center gap-2">
             <Check className="w-4 h-4 stroke-[3px]" />
             <span>{refreshNotice}</span>
+          </div>
+        )}
+
+        {/* Market Benchmark Strip */}
+        {benchmarks && (
+          <div className="mt-4 p-2.5 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_#000] flex flex-wrap items-center justify-between gap-2.5 text-xs font-black uppercase">
+            <div className="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400">
+              <Zap className="w-3.5 h-3.5 stroke-[2.5px] text-[#FFE066]" />
+              <span className="text-[10px] tracking-wider">{isId ? 'Pasar Terkini:' : 'Live Market:'}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-[11px]">
+              <div className="flex items-center gap-1">
+                <span className="text-neutral-500 dark:text-neutral-400">EMAS:</span>
+                <span className="text-black dark:text-white font-mono">{formatRupiah(benchmarks.goldIdrPerGram)}/g</span>
+              </div>
+              <span className="text-neutral-300 dark:text-neutral-600">•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-neutral-500 dark:text-neutral-400">IHSG:</span>
+                <span className="text-black dark:text-white font-mono">{benchmarks.ihsg.toLocaleString('id-ID')}</span>
+              </div>
+              <span className="text-neutral-300 dark:text-neutral-600">•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-neutral-500 dark:text-neutral-400">USD/IDR:</span>
+                <span className="text-black dark:text-white font-mono">{formatRupiah(benchmarks.usdIdr)}</span>
+              </div>
+              <span className="text-neutral-300 dark:text-neutral-600">•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-neutral-500 dark:text-neutral-400">BTC/IDR:</span>
+                <span className="text-black dark:text-white font-mono">{formatRupiah(benchmarks.btIdr)}</span>
+              </div>
+            </div>
           </div>
         )}
 

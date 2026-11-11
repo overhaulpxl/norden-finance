@@ -266,3 +266,15 @@ export async function revaluePortfolioAsset(id: string, newCurrentPrice: number)
     return { success: false, error: message };
   }
 }
+
+export async function getMarketBenchmarksAction() {
+  try {
+    await requireUser('basic');
+    const { getMarketBenchmarks } = await import('../../lib/marketData');
+    const data = await getMarketBenchmarks();
+    return { success: true, benchmarks: data };
+  } catch (error: unknown) {
+    const message = sanitizeActionError(error, 'Gagal memuat benchmark pasar');
+    return { success: false, error: message };
+  }
+}

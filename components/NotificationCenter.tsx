@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, X, Check, Trash2, ShieldAlert, Trophy, CreditCard, CalendarCheck, Zap, Star, Flame, AlertCircle } from 'lucide-react';
 import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead, clearAllNotifications } from '../app/actions/notifications';
 import { triggerHaptic } from '../lib/haptics';
 import { useLanguage } from '../lib/i18n';
+
+const emptySubscribe = () => () => {};
 
 interface Notification {
   id: string;
@@ -22,6 +25,7 @@ export default function NotificationCenter() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const fetchNotifications = async () => {
     try {
@@ -150,7 +154,7 @@ export default function NotificationCenter() {
       </button>
 
       {/* Slide-out Sidebar Drawer Overlay */}
-      {isOpen && (
+      {isOpen && mounted && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-50 overflow-hidden select-none">
           <div 
             className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
@@ -301,7 +305,8 @@ export default function NotificationCenter() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

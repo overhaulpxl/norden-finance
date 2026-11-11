@@ -908,11 +908,11 @@ export default function AdminClient({
             <table className="w-full text-left border-collapse border-[2px] border-black">
               <thead>
                 <tr className="bg-[#f3f4f6] border-b-[2px] border-black">
-                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black">Profil Pengguna</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black">Plan Aktif</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black">Role</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black">Berlaku Sampai</th>
-                  <th className="p-3 text-[10px] font-black uppercase text-black text-center">Ubah Data Pengguna</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black min-w-[180px]">Profil Pengguna</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black text-center w-28">Plan Aktif</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black text-center w-28">Role</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black border-r-[2px] border-black min-w-[180px]">Berlaku Sampai</th>
+                  <th className="p-3 text-[10px] font-black uppercase text-black text-center min-w-[300px]">Ubah Data Pengguna</th>
                 </tr>
               </thead>
               <tbody>
@@ -921,20 +921,20 @@ export default function AdminClient({
                   return (
                     <tr key={u.id} className="border-b-[2px] border-black last:border-b-0 hover:bg-[#fafafa] font-bold text-xs uppercase tracking-wide">
                       <td className="p-3 border-r-[2px] border-black">
-                        <p className="font-black text-black">{u.fullName}</p>
-                        <p className="text-[9px] text-neutral-500 font-mono break-all leading-tight">{u.userId}</p>
+                        <p className="font-black text-black leading-tight">{u.fullName || 'Tanpa Nama'}</p>
+                        <p className="text-[9px] text-neutral-500 font-mono break-all leading-tight mt-0.5">{u.userId}</p>
                       </td>
                       
-                      <td className="p-3 border-r-[2px] border-black">
-                        <span className={`px-2 py-0.5 border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
-                          u.plan === 'pro' ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 text-neutral-600'
+                      <td className="p-3 border-r-[2px] border-black text-center">
+                        <span className={`inline-block px-2.5 py-0.5 border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider ${
+                          u.plan === 'pro' ? 'bg-[#bbf7d0] text-black' : 'bg-neutral-100 text-neutral-700'
                         }`}>
                           {u.plan}
                         </span>
                       </td>
 
-                      <td className="p-3 border-r-[2px] border-black">
-                        <span className={`px-2 py-0.5 border-[2px] border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                      <td className="p-3 border-r-[2px] border-black text-center">
+                        <span className={`inline-block px-2.5 py-0.5 border-[2px] border-black shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider ${
                           u.role === 'admin' ? 'bg-[#fef08a] text-black' : 'bg-white text-black'
                         }`}>
                           {u.role}
@@ -943,10 +943,26 @@ export default function AdminClient({
 
                       <td className="p-3 border-r-[2px] border-black">
                         {(() => {
+                          if (u.plan === 'trial' && !u.onboardingCompleted) {
+                            return (
+                              <div className="flex flex-col gap-1">
+                                <div>
+                                  <span className="inline-block px-1.5 py-0.5 border border-black text-[9px] font-black uppercase bg-neutral-100 text-neutral-600 shadow-[1px_1px_0px_0px_#000]">
+                                    Belum Onboarding
+                                  </span>
+                                </div>
+                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wide">
+                                  Trial belum berjalan
+                                </p>
+                              </div>
+                            );
+                          }
+
                           const nowMs = serverNowIso ? new Date(serverNowIso).getTime() : Date.now();
                           const expiryIso = u.plan === 'pro' ? (u.proEndsAt || u.trialEndsAt) : u.trialEndsAt;
                           const expiryDate = new Date(expiryIso);
                           const diffMs = expiryDate.getTime() - nowMs;
+                          const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
                           const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
                           const isExpired = diffMs <= 0;
 
@@ -960,24 +976,32 @@ export default function AdminClient({
                             minute: '2-digit'
                           }) + ' WIB';
 
+                          let badgeLabel = '';
+                          let badgeStyle = '';
+
+                          if (isExpired) {
+                            badgeLabel = u.plan === 'pro' ? 'Pro Habis' : 'Trial Habis';
+                            badgeStyle = 'bg-red-100 text-red-700';
+                          } else if (diffHours <= 24) {
+                            badgeLabel = `Sisa ${diffHours} Jam`;
+                            badgeStyle = 'bg-amber-100 text-amber-900';
+                          } else if (diffDays <= 3) {
+                            badgeLabel = `Sisa ${diffDays} Hari`;
+                            badgeStyle = 'bg-amber-100 text-amber-900';
+                          } else if (u.plan === 'pro') {
+                            badgeLabel = `Sisa ${diffDays} Hari`;
+                            badgeStyle = 'bg-[#bbf7d0] text-black';
+                          } else {
+                            badgeLabel = `Sisa ${diffDays} Hari`;
+                            badgeStyle = 'bg-blue-100 text-blue-900';
+                          }
+
                           return (
                             <div className="flex flex-col gap-1">
                               <div>
-                                {isExpired ? (
-                                  <span className="inline-block px-1.5 py-0.5 border border-black text-[9px] font-black uppercase bg-red-100 text-red-700 shadow-[1px_1px_0px_0px_#000]">
-                                    {u.plan === 'pro' ? 'Pro Habis' : 'Trial Habis'}
-                                  </span>
-                                ) : (
-                                  <span className={`inline-block px-1.5 py-0.5 border border-black text-[9px] font-black uppercase shadow-[1px_1px_0px_0px_#000] ${
-                                    diffDays <= 3
-                                      ? 'bg-amber-100 text-amber-900'
-                                      : u.plan === 'pro'
-                                      ? 'bg-[#bbf7d0] text-black'
-                                      : 'bg-blue-100 text-blue-900'
-                                  }`}>
-                                    {diffDays <= 0 ? 'Hari Terakhir' : `Sisa ${diffDays} Hari`}
-                                  </span>
-                                )}
+                                <span className={`inline-block px-1.5 py-0.5 border border-black text-[9px] font-black uppercase shadow-[1px_1px_0px_0px_#000] ${badgeStyle}`}>
+                                  {badgeLabel}
+                                </span>
                               </div>
                               <div className="text-[10px] font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
                                 <Clock className="w-3 h-3 stroke-[2.5px] text-neutral-500 shrink-0" />
@@ -988,26 +1012,30 @@ export default function AdminClient({
                         })()}
                       </td>
 
-                      <td className="p-3 text-center">
-                        <div className="flex flex-wrap justify-center gap-2">
+                      <td className="p-3">
+                        <div className="grid grid-cols-2 gap-1.5 max-w-[280px] sm:max-w-[320px] mx-auto">
                           <button
+                            type="button"
                             onClick={() => openPlanModal(u.userId, u.fullName, u.plan)}
                             disabled={loadingId !== null}
-                            className="px-2.5 py-1.5 border-[2px] border-black bg-white hover:bg-neutral-50 text-black disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                            className="w-full py-1.5 px-2 border-[2px] border-black bg-white hover:bg-neutral-50 text-black disabled:opacity-50 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer flex items-center justify-center text-center truncate"
+                            title="Ubah paket dan masa aktif pengguna"
                           >
-                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin text-black" /> : 'UBAH PAKET / DURASI'}
+                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin text-black" /> : 'Ubah Paket'}
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleToggleRole(u.userId, u.role)}
                             disabled={loadingId !== null || isSelf}
-                            className={`px-2.5 py-1.5 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer disabled:opacity-30 ${
+                            className={`w-full py-1.5 px-2 border-[2px] border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer disabled:opacity-30 flex items-center justify-center text-center truncate ${
                               u.role === 'admin' ? 'bg-red-100 hover:bg-red-200 text-red-700' : 'bg-[#fef08a] hover:bg-[#fde047] text-black'
                             }`}
-                            title={isSelf ? 'Anda tidak bisa mendegradasi role Anda sendiri' : ''}
+                            title={isSelf ? 'Anda tidak bisa mendegradasi role Anda sendiri' : (u.role === 'admin' ? 'Turunkan ke user biasa' : 'Jadikan admin')}
                           >
-                            {u.role === 'admin' ? 'DEMOTE' : 'PROMOTE ADMIN'}
+                            {u.role === 'admin' ? 'Demote' : 'Promote Admin'}
                           </button>
                           <button
+                            type="button"
                             onClick={() => {
                               setResetModalUser(u);
                               setResetConfirmText('');
@@ -1015,20 +1043,21 @@ export default function AdminClient({
                               setSuccess('');
                             }}
                             disabled={loadingId !== null || resetLoading}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-amber-100 hover:bg-amber-200 text-amber-950 disabled:opacity-30 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
-                            title="Reset data keuangan pengguna tanpa menghapus akun"
+                            className="w-full py-1.5 px-2 border-[2px] border-black bg-amber-100 hover:bg-amber-200 text-amber-950 disabled:opacity-30 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 text-center truncate"
+                            title="Reset seluruh catatan keuangan pengguna tanpa menghapus akun"
                           >
-                            <RotateCcw className="w-3 h-3 stroke-[3px]" />
-                            Reset Keuangan
+                            <RotateCcw className="w-3 h-3 stroke-[3px] shrink-0" />
+                            <span>Reset Data</span>
                           </button>
                           <button
+                            type="button"
                             onClick={() => openDeleteModal(u)}
                             disabled={loadingId !== null || isSelf}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[2px] border-black bg-red-100 hover:bg-red-200 text-red-700 disabled:opacity-30 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer"
-                            title={isSelf ? 'Anda tidak bisa menghapus akun yang sedang digunakan' : 'Hapus akun dan seluruh data pengguna'}
+                            className="w-full py-1.5 px-2 border-[2px] border-black bg-red-100 hover:bg-red-200 text-red-700 disabled:opacity-30 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 text-center truncate"
+                            title={isSelf ? 'Anda tidak bisa menghapus akun yang sedang digunakan' : 'Hapus akun dan seluruh data pengguna secara permanen'}
                           >
-                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3 stroke-[3px]" />}
-                            Hapus
+                            {loadingId === u.userId ? <Loader2 className="w-3 h-3 animate-spin shrink-0" /> : <Trash2 className="w-3 h-3 stroke-[3px] shrink-0" />}
+                            <span>Hapus Akun</span>
                           </button>
                         </div>
                       </td>

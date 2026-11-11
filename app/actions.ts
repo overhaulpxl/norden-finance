@@ -376,3 +376,8 @@ export async function refreshPortfolioLivePrices() {
   const { refreshPortfolioLivePrices: refreshFn } = await import('./actions/portfolio');
   return refreshFn();
 }
+
+export async function getMarketBenchmarksAction() {
+  const { getMarketBenchmarksAction: benchFn } = await import('./actions/portfolio');
+  return benchFn();
+}

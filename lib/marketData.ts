@@ -324,6 +324,127 @@ export async function getCryptoQuote(symbolInput: string): Promise<{
   return null;
 }
 
+export interface ReksadanaFundItem {
+  id: string;
+  name: string;
+  manager: string;
+  type: string;
+  currency: string;
+  active: boolean;
+  nav: number;
+  nav_date: string;
+}
+
+/**
+ * Free mutual fund database from reksadana.risanb.com (1,400+ active IDR funds)
+ */
+export async function getReksadanaFunds(): Promise<ReksadanaFundItem[]> {
+  const cacheKey = 'reksadana_funds_all';
+  const cached = getCached<ReksadanaFundItem[]>(cacheKey, 6 * 60 * 60 * 1000); // 6 hours
+  if (cached) return cached;
+
+  try {
+    const res = await fetch('https://reksadana.risanb.com/api/funds.json', {
+      headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      next: { revalidate: 21600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const idrFunds = (data as ReksadanaFundItem[]).filter(
+          (f) => f && f.currency === 'IDR' && typeof f.nav === 'number' && f.nav > 0
+        );
+        setCache(cacheKey, idrFunds);
+        return idrFunds;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch reksadana funds:', err);
+  }
+  return [];
+}
+
+export async function getReksadanaQuote(query: string): Promise<{
+  symbol: string;
+  name: string;
+  priceIdr: number;
+  navDate?: string;
+  updatedAt: string;
+} | null> {
+  const clean = query.trim().toLowerCase();
+  if (!clean) return null;
+
+  const funds = await getReksadanaFunds();
+  if (!funds.length) return null;
+
+  const fund = funds.find(f => f.id.toLowerCase() === clean || f.name.toLowerCase() === clean)
+    || funds.find(f => f.name.toLowerCase().includes(clean) || f.id.toLowerCase().includes(clean));
+
+  if (fund) {
+    return {
+      symbol: fund.id,
+      name: fund.name,
+      priceIdr: Math.round(fund.nav),
+      navDate: fund.nav_date,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  return null;
+}
+
+export async function getMarketBenchmarks(): Promise<{
+  goldIdrPerGram: number;
+  ihsg: number;
+  usdIdr: number;
+  btIdr: number;
+  updatedAt: string;
+}> {
+  const cacheKey = 'market_benchmarks';
+  const cached = getCached<{
+    goldIdrPerGram: number;
+    ihsg: number;
+    usdIdr: number;
+    btIdr: number;
+    updatedAt: string;
+  }>(cacheKey, 5 * 60 * 1000);
+  if (cached) return cached;
+
+  const [gold, usdIdr, btc] = await Promise.all([
+    getGoldPriceIdr(),
+    getUsdIdrRate(),
+    getCryptoQuote('BTC'),
+  ]);
+
+  let ihsg = 7200;
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EJKSE?interval=1d&range=1d', {
+      headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const val = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (typeof val === 'number' && val > 1000) {
+        ihsg = val;
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  const result = {
+    goldIdrPerGram: gold.pricePerGramIdr,
+    ihsg: Number(ihsg.toFixed(2)),
+    usdIdr: Math.round(usdIdr),
+    btIdr: btc?.priceIdr || 1450000000,
+    updatedAt: new Date().toISOString(),
+  };
+
+  setCache(cacheKey, result);
+  return result;
+}
+
 /**
  * Universal Quote Dispatcher for any portfolio asset
  */
@@ -381,9 +502,19 @@ export async function getLiveQuoteForAsset(asset: {
     }
   }
 
-  // If reksadana or others, check if stock / crypto matches
+  // If reksadana or others, check if fund / stock / crypto matches
   if (assetClass === 'reksadana') {
-    // Check if user entered a fund ticker or code
+    const fund = await getReksadanaQuote(query);
+    if (fund) {
+      return {
+        priceIdr: fund.priceIdr,
+        symbol: fund.symbol,
+        source: 'reksadana.risanb.com',
+        updatedAt: fund.updatedAt,
+        isFallback: false,
+      };
+    }
+    // Fallback: check stock / market feed
     const stock = await getStockQuote(query);
     if (stock) {
       return {
@@ -463,6 +594,25 @@ export async function searchMarketAssets(query: string, assetClass?: string): Pr
             });
           }
         }
+      }
+    } catch {
+      // Ignore search error
+    }
+  }
+
+  // Mutual funds search via reksadana.risanb.com
+  if (!assetClass || assetClass === 'reksadana' || assetClass === 'all') {
+    try {
+      const funds = await getReksadanaFunds();
+      const lower = cleanQ.toLowerCase();
+      const matches = funds.filter(f => f.name.toLowerCase().includes(lower) || f.id.toLowerCase().includes(lower)).slice(0, 6);
+      for (const m of matches) {
+        results.push({
+          symbol: m.id,
+          name: `${m.name} (${m.type})`,
+          assetClass: 'reksadana',
+          priceEstimate: Math.round(m.nav),
+        });
       }
     } catch {
       // Ignore search error
