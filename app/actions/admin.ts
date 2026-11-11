@@ -2,7 +2,6 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { PaymentStatus, PlanType, UserRole } from '@prisma/client';
 import { getAdminAuth } from '../../lib/firebaseAdmin';
@@ -12,6 +11,7 @@ import { sendEmail } from '../../lib/email';
 import { getPaymentApprovedEmailHtml, getPaymentRejectedEmailHtml } from '../../lib/email/templates/paymentEmails';
 import { executeFinancialDataReset } from '../../lib/financialReset';
 import { deleteUserStorageObjects } from '../../lib/storage';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
 
 async function sendPaymentStatusEmail({
   userId,
@@ -86,7 +86,7 @@ export async function getPendingPaymentRequests() {
 
     return { success: true, data };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memuat permintaan pembayaran';
+    const message = sanitizeActionError(error, 'Gagal memuat permintaan pembayaran');
     return { success: false, error: message };
   }
 }
@@ -185,11 +185,11 @@ export async function approvePaymentRequest(requestId: string) {
     await createAuditLog(user.uid, 'APPROVE_PAYMENT', 'paymentRequest', requestId);
     await sendPaymentStatusEmail({ userId: request.userId, type: 'approved' });
     
-    revalidatePath('/norden-control-center');
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/norden-control-center');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyetujui pembayaran';
+    const message = sanitizeActionError(error, 'Gagal menyetujui pembayaran');
     return { success: false, error: message };
   }
 }
@@ -254,10 +254,10 @@ export async function rejectPaymentRequest(requestId: string, adminNote: string)
         adminNote: rejectedRequest.adminNote,
       });
     }
-    revalidatePath('/norden-control-center');
+    safeRevalidatePath('/norden-control-center');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menolak pembayaran';
+    const message = sanitizeActionError(error, 'Gagal menolak pembayaran');
     return { success: false, error: message };
   }
 }
@@ -274,6 +274,7 @@ export async function getAllUsers() {
       orderBy: {
         createdAt: 'desc',
       },
+      take: 200,
     });
 
     // Serialize Dates to strings for Client Components compatibility
@@ -287,7 +288,7 @@ export async function getAllUsers() {
 
     return { success: true, data: serializedUsers };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memuat daftar pengguna';
+    const message = sanitizeActionError(error, 'Gagal memuat daftar pengguna');
     return { success: false, error: message };
   }
 }
@@ -361,11 +362,11 @@ export async function updateUserPlanManually(targetUserId: string, newPlan: Plan
     });
 
     await createAuditLog(user.uid, `MANUAL_PLAN_UPDATE_${newPlan.toUpperCase()}_DAYS_${days}`, 'profile', targetUserId);
-    revalidatePath('/norden-control-center');
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/norden-control-center');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal merubah paket pengguna';
+    const message = sanitizeActionError(error, 'Gagal merubah paket pengguna');
     return { success: false, error: message };
   }
 }
@@ -388,10 +389,10 @@ export async function updateUserRoleManually(targetUserId: string, newRole: User
     });
 
     await createAuditLog(user.uid, `MANUAL_ROLE_UPDATE_${newRole.toUpperCase()}`, 'profile', targetUserId);
-    revalidatePath('/norden-control-center');
+    safeRevalidatePath('/norden-control-center');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal merubah role pengguna';
+    const message = sanitizeActionError(error, 'Gagal merubah role pengguna');
     return { success: false, error: message };
   }
 }
@@ -413,8 +414,8 @@ export async function resetUserFinancialDataByAdmin(targetUserId: string) {
       role: 'admin',
     });
 
-    revalidatePath('/norden-control-center');
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/norden-control-center');
+    safeRevalidatePath('/dashboard');
 
     return {
       success: true,
@@ -525,8 +526,8 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
     }
 
     await createAuditLog(user.uid, `ADMIN_DELETE_USER_${targetProfile.role.toUpperCase()}`, 'profile', targetUserId);
-    revalidatePath('/norden-control-center');
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/norden-control-center');
+    safeRevalidatePath('/dashboard');
 
     return { success: true, deletedName: targetProfile.fullName || 'Tanpa Nama' };
   } catch (error: unknown) {
@@ -570,10 +571,10 @@ export async function updateFeedbackStatus(feedbackId: string, newStatus: string
       data: { status: newStatus },
     });
 
-    revalidatePath('/norden-control-center');
+    safeRevalidatePath('/norden-control-center');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengubah status umpan balik';
+    const message = sanitizeActionError(error, 'Gagal mengubah status umpan balik');
     return { success: false, error: message };
   }
 }
@@ -606,7 +607,7 @@ export async function getPaymentSettings() {
       }
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memuat pengaturan pembayaran';
+    const message = sanitizeActionError(error, 'Gagal memuat pengaturan pembayaran');
     return { success: false, error: message };
   }
 }
@@ -660,19 +661,21 @@ export async function updatePaymentSettings(data: {
     }
 
     const keys = Object.keys(data) as Array<keyof typeof data>;
-    for (const key of keys) {
-      await prisma.setting.upsert({
-        where: { key },
-        update: { value: data[key] },
-        create: { key, value: data[key] },
-      });
-    }
+    await prisma.$transaction(async (tx) => {
+      for (const key of keys) {
+        await tx.setting.upsert({
+          where: { key },
+          update: { value: data[key] },
+          create: { key, value: data[key] },
+        });
+      }
+    });
 
-    revalidatePath('/norden-control-center');
-    revalidatePath('/upgrade');
+    safeRevalidatePath('/norden-control-center');
+    safeRevalidatePath('/upgrade');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memperbarui pengaturan pembayaran';
+    const message = sanitizeActionError(error, 'Gagal memperbarui pengaturan pembayaran');
     return { success: false, error: message };
   }
 }
@@ -805,13 +808,13 @@ export async function updatePricingSettings(data: {
       }
     });
 
-    revalidatePath('/');
-    revalidatePath('/upgrade');
-    revalidatePath('/dashboard');
-    revalidatePath('/norden-control-center');
+    safeRevalidatePath('/');
+    safeRevalidatePath('/upgrade');
+    safeRevalidatePath('/dashboard');
+    safeRevalidatePath('/norden-control-center');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memperbarui pengaturan harga';
+    const message = sanitizeActionError(error, 'Gagal memperbarui pengaturan harga');
     return { success: false, error: message };
   }
 }

@@ -88,9 +88,8 @@ export async function POST(request: NextRequest) {
             userName: fullName || existingProfile?.fullName || null,
           });
         } catch (emailError) {
-          const message = emailError instanceof Error ? emailError.message : 'Verification email failed';
-          console.warn('Verification email failed:', message);
-          verificationEmailStatus = { error: message };
+          console.warn('Verification email failed:', emailError instanceof Error ? emailError.message : emailError);
+          verificationEmailStatus = { error: 'Gagal mengirim email verifikasi.' };
         }
       }
     }

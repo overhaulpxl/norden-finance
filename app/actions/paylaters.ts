@@ -2,9 +2,9 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertPositiveInt } from '../../lib/validators';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
 
 export async function addPaylater(
   itemName: string,
@@ -42,10 +42,10 @@ export async function addPaylater(
     });
 
     await createAuditLog(userId, 'CREATE_PAYLATER', 'paylater', paylater.id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyimpan paylater';
+    const message = sanitizeActionError(error, 'Gagal menyimpan paylater');
     return { success: false, error: message };
   }
 }
@@ -56,19 +56,19 @@ export async function payPaylaterInstallment(id: string, payMethod: string) {
     const userId = user.uid;
     assertNonEmpty(payMethod, 'Dompet pembayaran');
 
-    const existing = await prisma.paylater.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Paylater tidak ditemukan');
-    if (existing.isSettled || existing.monthsPaid >= existing.tenorMonths || existing.totalAmount <= 0) {
-      throw new Error('Paylater sudah lunas');
-    }
-
-    const paymentAmount = Math.min(existing.installmentAmount, existing.totalAmount);
-    const remainingAfterPayment = existing.totalAmount - paymentAmount;
-    const nextMonthsPaid = existing.monthsPaid + 1;
-
     await prisma.$transaction(async (tx) => {
+      const existing = await tx.paylater.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Paylater tidak ditemukan');
+      if (existing.isSettled || existing.monthsPaid >= existing.tenorMonths || existing.totalAmount <= 0) {
+        throw new Error('Paylater sudah lunas');
+      }
+
+      const paymentAmount = Math.min(existing.installmentAmount, existing.totalAmount);
+      const remainingAfterPayment = existing.totalAmount - paymentAmount;
+      const nextMonthsPaid = existing.monthsPaid + 1;
+
       const wallet = await tx.balance.findFirst({
         where: {
           userId,
@@ -114,10 +114,10 @@ export async function payPaylaterInstallment(id: string, payMethod: string) {
     });
 
     await createAuditLog(userId, 'PAY_PAYLATER', 'paylater', id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal membayar cicilan';
+    const message = sanitizeActionError(error, 'Gagal membayar cicilan');
     return { success: false, error: message };
   }
 }
@@ -135,10 +135,10 @@ export async function deletePaylater(id: string) {
     await prisma.paylater.delete({ where: { id } });
 
     await createAuditLog(userId, 'DELETE_PAYLATER', 'paylater', id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus paylater';
+    const message = sanitizeActionError(error, 'Gagal menghapus paylater');
     return { success: false, error: message };
   }
 }

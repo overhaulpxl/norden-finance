@@ -148,7 +148,11 @@ git push -u origin main
 | `FIREBASE_ADMIN_CLIENT_EMAIL` | *Dari Service Account JSON* | Email Client Firebase Admin |
 | `FIREBASE_ADMIN_PRIVATE_KEY` | *Dari Service Account JSON* | Key lengkap dengan tanda kutip & `\n` |
 | `CRON_SECRET` | *Minimal 32 karakter acak* | Secret token untuk otorisasi Vercel Cron jobs |
-| `NEXT_PUBLIC_APP_URL` | `https://nordenfinance.site` | URL domain production Anda |
+| `SHORTCUT_TOKEN_SECRET` | *Minimal 32 karakter acak (berbeda dari CRON_SECRET)* | Secret key HMAC untuk webhook iOS Shortcut |
+| `STORAGE_PROVIDER` | `supabase` | Provider penyimpanan file upload bukti pembayaran dan QRIS |
+| `SUPABASE_URL` | `https://[PROJECT_REF].supabase.co` | URL instance Supabase Storage |
+| `SUPABASE_SECRET_KEY` | *Dari Supabase Project Settings > API > service_role* | Secret API key server-side untuk Supabase Storage |
+| `NEXT_PUBLIC_APP_URL` | `https://www.nordenfinance.site` | URL domain production kanonikal Anda |
 
 5. Klik tombol **Deploy**. Vercel akan otomatis melakukan build proyek dan menyiapkan link live URL.
 

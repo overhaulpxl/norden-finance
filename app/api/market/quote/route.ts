@@ -9,6 +9,8 @@ import {
   rateLimitResponse,
 } from '@/lib/rateLimit';
 
+const VALID_ASSET_CLASSES = new Set(['emas', 'saham', 'reksadana', 'kripto', 'properti', 'lainnya']);
+
 export async function GET(request: Request) {
   try {
     await assertRateLimit(rateLimitKey(request, 'api-market-quote'), 60, 60_000);
@@ -19,16 +21,20 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const assetClass = searchParams.get('assetClass') || '';
-    const symbol = searchParams.get('symbol') || '';
-    const name = searchParams.get('name') || '';
+    const rawAssetClass = (searchParams.get('assetClass') || '').trim().toLowerCase();
+    const symbol = (searchParams.get('symbol') || '').trim().slice(0, 30);
+    const name = (searchParams.get('name') || '').trim().slice(0, 100);
 
-    if (!assetClass && !symbol && !name) {
+    if (rawAssetClass && !VALID_ASSET_CLASSES.has(rawAssetClass)) {
+      return NextResponse.json({ error: 'Kelas aset tidak valid' }, { status: 400 });
+    }
+
+    if (!rawAssetClass && !symbol && !name) {
       return NextResponse.json({ error: 'Missing query parameters' }, { status: 400 });
     }
 
     const quote = await getLiveQuoteForAsset({
-      assetClass,
+      assetClass: rawAssetClass,
       symbol,
       name,
     });

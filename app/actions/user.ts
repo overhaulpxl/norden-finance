@@ -3,7 +3,6 @@
 import { requireUser, SESSION_CONFIG } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
 import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
 import { buildShortcutEndpoint, getShortcutEndpointForUser, signShortcutToken } from '../../lib/shortcutToken';
 import { executeFinancialDataReset } from '../../lib/financialReset';
 import { getTrialDays } from '../../lib/data/loaders';
@@ -13,6 +12,7 @@ import { generatePinResetTokens, verifyPinResetToken } from '../../lib/pinResetT
 import { assertRateLimit } from '../../lib/rateLimit';
 import { assertNonEmpty, assertNonNegativeInt } from '../../lib/validators';
 import { deleteUserStorageObjects } from '../../lib/storage';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -87,12 +87,12 @@ export async function completeOnboarding(data: {
       });
     });
 
-    revalidatePath('/dashboard');
-    revalidatePath('/onboarding');
+    safeRevalidatePath('/dashboard');
+    safeRevalidatePath('/onboarding');
 
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyelesaikan onboarding';
+    const message = sanitizeActionError(error, 'Gagal menyelesaikan onboarding');
     return { success: false, error: message };
   }
 }
@@ -105,25 +105,12 @@ export async function resetUserFinancialData() {
       role: 'user',
     });
 
-    revalidatePath('/dashboard');
-    revalidatePath('/settings');
+    safeRevalidatePath('/dashboard');
+    safeRevalidatePath('/settings');
     return { success: true, counts: res.counts };
   } catch (error: unknown) {
-    const rawMessage = error instanceof Error ? error.message : '';
-    if (rawMessage === 'Anda harus login terlebih dahulu.') {
-      return { success: false, error: rawMessage };
-    }
-
-    console.error('resetUserFinancialData database error:', error instanceof Error ? error.name : 'Unknown error');
-
-    if (rawMessage.includes('Transaction') || rawMessage.includes('timeout') || rawMessage.includes('P2024')) {
-      return {
-        success: false,
-        error: 'Reset data keuangan tidak dapat diselesaikan karena batas waktu transaksi database. Silakan coba kembali.',
-      };
-    }
-
-    return { success: false, error: 'Gagal mereset data keuangan karena gangguan sistem database.' };
+    const message = sanitizeActionError(error, 'Gagal mereset data keuangan');
+    return { success: false, error: message };
   }
 }
 
@@ -200,24 +187,8 @@ export async function deleteUserAccountData() {
 
     return { success: true };
   } catch (error: unknown) {
-    const rawMessage = error instanceof Error ? error.message : '';
-    if (
-      rawMessage === 'Anda harus login terlebih dahulu.' ||
-      rawMessage === 'Akun admin tidak dapat dihapus melalui menu pengaturan.'
-    ) {
-      return { success: false, error: rawMessage };
-    }
-
-    console.error('deleteUserAccountData database error:', error instanceof Error ? error.name : 'Unknown error');
-
-    if (rawMessage.includes('Transaction') || rawMessage.includes('timeout') || rawMessage.includes('P2024')) {
-      return {
-        success: false,
-        error: 'Penghapusan data akun tidak dapat diselesaikan karena batas waktu transaksi database. Silakan coba kembali.',
-      };
-    }
-
-    return { success: false, error: 'Gagal menghapus data akun karena gangguan sistem database.' };
+    const message = sanitizeActionError(error, 'Gagal menghapus data akun');
+    return { success: false, error: message };
   }
 }
 
@@ -249,7 +220,7 @@ export async function submitFeedback(data: {
 
     return { success: true, data: { id: feedback.id } };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengirimkan ulasan';
+    const message = sanitizeActionError(error, 'Gagal mengirimkan ulasan');
     return { success: false, error: message };
   }
 }
@@ -261,7 +232,7 @@ export async function getShortcutEndpoint() {
 
     return { success: true, endpoint: result.endpoint, token: result.token };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal membuat endpoint shortcut';
+    const message = sanitizeActionError(error, 'Gagal membuat endpoint shortcut');
     return { success: false, error: message };
   }
 }
@@ -278,7 +249,7 @@ export async function regenerateShortcutToken() {
 
     return { success: true, endpoint: buildShortcutEndpoint(), token };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal reset token shortcut';
+    const message = sanitizeActionError(error, 'Gagal reset token shortcut');
     return { success: false, error: message };
   }
 }
@@ -330,7 +301,7 @@ export async function sendPasswordResetLinkAction(targetEmail?: string) {
 
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengirim email reset password.';
+    const message = sanitizeActionError(error, 'Gagal mengirim email reset password.');
     return { success: false, error: message };
   }
 }
@@ -379,7 +350,7 @@ export async function requestPinResetAction(targetUserId?: string) {
     // Return sessionToken ONLY to client (which strictly requires 6-digit OTP code to verify)
     return { success: true, email: user.email, token: sessionToken };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengirim email reset PIN.';
+    const message = sanitizeActionError(error, 'Gagal mengirim email reset PIN.');
     return { success: false, error: message };
   }
 }
@@ -426,7 +397,7 @@ export async function confirmPinResetCodeAction(input: {
 
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memverifikasi kode reset PIN.';
+    const message = sanitizeActionError(error, 'Gagal memverifikasi kode reset PIN.');
     return { success: false, error: message };
   }
 }
@@ -438,7 +409,7 @@ export async function saveUserAvatarAction(avatarBase64: string | null) {
 
     if (!avatarBase64) {
       await prisma.setting.deleteMany({ where: { key } });
-      revalidatePath('/dashboard');
+      safeRevalidatePath('/dashboard');
       return { success: true, avatarUrl: null };
     }
 
@@ -462,10 +433,10 @@ export async function saveUserAvatarAction(avatarBase64: string | null) {
       create: { key, value: avatarBase64 },
     });
 
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true, avatarUrl: avatarBase64 };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyimpan foto profil.';
+    const message = sanitizeActionError(error, 'Gagal menyimpan foto profil.');
     return { success: false, error: message };
   }
 }

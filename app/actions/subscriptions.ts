@@ -2,12 +2,12 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertPositiveInt, assertPositiveInt32 } from '../../lib/validators';
 import { addRecurringRule } from './recurring';
 import { resolveCategory, resolveWallet, updateStreak } from './transactions';
 import type { TransactionType } from '../../types';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
 
 export async function addSubscription(data: {
   name: string;
@@ -40,10 +40,10 @@ export async function addSubscription(data: {
     });
 
     await createAuditLog(userId, 'CREATE_SUBSCRIPTION', 'appSubscription', sub.id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyimpan subscription';
+    const message = sanitizeActionError(error, 'Gagal menyimpan subscription');
     return { success: false, error: message };
   }
 }
@@ -56,27 +56,32 @@ export async function addRecurringTransaction(data: {
   note?: string;
   tags?: string[];
 }) {
-  assertPositiveInt32(data.amount, 'Nominal');
-  assertNonEmpty(data.method, 'Metode pembayaran');
-  const recurring = await addRecurringRule({
-    name: data.note || data.category || 'Transaksi berulang',
-    type: data.type as TransactionType,
-    amount: data.amount,
-    categoryName: data.category,
-    walletName: data.method,
-    note: data.note,
-    tags: data.tags,
-  });
-  if (!recurring.success) return recurring;
+  try {
+    assertPositiveInt32(data.amount, 'Nominal');
+    assertNonEmpty(data.method, 'Metode pembayaran');
+    const recurring = await addRecurringRule({
+      name: data.note || data.category || 'Transaksi berulang',
+      type: data.type as TransactionType,
+      amount: data.amount,
+      categoryName: data.category,
+      walletName: data.method,
+      note: data.note,
+      tags: data.tags,
+    });
+    if (!recurring.success) return recurring;
 
-  await addSubscription({
-    name: data.note || data.category || 'Recurring Bill',
-    amount: data.amount,
-    billingDay: new Date().getDate(),
-    method: data.method,
-  });
+    await addSubscription({
+      name: data.note || data.category || 'Recurring Bill',
+      amount: data.amount,
+      billingDay: new Date().getDate(),
+      method: data.method,
+    });
 
-  return recurring;
+    return recurring;
+  } catch (error: unknown) {
+    const message = sanitizeActionError(error, 'Gagal membuat transaksi berulang');
+    return { success: false, error: message };
+  }
 }
 
 export async function toggleSubscriptionActive(id: string) {
@@ -97,10 +102,10 @@ export async function toggleSubscriptionActive(id: string) {
     });
 
     await createAuditLog(userId, 'UPDATE_SUBSCRIPTION', 'appSubscription', id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengubah status subscription';
+    const message = sanitizeActionError(error, 'Gagal mengubah status subscription');
     return { success: false, error: message };
   }
 }
@@ -120,10 +125,10 @@ export async function deleteSubscription(id: string) {
     });
 
     await createAuditLog(userId, 'DELETE_SUBSCRIPTION', 'appSubscription', id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus subscription';
+    const message = sanitizeActionError(error, 'Gagal menghapus subscription');
     return { success: false, error: message };
   }
 }
@@ -176,7 +181,7 @@ export async function recordFamilySharingPayment(data: {
 
       await tx.balance.update({
         where: { id: walletId },
-        data: { currentBalance: { increment: data.amountPaid } },
+        data: { currentBalance: { increment: data.amountPaid }, archivedAt: null },
       });
 
       return created;
@@ -184,10 +189,10 @@ export async function recordFamilySharingPayment(data: {
 
     await createAuditLog(userId, 'CREATE_TRANSACTION', 'transaction', newTx.id);
     await updateStreak(userId);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true, transactionId: newTx.id, surplus };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mencatat setoran patungan';
+    const message = sanitizeActionError(error, 'Gagal mencatat setoran patungan');
     return { success: false, error: message };
   }
 }

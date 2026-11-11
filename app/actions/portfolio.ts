@@ -2,12 +2,28 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { revalidatePath } from 'next/cache';
 import type { PortfolioAsset, AssetClass } from '../../types';
 import { getLiveQuoteForAsset } from '../../lib/marketData';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
+
+const VALID_ASSET_CLASSES = new Set<AssetClass>(['emas', 'saham', 'reksadana', 'kripto', 'properti', 'lainnya']);
+const MAX_PORTFOLIO_ASSETS = 100;
 
 function getPortfolioSettingKey(userId: string) {
   return `portfolio_assets_${userId}`;
+}
+
+function parseAssets(rawJson: string | null | undefined): PortfolioAsset[] {
+  if (!rawJson) return [];
+  try {
+    const parsed = JSON.parse(rawJson);
+    if (Array.isArray(parsed)) {
+      return parsed as PortfolioAsset[];
+    }
+    return [];
+  } catch {
+    return [];
+  }
 }
 
 export async function getPortfolioAssets(): Promise<{ success: boolean; assets: PortfolioAsset[]; error?: string }> {
@@ -19,14 +35,10 @@ export async function getPortfolioAssets(): Promise<{ success: boolean; assets: 
       where: { key },
     });
 
-    if (!setting || !setting.value) {
-      return { success: true, assets: [] };
-    }
-
-    const assets = JSON.parse(setting.value) as PortfolioAsset[];
+    const assets = parseAssets(setting?.value);
     return { success: true, assets };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memuat portofolio aset';
+    const message = sanitizeActionError(error, 'Gagal memuat portofolio aset');
     return { success: false, assets: [], error: message };
   }
 }
@@ -48,24 +60,24 @@ export async function savePortfolioAsset(data: {
     const { user } = await requireUser('basic');
     const key = getPortfolioSettingKey(user.uid);
 
-    if (!data.name.trim()) throw new Error('Nama aset wajib diisi');
-    if (data.quantity <= 0) throw new Error('Jumlah/kuantitas harus lebih dari 0');
-    if (data.buyPrice < 0) throw new Error('Harga beli tidak boleh negatif');
-    if (data.currentPrice < 0) throw new Error('Harga terkini tidak boleh negatif');
+    if (!data.name || !data.name.trim()) throw new Error('Nama aset wajib diisi');
+    if (!VALID_ASSET_CLASSES.has(data.assetClass)) throw new Error('Kelas aset tidak valid');
+
+    if (!Number.isFinite(data.quantity) || data.quantity <= 0 || data.quantity > 1_000_000_000) {
+      throw new Error('Jumlah/kuantitas harus lebih dari 0 dan dalam batas wajar');
+    }
+    if (!Number.isFinite(data.buyPrice) || data.buyPrice < 0 || data.buyPrice > 1_000_000_000_000) {
+      throw new Error('Harga beli tidak valid');
+    }
+    if (!Number.isFinite(data.currentPrice) || data.currentPrice < 0 || data.currentPrice > 1_000_000_000_000) {
+      throw new Error('Harga terkini tidak valid');
+    }
 
     const setting = await prisma.setting.findUnique({
       where: { key },
     });
 
-    let assets: PortfolioAsset[] = [];
-    if (setting?.value) {
-      try {
-        assets = JSON.parse(setting.value);
-      } catch {
-        assets = [];
-      }
-    }
-
+    const assets = parseAssets(setting?.value);
     const now = new Date().toISOString();
 
     if (data.id) {
@@ -74,15 +86,15 @@ export async function savePortfolioAsset(data: {
       if (idx !== -1) {
         assets[idx] = {
           ...assets[idx],
-          name: data.name.trim(),
+          name: data.name.trim().slice(0, 100),
           assetClass: data.assetClass,
-          symbol: data.symbol?.trim() || undefined,
+          symbol: data.symbol?.trim().slice(0, 20) || undefined,
           quantity: data.quantity,
-          unit: data.unit.trim() || 'unit',
+          unit: data.unit.trim().slice(0, 20) || 'unit',
           buyPrice: data.buyPrice,
           currentPrice: data.currentPrice,
-          institution: data.institution?.trim() || undefined,
-          notes: data.notes?.trim() || undefined,
+          institution: data.institution?.trim().slice(0, 80) || undefined,
+          notes: data.notes?.trim().slice(0, 300) || undefined,
           lastPriceUpdate: data.lastPriceUpdate ?? assets[idx].lastPriceUpdate,
           updatedAt: now,
         };
@@ -91,18 +103,22 @@ export async function savePortfolioAsset(data: {
       }
     } else {
       // Create new
+      if (assets.length >= MAX_PORTFOLIO_ASSETS) {
+        throw new Error(`Maksimal ${MAX_PORTFOLIO_ASSETS} aset dalam portofolio`);
+      }
+
       const newAsset: PortfolioAsset = {
         id: `asset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         userId: user.uid,
-        name: data.name.trim(),
+        name: data.name.trim().slice(0, 100),
         assetClass: data.assetClass,
-        symbol: data.symbol?.trim() || undefined,
+        symbol: data.symbol?.trim().slice(0, 20) || undefined,
         quantity: data.quantity,
-        unit: data.unit.trim() || 'unit',
+        unit: data.unit.trim().slice(0, 20) || 'unit',
         buyPrice: data.buyPrice,
         currentPrice: data.currentPrice,
-        institution: data.institution?.trim() || undefined,
-        notes: data.notes?.trim() || undefined,
+        institution: data.institution?.trim().slice(0, 80) || undefined,
+        notes: data.notes?.trim().slice(0, 300) || undefined,
         lastPriceUpdate: data.lastPriceUpdate || null,
         updatedAt: now,
       };
@@ -115,10 +131,10 @@ export async function savePortfolioAsset(data: {
       create: { key, value: JSON.stringify(assets) },
     });
 
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true, assets };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyimpan aset portofolio';
+    const message = sanitizeActionError(error, 'Gagal menyimpan aset portofolio');
     return { success: false, error: message };
   }
 }
@@ -142,7 +158,7 @@ export async function refreshPortfolioLivePrices(): Promise<{
       return { success: true, assets: [], updatedCount: 0, hasFallback: false };
     }
 
-    const assets = JSON.parse(setting.value) as PortfolioAsset[];
+    const assets = parseAssets(setting.value);
     let updatedCount = 0;
     let hasFallback = false;
 
@@ -178,10 +194,10 @@ export async function refreshPortfolioLivePrices(): Promise<{
       create: { key, value: JSON.stringify(assets) },
     });
 
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true, assets, updatedCount, hasFallback };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memperbarui harga live aset';
+    const message = sanitizeActionError(error, 'Gagal memperbarui harga live aset');
     return { success: false, error: message };
   }
 }
@@ -199,7 +215,7 @@ export async function deletePortfolioAsset(id: string) {
       return { success: true };
     }
 
-    const assets = (JSON.parse(setting.value) as PortfolioAsset[]).filter((a) => a.id !== id);
+    const assets = parseAssets(setting.value).filter((a) => a.id !== id);
 
     await prisma.setting.upsert({
       where: { key },
@@ -207,10 +223,10 @@ export async function deletePortfolioAsset(id: string) {
       create: { key, value: JSON.stringify(assets) },
     });
 
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus aset';
+    const message = sanitizeActionError(error, 'Gagal menghapus aset');
     return { success: false, error: message };
   }
 }
@@ -220,7 +236,9 @@ export async function revaluePortfolioAsset(id: string, newCurrentPrice: number)
     const { user } = await requireUser('basic');
     const key = getPortfolioSettingKey(user.uid);
 
-    if (newCurrentPrice < 0) throw new Error('Harga terkini tidak boleh negatif');
+    if (!Number.isFinite(newCurrentPrice) || newCurrentPrice < 0 || newCurrentPrice > 1_000_000_000_000) {
+      throw new Error('Harga terkini tidak valid');
+    }
 
     const setting = await prisma.setting.findUnique({
       where: { key },
@@ -228,7 +246,7 @@ export async function revaluePortfolioAsset(id: string, newCurrentPrice: number)
 
     if (!setting?.value) throw new Error('Data aset tidak ditemukan');
 
-    const assets = JSON.parse(setting.value) as PortfolioAsset[];
+    const assets = parseAssets(setting.value);
     const asset = assets.find((a) => a.id === id);
     if (!asset) throw new Error('Aset tidak ditemukan');
 
@@ -241,10 +259,10 @@ export async function revaluePortfolioAsset(id: string, newCurrentPrice: number)
       create: { key, value: JSON.stringify(assets) },
     });
 
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true, asset };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal merevaluasi harga aset';
+    const message = sanitizeActionError(error, 'Gagal merevaluasi harga aset');
     return { success: false, error: message };
   }
 }

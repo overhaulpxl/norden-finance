@@ -37,6 +37,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailInput): Pr
         html,
         text,
       }),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {

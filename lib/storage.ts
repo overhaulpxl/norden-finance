@@ -151,7 +151,8 @@ export async function uploadFile(
   contentType: string,
   options: { upsert?: boolean } = {}
 ): Promise<string> {
-  if (!ALLOWED_MIME_TYPES.has(contentType.toLowerCase())) {
+  const normalizedMime = contentType.toLowerCase() === 'image/jpg' ? 'image/jpeg' : contentType.toLowerCase();
+  if (!ALLOWED_MIME_TYPES.has(normalizedMime)) {
     throw new Error(`Format file "${contentType}" tidak didukung. Gunakan PNG, JPEG, atau WebP.`);
   }
 
@@ -159,7 +160,7 @@ export async function uploadFile(
     throw new Error('Ukuran file maksimal 5MB.');
   }
 
-  if (!isValidImageMagicBytes(fileBuffer, contentType)) {
+  if (!isValidImageMagicBytes(fileBuffer, normalizedMime)) {
     throw new Error('Konten file tidak sesuai dengan tipe gambar yang ditentukan.');
   }
 
@@ -171,7 +172,7 @@ export async function uploadFile(
 
   const client = getStorageClient();
   const { error } = await client.from(bucket).upload(objectPath, fileBuffer, {
-    contentType,
+    contentType: normalizedMime,
     upsert: options.upsert ?? false,
   });
 

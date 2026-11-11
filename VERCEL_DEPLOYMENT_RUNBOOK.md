@@ -20,18 +20,18 @@ This runbook provides the definitive, repository-grounded deployment procedure f
   • Redirect: www.nordenfinance.site -> nordenfinance.site (HTTP 308)
               │
               ▼
-[ Vercel Serverless Compute (Node.js 20.x, Next.js 16.2.7 App Router) ]
+[ Vercel Serverless Compute (Node.js 24.x, Next.js 16.4.6 App Router) ]
   ├── App Pages & UI (React 19 Server & Client Components)
   ├── Server Actions & API Route Handlers
   │     ├── Request Security: assertSameOrigin (CSRF Protection)
   │     ├── Rate Limiting: assertRateLimit via PostgreSQL RateLimitBucket
   │     ├── Auth Verification: Firebase Admin SDK (Cryptographic verifySessionCookie / verifyIdToken)
-  │     └── File Storage Gateway: Firebase Storage Signed URLs
+  │     └── File Storage Gateway: Supabase Storage Signed URLs & Public CDN
   └── Vercel Cron Runner: Authenticated GET to /api/cron/recurring (0 0 * * *)
               │
-              ├── [ Firebase Auth & Storage (Google Cloud) ]
+              ├── [ Firebase Auth (Google Cloud) & Supabase Storage ]
               │     • User Identity & Tokens (Firebase Auth)
-              │     • Receipt & QRIS Assets (Firebase Storage)
+              │     • Receipt & QRIS Assets (Supabase Storage)
               │
               └── [ Managed Cloud PostgreSQL (Singapore ap-southeast-1) ]
                     ├── Runtime Queries: Pooled Connection via Supavisor / PgBouncer
@@ -44,7 +44,7 @@ To avoid assumptions, project aspects are classified into five distinct categori
 
 | Category | Topics | Current Status & Details |
 | :--- | :--- | :--- |
-| **Confirmed Facts** | Framework, Runtime, Target Domain | Next.js 16.2.7, Node.js 20.x, primary domain `https://nordenfinance.site`. |
+| **Confirmed Facts** | Framework, Runtime, Target Domain | Next.js 16.4.6, Node.js 24.x, primary canonical domain `https://www.nordenfinance.site` (`https://nordenfinance.site` redirects). |
 | **Owner-Confirmed Facts** | GitHub–Vercel Integration | The GitHub repository is **already connected** to Vercel. **Do not create a new Vercel project, reconnect GitHub, or repeat repository import.** |
 | **Repository-Derived Facts** | Database Schema, Auth, Rate Limits | Prisma 5.22.0 (`DATABASE_URL` + `DIRECT_URL`), Firebase Auth & Admin SDK (fail-closed, emulator lockout in prod), `lib/rateLimit.ts` (Node `net.isIP` validation, 429 Retry-After, 24h bucket pruning), `vercel.json` (daily cron). |
 | **Dashboard-Dependent Items** | Vercel Git Branch, Exact DNS Records, Env Vars | Exact DNS values must be read from the existing Vercel project dashboard; Vercel production branch, root directory, and active environment variables must be inspected in dashboard. |
@@ -71,7 +71,7 @@ Before triggering any release build, verify the existing project configuration i
    - Confirm **Root Directory** is set to `./` (repository root).
    - Confirm **Build Command** is default or `npm run build`.
    - Confirm **Install Command** is default or `npm install`.
-   - Confirm **Node.js Version** is set to `20.x`.
+   - Confirm **Node.js Version** is set to `24.x`.
 4. **Latest Deployment Review:**
    - Navigate to **Deployments**.
    - Inspect the commit hash and deployment status of the current production deployment to understand what version is currently live.
@@ -180,11 +180,11 @@ Derived directly from codebase usage (`app`, `lib`, `prisma`, `scripts`):
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `DATABASE_URL` | Server-only | **REQUIRED** | Preview, Production | Database Provider (Supabase / Neon) | Pooled PostgreSQL connection string for Serverless runtime queries. If missing: application cannot start or query database (HTTP 500). | Checked at DB query execution. |
 | `DIRECT_URL` | Server-only | **REQUIRED** | Production | Database Provider (Supabase / Neon) | Direct TCP connection string (port 5432) for running `npm run db:migrate`. If missing: Prisma migrations fail to acquire locks in transaction pooling mode. | Validated via `npx prisma validate`. |
-| `NEXT_PUBLIC_APP_URL` | Client + Server | **REQUIRED** | Production | User / Vercel Domain | Canonical application URL (`https://nordenfinance.site`). Used for email verification links and mobile shortcuts. If missing: defaults to `https://nordenfinance.site`. | Inspected in `lib/appUrl.ts`. |
+| `NEXT_PUBLIC_APP_URL` | Client + Server | **REQUIRED** | Production | User / Vercel Domain | Canonical application URL (`https://www.nordenfinance.site`). Used for email verification links and mobile shortcuts. If missing: defaults to `https://www.nordenfinance.site`. | Inspected in `lib/appUrl.ts`. |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Public API key for Firebase Client initialization. If missing: client cannot initialize auth or log in. | Validated in `lib/firebase.ts`. |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Auth domain (e.g. `<project-id>.firebaseapp.com`). If missing: client auth fails. | Validated in `lib/firebase.ts`. |
 | `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Firebase project ID. If missing: client cannot locate project. | Validated in `lib/firebase.ts`. |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Firebase Storage bucket (e.g. `<project-id>.firebasestorage.app`). If missing: uploads and proof generation fail. | Validated in `lib/firebase.ts`. |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Firebase Storage bucket (e.g. `<project-id>.firebasestorage.app`). Legacy compatibility. | Validated in `lib/firebase.ts`. |
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Cloud Messaging sender ID. If missing: client config throws error. | Validated in `lib/firebase.ts`. |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | Client + Server | **REQUIRED** | Local, Preview, Production | Firebase Console (Web App) | Firebase Web App ID (`1:xxx:web:xxx`). If missing: client config throws error. | Validated in `lib/firebase.ts`. |
 | `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | Client + Server | Optional | Production | Firebase Console (Analytics) | Google Analytics measurement ID (`G-XXXXXX`). If missing: client analytics gracefully disabled. | Optional. |
@@ -192,12 +192,15 @@ Derived directly from codebase usage (`app`, `lib`, `prisma`, `scripts`):
 | `FIREBASE_CLIENT_EMAIL` (or `FIREBASE_ADMIN_CLIENT_EMAIL`) | Server-only | **REQUIRED** | Production | Firebase Service Account JSON | Service account client email. If missing: server auth verification fails. | Checked at server startup. |
 | `FIREBASE_PRIVATE_KEY` (or `FIREBASE_ADMIN_PRIVATE_KEY`) | Server-only | **REQUIRED** | Production | Firebase Service Account JSON | Full RSA private key (including `-----BEGIN PRIVATE KEY-----` and `\n`). If missing: server auth verification fails. | Checked at server startup. |
 | `CRON_SECRET` | Server-only | **REQUIRED** | Production | Owner Generated | Cryptographic token (min 32 characters) protecting `/api/cron/*` endpoints from unauthorized invocation. If missing: cron jobs fail closed (HTTP 500). | Checked in `lib/cronAuth.ts`. |
+| `SHORTCUT_TOKEN_SECRET` | Server-only | **REQUIRED** | Production | Owner Generated | Cryptographic HMAC secret (min 32 characters, distinct from `CRON_SECRET`) for iOS Shortcut webhook tokens. | Checked in `lib/shortcutToken.ts`. |
+| `SUPABASE_URL` | Server-only | **REQUIRED** | Preview, Production | Supabase Project Settings | Base URL for Supabase Storage (`https://[PROJECT_REF].supabase.co`). | Checked in `lib/storage.ts`. |
+| `SUPABASE_SECRET_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`) | Server-only | **REQUIRED** | Preview, Production | Supabase Project Settings | Server-side Service Role API key for private bucket uploads and signed URLs. Never expose client-side. | Checked in `lib/storage.ts`. |
 | `EMAIL_VERIFICATION_PROVIDER` | Server-only | **REQUIRED** | Production | Configuration | Set to `firebase` (default) or `resend`. In production without custom domain email: must be `firebase`. | Checked in `app/api/auth/register/route.ts`. |
 | `EMAIL_FROM` | Server-only | Optional | Production | Resend Configuration | Sender display name & address (e.g. `Norden Finance <hello@nordenfinance.site>`). If missing: email sending fails. | Checked in `lib/email.ts`. |
 | `RESEND_API_KEY` | Server-only | Optional | Production | Resend Console | API key for reminder and verification emails via Resend. If missing: email delivery is skipped. | Checked in `lib/email.ts`. |
 | `ADMIN_EMAIL` | Server-only | Optional | Production | Owner Configuration | Admin email for payment notifications. | Documented in `.env.example`. |
 | `SUPPORT_EMAIL` | Server-only | Optional | Production | Owner Configuration | Support contact email. | Documented in `.env.example`. |
-| `STORAGE_PROVIDER` | Server-only | Optional | Production | Configuration | Set to `firebase`. | Checked in `lib/storage.ts`. |
+| `STORAGE_PROVIDER` | Server-only | Optional | Production | Configuration | Set to `supabase`. | Checked in `lib/storage.ts`. |
 | `NEXT_PUBLIC_USE_FIREBASE_AUTH_EMULATOR` | Client + Server | **FORBIDDEN** in Production | **Local Only** | Local Development | Must be `false` or completely absent in Production. If `true` in production: client points to localhost. | Enforced by `lib/firebase.ts`. |
 | `FIREBASE_AUTH_EMULATOR_HOST` | Server-only | **FORBIDDEN** in Production | **Local Only** | Local Development | Must NOT be set in Production. `lib/firebaseAdmin.ts` will intentionally throw and crash if present in production. | Enforced by `lib/firebaseAdmin.ts:21`. |
 
@@ -273,7 +276,7 @@ From the database provider's dashboard, **copy the exact connection strings dire
    npm run db:migrate
    ```
 5. **Verify Database Schema:**
-   Confirm that all 8 tracked migrations applied successfully and `npx prisma migrate status` reports `Database schema is up to date!`.
+   Confirm that all 9 tracked migrations applied successfully and `npx prisma migrate status` reports `Database schema is up to date!`.
 
 ---
 

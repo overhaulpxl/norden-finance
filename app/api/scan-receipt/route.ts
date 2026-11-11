@@ -68,6 +68,18 @@ export async function POST(req: Request) {
     if (error instanceof Error && error.message.includes('origin')) {
       return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
+    if (error instanceof Error) {
+      if (error.message.includes('Anda harus login terlebih dahulu')) {
+        return NextResponse.json({ error: error.message }, { status: 401 });
+      }
+      if (
+        error.message.includes('Fitur ini membutuhkan akun Norden Pro') ||
+        error.message.includes('Akses pencatatan keuangan tidak tersedia') ||
+        error.message.includes('Anda tidak memiliki akses')
+      ) {
+        return NextResponse.json({ error: error.message }, { status: 403 });
+      }
+    }
     console.error('Receipt parse error:', error);
     return NextResponse.json({ error: 'Gagal memproses struk' }, { status: 500 });
   }

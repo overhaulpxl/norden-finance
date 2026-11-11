@@ -44,8 +44,8 @@ export async function loginAction(email: string, password: string, rememberMe: b
       body: JSON.stringify({ idToken, rememberMe }),
     });
 
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const data = await res.json();
       return { success: false, error: data.error || 'Gagal membuat sesi' };
     }
 
@@ -86,12 +86,11 @@ export async function registerAction(fullName: string, email: string, password: 
       body: JSON.stringify({ idToken, fullName, createSession: false }),
     });
 
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const data = await res.json();
       return { success: false, error: data.error || 'Gagal membuat akun' };
     }
 
-    const data = await res.json();
     if (data.requiresEmailVerification && data.emailVerificationProvider === 'firebase') {
       const appUrl = getPublicAppUrl(typeof window !== 'undefined' ? window.location.origin : undefined);
       await sendEmailVerification(credential.user, {
@@ -181,8 +180,8 @@ export async function loginWithGoogleAction() {
       body: JSON.stringify({ idToken, fullName }),
     });
 
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const data = await res.json();
       return { success: false, error: data.error || 'Gagal masuk dengan Google' };
     }
 

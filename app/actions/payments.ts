@@ -2,11 +2,11 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { PaymentStatus, PlanType } from '@prisma/client';
 import { getPaymentSettings, getPricingPlans } from '../../lib/data/loaders';
 import { assertRateLimit } from '../../lib/rateLimit';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
 
 async function validatePaymentInput(data: {
   billingType: string;
@@ -84,31 +84,33 @@ export async function submitPaymentRequest(data: {
     await assertRateLimit(`submit-payment:${userId}`, 3, 60_000);
     await validatePaymentInput(data, userId);
 
-    const existingPending = await prisma.paymentRequest.findFirst({
-      where: { userId, status: PaymentStatus.pending },
-    });
-    if (existingPending) {
-      throw new Error('Masih ada permintaan upgrade yang menunggu review admin');
-    }
+    const inserted = await prisma.$transaction(async (tx) => {
+      const existingPending = await tx.paymentRequest.findFirst({
+        where: { userId, status: PaymentStatus.pending },
+      });
+      if (existingPending) {
+        throw new Error('Masih ada permintaan upgrade yang menunggu review admin');
+      }
 
-    const inserted = await prisma.paymentRequest.create({
-      data: {
-        userId,
-        plan: PlanType.pro,
-        billingType: data.billingType,
-        amount: data.amount,
-        paymentMethod: data.paymentMethod,
-        proofPath: data.proofPath,
-        status: PaymentStatus.pending,
-      },
+      return tx.paymentRequest.create({
+        data: {
+          userId,
+          plan: PlanType.pro,
+          billingType: data.billingType,
+          amount: data.amount,
+          paymentMethod: data.paymentMethod,
+          proofPath: data.proofPath,
+          status: PaymentStatus.pending,
+        },
+      });
     });
 
     await createAuditLog(userId, 'CREATE_PAYMENT_REQUEST', 'paymentRequest', inserted.id);
-    revalidatePath('/upgrade');
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/upgrade');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengirim bukti pembayaran';
+    const message = sanitizeActionError(error, 'Gagal mengirim bukti pembayaran');
     return { success: false, error: message };
   }
 }
@@ -145,7 +147,7 @@ export async function getPaymentRequests() {
 
     return { success: true, data: resolvedData };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal memuat riwayat pembayaran';
+    const message = sanitizeActionError(error, 'Gagal memuat riwayat pembayaran');
     return { success: false, error: message };
   }
 }

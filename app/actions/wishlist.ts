@@ -2,9 +2,9 @@
 
 import { requireUser } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
-import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '../../lib/audit';
 import { assertNonEmpty, assertPositiveInt, assertValidDate } from '../../lib/validators';
+import { sanitizeActionError, safeRevalidatePath } from '../../lib/actionErrors';
 
 export async function addWishlistItem(data: {
   name: string;
@@ -17,6 +17,9 @@ export async function addWishlistItem(data: {
     const userId = user.uid;
     assertNonEmpty(data.name, 'Nama wishlist');
     assertPositiveInt(data.amount, 'Nominal');
+    if (data.amount > 1_000_000_000_000) {
+      throw new Error('Nominal wishlist melebihi batas maksimal');
+    }
     assertValidDate(data.unlockDate, 'Tanggal unlock');
     if (data.url) {
       try {
@@ -41,10 +44,10 @@ export async function addWishlistItem(data: {
     });
 
     await createAuditLog(userId, 'CREATE_WISHLIST', 'wishlistItem', item.id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menyimpan wishlist';
+    const message = sanitizeActionError(error, 'Gagal menyimpan wishlist');
     return { success: false, error: message };
   }
 }
@@ -54,13 +57,13 @@ export async function markWishlistBought(id: string, walletName?: string) {
     const { user } = await requireUser(true);
     const userId = user.uid;
 
-    const existing = await prisma.wishlistItem.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Wishlist item tidak ditemukan');
-    if (existing.status === 'bought') throw new Error('Wishlist sudah dibeli');
-
     await prisma.$transaction(async (tx) => {
+      const existing = await tx.wishlistItem.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Wishlist item tidak ditemukan');
+      if (existing.status === 'bought') throw new Error('Wishlist sudah dibeli');
+
       if (walletName) {
         const wallet = await tx.balance.findFirst({
           where: {
@@ -104,10 +107,10 @@ export async function markWishlistBought(id: string, walletName?: string) {
     });
 
     await createAuditLog(userId, 'UPDATE_WISHLIST', 'wishlistItem', id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal mengubah status wishlist';
+    const message = sanitizeActionError(error, 'Gagal mengubah status wishlist');
     return { success: false, error: message };
   }
 }
@@ -125,10 +128,10 @@ export async function deleteWishlistItem(id: string) {
     await prisma.wishlistItem.delete({ where: { id } });
 
     await createAuditLog(userId, 'DELETE_WISHLIST', 'wishlistItem', id);
-    revalidatePath('/dashboard');
+    safeRevalidatePath('/dashboard');
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus wishlist';
+    const message = sanitizeActionError(error, 'Gagal menghapus wishlist');
     return { success: false, error: message };
   }
 }

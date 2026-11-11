@@ -137,6 +137,10 @@ export async function GET(request: Request) {
         })),
         totalBalance,
         transactions: payload,
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0, must-revalidate',
+        },
       });
     }
 
@@ -152,6 +156,7 @@ export async function GET(request: Request) {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="norden-export-${new Date().toISOString().slice(0, 10)}.csv"`,
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
       },
     });
   } catch (error) {
