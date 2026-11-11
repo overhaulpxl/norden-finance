@@ -50,6 +50,8 @@ export default function OnboardingClient({
 
     setLoading(false);
     if (result.success) {
+      // Full document reload to refresh onboarding state in server layout
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/dashboard';
     } else {
       setError(

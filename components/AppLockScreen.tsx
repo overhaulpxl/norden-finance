@@ -373,6 +373,8 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
       }
       await fetch('/api/auth/session', { method: 'DELETE' });
       await signOut(auth);
+      // Full document reload to clear sensitive state
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     } catch {
       setEmergencyLoading(false);

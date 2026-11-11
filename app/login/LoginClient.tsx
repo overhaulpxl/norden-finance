@@ -60,6 +60,8 @@ export default function LoginClient() {
 
     setLoading(false);
     if (result.success) {
+      // Full document reload to refresh server session cookie
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/dashboard';
     } else if ('requiresEmailVerification' in result && result.requiresEmailVerification) {
       const targetEmail = 'email' in result && result.email ? result.email : email;
@@ -77,6 +79,8 @@ export default function LoginClient() {
 
     setLoading(false);
     if (result.success) {
+      // Full document reload to refresh server session cookie
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/dashboard';
     } else {
       setError(result.error || (lang === 'en' ? 'Failed to sign in with Google.' : 'Gagal masuk dengan Google.'));

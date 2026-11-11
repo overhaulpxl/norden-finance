@@ -462,6 +462,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
 
       await deleteUser(currentUser);
 
+      // Full document reload to clear sensitive state
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     } catch (err: unknown) {
       console.error(err);

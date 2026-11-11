@@ -87,6 +87,8 @@ export default function Sidebar({ activeTab, setActiveTab, onNewTransaction, onC
     }
     startTransition(async () => {
       await logoutAction();
+      // Full document reload to clear server session cookie
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     });
   }
