@@ -55,15 +55,14 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse(error);
     }
     if (error instanceof RateLimitIpError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
     }
     if (error instanceof Error && error.message.includes('origin')) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
     console.error('Session creation error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to create session';
     return NextResponse.json(
-      { error: message },
+      { error: 'Gagal membuat sesi login.' },
       { status: 401 }
     );
   }
@@ -78,7 +77,7 @@ export async function DELETE(request: NextRequest) {
     assertSameOrigin(request);
   } catch (error: unknown) {
     if (error instanceof Error && error.message.includes('origin')) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
   }
 

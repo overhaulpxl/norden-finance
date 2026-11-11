@@ -11,6 +11,7 @@ import { DEFAULT_MONTHLY_PRICE, DEFAULT_TRIAL_DAYS, DEFAULT_YEARLY_PRICE } from 
 import { sendEmail } from '../../lib/email';
 import { getPaymentApprovedEmailHtml, getPaymentRejectedEmailHtml } from '../../lib/email/templates/paymentEmails';
 import { executeFinancialDataReset } from '../../lib/financialReset';
+import { deleteUserStorageObjects } from '../../lib/storage';
 
 async function sendPaymentStatusEmail({
   userId,
@@ -92,7 +93,7 @@ export async function getPendingPaymentRequests() {
 
 export async function approvePaymentRequest(requestId: string) {
   try {
-    const { user, profile } = await requireUser(true);
+    const { user, profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -151,12 +152,11 @@ export async function approvePaymentRequest(requestId: string) {
       const expiredAt = new Date(baseDate);
       expiredAt.setDate(expiredAt.getDate() + billingDays);
 
-      // Update user profile to Pro plan and sync expiry timestamp
+      // Update user profile to Pro plan (preserve existing trial dates)
       await tx.profile.update({
         where: { userId: request.userId },
         data: {
           plan: PlanType.pro,
-          trialEndsAt: expiredAt,
         },
       });
 
@@ -196,7 +196,7 @@ export async function approvePaymentRequest(requestId: string) {
 
 export async function rejectPaymentRequest(requestId: string, adminNote: string) {
   try {
-    const { user, profile } = await requireUser(true);
+    const { user, profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -294,7 +294,7 @@ export async function getAllUsers() {
 
 export async function updateUserPlanManually(targetUserId: string, newPlan: PlanType, days: number = 30) {
   try {
-    const { user, profile } = await requireUser(true);
+    const { user, profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -372,7 +372,7 @@ export async function updateUserPlanManually(targetUserId: string, newPlan: Plan
 
 export async function updateUserRoleManually(targetUserId: string, newRole: UserRole) {
   try {
-    const { user, profile } = await requireUser(true);
+    const { user, profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -398,7 +398,7 @@ export async function updateUserRoleManually(targetUserId: string, newRole: User
 
 export async function resetUserFinancialDataByAdmin(targetUserId: string) {
   try {
-    const { user, profile } = await requireUser(true);
+    const { user, profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -447,7 +447,7 @@ export async function resetUserFinancialDataByAdmin(targetUserId: string) {
 
 export async function deleteUserAccountByAdmin(targetUserId: string) {
   try {
-    const { user, profile } = await requireUser(true);
+    const { user, profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -496,11 +496,24 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
       await tx.billingSubscription.deleteMany({ where: { userId: targetUserId } });
       await tx.feedback.deleteMany({ where: { userId: targetUserId } });
       await tx.auditLog.deleteMany({ where: { userId: targetUserId } });
+      await tx.setting.deleteMany({
+        where: {
+          key: {
+            in: [`portfolio_assets_${targetUserId}`, `user_avatar_${targetUserId}`],
+          },
+        },
+      });
       await tx.profile.delete({ where: { userId: targetUserId } });
     }, {
       maxWait: 5000,
       timeout: 20000,
     });
+
+    try {
+      await deleteUserStorageObjects(targetUserId);
+    } catch (storageError) {
+      console.warn('User storage objects deletion skipped or failed:', storageError);
+    }
 
     try {
       const adminAuth = getAdminAuth();
@@ -522,7 +535,8 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
       rawMessage === 'Anda tidak memiliki akses untuk melakukan tindakan ini.' ||
       rawMessage === 'Anda tidak dapat menghapus akun admin yang sedang digunakan.' ||
       rawMessage === 'Target pengguna tidak valid.' ||
-      rawMessage === 'Profil pengguna tidak ditemukan.'
+      rawMessage === 'Profil pengguna tidak ditemukan.' ||
+      rawMessage === 'Akun dengan role admin tidak dapat dihapus. Turunkan role menjadi user terlebih dahulu.'
     ) {
       return { success: false, error: rawMessage };
     }
@@ -542,7 +556,7 @@ export async function deleteUserAccountByAdmin(targetUserId: string) {
 
 export async function updateFeedbackStatus(feedbackId: string, newStatus: string) {
   try {
-    const { profile } = await requireUser(true);
+    const { profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -608,7 +622,7 @@ export async function updatePaymentSettings(data: {
   qris_active: string;
 }) {
   try {
-    const { profile } = await requireUser(true);
+    const { profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');
@@ -672,7 +686,7 @@ export async function updatePricingSettings(data: {
   yearly_active: boolean;
 }) {
   try {
-    const { profile } = await requireUser(true);
+    const { profile } = await requireUser(false);
 
     if (profile.role !== 'admin') {
       throw new Error('Anda tidak memiliki akses untuk melakukan tindakan ini.');

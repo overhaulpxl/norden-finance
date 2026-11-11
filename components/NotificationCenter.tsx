@@ -139,7 +139,7 @@ export default function NotificationCenter() {
           setConfirmClear(false);
           fetchNotifications();
         }}
-        className="relative border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 sm:p-2.5 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center text-black dark:text-white"
+        className="relative min-w-[44px] min-h-[44px] border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 sm:p-2.5 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center text-black dark:text-white"
       >
         <Bell className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5px]" />
         {unreadCount > 0 && (
@@ -177,7 +177,7 @@ export default function NotificationCenter() {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] p-1.5 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center"
                 >
                   <X className="w-4 h-4 stroke-[2.5px]" />
                 </button>

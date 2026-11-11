@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     assertSameOrigin(request);
     await assertRateLimit(rateLimitKey(request, 'upload-qris'), 5, 60_000);
 
-    const { profile } = await requireUser(true);
+    const { profile } = await requireUser(false);
     if (profile.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -56,18 +56,28 @@ export async function POST(request: Request) {
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message.includes('MAINTENANCE_ACTIVE')) {
-      return NextResponse.json({ error: error.message, maintenance: true }, { status: 503 });
+      return NextResponse.json({ error: 'Sistem sedang dalam pemeliharaan.', maintenance: true }, { status: 503 });
     }
     if (error instanceof RateLimitExceededError) {
       return rateLimitResponse(error);
     }
     if (error instanceof RateLimitIpError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
     }
     if (error instanceof Error && error.message.includes('origin')) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
-    const message = error instanceof Error ? error.message : 'Gagal mengunggah QRIS';
-    return NextResponse.json({ error: message }, { status: 400 });
+    const safeErrors = [
+      'Ukuran file maksimal 5MB',
+      'Ukuran file maksimal 5MB.',
+      'File wajib diunggah',
+      'Format file tidak didukung. Gunakan PNG, JPEG, atau WebP.',
+      'Konten file tidak sesuai dengan tipe gambar yang ditentukan.',
+    ];
+    if (error instanceof Error && safeErrors.some((msg) => error.message.includes(msg))) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    console.error('QRIS upload error:', error);
+    return NextResponse.json({ error: 'Gagal mengunggah QRIS' }, { status: 400 });
   }
 }

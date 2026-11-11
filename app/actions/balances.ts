@@ -30,29 +30,31 @@ export async function updateBalance(name: string, amount: number, id?: string) {
 
     if (id) {
       // Update existing wallet
-      const existing = await prisma.balance.findFirst({
-        where: { id, userId },
-      });
-
-      if (!existing) throw new Error('Dompet tidak ditemukan');
-
-      if (existing.name !== walletName) {
-        const nameConflict = await prisma.balance.findUnique({
-          where: { userId_name: { userId, name: walletName } },
+      const wallet = await prisma.$transaction(async (tx) => {
+        const existing = await tx.balance.findFirst({
+          where: { id, userId },
         });
-        if (nameConflict && nameConflict.id !== id) {
-          throw new Error(`Dompet dengan nama ${walletName} sudah ada.`);
-        }
-      }
 
-      const wallet = await prisma.balance.update({
-        where: { id },
-        data: {
-          name: walletName,
-          type,
-          currentBalance: amount,
-          archivedAt: null,
-        },
+        if (!existing) throw new Error('Dompet tidak ditemukan');
+
+        if (existing.name !== walletName) {
+          const nameConflict = await tx.balance.findUnique({
+            where: { userId_name: { userId, name: walletName } },
+          });
+          if (nameConflict && nameConflict.id !== id) {
+            throw new Error(`Dompet dengan nama ${walletName} sudah ada.`);
+          }
+        }
+
+        return tx.balance.update({
+          where: { id },
+          data: {
+            name: walletName,
+            type,
+            currentBalance: amount,
+            archivedAt: null,
+          },
+        });
       });
 
       await createAuditLog(userId, 'UPDATE_BALANCE', 'balance', id);
@@ -84,16 +86,17 @@ export async function deleteBalance(id: string) {
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    // Verify ownership
-    const existing = await prisma.balance.findFirst({
-      where: { id, userId },
-    });
+    const wallet = await prisma.$transaction(async (tx) => {
+      const existing = await tx.balance.findFirst({
+        where: { id, userId },
+      });
 
-    if (!existing) throw new Error('Dompet tidak ditemukan');
+      if (!existing) throw new Error('Dompet tidak ditemukan');
 
-    const wallet = await prisma.balance.update({
-      where: { id },
-      data: { archivedAt: new Date() },
+      return tx.balance.update({
+        where: { id },
+        data: { archivedAt: new Date() },
+      });
     });
 
     await createAuditLog(userId, 'ARCHIVE_BALANCE', 'balance', id);
@@ -110,14 +113,16 @@ export async function restoreBalance(id: string) {
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    const existing = await prisma.balance.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Dompet tidak ditemukan');
+    const wallet = await prisma.$transaction(async (tx) => {
+      const existing = await tx.balance.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Dompet tidak ditemukan');
 
-    const wallet = await prisma.balance.update({
-      where: { id },
-      data: { archivedAt: null },
+      return tx.balance.update({
+        where: { id },
+        data: { archivedAt: null },
+      });
     });
 
     await createAuditLog(userId, 'RESTORE_BALANCE', 'balance', id);
@@ -138,14 +143,16 @@ export async function deleteBalancePermanently(id: string) {
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    const existing = await prisma.balance.findFirst({
-      where: { id, userId },
-    });
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.balance.findFirst({
+        where: { id, userId },
+      });
 
-    if (!existing) throw new Error('Dompet tidak ditemukan');
+      if (!existing) throw new Error('Dompet tidak ditemukan');
 
-    await prisma.balance.delete({
-      where: { id },
+      await tx.balance.delete({
+        where: { id },
+      });
     });
 
     await createAuditLog(userId, 'DELETE_BALANCE_PERMANENT', 'balance', id);

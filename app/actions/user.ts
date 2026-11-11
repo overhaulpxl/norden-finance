@@ -12,6 +12,7 @@ import { sendPasswordResetEmail, sendPinResetEmail } from '../../lib/authEmail';
 import { generatePinResetTokens, verifyPinResetToken } from '../../lib/pinResetToken';
 import { assertRateLimit } from '../../lib/rateLimit';
 import { assertNonEmpty, assertNonNegativeInt } from '../../lib/validators';
+import { deleteUserStorageObjects } from '../../lib/storage';
 
 export async function completeOnboarding(data: {
   fullName: string;
@@ -160,6 +161,13 @@ export async function deleteUserAccountData() {
       await tx.billingSubscription.deleteMany({ where: { userId } });
       await tx.feedback.deleteMany({ where: { userId } });
       await tx.auditLog.deleteMany({ where: { userId } });
+      await tx.setting.deleteMany({
+        where: {
+          key: {
+            in: [`portfolio_assets_${userId}`, `user_avatar_${userId}`],
+          },
+        },
+      });
       
       // Finally delete user profile
       await tx.profile.deleteMany({ where: { userId } });
@@ -167,6 +175,12 @@ export async function deleteUserAccountData() {
       maxWait: 5000,
       timeout: 20000,
     });
+
+    try {
+      await deleteUserStorageObjects(userId);
+    } catch (storageError) {
+      console.warn('User storage objects deletion skipped or failed:', storageError);
+    }
 
     try {
       const adminAuth = getAdminAuth();
@@ -187,7 +201,10 @@ export async function deleteUserAccountData() {
     return { success: true };
   } catch (error: unknown) {
     const rawMessage = error instanceof Error ? error.message : '';
-    if (rawMessage === 'Anda harus login terlebih dahulu.') {
+    if (
+      rawMessage === 'Anda harus login terlebih dahulu.' ||
+      rawMessage === 'Akun admin tidak dapat dihapus melalui menu pengaturan.'
+    ) {
       return { success: false, error: rawMessage };
     }
 
@@ -240,9 +257,9 @@ export async function submitFeedback(data: {
 export async function getShortcutEndpoint() {
   try {
     const { user } = await requireUser(false);
-    const endpoint = await getShortcutEndpointForUser(user.uid);
+    const result = await getShortcutEndpointForUser(user.uid);
 
-    return { success: true, endpoint };
+    return { success: true, endpoint: result.endpoint, token: result.token };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal membuat endpoint shortcut';
     return { success: false, error: message };
@@ -259,7 +276,7 @@ export async function regenerateShortcutToken() {
     });
     const token = signShortcutToken(user.uid, profile.shortcutTokenVersion);
 
-    return { success: true, endpoint: buildShortcutEndpoint(token) };
+    return { success: true, endpoint: buildShortcutEndpoint(), token };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal reset token shortcut';
     return { success: false, error: message };

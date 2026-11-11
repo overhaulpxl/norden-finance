@@ -24,8 +24,22 @@ export async function GET(req: Request) {
     const monthStr = searchParams.get('month'); // 1-12
 
     const now = new Date();
-    const year = yearStr ? parseInt(yearStr, 10) : now.getFullYear();
-    const month = monthStr ? parseInt(monthStr, 10) : (now.getMonth() + 1);
+    let year = now.getFullYear();
+    let month = now.getMonth() + 1;
+
+    if (yearStr !== null) {
+      year = parseInt(yearStr, 10);
+      if (Number.isNaN(year) || year < 1970 || year > 2100) {
+        return NextResponse.json({ error: 'Parameter tahun tidak valid' }, { status: 400 });
+      }
+    }
+
+    if (monthStr !== null) {
+      month = parseInt(monthStr, 10);
+      if (Number.isNaN(month) || month < 1 || month > 12) {
+        return NextResponse.json({ error: 'Parameter bulan tidak valid (1-12)' }, { status: 400 });
+      }
+    }
 
     const reportData = await getMonthlyReportData(user.uid, month, year);
     const pdfBuffer = generateMonthlyReportPdf(reportData);
@@ -45,7 +59,7 @@ export async function GET(req: Request) {
       return rateLimitResponse(error);
     }
     if (error instanceof RateLimitIpError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
     }
     console.error('PDF Export error:', error);
     return NextResponse.json({ error: 'Gagal membuat PDF' }, { status: 500 });

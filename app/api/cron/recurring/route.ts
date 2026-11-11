@@ -25,9 +25,8 @@ async function handleCron(request: Request) {
   try {
     rateLimitCleanup = await cleanupExpiredRateLimits();
   } catch (cleanupError: unknown) {
-    const errorMsg = cleanupError instanceof Error ? cleanupError.message : 'Cleanup failed';
-    console.error('Rate limit bucket cleanup error:', errorMsg);
-    rateLimitCleanup = { error: errorMsg };
+    console.error('Rate limit bucket cleanup error:', cleanupError);
+    rateLimitCleanup = { error: 'Rate limit cleanup failed' };
   }
 
   return NextResponse.json({

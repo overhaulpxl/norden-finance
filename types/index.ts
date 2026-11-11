@@ -280,6 +280,7 @@ export interface PortfolioAsset {
   notes?: string;
   lastPriceUpdate?: string | null;
   updatedAt?: Date | string;
+  isFallback?: boolean;
 }
 
 export interface Setting {

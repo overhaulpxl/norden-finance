@@ -67,8 +67,8 @@ function parseFormattedNumber(raw: string): number {
 export function parseAmount(input: string): number {
   const text = maskDates(input);
 
-  // 1. Million suffix (jt / juta): e.g. 1.5jt, 1,5jt, 2 juta, Rp 1,5jt
-  const jtPattern = /(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(?:jt|juta)\b/i;
+  // 1. Million suffix (jt / juta / mio / m): e.g. 1.5jt, 1,5jt, 2 juta, 5m, 12m, 2.5mio, Rp 1,5jt
+  const jtPattern = /(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(?:jt|juta|mio|m)\b/i;
   const jtMatch = text.match(jtPattern);
   if (jtMatch) {
     const val = parseFloat(jtMatch[1].replace(',', '.'));
@@ -372,7 +372,7 @@ export function parseTransaction(input: string): ParseResult {
       ' '
     );
   note = note
-    .replace(/(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(?:jt|juta)\b/gi, ' ')
+    .replace(/(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(?:jt|juta|mio|m)\b/gi, ' ')
     .replace(/(?:rp\.?\s*)?(\d+(?:[.,]\d+)?)\s*(?:k|rb|ribu)\b/gi, ' ')
     .replace(/\b(?:rp\.?|idr)\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)\b/gi, ' ')
     .replace(/\b(\d{1,3}(?:\.\d{3})+),(\d{1,2})\b/g, ' ')

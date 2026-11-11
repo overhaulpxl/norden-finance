@@ -11,6 +11,9 @@ const required = [
   'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
   'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
   'CRON_SECRET',
+  'SHORTCUT_TOKEN_SECRET',
+  'SUPABASE_URL',
+  'SUPABASE_SECRET_KEY',
   'RESEND_API_KEY',
   'EMAIL_FROM',
 ];
@@ -37,9 +40,12 @@ if (cronSecret && cronSecret.length < 32) {
   weak.push('CRON_SECRET must be at least 32 characters.');
 }
 
-const shortcutSecret = process.env.SHORTCUT_TOKEN_SECRET || process.env.CRON_SECRET || '';
+const shortcutSecret = process.env.SHORTCUT_TOKEN_SECRET || '';
 if (shortcutSecret && shortcutSecret.length < 32) {
-  weak.push('SHORTCUT_TOKEN_SECRET or CRON_SECRET must be at least 32 characters for shortcut tokens.');
+  weak.push('SHORTCUT_TOKEN_SECRET must be at least 32 characters for shortcut tokens.');
+}
+if (shortcutSecret && cronSecret && shortcutSecret === cronSecret) {
+  weak.push('SHORTCUT_TOKEN_SECRET must be distinct from CRON_SECRET.');
 }
 
 const emailFrom = process.env.EMAIL_FROM || '';

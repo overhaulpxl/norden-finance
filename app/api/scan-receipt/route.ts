@@ -63,13 +63,12 @@ export async function POST(req: Request) {
       return rateLimitResponse(error);
     }
     if (error instanceof RateLimitIpError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
     }
     if (error instanceof Error && error.message.includes('origin')) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
     console.error('Receipt parse error:', error);
-    const message = error instanceof Error ? error.message : 'Gagal memproses struk';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal memproses struk' }, { status: 500 });
   }
 }

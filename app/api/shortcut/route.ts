@@ -26,7 +26,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const token = new URL(request.url).searchParams.get('token');
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+  let bearerToken: string | null = null;
+  if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+    bearerToken = authHeader.slice(7).trim();
+  }
+  const token = bearerToken || new URL(request.url).searchParams.get('token');
   let tokenUserId: string | null = null;
 
   if (token) {
@@ -45,10 +50,9 @@ export async function POST(request: Request) {
         );
       }
       if (error instanceof RateLimitIpError) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
       }
-      const message = error instanceof Error ? error.message : 'Terlalu banyak request.';
-      return NextResponse.json({ success: false, error: message }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Terlalu banyak request.' }, { status: 429 });
     }
   } else {
     try {
@@ -62,9 +66,9 @@ export async function POST(request: Request) {
         );
       }
       if (error instanceof RateLimitIpError) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
       }
-      const message = error instanceof Error ? error.message : 'Invalid request origin';
+      const message = error instanceof Error && error.message.includes('origin') ? 'Akses ditolak.' : 'Terlalu banyak request.';
       return NextResponse.json({ success: false, error: message }, { status: 403 });
     }
   }
@@ -99,14 +103,21 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     if (error instanceof Error && error.message.includes('MAINTENANCE_ACTIVE')) {
       return NextResponse.json(
-        { success: false, error: error.message, maintenance: true },
+        { success: false, error: 'Sistem sedang dalam pemeliharaan.', maintenance: true },
         { status: 503 }
       );
     }
-    const message = error instanceof Error ? error.message : 'Internal server error';
+    const safeErrorMessages = [
+      'Selesaikan onboarding terlebih dahulu.',
+      'Akses shortcut tidak tersedia.',
+    ];
+    if (error instanceof Error && safeErrorMessages.includes(error.message)) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 403 });
+    }
+    console.error('Shortcut processing error:', error);
     return NextResponse.json(
-      { success: false, error: message },
-      { status: tokenUserId ? 403 : 500 }
+      { success: false, error: 'Terjadi kesalahan saat memproses transaksi shortcut.' },
+      { status: 500 }
     );
   }
 }

@@ -70,29 +70,39 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Page navigations -> Network First with cache fallback
+  // Page navigations -> Network First (bypass cache storage for private routes)
   if (req.mode === 'navigate') {
+    const isPrivateRoute =
+      url.pathname.startsWith('/dashboard') ||
+      url.pathname.startsWith('/onboarding') ||
+      url.pathname.startsWith('/norden-control-center') ||
+      url.pathname.startsWith('/upgrade') ||
+      url.pathname.startsWith('/settings');
+
     event.respondWith(
       fetch(req)
         .then((networkRes) => {
-          if (networkRes && networkRes.status === 200) {
+          if (networkRes && networkRes.status === 200 && !isPrivateRoute) {
             const resClone = networkRes.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
           }
           return networkRes;
         })
         .catch(async () => {
-          const cached = await caches.match(req);
-          if (cached) return cached;
+          if (!isPrivateRoute) {
+            const cached = await caches.match(req);
+            if (cached) return cached;
+          }
           const offlinePage = await caches.match('/offline.html');
           if (offlinePage) return offlinePage;
           const fallback = await caches.match('/');
-          if (fallback) return fallback;
+          if (fallback && !isPrivateRoute) return fallback;
           return new Response('Offline - Norden Finance', {
             status: 503,
             headers: { 'Content-Type': 'text/plain; charset=utf-8' },
           });
         })
     );
+    return;
   }
 });

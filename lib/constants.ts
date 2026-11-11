@@ -1,5 +1,5 @@
 export const CANONICAL_ALIASES: Record<string, string[]> = {
-  gopay: ['gopay', 'go pay', 'go-pay', 'gojek'],
+  gopay: ['gopay', 'go pay', 'go-pay'],
   bni: ['bni', 'bank bni'],
   bca: ['bca', 'bank bca'],
   mandiri: ['mandiri', 'bank mandiri', 'livin'],
@@ -57,12 +57,12 @@ export const METHOD_ALIASES: Record<string, string> = Object.entries(CANONICAL_A
 );
 
 export const TYPE_KEYWORDS = {
-  masuk: ['masuk', 'dapet', 'dapat', 'terima', 'refund', 'gaji', 'bonus', 'jual', 'jualan', 'middleman', 'fee', 'topup'],
-  keluar: ['keluar', 'beli', 'bayar', 'jajan', 'makan', 'minum', 'bensin', 'langganan', 'parkir', 'ongkir', 'wd', 'tarik'],
+  masuk: ['masuk', 'dapet', 'dapat', 'terima', 'refund', 'gaji', 'bonus', 'jual', 'jualan', 'middleman', 'fee', 'topup', 'pemasukan', 'salary', 'payroll', 'income'],
+  keluar: ['keluar', 'beli', 'bayar', 'jajan', 'makan', 'minum', 'bensin', 'langganan', 'parkir', 'ongkir', 'wd', 'tarik', 'pengeluaran', 'expense'],
 };
 
 export const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  makan: ['ayam', 'geprek', 'nasi', 'minum', 'jajan', 'makan', 'kopi', 'indomie', 'soto', 'bakso', 'mie', 'snack', 'cafe', 'resto', 'sarapan', 'dinner', 'lunch'],
+  makan: ['ayam', 'geprek', 'nasi', 'minum', 'jajan', 'makan', 'makanan', 'kopi', 'indomie', 'soto', 'bakso', 'mie', 'snack', 'cafe', 'resto', 'sarapan', 'dinner', 'lunch', 'food'],
   transport: ['bensin', 'parkir', 'gojek', 'grab', 'tol', 'kereta', 'mrt', 'lrt', 'busway', 'tije', 'krl', 'ojol', 'pertamax', 'pertalite', 'solar', 'shell'],
   langganan: ['netflix', 'spotify', 'youtube', 'internet', 'wifi', 'listrik', 'pdam', 'bpjs', 'pulsa', 'kuota', 'indihome', 'biznet', 'pln'],
   belanja: ['belanja', 'supermarket', 'minimarket', 'indomaret', 'alfamart', 'mall', 'baju', 'sepatu', 'tokopedia', 'shopee', 'lazada', 'tiktok shop'],

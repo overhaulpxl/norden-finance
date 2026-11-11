@@ -23,17 +23,23 @@ export async function importStatementTransactions(
     if (!walletId) throw new Error('Pilih dompet tujuan untuk mutasi ini');
     if (!rows || rows.length === 0) throw new Error('Tidak ada transaksi yang dipilih untuk diimpor');
 
-    const wallet = await prisma.balance.findFirst({
-      where: { id: walletId, userId },
-    });
-    if (!wallet) throw new Error('Dompet tidak ditemukan');
+    if (rows.some((row) => (row.type as string) === 'transfer')) {
+      throw new Error('Impor transaksi transfer belum didukung. Silakan pilih hanya pemasukan atau pengeluaran.');
+    }
 
     let totalDelta = 0;
     const insertedIds: string[] = [];
+    let resolvedWalletName = '';
 
     await prisma.$transaction(async (tx) => {
+      const wallet = await tx.balance.findFirst({
+        where: { id: walletId, userId },
+      });
+      if (!wallet) throw new Error('Dompet tidak ditemukan');
+      resolvedWalletName = wallet.name;
+
       for (const row of rows) {
-        const categoryId = await resolveCategory(userId, row.category || 'Umum', row.type);
+        const categoryId = await resolveCategory(userId, row.category || 'Umum', row.type, tx);
         const txDate = new Date(row.dateStr);
 
         const created = await tx.transaction.create({
@@ -74,7 +80,7 @@ export async function importStatementTransactions(
     return {
       success: true,
       count: rows.length,
-      walletName: wallet.name,
+      walletName: resolvedWalletName,
       totalDelta,
     };
   } catch (error: unknown) {

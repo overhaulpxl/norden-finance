@@ -48,6 +48,39 @@ export function isBiometricEnabled(userId: string): boolean {
   }
 }
 
+export function setBiometricEnabled(userId: string, enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(`norden_biometric_enabled_${userId}`, enabled ? 'true' : 'false');
+    window.dispatchEvent(new Event('norden_lock_state_change'));
+  } catch {
+    // Ignore storage failures
+  }
+}
+
+export async function verifyStoredPin(userId: string, enteredPin: string): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  try {
+    const savedHash = localStorage.getItem(`norden_pin_hash_${userId}`);
+    if (!savedHash) return false;
+    const computedHash = await hashPin(enteredPin, userId);
+    return savedHash === computedHash;
+  } catch {
+    return false;
+  }
+}
+
+export function clearAllUserDataLocally(userId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    removePinData(userId);
+    localStorage.removeItem(`norden_user_avatar_${userId}`);
+    sessionStorage.removeItem(`norden_unlocked_${userId}`);
+  } catch {
+    // Ignore storage failures
+  }
+}
+
 export function setPinData(userId: string, pinHash: string, enableBiometrics = false): void {
   if (typeof window === 'undefined') return;
   try {

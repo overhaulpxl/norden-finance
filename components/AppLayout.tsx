@@ -430,7 +430,7 @@ export default function AppLayout({
 
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
         {/* Responsive Header (Desktop: Single Row, Mobile: Tier 1 Action Row + Tier 2 Dedicated Title Card) */}
-        <header className="mb-4 lg:mb-8 border-b-2 border-black dark:border-neutral-700 pb-3 lg:pb-4 select-none">
+        <header className="sticky top-0 z-30 bg-[#FAF9F5]/95 dark:bg-neutral-900/95 backdrop-blur-md safe-top mb-4 lg:mb-8 border-b-2 border-black dark:border-neutral-700 pb-3 pt-2 lg:pt-0 lg:pb-4 select-none">
           {/* Top Row: Mobile Controls + Desktop Header */}
           <div className="flex justify-between items-center gap-2">
             {/* Desktop Page Title / Mobile Hamburger + Brand */}
@@ -439,7 +439,7 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
                 aria-label={lang === 'en' ? 'Open navigation menu' : 'Buka menu navigasi'}
-                className="lg:hidden rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white"
+                className="lg:hidden min-w-[44px] min-h-[44px] rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white flex items-center justify-center"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -459,7 +459,7 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
                 title={lang === 'en' ? 'Search menu, quick actions, or transactions (Ctrl+K)' : 'Cari menu, aksi cepat, atau transaksi (Ctrl+K)'}
-                className="p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white flex items-center gap-1.5"
+                className="min-w-[44px] min-h-[44px] p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white flex items-center justify-center gap-1.5"
               >
                 <Search className="w-4 h-4 stroke-[2.5px]" />
                 <kbd className="hidden md:inline-block px-1.5 py-0.5 border border-black dark:border-neutral-600 rounded-md bg-[#FAF9F5] dark:bg-neutral-900 text-[10px] font-mono font-black tracking-tight leading-none shadow-[1px_1px_0px_0px_#000]">
@@ -472,7 +472,7 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('light'); toggleHideBalance(); }}
                 title={isBalanceHidden ? t('btn_show_balance') : t('btn_hide_balance')}
-                className={`p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer ${
+                className={`min-w-[44px] min-h-[44px] p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center ${
                   isBalanceHidden
                     ? 'bg-amber-100 dark:bg-amber-900/40 text-black dark:text-amber-200'
                     : 'bg-white dark:bg-neutral-800 text-black dark:text-white'

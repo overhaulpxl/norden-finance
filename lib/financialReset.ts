@@ -83,7 +83,12 @@ export async function executeFinancialDataReset(
       },
     });
 
-    // Step E: Seed clean default categories and primary wallet so user can immediately record transactions
+    // Step E: Delete user portfolio assets setting
+    await tx.setting.deleteMany({
+      where: { key: `portfolio_assets_${targetUserId}` },
+    });
+
+    // Step F: Seed clean default categories and primary wallet so user can immediately record transactions
     const defaultCategories: Array<{ userId: string; name: string; type: 'masuk' | 'keluar' }> = [
       { userId: targetUserId, name: 'Makanan', type: 'keluar' },
       { userId: targetUserId, name: 'Transport', type: 'keluar' },

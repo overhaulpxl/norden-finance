@@ -84,14 +84,16 @@ export async function toggleSubscriptionActive(id: string) {
     const { user } = await requireUser(true);
     const userId = user.uid;
 
-    const existing = await prisma.appSubscription.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Subscription tidak ditemukan');
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.appSubscription.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Subscription tidak ditemukan');
 
-    await prisma.appSubscription.update({
-      where: { id },
-      data: { isActive: !existing.isActive },
+      await tx.appSubscription.update({
+        where: { id },
+        data: { isActive: !existing.isActive },
+      });
     });
 
     await createAuditLog(userId, 'UPDATE_SUBSCRIPTION', 'appSubscription', id);
@@ -108,12 +110,14 @@ export async function deleteSubscription(id: string) {
     const { user } = await requireUser(true);
     const userId = user.uid;
 
-    const existing = await prisma.appSubscription.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Subscription tidak ditemukan');
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.appSubscription.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Subscription tidak ditemukan');
 
-    await prisma.appSubscription.delete({ where: { id } });
+      await tx.appSubscription.delete({ where: { id } });
+    });
 
     await createAuditLog(userId, 'DELETE_SUBSCRIPTION', 'appSubscription', id);
     revalidatePath('/dashboard');
@@ -144,11 +148,6 @@ export async function recordFamilySharingPayment(data: {
     assertNonEmpty(data.destinationWallet, 'Dompet tujuan');
     assertNonEmpty(data.subscriptionName, 'Nama langganan');
 
-    const [walletId, categoryId] = await Promise.all([
-      resolveWallet(userId, data.destinationWallet),
-      resolveCategory(userId, 'Patungan Langganan', 'masuk'),
-    ]);
-
     const surplus = data.expectedShare && data.expectedShare > 0
       ? Math.max(0, data.amountPaid - data.expectedShare)
       : 0;
@@ -158,6 +157,11 @@ export async function recordFamilySharingPayment(data: {
     }`;
 
     const newTx = await prisma.$transaction(async (tx) => {
+      const [walletId, categoryId] = await Promise.all([
+        resolveWallet(userId, data.destinationWallet, tx),
+        resolveCategory(userId, 'Patungan Langganan', 'masuk', tx),
+      ]);
+
       const created = await tx.transaction.create({
         data: {
           userId,

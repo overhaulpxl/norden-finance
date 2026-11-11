@@ -18,7 +18,6 @@ import {
   EyeOff,
 } from 'lucide-react';
 import {
-  hashPin,
   isPinSet,
   isBiometricEnabled,
   isAppUnlocked,
@@ -27,6 +26,7 @@ import {
   removePinData,
   authenticateBiometrics,
   isDesktopDevice,
+  verifyStoredPin,
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
 import { auth } from '../lib/firebase';
@@ -151,10 +151,9 @@ export default function AppLockScreen({ userId, userEmail }: AppLockScreenProps)
   const verifyPin = useCallback(
     async (candidatePin: string) => {
       if (candidatePin.length !== PIN_LENGTH) return;
-      const hashed = await hashPin(candidatePin, userId);
-      const storedHash = localStorage.getItem(`norden_pin_hash_${userId}`);
+      const isMatch = await verifyStoredPin(userId, candidatePin);
 
-      if (hashed === storedHash) {
+      if (isMatch) {
         triggerHaptic('success');
         unlockApp(userId);
         pinRef.current = '';

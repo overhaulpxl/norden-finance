@@ -29,6 +29,7 @@ function setCache<T>(key: string, data: T): void {
 }
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const FETCH_TIMEOUT_MS = 6000;
 
 /**
  * Live USD to IDR rate
@@ -41,6 +42,7 @@ export async function getUsdIdrRate(): Promise<number> {
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD', {
       headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       next: { revalidate: 3600 },
     });
     if (res.ok) {
@@ -59,6 +61,7 @@ export async function getUsdIdrRate(): Promise<number> {
   try {
     const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/IDR=X?interval=1d&range=1d', {
       headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (res.ok) {
       const data = await res.json();
@@ -79,9 +82,9 @@ export async function getUsdIdrRate(): Promise<number> {
  * Live Gold Price (IDR per gram)
  * 1 Troy Ounce = 31.1034768 grams
  */
-export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; updatedAt: string }> {
+export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; updatedAt: string; isFallback?: boolean }> {
   const cacheKey = 'gold_price_idr';
-  const cached = getCached<{ pricePerGramIdr: number; updatedAt: string }>(cacheKey, 15 * 60 * 1000); // 15 mins
+  const cached = getCached<{ pricePerGramIdr: number; updatedAt: string; isFallback?: boolean }>(cacheKey, 15 * 60 * 1000); // 15 mins
   if (cached) return cached;
 
   const usdIdr = await getUsdIdrRate();
@@ -89,6 +92,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
   try {
     const res = await fetch('https://api.gold-api.com/price/XAU', {
       headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       next: { revalidate: 900 },
     });
     if (res.ok) {
@@ -100,6 +104,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
         const result = {
           pricePerGramIdr,
           updatedAt: data?.updatedAt || new Date().toISOString(),
+          isFallback: false,
         };
         setCache(cacheKey, result);
         return result;
@@ -113,6 +118,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
   try {
     const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d', {
       headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (res.ok) {
       const data = await res.json();
@@ -122,6 +128,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
         const result = {
           pricePerGramIdr,
           updatedAt: new Date().toISOString(),
+          isFallback: false,
         };
         setCache(cacheKey, result);
         return result;
@@ -132,7 +139,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
   }
 
   // Default fallback estimate
-  return { pricePerGramIdr: 1500000, updatedAt: new Date().toISOString() };
+  return { pricePerGramIdr: 1500000, updatedAt: new Date().toISOString(), isFallback: true };
 }
 
 /**
@@ -173,7 +180,7 @@ export async function getStockQuote(tickerInput: string): Promise<{
 
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`;
-      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
       if (res.ok) {
         const json = await res.json();
         const meta = json?.chart?.result?.[0]?.meta;
@@ -270,6 +277,7 @@ export async function getCryptoQuote(symbolInput: string): Promise<{
     const pair = `${clean.toLowerCase()}idr`;
     const res = await fetch(`https://indodax.com/api/ticker/${pair}`, {
       headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (res.ok) {
       const data = await res.json();
@@ -293,7 +301,7 @@ export async function getCryptoQuote(symbolInput: string): Promise<{
   const cgId = CRYPTO_COINGECKO_MAP[clean] || clean.toLowerCase();
   try {
     const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(cgId)}&vs_currencies=idr&include_24hr_change=true`;
-    const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+    const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
     if (res.ok) {
       const data = await res.json();
       const entry = data?.[cgId];
@@ -328,6 +336,7 @@ export async function getLiveQuoteForAsset(asset: {
   symbol?: string;
   source: string;
   updatedAt: string;
+  isFallback?: boolean;
 } | null> {
   const { assetClass, symbol, name = '' } = asset;
   const safeName = name.toLowerCase();
@@ -340,8 +349,9 @@ export async function getLiveQuoteForAsset(asset: {
     return {
       priceIdr: gold.pricePerGramIdr,
       symbol: 'EMAS',
-      source: 'api.gold-api.com',
+      source: gold.isFallback ? 'Estimasi (Fallback)' : 'api.gold-api.com',
       updatedAt: gold.updatedAt,
+      isFallback: gold.isFallback ?? false,
     };
   }
 
@@ -353,6 +363,7 @@ export async function getLiveQuoteForAsset(asset: {
         symbol: crypto.symbol,
         source: 'Indodax / CoinGecko',
         updatedAt: crypto.updatedAt,
+        isFallback: false,
       };
     }
   }
@@ -365,6 +376,7 @@ export async function getLiveQuoteForAsset(asset: {
         symbol: stock.symbol,
         source: 'Yahoo Finance',
         updatedAt: stock.updatedAt,
+        isFallback: false,
       };
     }
   }
@@ -379,6 +391,7 @@ export async function getLiveQuoteForAsset(asset: {
         symbol: stock.symbol,
         source: 'Market Feed',
         updatedAt: stock.updatedAt,
+        isFallback: false,
       };
     }
   }
@@ -437,7 +450,7 @@ export async function searchMarketAssets(query: string, assetClass?: string): Pr
   if (!assetClass || assetClass === 'saham' || assetClass === 'all') {
     try {
       const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanQ)}&quotesCount=6&newsCount=0`;
-      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
       if (res.ok) {
         const data = await res.json();
         const quotes = data?.quotes || [];

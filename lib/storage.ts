@@ -100,6 +100,40 @@ function getStorageClient(): StorageClient {
   });
 }
 
+function isValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  if (buffer.byteLength < 12) return false;
+  const mime = mimeType.toLowerCase();
+
+  // JPEG: FF D8 FF
+  if (mime === 'image/jpeg' || mime === 'image/jpg') {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (mime === 'image/png') {
+    return (
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    );
+  }
+
+  // WebP: RIFF .... WEBP
+  if (mime === 'image/webp') {
+    return (
+      buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+    );
+  }
+
+  return false;
+}
+
 /**
  * Upload a file to Supabase Storage.
  *
@@ -123,6 +157,10 @@ export async function uploadFile(
 
   if (fileBuffer.byteLength > MAX_FILE_SIZE_BYTES) {
     throw new Error('Ukuran file maksimal 5MB.');
+  }
+
+  if (!isValidImageMagicBytes(fileBuffer, contentType)) {
+    throw new Error('Konten file tidak sesuai dengan tipe gambar yang ditentukan.');
   }
 
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'upload.jpg';
@@ -199,5 +237,30 @@ export async function deleteFile(storageRef: string): Promise<void> {
 
   if (error) {
     console.error(`Gagal menghapus file "${storageRef}" dari Supabase Storage:`, error.message);
+  }
+}
+
+/**
+ * Deletes all storage objects in the payment-proofs bucket under the specified user ID prefix.
+ */
+export async function deleteUserStorageObjects(userId: string): Promise<void> {
+  if (!userId || !userId.trim()) return;
+  try {
+    const client = getStorageClient();
+    const cleanUid = userId.trim();
+    const { data, error } = await client.from('payment-proofs').list(cleanUid);
+    if (error) {
+      console.warn(`Failed to list storage objects for user ${cleanUid}:`, error.message);
+      return;
+    }
+    if (data && data.length > 0) {
+      const pathsToDelete = data.map((item) => `${cleanUid}/${item.name}`);
+      const { error: removeError } = await client.from('payment-proofs').remove(pathsToDelete);
+      if (removeError) {
+        console.warn(`Failed to delete storage objects for user ${cleanUid}:`, removeError.message);
+      }
+    }
+  } catch (error) {
+    console.warn(`deleteUserStorageObjects error for user ${userId}:`, error);
   }
 }

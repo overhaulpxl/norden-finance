@@ -43,15 +43,15 @@ export async function POST(req: Request) {
       return rateLimitResponse(error);
     }
     if (error instanceof RateLimitIpError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
     }
     if (error instanceof Error && error.message.includes('origin')) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
     if (error instanceof Error && error.message.includes('MAINTENANCE_ACTIVE')) {
-      return NextResponse.json({ error: error.message, maintenance: true }, { status: 503 });
+      return NextResponse.json({ error: 'Sistem sedang dalam pemeliharaan.', maintenance: true }, { status: 503 });
     }
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('API log error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

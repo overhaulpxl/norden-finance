@@ -56,21 +56,23 @@ export async function updateSavingGoal(id: string, data: { title?: string; targe
     }
     if (data.deadline) assertValidDate(data.deadline, 'Deadline');
 
-    const existing = await prisma.savingGoal.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Saving goal tidak ditemukan');
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.savingGoal.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Saving goal tidak ditemukan');
 
-    await prisma.savingGoal.update({
-      where: { id },
-      data: {
-        title: data.title !== undefined ? data.title.trim().slice(0, 80) : existing.title,
-        targetAmount: data.targetAmount ?? existing.targetAmount,
-        currentAmount: data.currentAmount ?? existing.currentAmount,
-        deadline: data.deadline !== undefined
-          ? (data.deadline ? new Date(data.deadline) : null)
-          : existing.deadline,
-      },
+      await tx.savingGoal.update({
+        where: { id },
+        data: {
+          title: data.title !== undefined ? data.title.trim().slice(0, 80) : existing.title,
+          targetAmount: data.targetAmount ?? existing.targetAmount,
+          currentAmount: data.currentAmount ?? existing.currentAmount,
+          deadline: data.deadline !== undefined
+            ? (data.deadline ? new Date(data.deadline) : null)
+            : existing.deadline,
+        },
+      });
     });
 
     await createAuditLog(userId, 'UPDATE_SAVING_GOAL', 'savingGoal', id);
@@ -87,12 +89,14 @@ export async function deleteSavingGoal(id: string) {
     const { user } = await requireUser(true);
     const userId = user.uid;
 
-    const existing = await prisma.savingGoal.findFirst({
-      where: { id, userId },
-    });
-    if (!existing) throw new Error('Saving goal tidak ditemukan');
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.savingGoal.findFirst({
+        where: { id, userId },
+      });
+      if (!existing) throw new Error('Saving goal tidak ditemukan');
 
-    await prisma.savingGoal.delete({ where: { id } });
+      await tx.savingGoal.delete({ where: { id } });
+    });
 
     await createAuditLog(userId, 'DELETE_SAVING_GOAL', 'savingGoal', id);
     revalidatePath('/dashboard');

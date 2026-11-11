@@ -127,6 +127,7 @@ export async function refreshPortfolioLivePrices(): Promise<{
   success: boolean;
   assets?: PortfolioAsset[];
   updatedCount?: number;
+  hasFallback?: boolean;
   error?: string;
 }> {
   try {
@@ -138,11 +139,12 @@ export async function refreshPortfolioLivePrices(): Promise<{
     });
 
     if (!setting?.value) {
-      return { success: true, assets: [], updatedCount: 0 };
+      return { success: true, assets: [], updatedCount: 0, hasFallback: false };
     }
 
     const assets = JSON.parse(setting.value) as PortfolioAsset[];
     let updatedCount = 0;
+    let hasFallback = false;
 
     for (const asset of assets) {
       try {
@@ -155,6 +157,10 @@ export async function refreshPortfolioLivePrices(): Promise<{
         if (quote && typeof quote.priceIdr === 'number' && quote.priceIdr > 0) {
           asset.currentPrice = quote.priceIdr;
           asset.lastPriceUpdate = quote.updatedAt;
+          asset.isFallback = quote.isFallback ?? false;
+          if (quote.isFallback) {
+            hasFallback = true;
+          }
           if (quote.symbol && !asset.symbol) {
             asset.symbol = quote.symbol;
           }
@@ -173,7 +179,7 @@ export async function refreshPortfolioLivePrices(): Promise<{
     });
 
     revalidatePath('/dashboard');
-    return { success: true, assets, updatedCount };
+    return { success: true, assets, updatedCount, hasFallback };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Gagal memperbarui harga live aset';
     return { success: false, error: message };

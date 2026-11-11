@@ -18,12 +18,23 @@ import {
   validateWalletMatch,
 } from '../../lib/smart-input/parser';
 
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
 /**
  * Find or create a category by name for a user.
  */
-export async function resolveCategory(userId: string, categoryName: string, type: TransactionType): Promise<string> {
+export async function resolveCategory(
+  userId: string,
+  categoryName: string,
+  type: TransactionType,
+  db: DbClient = prisma
+): Promise<string> {
+  if (type === 'transfer') {
+    throw new Error('Kategori transfer tidak didukung.');
+  }
+
   const trimmed = categoryName.trim();
-  const existing = await prisma.category.findFirst({
+  const existing = await db.category.findFirst({
     where: {
       userId,
       OR: [
@@ -36,8 +47,10 @@ export async function resolveCategory(userId: string, categoryName: string, type
   if (existing) return existing.id;
 
   const name = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
-  const created = await prisma.category.create({
-    data: { userId, name, type },
+  const created = await db.category.upsert({
+    where: { userId_name: { userId, name } },
+    update: {},
+    create: { userId, name, type },
   });
 
   return created.id;
@@ -46,9 +59,13 @@ export async function resolveCategory(userId: string, categoryName: string, type
 /**
  * Find or create a wallet/balance by name for a user.
  */
-export async function resolveWallet(userId: string, walletName: string): Promise<string> {
+export async function resolveWallet(
+  userId: string,
+  walletName: string,
+  db: DbClient = prisma
+): Promise<string> {
   const trimmed = walletName.trim();
-  const existing = await prisma.balance.findFirst({
+  const existing = await db.balance.findFirst({
     where: {
       userId,
       OR: [
@@ -60,7 +77,7 @@ export async function resolveWallet(userId: string, walletName: string): Promise
 
   if (existing) {
     if (existing.archivedAt) {
-      await prisma.balance.update({
+      await db.balance.update({
         where: { id: existing.id },
         data: { archivedAt: null },
       });
@@ -78,8 +95,10 @@ export async function resolveWallet(userId: string, walletName: string): Promise
   if (cashNames.includes(name)) type = 'cash';
   if (name.includes('TABUNGAN') || name.includes('RENCANA') || name.includes('SIMPANAN')) type = 'savings';
 
-  const created = await prisma.balance.create({
-    data: { userId, name, type, currentBalance: 0 },
+  const created = await db.balance.upsert({
+    where: { userId_name: { userId, name } },
+    update: { archivedAt: null },
+    create: { userId, name, type, currentBalance: 0 },
   });
 
   return created.id;
@@ -302,9 +321,8 @@ export async function processUserInput(userId: string, input: string) {
           throw new Error('Dompet belum tersedia. Tambahkan wallet terlebih dahulu.');
         }
 
-        const categoryId = await resolveCategory(userId, categoryName, txType as TransactionType);
-
         const newTx = await prisma.$transaction(async (tx) => {
+          const categoryId = await resolveCategory(userId, categoryName, txType as TransactionType, tx);
           const created = await tx.transaction.create({
             data: {
               userId,
@@ -380,6 +398,10 @@ export async function addExplicitTransaction(data: {
   try {
     const { user } = await requireUser('basic');
     const userId = user.uid;
+    if (data.type === 'transfer') {
+      throw new Error('Gunakan fitur transfer untuk transaksi antar dompet.');
+    }
+
     const txDate = data.transactionDate ? new Date(data.transactionDate) : new Date();
     const walletName = data.wallet || data.method || 'Lain-lain';
     assertPositiveAmount(data.amount);
@@ -387,12 +409,12 @@ export async function addExplicitTransaction(data: {
     assertValidDate(data.transactionDate, 'Tanggal transaksi');
     assertValidDate(data.receiptDate, 'Tanggal struk');
 
-    const [categoryId, walletId] = await Promise.all([
-      resolveCategory(userId, data.category, data.type),
-      resolveWallet(userId, walletName),
-    ]);
-
     const newTx = await prisma.$transaction(async (tx) => {
+      const [categoryId, walletId] = await Promise.all([
+        resolveCategory(userId, data.category, data.type, tx),
+        resolveWallet(userId, walletName, tx),
+      ]);
+
       const created = await tx.transaction.create({
         data: {
           userId,
@@ -448,13 +470,12 @@ export async function addTransferTransaction(
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    const [fromWalletId, toWalletId, categoryId] = await Promise.all([
-      resolveWallet(userId, fromWallet),
-      resolveWallet(userId, toWallet),
-      resolveCategory(userId, 'Transfer', 'transfer'),
-    ]);
-
     const newTx = await prisma.$transaction(async (tx) => {
+      const [fromWalletId, toWalletId] = await Promise.all([
+        resolveWallet(userId, fromWallet, tx),
+        resolveWallet(userId, toWallet, tx),
+      ]);
+
       let finalTags = normalizeTags(tags);
       let noteSuffix = note ? ' - ' + note : '';
 
@@ -475,7 +496,6 @@ export async function addTransferTransaction(
       const created = await tx.transaction.create({
         data: {
           userId,
-          categoryId,
           walletId: fromWalletId,
           transferToWalletId: toWalletId,
           type: 'transfer',
@@ -515,13 +535,13 @@ export async function deleteTransaction(id: string) {
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    const tx = await prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: null },
-    });
-
-    if (!tx) throw new Error('Transaksi tidak ditemukan');
-
     await prisma.$transaction(async (db) => {
+      const tx = await db.transaction.findFirst({
+        where: { id, userId, deletedAt: null },
+      });
+
+      if (!tx) throw new Error('Transaksi tidak ditemukan');
+
       if (tx.type === 'transfer') {
         const goalTag = tx.tags.find((t) => t.startsWith('goal:'));
         if (goalTag) {
@@ -605,13 +625,13 @@ export async function restoreTransaction(id: string) {
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    const tx = await prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: { not: null } },
-    });
-
-    if (!tx) throw new Error('Transaksi tidak ditemukan');
-
     await prisma.$transaction(async (db) => {
+      const tx = await db.transaction.findFirst({
+        where: { id, userId, deletedAt: { not: null } },
+      });
+
+      if (!tx) throw new Error('Transaksi tidak ditemukan');
+
       if (tx.type === 'transfer') {
         const goalTag = tx.tags.find((t) => t.startsWith('goal:'));
         if (goalTag) {
@@ -705,33 +725,33 @@ export async function updateTransaction(
     const { user } = await requireUser('basic');
     const userId = user.uid;
 
-    const tx = await prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: null },
-    });
-
-    if (!tx) throw new Error('Transaksi tidak ditemukan');
-    if (tx.type === 'transfer' || data.type === 'transfer') {
-      throw new Error('Transfer tidak bisa diubah dari editor transaksi. Hapus lalu buat transfer baru.');
-    }
-
-    const newAmount = data.amount ?? tx.amount;
-    assertPositiveAmount(newAmount);
-    assertValidDate(data.transactionDate, 'Tanggal transaksi');
-    const newType = data.type || tx.type;
-
-    // Resolve new category/wallet if changed
-    let newCategoryId = tx.categoryId;
-    let newWalletId = tx.walletId;
-
-    if (data.category) {
-      newCategoryId = await resolveCategory(userId, data.category, newType);
-    }
-
-    if (data.wallet) {
-      newWalletId = await resolveWallet(userId, data.wallet);
-    }
-
     await prisma.$transaction(async (db) => {
+      const tx = await db.transaction.findFirst({
+        where: { id, userId, deletedAt: null },
+      });
+
+      if (!tx) throw new Error('Transaksi tidak ditemukan');
+      if (tx.type === 'transfer' || data.type === 'transfer') {
+        throw new Error('Transfer tidak bisa diubah dari editor transaksi. Hapus lalu buat transfer baru.');
+      }
+
+      const newAmount = data.amount ?? tx.amount;
+      assertPositiveAmount(newAmount);
+      assertValidDate(data.transactionDate, 'Tanggal transaksi');
+      const newType = data.type || tx.type;
+
+      // Resolve new category/wallet if changed
+      let newCategoryId = tx.categoryId;
+      let newWalletId = tx.walletId;
+
+      if (data.category) {
+        newCategoryId = await resolveCategory(userId, data.category, newType, db);
+      }
+
+      if (data.wallet) {
+        newWalletId = await resolveWallet(userId, data.wallet, db);
+      }
+
       if (tx.walletId === newWalletId) {
         if (newWalletId) {
           const netChange = walletDelta(newType, newAmount) - walletDelta(tx.type, tx.amount);

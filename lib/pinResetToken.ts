@@ -31,7 +31,7 @@ function getSecret(): string {
   if (secret && secret.trim()) {
     return secret.trim();
   }
-  return 'norden-pin-reset-fallback-secret-2026';
+  throw new Error('PIN reset secret is not configured.');
 }
 
 function base64UrlEncode(str: string): string {

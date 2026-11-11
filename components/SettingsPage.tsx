@@ -18,6 +18,9 @@ import {
   isBiometricSupported,
   registerBiometrics,
   isDesktopDevice,
+  verifyStoredPin,
+  setBiometricEnabled,
+  clearAllUserDataLocally,
 } from '../lib/appLock';
 import { triggerHaptic } from '../lib/haptics';
 import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
@@ -266,9 +269,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         setPinModalError(lang === 'en' ? 'Current PIN must be 6 digits.' : 'PIN saat ini harus 6 digit angka.');
         return;
       }
-      const hashedCurrent = await hashPin(currentPinInput, user.id);
-      const storedHash = localStorage.getItem(`norden_pin_hash_${user.id}`);
-      if (hashedCurrent !== storedHash) {
+      const isCurrentValid = await verifyStoredPin(user.id, currentPinInput);
+      if (!isCurrentValid) {
         triggerHaptic('warning');
         setPinModalError(lang === 'en' ? 'Current PIN does not match.' : 'PIN saat ini tidak cocok.');
         return;
@@ -324,7 +326,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       // Register
       const success = await registerBiometrics(user.id, user.email);
       if (success) {
-        localStorage.setItem(`norden_biometric_enabled_${user.id}`, 'true');
+        setBiometricEnabled(user.id, true);
         setBiometricActive(true);
         triggerHaptic('success');
         setPinActionSuccess(lang === 'en' ? 'Biometrics (Face ID / Fingerprint) enabled!' : 'Biometrik (Face ID / Sidik Jari) berhasil diaktifkan!');
@@ -335,7 +337,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         setTimeout(() => setPinActionError(null), 5000);
       }
     } else {
-      localStorage.setItem(`norden_biometric_enabled_${user.id}`, 'false');
+      setBiometricEnabled(user.id, false);
       setBiometricActive(false);
       triggerHaptic('light');
     }
@@ -455,6 +457,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       if (!res.success) {
         throw new Error(res.error || (lang === 'en' ? 'Failed to delete data from database.' : 'Gagal menghapus data dari database.'));
       }
+
+      clearAllUserDataLocally(user.id);
 
       await deleteUser(currentUser);
 

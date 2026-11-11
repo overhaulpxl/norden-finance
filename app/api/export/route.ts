@@ -39,13 +39,30 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Format tidak valid' }, { status: 400 });
     }
 
+    const yearStr = searchParams.get('year');
+    const monthStr = searchParams.get('month');
+    const now = new Date();
+    let validatedYear: number | null = null;
+    let validatedMonth: number | null = null;
+
+    if (yearStr !== null) {
+      validatedYear = parseInt(yearStr, 10);
+      if (Number.isNaN(validatedYear) || validatedYear < 1970 || validatedYear > 2100) {
+        return NextResponse.json({ error: 'Parameter tahun tidak valid' }, { status: 400 });
+      }
+    }
+
+    if (monthStr !== null) {
+      validatedMonth = parseInt(monthStr, 10);
+      if (Number.isNaN(validatedMonth) || validatedMonth < 1 || validatedMonth > 12) {
+        return NextResponse.json({ error: 'Parameter bulan tidak valid (1-12)' }, { status: 400 });
+      }
+    }
+
     if (format === 'pdf') {
       const { generateMonthlyReportPdf } = await import('../../../lib/pdf/monthlyReport');
-      const now = new Date();
-      const yearStr = searchParams.get('year');
-      const monthStr = searchParams.get('month');
-      const year = yearStr ? parseInt(yearStr, 10) : now.getFullYear();
-      const month = monthStr ? parseInt(monthStr, 10) : (now.getMonth() + 1);
+      const year = validatedYear ?? now.getFullYear();
+      const month = validatedMonth ?? (now.getMonth() + 1);
       const reportData = await getMonthlyReportData(user.uid, month, year);
       const pdfBuffer = generateMonthlyReportPdf(reportData);
 
@@ -60,8 +77,28 @@ export async function GET(request: Request) {
       });
     }
 
+    let dateFilter: { gte?: Date; lte?: Date } | undefined;
+    if (validatedYear !== null || validatedMonth !== null) {
+      const year = validatedYear ?? now.getFullYear();
+      if (validatedMonth !== null) {
+        dateFilter = {
+          gte: new Date(year, validatedMonth - 1, 1),
+          lte: new Date(year, validatedMonth, 0, 23, 59, 59, 999),
+        };
+      } else {
+        dateFilter = {
+          gte: new Date(year, 0, 1),
+          lte: new Date(year, 11, 31, 23, 59, 59, 999),
+        };
+      }
+    }
+
     const transactions = await prisma.transaction.findMany({
-      where: { userId: user.uid, deletedAt: null },
+      where: {
+        userId: user.uid,
+        deletedAt: null,
+        ...(dateFilter ? { transactionDate: dateFilter } : {}),
+      },
       include: { category: true, wallet: true, transferToWallet: true },
       orderBy: { transactionDate: 'desc' },
       take: EXPORT_ROW_LIMIT,
@@ -122,7 +159,7 @@ export async function GET(request: Request) {
       return rateLimitResponse(error);
     }
     if (error instanceof RateLimitIpError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: 'Terlalu banyak permintaan dari IP ini.' }, { status: 400 });
     }
     console.error('Export error:', error);
     return NextResponse.json({ error: 'Gagal mengekspor data' }, { status: 500 });
