@@ -55,7 +55,18 @@ export async function getPublicTestimonials(): Promise<PublicTestimonial[]> {
       message: feedback.message,
     }));
 
-    return publicTestimonials.length > 0 ? publicTestimonials : FALLBACK_PUBLIC_TESTIMONIALS;
+    const result = [...publicTestimonials];
+    // If fewer than 3 user reviews, pad with curated fallbacks for a balanced grid
+    if (result.length < 3) {
+      for (const fb of FALLBACK_PUBLIC_TESTIMONIALS) {
+        if (result.length >= 3) break;
+        if (!result.some((r) => r.message === fb.message)) {
+          result.push(fb);
+        }
+      }
+    }
+
+    return result.length > 0 ? result : FALLBACK_PUBLIC_TESTIMONIALS;
   } catch (error) {
     console.error('Failed to load public testimonials from DB:', error);
     return FALLBACK_PUBLIC_TESTIMONIALS;

@@ -30,14 +30,16 @@ function TestimonialCard({
     <div className="brutal-card p-6 bg-white text-black border-[2.5px] border-black rounded-none shadow-[5px_5px_0px_0px_#000] hover:shadow-[7px_7px_0px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between min-h-[260px]">
       <div>
         <div
-          className="flex items-center gap-1.5 mb-4 text-[#FFE066]"
+          className="flex items-center gap-1 mb-4"
           aria-label={lang === 'en' ? `${testimonial.rating} out of 5 stars` : `${testimonial.rating} dari 5 bintang`}
         >
           {Array.from({ length: 5 }).map((_, index) => (
             <Star
               key={index}
-              className={`w-4 h-4 stroke-black stroke-[2px] star-spin-hover ${
-                index < testimonial.rating ? 'fill-current' : 'fill-white text-neutral-300'
+              className={`w-4 h-4 stroke-black stroke-[2px] ${
+                index < testimonial.rating
+                  ? 'fill-[#FFE066] text-[#FFE066]'
+                  : 'fill-neutral-200 text-neutral-300'
               }`}
             />
           ))}
