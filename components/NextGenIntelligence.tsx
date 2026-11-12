@@ -290,7 +290,7 @@ function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' 
       <!-- Insight Card (Generous height so no text is ever clipped or lost) -->
       <rect x="108" y="1286" width="896" height="340" fill="#000"/>
       <rect x="92" y="1270" width="896" height="340" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="136" y="1332" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'INSIGHT & STRATEGI BULAN INI' : 'MONTHLY INSIGHT & STRATEGY'}</text>
+      <text x="136" y="1332" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000" letter-spacing="1">${sanitizeSvgText(isId ? 'INSIGHT & STRATEGI BULAN INI' : 'MONTHLY INSIGHT & STRATEGY')}</text>
       ${svgMultilineText({ text: data.insight, x: 136, y: 1386, maxChars: 46, maxLines: 5, lineHeight: 38, fontSize: 24, fontWeight: 800 })}
 
       <!-- Footer Brand Elements -->
