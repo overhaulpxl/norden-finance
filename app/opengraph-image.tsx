@@ -1,7 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { NORDEN_HORIZONTAL_LOGO_BASE64 } from '../lib/brandLogoBase64';
+import { getOutfitFonts } from '../lib/outfitFontBase64';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const alt = 'Norden Finance — Aplikasi Keuangan Pribadi';
 export const size = {
   width: 1200,
@@ -22,7 +23,7 @@ export default async function Image() {
           backgroundColor: '#FAF9F5',
           border: '3.5px solid #000000',
           padding: '40px 48px',
-          fontFamily: 'sans-serif',
+          fontFamily: 'Outfit, sans-serif',
         }}
       >
         {/* Top Header Bar — Matches LandingHeader on web */}
@@ -61,7 +62,7 @@ export default async function Image() {
                 margin: '0 4px',
               }}
             />
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#525252', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#525252', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
               Track your money. Find your direction.
             </span>
           </div>
@@ -182,7 +183,7 @@ export default async function Image() {
                   <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '1.2px', textTransform: 'uppercase', color: '#000000' }}>
                     NORDEN SMART INPUT
                   </span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#737373', textTransform: 'uppercase' }}>
                     DEMO LANGSUNG
                   </span>
                 </div>
@@ -208,7 +209,7 @@ export default async function Image() {
                     alignItems: 'center',
                   }}
                 >
-                  <span style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 800, color: '#000000' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, color: '#000000' }}>
                     &gt; kopi susu 28rb bca
                   </span>
                   <span
@@ -257,7 +258,7 @@ export default async function Image() {
                   <div style={{ fontSize: 26, fontWeight: 900, color: '#000000' }}>
                     Rp 28.000
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#404040', display: 'flex', gap: '8px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#404040', display: 'flex', gap: '8px' }}>
                     <span>Kategori: Makan &amp; Minum</span>
                     <span>•</span>
                     <span>Dompet: BCA</span>
@@ -265,7 +266,7 @@ export default async function Image() {
                 </div>
 
                 {/* Window Micro Footer */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, fontWeight: 700, color: '#737373', textTransform: 'uppercase' }}>
                   <span>Parser Lokal Deterministik</span>
                   <span>Zero-Cloud Processing</span>
                 </div>
@@ -310,6 +311,7 @@ export default async function Image() {
     ),
     {
       ...size,
+      fonts: getOutfitFonts(),
     }
   );
 }
