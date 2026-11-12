@@ -111,8 +111,9 @@ export default async function LandingPage() {
             <Zap className="w-3.5 h-3.5 stroke-[3px]" /> Personal Finance Operating System
           </div>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-[32px] xl:text-[36px] font-black tracking-tight text-black max-w-6xl mx-auto leading-tight mb-5 uppercase select-none reveal lg:whitespace-nowrap">
-            Kelola Keuangan Pribadi Lebih Teratur dengan Norden
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-black max-w-5xl mx-auto leading-[1.1] mb-6 uppercase select-none reveal">
+            <span className="inline-block whitespace-nowrap">Kelola Keuangan Pribadi</span> <br />
+            <span className="inline-block whitespace-nowrap">Lebih Teratur dengan Norden</span>
           </h1>
 
           <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-5xl mx-auto leading-relaxed mb-8 uppercase tracking-wide select-none reveal lg:whitespace-nowrap">
