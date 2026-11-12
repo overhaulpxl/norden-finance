@@ -14,6 +14,7 @@ export const CANONICAL_ALIASES: Record<string, string[]> = {
   blu: ['blu', 'bank blu'],
   paypal: ['paypal', 'pay pal'],
   linkaja: ['linkaja', 'link aja', 'link-aja'],
+  qris: ['qris', 'qr', 'qris payment'],
   tabungan: [
     'tabungan',
     'tabungan rencana',
@@ -43,6 +44,7 @@ export const CANONICAL_WALLET_DISPLAY: Record<string, string> = {
   blu: 'blu',
   paypal: 'PayPal',
   linkaja: 'LinkAja',
+  qris: 'QRIS',
   tabungan: 'Tabungan',
 };
 
@@ -62,14 +64,17 @@ export const TYPE_KEYWORDS = {
 };
 
 export const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  makan: ['ayam', 'geprek', 'nasi', 'minum', 'jajan', 'makan', 'makanan', 'kopi', 'indomie', 'soto', 'bakso', 'mie', 'snack', 'cafe', 'resto', 'sarapan', 'dinner', 'lunch', 'food', 'brunch', 'starbucks', 'mcd', 'kfc'],
+  makan: ['ayam', 'geprek', 'nasi', 'minum', 'jajan', 'makan', 'makanan', 'kopi', 'indomie', 'soto', 'bakso', 'mie', 'snack', 'cafe', 'resto', 'sarapan', 'dinner', 'lunch', 'food', 'brunch', 'starbucks', 'mcd', 'kfc', 'solaria', 'hokben', 'gacoan', 'mixue', 'richeese', 'dcrepes', 'marugame', 'bakmi', 'sushi', 'teh', 'roti'],
   transport: ['bensin', 'parkir', 'gojek', 'grab', 'tol', 'kereta', 'mrt', 'lrt', 'busway', 'tije', 'krl', 'ojol', 'pertamax', 'pertalite', 'solar', 'shell', 'maxim'],
   langganan: ['netflix', 'spotify', 'youtube', 'internet', 'wifi', 'listrik', 'pdam', 'bpjs', 'pulsa', 'kuota', 'indihome', 'biznet', 'pln', 'icloud', 'disney'],
-  belanja: ['belanja', 'supermarket', 'minimarket', 'indomaret', 'alfamart', 'mall', 'baju', 'sepatu', 'tokopedia', 'shopee', 'lazada', 'tiktok shop', 'skincare', 'outfit', 'tas', 'celana'],
+  belanja: ['belanja', 'supermarket', 'minimarket', 'indomaret', 'alfamart', 'alfamidi', 'superindo', 'hypermart', 'transmart', 'guardian', 'watsons', 'mall', 'baju', 'sepatu', 'tokopedia', 'shopee', 'lazada', 'tiktok shop', 'skincare', 'outfit', 'tas', 'celana'],
   investasi: ['investasi', 'saham', 'crypto', 'kripto', 'reksadana', 'emas', 'xau', 'antam', 'bibit', 'ajaib', 'pluang', 'tokocrypto', 'indodax', 'obligasi', 'sbn', 'deposito'],
   hiburan: ['nonton', 'bioskop', 'game', 'steam', 'playstation', 'karaoke', 'konser', 'liburan', 'hotel', 'villa'],
   kesehatan: ['obat', 'dokter', 'apotek', 'klinik', 'rumah sakit', 'vitamin', 'lab', 'dental', 'gigi'],
   pendidikan: ['kursus', 'buku', 'kuliah', 'sekolah', 'spp', 'les', 'seminar', 'workshop'],
+  pajak: ['pajak', 'ppn', 'pb1', 'pph', 'pph21', 'zakat', 'umkm'],
+  cicilan: ['cicilan', 'kpr', 'angsuran', 'kartu kredit', 'cc', 'paylater'],
+  bunga: ['bunga tabungan', 'bunga bank', 'interest'],
   middleman: ['middleman', 'mm', 'fee'],
   jualan: ['jual', 'jualan', 'laku'],
   gaji: ['gaji', 'bonus', 'thr', 'upah', 'salary', 'payroll', 'honor'],
@@ -87,6 +92,9 @@ export const CATEGORY_DISPLAY_MAP: Record<string, string> = {
   hiburan: 'Hiburan',
   kesehatan: 'Kesehatan',
   pendidikan: 'Pendidikan',
+  pajak: 'Pajak & Zakat',
+  cicilan: 'Tagihan & Cicilan',
+  bunga: 'Bunga Bank',
   middleman: 'Middleman',
   jualan: 'Jualan',
   gaji: 'Gaji',

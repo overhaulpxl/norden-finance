@@ -8,6 +8,50 @@ import {
   DEFAULT_CATEGORY,
   DEFAULT_TYPE,
 } from './constants';
+import { parseQrisPayload } from './qrisParser';
+
+export const FUEL_RATES: Record<string, number> = {
+  pertalite: 10_000,
+  pertamax: 12_950,
+  'pertamax turbo': 14_400,
+  solar: 6_800,
+  biosolar: 6_800,
+  dexlite: 13_900,
+  'pertamina dex': 14_600,
+  'shell super': 13_000,
+  'shell v-power': 14_200,
+  bp92: 13_000,
+};
+
+export const FOREX_RATES: Record<string, number> = {
+  usd: 16_200,
+  sgd: 12_100,
+  eur: 17_500,
+  jpy: 105,
+  myr: 3_650,
+  aud: 10_500,
+  gbp: 20_500,
+};
+
+export const MODERN_SLANG_FILLERS: string[] = [
+  'literally',
+  'worth it',
+  'healing',
+  'fomo',
+  'spill',
+  'anw',
+  'which is',
+  'fyi',
+  'btw',
+  'cmiiw',
+  'jujurly',
+  'basically',
+  'sebenernya',
+  'at the end of the day',
+  'tbh',
+  'asap',
+  'rekomen',
+];
 
 export const SLANG_NUMBERS: Record<string, number> = {
   goceng: 5_000,
@@ -289,7 +333,19 @@ function parseBaseAmount(text: string): number {
     return Math.round(intPart + (Number.isFinite(decPart) ? decPart : 0));
   }
 
-  // 12. Thousand-separated integers: e.g. 50.000, 150.000, 1.500.000 or 50,000, 1,500
+  // 12. Foreign Currencies (Valas): e.g. 5 usd, 10 sgd, 100 eur
+  const forexPattern = /\b(\d+(?:[.,]\d+)?)\s*(usd|sgd|eur|jpy|myr|aud|gbp)\b/i;
+  const forexMatch = text.match(forexPattern);
+  if (forexMatch) {
+    const val = parseFloat(forexMatch[1].replace(',', '.'));
+    const cur = forexMatch[2].toLowerCase();
+    const rate = FOREX_RATES[cur];
+    if (rate && Number.isFinite(val) && val > 0) {
+      return Math.round(val * rate);
+    }
+  }
+
+  // 13. Thousand-separated integers: e.g. 50.000, 150.000, 1.500.000 or 50,000, 1,500
   const thousandPattern = /\b(\d{1,3}(?:[.,]\d{3})+)\b/g;
   const thousandMatches = [...text.matchAll(thousandPattern)];
   if (thousandMatches.length > 0) {
@@ -317,7 +373,132 @@ function parseBaseAmount(text: string): number {
 export function parseAmount(input: string): number {
   const text = maskDates(input);
 
-  // 1. Math: Split bill ("makan 200k bagi 4", "split 3")
+  // 0. QRIS EMVCo Tag 54 check
+  if (input.includes('000201')) {
+    const qris = parseQrisPayload(input);
+    if (qris && qris.amount > 0) return qris.amount;
+  }
+
+  // 1. Math: Stock lot purchase (IDX / BEI 1 lot = 100 shares): e.g. "bbca 5 lot harga 9800", "beli bbri 10 lot @ 4600"
+  const stockMatch = text.match(/\b(?:beli|jual|serok)?\s*([a-z]{4})\s+(\d+)\s*lot\s*(?:harga|@)?\s*(\d+(?:[.,]\d+)?)\b/i);
+  if (stockMatch) {
+    const lots = parseInt(stockMatch[2], 10);
+    const pricePerShare = parseFloat(stockMatch[3].replace(',', '.'));
+    if (lots > 0 && pricePerShare > 0) {
+      let total = lots * 100 * pricePerShare;
+      const feeMatch = text.match(/fee\s*(\d+(?:[.,]\d+)?)%/i);
+      if (feeMatch) {
+        const feePct = parseFloat(feeMatch[1].replace(',', '.'));
+        total *= 1 + feePct / 100;
+      }
+      return Math.round(total);
+    }
+  }
+
+  // 2. Math: Stock Dividend ("dividen bbca 250 per lembar 10 lot")
+  const divMatch = text.match(/\bdividen\s+(?:[a-z]{4}\s+)?(\d+(?:[.,]\d+)?)\s*(?:per\s*lembar)?\s*(\d+)\s*lot\b/i);
+  if (divMatch) {
+    const dps = parseFloat(divMatch[1].replace(',', '.'));
+    const lots = parseInt(divMatch[2], 10);
+    if (dps > 0 && lots > 0) return Math.round(dps * lots * 100);
+  }
+
+  // 3. Math: Fuel Liters to Rupiah ("pertalite 10 liter", "pertamax 15L", "solar 20 liter")
+  const fuelMatch1 = text.match(/\b(pertalite|pertamax\s*turbo|pertamax|biosolar|solar|dexlite|pertamina\s*dex|shell\s*super)\s+(\d+(?:[.,]\d+)?)\s*(?:liter|l)\b/i);
+  if (fuelMatch1) {
+    const key = fuelMatch1[1].toLowerCase().replace(/\s+/g, ' ');
+    const liters = parseFloat(fuelMatch1[2].replace(',', '.'));
+    const rate = FUEL_RATES[key] || 10_000;
+    if (liters > 0) return Math.round(liters * rate);
+  }
+
+  const fuelMatch2 = text.match(/\b(\d+(?:[.,]\d+)?)\s*(?:liter|l)\s+(?:isi\s+)?(pertalite|pertamax\s*turbo|pertamax|biosolar|solar|dexlite|pertamina\s*dex|shell\s*super)\b/i);
+  if (fuelMatch2) {
+    const liters = parseFloat(fuelMatch2[1].replace(',', '.'));
+    const key = fuelMatch2[2].toLowerCase().replace(/\s+/g, ' ');
+    const rate = FUEL_RATES[key] || 10_000;
+    if (liters > 0) return Math.round(liters * rate);
+  }
+
+  // 4. Math: Gold Grams ("beli emas 2 gram", "tabungan emas antam 0.5 gr")
+  const goldMatch = text.match(/\b(\d+(?:[.,]\d+)?)\s*(?:gram|gr)\b/i);
+  if (goldMatch && /\b(?:emas|antam|pegadaian)\b/i.test(text)) {
+    const grams = parseFloat(goldMatch[1].replace(',', '.'));
+    if (grams > 0) return Math.round(grams * 1_350_000);
+  }
+
+  // 5. Math: Zakat & Tax Math
+  const zakatFitrahMatch = text.match(/\bzakat\s*fitrah\s+([0-9.,]+[a-z]*)\s*(?:per\s*orang\s+)?(\d+)\s*jiwa\b/i);
+  if (zakatFitrahMatch) {
+    const perOrang = parseBaseAmount(zakatFitrahMatch[1]);
+    const jiwa = parseInt(zakatFitrahMatch[2], 10);
+    if (perOrang > 0 && jiwa > 0) return perOrang * jiwa;
+  }
+
+  const zakatMaalMatch = text.match(/\bzakat\s*maal\s+(?:tabungan\s+)?([0-9.,]+[a-z]*)\b/i);
+  if (zakatMaalMatch) {
+    const base = parseBaseAmount(zakatMaalMatch[1]);
+    if (base > 0) return Math.round(base * 0.025);
+  }
+
+  const umkmTaxMatch = text.match(/(?:omset|omzet)\s+([0-9.,]+[a-z]*)\s*(?:pph\s*(?:umkm|final)|pajak\s*umkm)\b/i);
+  if (umkmTaxMatch) {
+    const base = parseBaseAmount(umkmTaxMatch[1]);
+    if (base > 0) return Math.round(base * 0.005);
+  }
+
+  const pphTerMatch = text.match(/gaji\s*(?:kotor)?\s*([0-9.,]+[a-z]*)\s*pph21\s*ter\b/i);
+  if (pphTerMatch) {
+    const base = parseBaseAmount(pphTerMatch[1]);
+    if (base > 0) return Math.round(base * 0.94);
+  }
+
+  // 6. Math: Multi-layer Compound Discount ("100k diskon 20% + 10%")
+  const compoundDiscMatch = text.match(/(.*?)\s*(?:-|diskon|potongan)\s*(\d+)%\s*\+\s*(\d+)%/i);
+  if (compoundDiscMatch) {
+    const base = parseBaseAmount(compoundDiscMatch[1]);
+    const d1 = parseFloat(compoundDiscMatch[2]);
+    const d2 = parseFloat(compoundDiscMatch[3]);
+    if (base > 0 && d1 > 0 && d2 > 0) {
+      return Math.round(base * (1 - d1 / 100) * (1 - d2 / 100));
+    }
+  }
+
+  // 7. Math: Capped discount percentage ("100k diskon 50% max 20k", "diskon 30% maks 15rb")
+  const cappedDiscMatch = text.match(/(.*?)\s*(?:-|diskon|potongan)\s*(\d+)%\s*(?:max|maksimal|maks|cap)\s*([0-9.,]+[a-z]*)\b/i);
+  if (cappedDiscMatch) {
+    const base = parseBaseAmount(cappedDiscMatch[1]);
+    const pct = parseFloat(cappedDiscMatch[2]);
+    const maxCap = parseBaseAmount(cappedDiscMatch[3]);
+    if (base > 0 && pct > 0 && maxCap > 0) {
+      const disc = Math.min(base * (pct / 100), maxCap);
+      return Math.round(base - disc);
+    }
+  }
+
+  // 8. Math: Restaurant Tax + Service Charge ("sushi 200k + sc 5% + pb1 10%")
+  const scPb1Match = text.match(/(.*?)\s*\+\s*sc\s*(\d+(?:[.,]\d+)?)%\s*\+\s*(?:pb1|tax)\s*(\d+(?:[.,]\d+)?)%/i);
+  if (scPb1Match) {
+    const base = parseBaseAmount(scPb1Match[1]);
+    const scPct = parseFloat(scPb1Match[2].replace(',', '.'));
+    const pb1Pct = parseFloat(scPb1Match[3].replace(',', '.'));
+    if (base > 0) {
+      const withSc = base * (1 + scPct / 100);
+      return Math.round(withSc * (1 + pb1Pct / 100));
+    }
+  }
+
+  // 9. Math: Single Tax / PPN / PB1 / Service Charge ("makan 100k + pb1 10%", "laptop 10jt + ppn 11%")
+  const taxPctMatch = text.match(/(.*?)\s*\+\s*(?:pb1|tax|ppn|pajak|sc|service)\s*(\d+(?:[.,]\d+)?)%/i);
+  if (taxPctMatch) {
+    const base = parseBaseAmount(taxPctMatch[1]);
+    const taxPct = parseFloat(taxPctMatch[2].replace(',', '.'));
+    if (base > 0 && taxPct > 0) {
+      return Math.round(base * (1 + taxPct / 100));
+    }
+  }
+
+  // 10. Math: Split bill ("makan 200k bagi 4", "split 3")
   const splitMatch = text.match(/(.*?)\s*(?:bagi|split)\s*(\d+)\b/i);
   if (splitMatch) {
     const base = parseBaseAmount(splitMatch[1]);
@@ -327,7 +508,7 @@ export function parseAmount(input: string): number {
     }
   }
 
-  // 2. Math: Quantity prefix ("2 x 25k", "3 * 15rb", "2 @ 20k")
+  // 11. Math: Quantity prefix ("2 x 25k", "3 * 15rb", "2 @ 20k")
   const qtyPrefixMatch = text.match(/\b(\d+)\s*(?:x|\*|@)\s*([0-9.,]+[a-z]*)\b/i);
   if (qtyPrefixMatch) {
     const qty = parseInt(qtyPrefixMatch[1], 10);
@@ -337,7 +518,7 @@ export function parseAmount(input: string): number {
     }
   }
 
-  // 3. Math: Quantity suffix ("25k x 2", "50rb * 3")
+  // 12. Math: Quantity suffix ("25k x 2", "50rb * 3")
   const qtySuffixMatch = text.match(/\b([0-9.,]+[a-z]*)\s*(?:x|\*)\s*(\d+)\b/i);
   if (qtySuffixMatch) {
     const unitPrice = parseBaseAmount(qtySuffixMatch[1]);
@@ -347,7 +528,7 @@ export function parseAmount(input: string): number {
     }
   }
 
-  // 4. Math: Discount percentage ("100k diskon 10%", "100k - 10%")
+  // 13. Math: Discount percentage ("100k diskon 10%", "100k - 10%")
   const discPctMatch = text.match(/(.*?)\s*(?:-|diskon|potongan)\s*(\d+)%/i);
   if (discPctMatch) {
     const base = parseBaseAmount(discPctMatch[1]);
@@ -357,7 +538,7 @@ export function parseAmount(input: string): number {
     }
   }
 
-  // 5. Math: Discount fixed amount ("100k - diskon 20k", "100k - 20k")
+  // 14. Math: Discount fixed amount ("100k - diskon 20k", "100k - 20k")
   const discFixedMatch = text.match(/(.*?)\s*(?:-|diskon|potongan)\s*([0-9.,]+[a-z]*)\b/i);
   if (discFixedMatch) {
     const base = parseBaseAmount(discFixedMatch[1]);
@@ -367,8 +548,8 @@ export function parseAmount(input: string): number {
     }
   }
 
-  // 6. Math: Addition / Shipping / Admin fee ("120k + ongkir 15k", "100k + fee 5k")
-  const addMatch = text.match(/(.*?)\s*\+\s*(?:ongkir|fee|biaya|admin|tip)?\s*([0-9.,]+[a-z]*)\b/i);
+  // 15. Math: Addition / Shipping / Admin fee / Driver tip ("120k + ongkir 15k", "50k tip driver 5k")
+  const addMatch = text.match(/(.*?)\s*\+\s*(?:ongkir|fee|biaya|admin|tip\s*driver|tip|app\s*fee|biaya\s*aplikasi|layanan)?\s*([0-9.,]+[a-z]*)\b/i);
   if (addMatch) {
     const base = parseBaseAmount(addMatch[1]);
     const extra = parseBaseAmount(addMatch[2]);
@@ -387,6 +568,11 @@ export function parseTransferWallets(input: string): { from: string; to: string 
 
   let toMethod: string | null = null;
   let fromMethod: string | null = null;
+
+  // Handle ATM Cash withdrawal ("tarik tunai 500k bca", "ambil cash 1jt atm mandiri")
+  if (/\b(?:tarik\s+tunai|ambil\s+uang|tarik\s+cash)\b/i.test(input)) {
+    toMethod = 'cash';
+  }
 
   for (const alias of aliases) {
     const norm = alias.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -474,12 +660,22 @@ export function parseType(input: string, isBalanceUpdate: boolean): TransactionT
 
   const lowerInput = input.toLowerCase();
 
-  // Transfer verbs and phrasing patterns
+  // Transfer verbs and ATM withdrawal patterns
   if (
-    /\b(tf|transfer|pindah|pindahin|oper|kirim|move)\b/i.test(lowerInput) ||
+    /\b(tf|transfer|pindah|pindahin|oper|kirim|move|tarik\s+tunai|ambil\s+uang|tarik\s+cash)\b/i.test(lowerInput) ||
     /\b(?:dari|from)\s+.+\s+(?:ke|to)\b/i.test(lowerInput)
   ) {
     return 'transfer';
+  }
+
+  // Investment yields, dividends, and interest are incoming
+  if (/\b(dividen|dividend|kupon|bunga\s+tabungan|bunga\s+bank|profit)\b/i.test(lowerInput)) {
+    return 'masuk';
+  }
+
+  // Tax, zakat, installment are expenses
+  if (/\b(zakat|pajak|pph|ppn|pb1|angsuran|cicilan|kpr|tagihan\s+cc)\b/i.test(lowerInput)) {
+    return 'keluar';
   }
 
   for (const word of TYPE_KEYWORDS.masuk) {
@@ -497,11 +693,37 @@ export function parseCategory(input: string, type: TransactionType): string {
 
   const lowerInput = input.toLowerCase();
 
+  // Primary consumption and lifestyle categories first (Makanan, Belanja, Transport, etc.)
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (category === 'pajak') continue; // Evaluate tax after primary categories to prevent PB1/PPN override
     for (const keyword of keywords) {
       if (new RegExp(`\\b${keyword}\\b`, 'i').test(lowerInput)) {
         return CATEGORY_DISPLAY_MAP[category] || category.charAt(0).toUpperCase() + category.slice(1);
       }
+    }
+  }
+
+  // Special financial category shortcuts
+  if (/\b(?:bbca|bbri|bmri|bbni|tlkm|asii|icbp|goto|bren|ammn|saham|dividen|kupon|lot|sbn|ori\d+|sr\d+|reksadana|kripto|crypto|btc|eth)\b/i.test(lowerInput)) {
+    return 'Investasi';
+  }
+  if (/\b(?:pertalite|pertamax|solar|biosolar|dexlite|parkir|tol|e-toll|etoll|emoney|flazz)\b/i.test(lowerInput)) {
+    return 'Transport';
+  }
+  if (/\b(?:zakat|zakat\s*maal|zakat\s*fitrah|pph|pph21|ppn|pb1|pajak|umkm|spt|pbb)\b/i.test(lowerInput)) {
+    return 'Pajak & Zakat';
+  }
+  if (/\b(?:bunga\s+tabungan|bunga\s+bank|interest)\b/i.test(lowerInput)) {
+    return 'Bunga Bank';
+  }
+  if (/\b(?:kpr|cicilan|angsuran|kartu\s+kredit|tagihan\s+cc|paylater)\b/i.test(lowerInput)) {
+    return 'Tagihan & Cicilan';
+  }
+
+  // Explicit tax fallback if no other categories matched
+  for (const keyword of (CATEGORY_KEYWORDS.pajak || [])) {
+    if (new RegExp(`\\b${keyword}\\b`, 'i').test(lowerInput)) {
+      return 'Pajak & Zakat';
     }
   }
 
@@ -561,6 +783,25 @@ export function parseTransaction(input: string): ParseResult {
   const trimmed = input.trim();
   const lowerInput = trimmed.toLowerCase();
 
+  // QRIS EMVCo raw payload handler
+  if (trimmed.includes('000201')) {
+    const qris = parseQrisPayload(trimmed);
+    if (qris) {
+      return {
+        isBalanceUpdate: false,
+        type: 'keluar',
+        category: qris.category,
+        amount: qris.amount,
+        method: 'qris',
+        transferToMethod: null,
+        note: qris.merchantCity ? `${qris.merchantName} (${qris.merchantCity})` : qris.merchantName,
+        tags: ['qris'],
+        rawInput: input,
+        transactionDate: new Date().toISOString(),
+      };
+    }
+  }
+
   const isBalanceUpdate =
     /^(?:set\s+)?saldo\b/i.test(lowerInput) && !/^(?:isi|topup|top\s*up)\s+saldo\b/i.test(lowerInput);
 
@@ -602,6 +843,20 @@ export function parseTransaction(input: string): ParseResult {
   const tagsMatch = trimmed.match(tagPattern);
   const tags = tagsMatch ? tagsMatch.map((t) => t.replace('#', '').toLowerCase()) : [];
 
+  // Auto-tag special financial intents
+  if (/\b(?:saham|lot|dividen|kupon)\b/i.test(trimmed) && !tags.includes('investasi')) {
+    tags.push('investasi');
+  }
+  if (/\b(?:talangan|reimburse|kasbon)\b/i.test(trimmed) && !tags.includes('reimburse')) {
+    tags.push('reimburse');
+  }
+  if (/\b(?:zakat)\b/i.test(trimmed) && !tags.includes('zakat')) {
+    tags.push('zakat');
+  }
+  if (/\b(?:pph|ppn|pajak|umkm)\b/i.test(trimmed) && !tags.includes('pajak')) {
+    tags.push('pajak');
+  }
+
   // Extract clean note
   let note = trimmed;
   note = note.replace(tagPattern, ' ');
@@ -615,6 +870,12 @@ export function parseTransaction(input: string): ParseResult {
       ' '
     );
 
+  // Remove Jaksel & modern slang fillers
+  for (const filler of MODERN_SLANG_FILLERS) {
+    const escaped = filler.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    note = note.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), ' ');
+  }
+
   // Remove math operators and modifiers
   note = note
     .replace(/(?:bagi|split)\s*\d+\b/gi, ' ')
@@ -622,7 +883,12 @@ export function parseTransaction(input: string): ParseResult {
     .replace(/\s*(?:x|\*)\s*\d+\b/gi, ' ')
     .replace(/(?:-|diskon|potongan)\s*\d+%/gi, ' ')
     .replace(/(?:-|diskon|potongan)\s*/gi, ' ')
-    .replace(/\+\s*(?:ongkir|fee|biaya|admin|tip)?\s*/gi, ' ');
+    .replace(/\+\s*(?:ongkir|fee|biaya|admin|tip\s*driver|tip|app\s*fee|biaya\s*aplikasi|layanan)?\s*/gi, ' ')
+    .replace(/(?:tax|sc|pb1|ppn|pajak|service)\s*\d+%/gi, ' ')
+    .replace(/(?:max|maksimal|maks|cap)\s*[0-9.,]+[a-z]*/gi, ' ')
+    .replace(/\b(?:liter|l|gram|gr|lot|lembar)\b/gi, ' ')
+    .replace(/\b(?:usd|sgd|eur|jpy|myr|aud|gbp)\b/gi, ' ')
+    .replace(/\b(?:harga|@)\b/gi, ' ');
 
   // Remove numbers with suffixes
   note = note
@@ -647,7 +913,7 @@ export function parseTransaction(input: string): ParseResult {
 
   if (type === 'transfer') {
     note = note
-      .replace(/\b(?:transfer|tf|pindah|pindahin|oper|kirim|move)\b/gi, ' ')
+      .replace(/\b(?:transfer|tf|pindah|pindahin|oper|kirim|move|tarik\s+tunai|ambil\s+uang|tarik\s+cash)\b/gi, ' ')
       .replace(/\b(?:ke|to|dari|from|pakai)\b/gi, ' ');
   }
 
@@ -679,4 +945,40 @@ export function parseTransaction(input: string): ParseResult {
     rawInput: input,
     transactionDate,
   };
+}
+
+/**
+ * Parses multiple transactions separated by semicolon, newline, or ' dan ' / ' and '
+ */
+export function parseMultipleTransactions(input: string): ParseResult[] {
+  const trimmed = input.trim();
+  if (!trimmed) return [];
+
+  // Check QRIS first
+  if (trimmed.includes('000201')) {
+    return [parseTransaction(trimmed)];
+  }
+
+  const delimiters = [';', '\n'];
+  let segments: string[] = [trimmed];
+
+  for (const delim of delimiters) {
+    if (segments.length === 1 && trimmed.includes(delim)) {
+      segments = trimmed.split(delim).map((s) => s.trim()).filter(Boolean);
+    }
+  }
+
+  if (segments.length === 1 && /\s+(?:dan|and)\s+/i.test(trimmed)) {
+    const candidateParts = trimmed.split(/\s+(?:dan|and)\s+/i).map((s) => s.trim()).filter(Boolean);
+    const allHaveAmounts = candidateParts.every((p) => parseAmount(p) > 0);
+    if (allHaveAmounts && candidateParts.length > 1) {
+      segments = candidateParts;
+    }
+  }
+
+  if (segments.length > 1) {
+    return segments.map((seg) => parseTransaction(seg));
+  }
+
+  return [parseTransaction(trimmed)];
 }

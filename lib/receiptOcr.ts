@@ -207,7 +207,10 @@ export function parseReceiptOcrText(rawText: string): ParsedReceipt {
     });
   }
 
-  const category = parseCategory(merchant + ' ' + rawText, 'keluar');
+  let category = parseCategory(merchant, 'keluar');
+  if (category === 'Lain-lain' || !category) {
+    category = parseCategory(merchant + ' ' + rawText, 'keluar');
+  }
   const suggestedText = amount > 0 ? `${amount} ${merchant} cash` : '';
 
   return {
