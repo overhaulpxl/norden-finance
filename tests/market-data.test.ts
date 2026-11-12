@@ -15,6 +15,7 @@ describe('Market Data Engine', () => {
     assert.ok(gold.pricePerGramIdr > 500000);
     assert.ok(typeof gold.updatedAt === 'string');
     assert.ok(typeof gold.isFallback === 'boolean' || gold.isFallback === undefined);
+    assert.equal(gold.priceType, 'buy');
   });
 
   it('returns valid quote payload with fallback indicator for gold asset', async () => {
@@ -25,6 +26,7 @@ describe('Market Data Engine', () => {
     assert.ok(quote);
     assert.ok(quote.priceIdr > 500000);
     assert.equal(quote.symbol, 'EMAS');
+    assert.equal(quote.priceType, 'buy');
     assert.ok(typeof quote.isFallback === 'boolean');
   });
 

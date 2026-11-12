@@ -24,7 +24,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
     "@supabase/storage-js": "^2.118.0",
     "clsx": "^2.1.1",
@@ -39,7 +38,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "tesseract.js": "^7.0.0"
   },
   "overrides": {
     "@grpc/grpc-js": "^1.14.7",

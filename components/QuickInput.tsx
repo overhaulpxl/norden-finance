@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Send, Loader2, Camera, RotateCcw, X, ClipboardPaste } from 'lucide-react';
 import { processInput, deleteTransaction } from '../app/actions';
 import { compressReceiptImage } from '../lib/imageCompression';
+import { scanReceiptOffline } from '../lib/receiptOcr';
 import { useLanguage } from '../lib/i18n';
 import { enqueueOfflineTransaction } from '../lib/offlineQueue';
 import { parseBankNotificationText } from '../lib/smartClipboard';
@@ -54,7 +55,7 @@ export default function QuickInput() {
     setLoading(false);
   };
 
-  // Option B: Client-side Receipt Attachment with Instant Thumbnail
+  // Option B: Client-side 100% Offline Tesseract OCR & Instant Thumbnail
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -68,6 +69,26 @@ export default function QuickInput() {
       const url = URL.createObjectURL(compressedFile);
       setReceiptThumbnail(url);
       setReceiptName(file.name);
+
+      // 100% Offline Client-Side Tesseract OCR
+      try {
+        const ocrResult = await scanReceiptOffline(compressedFile);
+        if (ocrResult.amount > 0 || ocrResult.suggestedText) {
+          setInput(ocrResult.suggestedText || `${ocrResult.amount} ${ocrResult.merchant || 'Belanja'} cash`);
+          triggerHaptic('success');
+          setMessage({
+            type: 'success',
+            text:
+              lang === 'id'
+                ? `✅ Struk terdeteksi (Tesseract OCR): Rp ${ocrResult.amount.toLocaleString('id-ID')} (${ocrResult.merchant})`
+                : `✅ Receipt detected (Tesseract OCR): Rp ${ocrResult.amount.toLocaleString('id-ID')} (${ocrResult.merchant})`,
+          });
+          return;
+        }
+      } catch (ocrErr) {
+        console.warn('Tesseract OCR failed, keeping thumbnail:', ocrErr);
+      }
+
       triggerHaptic('success');
       setMessage({
         type: 'success',

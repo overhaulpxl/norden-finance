@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     await requireUser();
     const formData = await req.formData();
     const file = formData.get('image') as File | null;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'No image uploaded' }, { status: 400 });
     }
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Ukuran file maksimal 5MB' }, { status: 413 });
     }
 
-    // Local smart parser from file metadata / hint name
+    // Local smart parser from file metadata / hint name (100% offline & private)
     const rawName = file.name
       ? file.name.replace(/\.[^/.]+$/, '').replace(/[_\-+]/g, ' ')
       : '';
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       amount: hasDetectedAmount ? parsed.amount : 0,
       merchant: merchant.slice(0, 120),
+      category: parsed.category || 'Belanja',
       date: parsed.transactionDate
         ? (parsed.transactionDate instanceof Date ? parsed.transactionDate.toISOString() : String(parsed.transactionDate))
         : new Date().toISOString(),
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
       suggestedText,
       message: hasDetectedAmount
         ? `Struk terdeteksi: ${parsed.amount} untuk ${note}`
-        : 'Struk terlampir. Silakan ketik nominal dan keterangan di Smart Input.'
+        : 'Struk terlampir. Silakan ketik nominal dan keterangan di Smart Input.',
     });
   } catch (error: unknown) {
     if (error instanceof RateLimitExceededError) {

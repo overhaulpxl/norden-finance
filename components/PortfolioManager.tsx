@@ -1056,7 +1056,11 @@ export default function PortfolioManager({
                       {!fetchingQuote && quoteSource && (
                         <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <Check className="w-2.5 h-2.5 stroke-[3px]" />
-                          <span>{isId ? 'Harga Live' : 'Live Quote'}</span>
+                          <span>
+                            {formClass === 'emas'
+                              ? (isId ? 'Harga Beli Pasar (Buy Rate)' : 'Market Buy Rate')
+                              : (isId ? 'Harga Live' : 'Live Quote')}
+                          </span>
                         </span>
                       )}
                       {!fetchingQuote && !quoteSource && (
@@ -1280,6 +1284,13 @@ export default function PortfolioManager({
                     onChange={(e) => setFormCurrentPrice(formatRupiahInput(e.target.value))}
                     className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                   />
+                  {formClass === 'emas' && (
+                    <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold block mt-1">
+                      {isId
+                        ? '★ Live Buy Rate (Harga Beli Pasar), bukan harga buyback.'
+                        : '★ Live Market Buy Rate, not buyback price.'}
+                    </span>
+                  )}
                 </div>
               </div>
 

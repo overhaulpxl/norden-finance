@@ -30,6 +30,7 @@ import { Balance, SavingGoal } from '../types';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { formatCurrency, formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { compressReceiptImage } from '../lib/imageCompression';
+import { scanReceiptOffline } from '../lib/receiptOcr';
 import { triggerHaptic } from '../lib/haptics';
 import { triggerUndoToast } from '../lib/undoToast';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
@@ -470,6 +471,38 @@ export default function QuickInputModal({
       setReceiptImageThumbnail(url);
       setReceiptImageName(file.name);
       setMode('receipt');
+
+      // 100% Offline Client-Side Tesseract OCR
+      try {
+        const ocrData = await scanReceiptOffline(compressed);
+        if (ocrData.merchant) setReceiptMerchant(ocrData.merchant);
+        if (ocrData.category) setReceiptCategory(ocrData.category);
+        if (Array.isArray(ocrData.items) && ocrData.items.length > 0) {
+          setReceiptRows(ocrData.items);
+        } else if (ocrData.amount > 0) {
+          setReceiptRows([
+            {
+              id: Math.random().toString(),
+              name: ocrData.merchant || (lang === 'en' ? 'Shopping' : 'Belanja'),
+              qty: '1',
+              price: formatRupiahInput(String(ocrData.amount)),
+            },
+          ]);
+        }
+
+        triggerHaptic('success');
+        setMessage({
+          type: 'success',
+          text:
+            lang === 'en'
+              ? `📷 Receipt scanned (Tesseract OCR): ${ocrData.merchant || 'Attached'} (${ocrData.amount > 0 ? `Rp ${ocrData.amount.toLocaleString()}` : ''})`
+              : `📷 Struk terpindai (Tesseract OCR): ${ocrData.merchant || 'Terlampir'} (${ocrData.amount > 0 ? `Rp ${ocrData.amount.toLocaleString('id-ID')}` : ''})`,
+        });
+        return;
+      } catch (scanErr) {
+        console.warn('Tesseract offline OCR error, keeping thumbnail:', scanErr);
+      }
+
       triggerHaptic('success');
       setMessage({
         type: 'success',

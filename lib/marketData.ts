@@ -80,11 +80,20 @@ export async function getUsdIdrRate(): Promise<number> {
 
 /**
  * Live Gold Price (IDR per gram)
+ * Strictly utilizes retail market Buy Rate (Harga Beli), never Buyback rate (Harga Jual Kembali).
  * 1 Troy Ounce = 31.1034768 grams
  */
-export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; updatedAt: string; isFallback?: boolean }> {
+export async function getGoldPriceIdr(): Promise<{
+  pricePerGramIdr: number;
+  updatedAt: string;
+  isFallback?: boolean;
+  priceType: 'buy';
+}> {
   const cacheKey = 'gold_price_idr';
-  const cached = getCached<{ pricePerGramIdr: number; updatedAt: string; isFallback?: boolean }>(cacheKey, 15 * 60 * 1000); // 15 mins
+  const cached = getCached<{ pricePerGramIdr: number; updatedAt: string; isFallback?: boolean; priceType: 'buy' }>(
+    cacheKey,
+    15 * 60 * 1000
+  ); // 15 mins
   if (cached) return cached;
 
   const usdIdr = await getUsdIdrRate();
@@ -105,6 +114,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
           pricePerGramIdr,
           updatedAt: data?.updatedAt || new Date().toISOString(),
           isFallback: false,
+          priceType: 'buy' as const,
         };
         setCache(cacheKey, result);
         return result;
@@ -129,6 +139,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
           pricePerGramIdr,
           updatedAt: new Date().toISOString(),
           isFallback: false,
+          priceType: 'buy' as const,
         };
         setCache(cacheKey, result);
         return result;
@@ -139,7 +150,7 @@ export async function getGoldPriceIdr(): Promise<{ pricePerGramIdr: number; upda
   }
 
   // Default fallback estimate
-  return { pricePerGramIdr: 1500000, updatedAt: new Date().toISOString(), isFallback: true };
+  return { pricePerGramIdr: 1500000, updatedAt: new Date().toISOString(), isFallback: true, priceType: 'buy' };
 }
 
 /**
@@ -458,6 +469,7 @@ export async function getLiveQuoteForAsset(asset: {
   source: string;
   updatedAt: string;
   isFallback?: boolean;
+  priceType?: 'buy' | 'market';
 } | null> {
   const { assetClass, symbol, name = '' } = asset;
   const safeName = name.toLowerCase();
@@ -471,6 +483,7 @@ export async function getLiveQuoteForAsset(asset: {
       priceIdr: gold.pricePerGramIdr,
       symbol: 'EMAS',
       source: gold.isFallback ? 'Estimasi (Fallback)' : 'api.gold-api.com',
+      priceType: 'buy',
       updatedAt: gold.updatedAt,
       isFallback: gold.isFallback ?? false,
     };
