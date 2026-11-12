@@ -143,11 +143,11 @@ export default function NotificationCenter() {
           setConfirmClear(false);
           fetchNotifications();
         }}
-        className="relative min-w-[44px] min-h-[44px] border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 sm:p-2.5 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center text-black dark:text-white"
+        className="relative h-9 sm:h-10 w-9 sm:w-10 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-none shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center text-black dark:text-white shrink-0"
       >
-        <Bell className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5px]" />
+        <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5px]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 bg-[#ff6b6b] text-white text-[9px] font-black border-2 border-black px-1.5 py-0.2 rounded-full shadow-[1px_1px_0px_0px_#000]">
+          <span className="absolute -top-1.5 -right-1.5 bg-[#ff6b6b] text-white text-[9px] font-black border-2 border-black px-1.5 py-0.2 rounded-full shadow-[1px_1px_0px_0px_#000]">
             {unreadCount}
           </span>
         )}

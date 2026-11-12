@@ -71,10 +71,10 @@ export default function LandingUX() {
   // Render sticky CTA for mobile & tablet only (hidden on large screens)
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden animate-in slide-in-from-bottom duration-300 select-none">
-      <div className="bg-white border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between gap-3">
+      <div className="bg-white dark:bg-neutral-900 border-[3px] border-black dark:border-neutral-700 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Norden Finance</p>
-          <p className="text-xs font-black text-black uppercase tracking-wide truncate">
+          <p className="text-[10px] font-black uppercase text-neutral-500 dark:text-neutral-400 tracking-wider">Norden Finance</p>
+          <p className="text-xs font-black text-black dark:text-white uppercase tracking-wide truncate">
             {lang === 'en' ? 'Start Managing Finances' : 'Mulai Atur Keuangan'}
           </p>
         </div>

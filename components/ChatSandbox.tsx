@@ -159,7 +159,7 @@ export default function ChatSandbox() {
   }
 
   return (
-    <div className="flex-1 p-4 bg-[#E5DDD5] overflow-hidden flex flex-col justify-between h-full relative">
+    <div className="flex-1 p-4 bg-[#E5DDD5] dark:bg-[#18181b] overflow-hidden flex flex-col justify-between h-full relative transition-colors">
       <style>{`
         @keyframes particle-explode {
           0% {
@@ -194,27 +194,27 @@ export default function ChatSandbox() {
         {messages.map(msg => (
           <div
             key={msg.id}
-            className={`self-${msg.sender === 'user' ? 'end bg-[#DCF8C6]' : 'start bg-white'} border-[1.5px] border-black p-2.5 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-2 items-start transition-all duration-200 animate-in fade-in slide-in-from-bottom-2`}
+            className={`self-${msg.sender === 'user' ? 'end bg-[#DCF8C6] dark:bg-emerald-950/80 text-black dark:text-emerald-100' : 'start bg-white dark:bg-neutral-800 text-black dark:text-neutral-100'} border-[1.5px] border-black dark:border-neutral-700 p-2.5 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-2 items-start transition-all duration-200 animate-in fade-in slide-in-from-bottom-2`}
           >
             {msg.sender === 'ai' && (
-              <Sparkles className="w-3.5 h-3.5 stroke-[3px] text-[#4B6DFE] shrink-0 mt-0.5" />
+              <Sparkles className="w-3.5 h-3.5 stroke-[3px] text-[#4B6DFE] dark:text-[#93c5fd] shrink-0 mt-0.5" />
             )}
             <div>
               {msg.sender === 'user' ? (
-                <span className="text-[9px] font-black text-neutral-600 block mb-0.5">
+                <span className="text-[9px] font-black text-neutral-600 dark:text-neutral-400 block mb-0.5">
                   {lang === 'en' ? 'You' : 'Anda'}
                 </span>
               ) : (
-                <span className="text-[9px] font-black text-[#4B6DFE] block mb-0.5">Norden AI Parser</span>
+                <span className="text-[9px] font-black text-[#4B6DFE] dark:text-[#93c5fd] block mb-0.5">Norden AI Parser</span>
               )}
-              <p className="text-[10px] font-bold text-black leading-snug">{msg.text}</p>
+              <p className="text-[10px] font-bold leading-snug">{msg.text}</p>
             </div>
           </div>
         ))}
 
         {isTyping && (
-          <div className="self-start bg-white border-[1.5px] border-black p-2 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-1.5 items-center">
-            <span className="text-[9px] font-black text-neutral-400 animate-pulse">
+          <div className="self-start bg-white dark:bg-neutral-800 border-[1.5px] border-black dark:border-neutral-700 p-2 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-1.5 items-center">
+            <span className="text-[9px] font-black text-neutral-400 dark:text-neutral-500 animate-pulse">
               {lang === 'en' ? 'Norden AI is recording...' : 'Norden AI sedang mencatat...'}
             </span>
           </div>
@@ -227,21 +227,21 @@ export default function ChatSandbox() {
         <button
           type="button"
           onClick={() => handleSend(lang === 'en' ? 'starbucks coffee 55k bca' : 'kopi starbucks 55k bca')}
-          className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
+          className="bg-white dark:bg-neutral-800 border-[1.5px] border-black dark:border-neutral-700 text-black dark:text-white text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 dark:hover:bg-neutral-700 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
           {lang === 'en' ? '☕ Coffee 55k BCA' : '☕ Kopi 55k BCA'}
         </button>
         <button
           type="button"
           onClick={() => handleSend(lang === 'en' ? 'salary received 12jt bca' : 'gaji masuk 12jt bca')}
-          className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
+          className="bg-white dark:bg-neutral-800 border-[1.5px] border-black dark:border-neutral-700 text-black dark:text-white text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 dark:hover:bg-neutral-700 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
           {lang === 'en' ? '💼 Salary 12jt BCA' : '💼 Gaji 12jt BCA'}
         </button>
         <button
           type="button"
           onClick={() => handleSend(lang === 'en' ? 'ride 22k cash' : 'gojek 22rb cash')}
-          className="bg-white border-[1.5px] border-black text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
+          className="bg-white dark:bg-neutral-800 border-[1.5px] border-black dark:border-neutral-700 text-black dark:text-white text-[9px] font-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-50 dark:hover:bg-neutral-700 active:translate-y-[1px] active:shadow-none transition-all rounded-none cursor-pointer"
         >
           {lang === 'en' ? '🚗 Ride 22k Cash' : '🚗 Gojek 22rb Cash'}
         </button>
@@ -253,18 +253,18 @@ export default function ChatSandbox() {
           e.preventDefault();
           handleSend(inputValue);
         }}
-        className="border-[2.5px] border-black bg-white p-1 flex items-center justify-between gap-2 shadow-[2.5px_2.5px_0px_0px_#000]"
+        className="border-[2.5px] border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-1 flex items-center justify-between gap-2 shadow-[2.5px_2.5px_0px_0px_#000]"
       >
         <input
           type="text"
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
           placeholder={lang === 'en' ? 'Try typing your transaction here...' : 'Coba ketik transaksi Anda di sini...'}
-          className="text-[10px] font-bold text-black pl-2 flex-1 focus:outline-none placeholder-neutral-400"
+          className="text-[10px] font-bold text-black dark:text-white bg-transparent pl-2 flex-1 focus:outline-none placeholder-neutral-400 dark:placeholder-neutral-500"
         />
         <button
           type="submit"
-          className="bg-[#FFE066] border-[1.5px] border-black p-1.5 cursor-pointer hover:bg-[#ffd533] active:translate-y-[1px] transition-all"
+          className="bg-[#FFE066] text-black border-[1.5px] border-black p-1.5 cursor-pointer hover:bg-[#ffd533] active:translate-y-[1px] transition-all"
         >
           <Send className="w-3.5 h-3.5 stroke-[2.5px]" />
         </button>

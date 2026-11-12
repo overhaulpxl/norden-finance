@@ -430,7 +430,7 @@ export default function AppLayout({
 
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
         {/* Responsive Header (Desktop: Single Row, Mobile: Tier 1 Action Row + Tier 2 Dedicated Title Card) */}
-        <header className="sticky top-0 z-30 bg-[#FAF9F5]/95 dark:bg-neutral-900/95 backdrop-blur-md safe-top mb-4 lg:mb-8 border-b-2 border-black dark:border-neutral-700 pb-3 pt-2 lg:pt-0 lg:pb-4 select-none">
+        <header className="sticky top-0 z-30 bg-[#FAF9F5]/95 dark:bg-neutral-900/95 backdrop-blur-md safe-top mb-4 lg:mb-8 border-b-2 border-black dark:border-neutral-700 py-3 lg:py-4 select-none">
           {/* Top Row: Mobile Controls + Desktop Header */}
           <div className="flex justify-between items-center gap-2">
             {/* Desktop Page Title / Mobile Hamburger + Brand */}
@@ -439,7 +439,7 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('light'); setSidebarOpen(true); }}
                 aria-label={lang === 'en' ? 'Open navigation menu' : 'Buka menu navigasi'}
-                className="lg:hidden min-w-[44px] min-h-[44px] rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white flex items-center justify-center"
+                className="lg:hidden h-9 sm:h-10 w-9 sm:w-10 rounded-none border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all shrink-0 cursor-pointer text-black dark:text-white flex items-center justify-center"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -447,7 +447,7 @@ export default function AppLayout({
                 <BrandLogo variant="icon" priority className="h-7 w-7" />
                 <span className="font-black text-xs uppercase tracking-widest text-black dark:text-white">Norden</span>
               </div>
-              <h2 className="hidden lg:block text-2xl lg:text-3xl font-black uppercase tracking-wider text-black dark:text-white truncate">
+              <h2 className="hidden lg:flex items-center h-10 text-2xl lg:text-3xl font-black uppercase tracking-wider text-black dark:text-white truncate leading-none">
                 {tabTitle}
               </h2>
             </div>
@@ -459,10 +459,10 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('light'); setShowCommandPalette(true); }}
                 title={lang === 'en' ? 'Search menu, quick actions, or transactions (Ctrl+K)' : 'Cari menu, aksi cepat, atau transaksi (Ctrl+K)'}
-                className="min-w-[44px] min-h-[44px] p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white flex items-center justify-center gap-1.5"
+                className="h-9 sm:h-10 px-2.5 sm:px-3 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-black dark:text-white flex items-center justify-center gap-2 shrink-0"
               >
                 <Search className="w-4 h-4 stroke-[2.5px]" />
-                <kbd className="hidden md:inline-block px-1.5 py-0.5 border border-black dark:border-neutral-600 rounded-md bg-[#FAF9F5] dark:bg-neutral-900 text-[10px] font-mono font-black tracking-tight leading-none shadow-[1px_1px_0px_0px_#000]">
+                <kbd className="hidden md:inline-block px-1.5 py-0.5 border border-black dark:border-neutral-600 rounded-none bg-[#FAF9F5] dark:bg-neutral-900 text-[10px] font-mono font-black tracking-tight leading-none shadow-[1px_1px_0px_0px_#000]">
                   Ctrl K
                 </kbd>
               </button>
@@ -472,7 +472,7 @@ export default function AppLayout({
                 type="button"
                 onClick={() => { triggerHaptic('light'); toggleHideBalance(); }}
                 title={isBalanceHidden ? t('btn_show_balance') : t('btn_hide_balance')}
-                className={`min-w-[44px] min-h-[44px] p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center ${
+                className={`h-9 sm:h-10 w-9 sm:w-10 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                   isBalanceHidden
                     ? 'bg-amber-100 dark:bg-amber-900/40 text-black dark:text-amber-200'
                     : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
@@ -482,11 +482,11 @@ export default function AppLayout({
               </button>
 
               {/* Language Switcher [ ID | EN ] */}
-              <div className="flex border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] bg-white dark:bg-neutral-800 text-[11px] font-black uppercase tracking-wider overflow-hidden">
+              <div className="h-9 sm:h-10 flex border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] bg-white dark:bg-neutral-800 text-[11px] font-black uppercase tracking-wider overflow-hidden shrink-0">
                 <button
                   type="button"
                   onClick={() => { triggerHaptic('selection'); setLang('id'); }}
-                  className={`px-2 py-1.5 transition-colors cursor-pointer ${
+                  className={`h-full px-2 sm:px-2.5 flex items-center justify-center transition-colors cursor-pointer ${
                     lang === 'id' ? 'font-black' : 'text-neutral-500 hover:text-black dark:hover:text-white'
                   }`}
                   style={lang === 'id' ? { backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' } : {}}
@@ -496,7 +496,7 @@ export default function AppLayout({
                 <button
                   type="button"
                   onClick={() => { triggerHaptic('selection'); setLang('en'); }}
-                  className={`px-2 py-1.5 transition-colors cursor-pointer border-l border-black dark:border-neutral-700 ${
+                  className={`h-full px-2 sm:px-2.5 flex items-center justify-center transition-colors cursor-pointer border-l-2 border-black dark:border-neutral-700 ${
                     lang === 'en' ? 'font-black' : 'text-neutral-500 hover:text-black dark:hover:text-white'
                   }`}
                   style={lang === 'en' ? { backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' } : {}}
@@ -507,24 +507,24 @@ export default function AppLayout({
 
               {/* Level and PRO badge (Desktop only) */}
               <div className="hidden sm:flex items-center gap-2">
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] text-black ${levelInfo.color}`}>
+                <span className={`h-9 sm:h-10 flex items-center text-[10px] sm:text-xs font-black uppercase tracking-widest px-2.5 sm:px-3 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] text-black ${levelInfo.color}`}>
                   Lvl {levelInfo.level}: {levelInfo.name}
                 </span>
                 {user.effectivePlan === 'PRO_ACTIVE' && (
                   <span
-                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] flex items-center gap-1"
+                    className="h-9 sm:h-10 flex items-center text-[10px] sm:text-xs font-black uppercase tracking-widest px-2.5 sm:px-3 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] gap-1"
                     style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: 'var(--theme-accent-text, #000000)' }}
                   >
                     PRO
                   </span>
                 )}
                 {user.effectivePlan === 'PRO_PENDING' && (
-                  <span className="bg-amber-200 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                  <span className="h-9 sm:h-10 flex items-center bg-amber-200 text-black text-[10px] sm:text-xs font-black uppercase tracking-widest px-2.5 sm:px-3 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_#000] gap-1">
                     PRO (REVIEW)
                   </span>
                 )}
                 {user.effectivePlan === 'FREE_BASIC' && (
-                  <span className="bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                  <span className="h-9 sm:h-10 flex items-center bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-[10px] sm:text-xs font-black uppercase tracking-widest px-2.5 sm:px-3 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] gap-1">
                     FREE BASIC
                   </span>
                 )}
@@ -535,7 +535,7 @@ export default function AppLayout({
               <button
                 type="button"
                 onClick={() => { triggerHaptic('medium'); setShowModal(true); }}
-                className="brutal-btn-accent px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex"
+                className="brutal-btn-accent h-9 sm:h-10 px-3 sm:px-4 py-0 text-xs font-black uppercase tracking-wider cursor-pointer shrink-0 hidden sm:inline-flex items-center justify-center rounded-none shadow-[2px_2px_0px_0px_#000]"
                 title={lang === 'en' ? 'Record new transaction' : 'Catat transaksi baru'}
               >
                 <span>{t('btn_new_transaction')}</span>
@@ -734,19 +734,19 @@ export default function AppLayout({
                   <div className="flex flex-wrap gap-2">
                     <a
                       href="/api/export?format=csv"
-                      className="px-3.5 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+                      className="px-3.5 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
                     >
                       CSV
                     </a>
                     <a
                       href="/api/export?format=json"
-                      className="px-3.5 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+                      className="px-3.5 py-2 border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
                     >
                       JSON
                     </a>
                     <a
                       href="/api/export?format=pdf"
-                      className="px-3.5 py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer text-black"
+                      className="px-3.5 py-2 border-2 border-black rounded-none text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer text-black"
                       style={{
                         backgroundColor: 'var(--theme-accent, #FFE066)',
                         color: 'var(--theme-accent-text, #000000)',
