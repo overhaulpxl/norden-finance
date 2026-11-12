@@ -33,7 +33,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Norden Finance - Aplikasi Keuangan Pribadi',
+    absolute: 'Norden Finance — Aplikasi Keuangan Pribadi',
   },
   description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
   alternates: {
@@ -116,8 +116,9 @@ export default async function LandingPage() {
             Lebih Teratur dengan Norden
           </h1>
 
-          <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-2xl leading-relaxed mb-8 uppercase tracking-wide select-none reveal text-justify">
-            Catat pemasukan dan pengeluaran harian dalam hitungan detik dengan Smart Input natural. Pantau seluruh rekening bank, e-wallet, pos anggaran, dan target tabungan dalam satu sistem terstruktur.
+          <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-2xl leading-relaxed mb-8 uppercase tracking-wide select-none reveal">
+            Catat pemasukan dan pengeluaran harian dalam hitungan detik dengan Smart Input natural. <br className="hidden sm:inline" />
+            Pantau seluruh rekening bank, e-wallet, pos anggaran, dan target tabungan dalam satu sistem terstruktur.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 reveal w-full sm:w-auto">
@@ -135,7 +136,7 @@ export default async function LandingPage() {
             </Link>
           </div>
 
-          {/* Trust Highlights Strip — Breaks vertical monotony */}
+          {/* Trust Highlights Strip */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mb-12 text-[11px] font-black uppercase tracking-wider text-neutral-800 reveal">
             <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3px]" /> 100% Bebas Iklan</span>
             <span className="text-neutral-300 hidden sm:inline">•</span>
@@ -154,7 +155,7 @@ export default async function LandingPage() {
               <div className="border-b-[3px] border-black px-4 py-3 bg-[#FAF9F5] flex justify-between items-center select-none">
                 <div className="flex items-center gap-4">
                   <span className="font-black text-xs uppercase tracking-widest text-black">NORDEN SMART INPUT</span>
-                  <span className="hidden sm:inline font-bold text-[10px] text-neutral-600 uppercase tracking-wider">Demo Interaktif Langsung</span>
+                  <span className="hidden sm:inline font-bold text-[10px] text-neutral-500 uppercase tracking-wider">Demo Interaktif Langsung</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 bg-[#FFE066] border border-black inline-block" />
@@ -185,7 +186,7 @@ export default async function LandingPage() {
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
                 Tiga Fondasi Utama Aplikasi Keuangan Norden
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
                 Dirancang khusus untuk memotong kerumitan spreadsheet dan memusatkan kendali finansial Anda.
               </p>
             </div>
@@ -202,7 +203,7 @@ export default async function LandingPage() {
                   <h3 className="text-xl font-black text-black uppercase tracking-wide">
                     1. Smart Input Cepat
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed uppercase tracking-wide text-justify">
+                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
                     Ketik transaksi seperti chat biasa. Parser lokal kami mengenali nominal angka, wallet tujuan, kategori, dan tanggal secara deterministik tanpa jeda jaringan.
                   </p>
 
@@ -246,7 +247,7 @@ export default async function LandingPage() {
                   <h3 className="text-xl font-black text-black uppercase tracking-wide">
                     2. Multi-Dompet &amp; Saldo
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed uppercase tracking-wide text-justify">
+                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
                     Pantau seluruh saldo likuid di satu tempat. Catat dan kelola mutasi kas tunai, rekening bank (BCA, BNI, Mandiri), dan saldo dompet digital (DANA, GoPay, OVO, ShopeePay) secara mandiri.
                   </p>
 
@@ -290,7 +291,7 @@ export default async function LandingPage() {
                   <h3 className="text-xl font-black text-black uppercase tracking-wide">
                     3. Anggaran &amp; Disiplin
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed uppercase tracking-wide text-justify">
+                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
                     Kendalikan kebiasaan belanja dengan limit anggaran per kategori, monitor cicilan paylater serta utang piutang, dan susun dana darurat terukur.
                   </p>
 
@@ -340,7 +341,7 @@ export default async function LandingPage() {
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
                 Apa Kata Pengguna Norden?
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide max-w-2xl mx-auto">
                 Cerita nyata dari pengguna aktif yang beralih ke pencatatan keuangan pribadi mandiri.
               </p>
             </div>
@@ -364,7 +365,7 @@ export default async function LandingPage() {
                 <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase leading-[1.05]">
                   Kenapa Memilih Norden Finance?
                 </h2>
-                <div className="space-y-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-700 uppercase tracking-wide text-justify">
+                <div className="space-y-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-700">
                   <p>
                     Banyak orang menyadari saldo rekeningnya berkurang, namun sering kali tidak tahu persis ke mana uang itu pergi setiap bulannya.
                   </p>
@@ -389,7 +390,7 @@ export default async function LandingPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-black uppercase tracking-wider text-black mb-3">Makna Lambang Norden</h3>
-                    <div className="space-y-2 text-xs font-bold leading-relaxed text-neutral-700 uppercase tracking-wide text-justify">
+                    <div className="space-y-2 text-xs font-bold leading-relaxed text-neutral-700">
                       <p>• <strong>Huruf N</strong> mewakili identitas Norden dan arah utara.</p>
                       <p>• <strong>Panah Menanjak</strong> melambangkan progres, akumulasi aset, dan arah pertumbuhan.</p>
                       <p>• <strong>Warna Kuning &amp; Garis Hitam</strong> memberi kontras tajam, stabilitas, dan keterbacaan tinggi.</p>
@@ -413,7 +414,7 @@ export default async function LandingPage() {
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
                 Privasi dan Keamanan Data Finansial Anda
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
                 Kami percaya data keuangan Anda adalah milik Anda sepenuhnya.
               </p>
             </div>
@@ -423,7 +424,7 @@ export default async function LandingPage() {
               <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <ShieldCheck className="w-7 h-7 text-black stroke-[2.5px]" />
                 <h4 className="font-black text-sm uppercase tracking-wider text-black">Isolasi Identitas Akun</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify">
+                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
                   Setiap transaksi dan saldo diisolasi berdasarkan Firebase UID pengguna. Pengguna lain tidak memiliki akses ke database catatan Anda.
                 </p>
               </div>
@@ -431,7 +432,7 @@ export default async function LandingPage() {
               <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <Lock className="w-7 h-7 text-black stroke-[2.5px]" />
                 <h4 className="font-black text-sm uppercase tracking-wider text-black">Otentikasi Aman</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify">
+                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
                   Login diverifikasi langsung oleh Google Firebase Auth. Sesi server dilindungi cookie httpOnly dengan verifikasi token admin.
                 </p>
               </div>
@@ -439,7 +440,7 @@ export default async function LandingPage() {
               <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <Download className="w-7 h-7 text-black stroke-[2.5px]" />
                 <h4 className="font-black text-sm uppercase tracking-wider text-black">Portabilitas Penuh</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify">
+                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
                   Unduh seluruh catatan transaksi kapan saja dalam format CSV, JSON, atau laporan PDF bulanan untuk arsip pribadi Anda.
                 </p>
               </div>
@@ -447,7 +448,7 @@ export default async function LandingPage() {
               <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <RotateCcw className="w-7 h-7 text-black stroke-[2.5px]" />
                 <h4 className="font-black text-sm uppercase tracking-wider text-black">Reset Data Fleksibel</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify">
+                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
                   Ingin memulai kembali dari nol? Anda dapat mereset seluruh transaksi dan dompet tanpa menghapus akun atau membatalkan langganan.
                 </p>
               </div>
@@ -467,7 +468,7 @@ export default async function LandingPage() {
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
                 Pilihan Paket Langganan Norden Finance
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide text-justify max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
                 Mulai dengan trial gratis 14 hari. Lanjutkan ke Pro atau tetap gunakan Free Basic.
               </p>
             </div>
@@ -484,12 +485,12 @@ export default async function LandingPage() {
 
                   <div>
                     <div className="text-4xl font-black text-black tracking-tight">Rp 0</div>
-                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1 text-justify">
+                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1">
                       Akses penuh selama {trialDays} hari setelah onboarding
                     </p>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 uppercase tracking-wide pt-3 border-t-2 border-neutral-100">
+                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 pt-3 border-t-2 border-neutral-100">
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Unlimited pencatatan transaksi</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Multi-wallet (Bank, E-Wallet, Cash)</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Smart Input natural language parser</li>
@@ -520,12 +521,12 @@ export default async function LandingPage() {
                       {formatCurrency(monthlyPrice)}
                       <span className="text-xs font-bold text-neutral-500"> / bulan</span>
                     </div>
-                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1 text-justify">
+                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1">
                       Perpanjangan per 30 hari via transfer manual
                     </p>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 uppercase tracking-wide pt-3 border-t-2 border-neutral-100">
+                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 pt-3 border-t-2 border-neutral-100">
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Seluruh fitur paket Trial tanpa batas</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Pengingat tagihan in-app &amp; email</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Pemindaian struk berulang tanpa kuota</li>
@@ -560,12 +561,12 @@ export default async function LandingPage() {
                       {formatCurrency(yearlyPrice)}
                       <span className="text-xs font-bold text-neutral-500"> / tahun</span>
                     </div>
-                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1 text-justify">
+                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1">
                       Setara {formatCurrency(Math.round(yearlyPrice / 12))} per bulan
                     </p>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 uppercase tracking-wide pt-3 border-t-2 border-neutral-100">
+                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 pt-3 border-t-2 border-neutral-100">
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Seluruh fitur Pro selama 365 hari</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Hemat biaya dibandingkan paket bulanan</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Akses fitur baru yang akan datang</li>
@@ -603,7 +604,7 @@ export default async function LandingPage() {
                 <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Apakah saya perlu kartu kredit untuk mendaftar?
                 </h4>
-                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6 uppercase tracking-wide text-justify">
+                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
                   Tidak. Anda dapat langsung mendaftar dengan akun Google atau email dan menikmati akses fitur penuh selama 14 hari tanpa memasukkan informasi kartu kredit sama sekali.
                 </p>
               </div>
@@ -612,7 +613,7 @@ export default async function LandingPage() {
                 <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Apa yang terjadi setelah masa trial 14 hari selesai?
                 </h4>
-                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6 uppercase tracking-wide text-justify">
+                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
                   Akun Anda secara otomatis beralih ke paket Free Basic. Seluruh riwayat transaksi, mutasi saldo, dan dompet Anda tetap aman tersimpan. Anda tetap dapat mencatat transaksi manual dan mengekspor data Anda kapan saja.
                 </p>
               </div>
@@ -621,7 +622,7 @@ export default async function LandingPage() {
                 <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Bagaimana metode pembayaran jika ingin upgrade ke Pro?
                 </h4>
-                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6 uppercase tracking-wide text-justify">
+                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
                   Kami mendukung transfer bank lokal (BCA, BNI) dan QRIS. Anda cukup mengunggah bukti transfer pada halaman upgrade, dan akses Pro sementara akan langsung aktif selagi menunggu verifikasi Admin.
                 </p>
               </div>
@@ -630,7 +631,7 @@ export default async function LandingPage() {
                 <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Bisakah saya mengekspor data keuangan saya?
                 </h4>
-                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6 uppercase tracking-wide text-justify">
+                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
                   Ya. Norden menyediakan fitur ekspor satu klik dalam format file CSV, JSON, dan dokumen laporan bulanan PDF yang rapi dan terstruktur.
                 </p>
               </div>
@@ -639,7 +640,7 @@ export default async function LandingPage() {
                 <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Bagaimana jika saya ingin membersihkan catatan transaksi dan mulai ulang?
                 </h4>
-                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6 uppercase tracking-wide text-justify">
+                <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
                   Anda dapat menggunakan fitur Reset Data Keuangan di menu Pengaturan. Fitur ini membersihkan riwayat transaksi dan dompet secara aman tanpa menghapus akun login Anda atau masa aktif langganan Anda.
                 </p>
               </div>
@@ -655,7 +656,7 @@ export default async function LandingPage() {
             {/* Col 1: Brand & Bio */}
             <div className="space-y-3">
               <BrandLogo variant="horizontal" theme="light" className="h-9 w-auto" />
-              <p className="text-[11px] font-bold text-neutral-600 leading-relaxed lowercase first-letter:uppercase text-justify">
+              <p className="text-[11px] font-bold text-neutral-600 leading-relaxed lowercase first-letter:uppercase">
                 Personal finance operating system untuk mencatat, melacak, dan mengarahkan keuangan pribadi Anda secara rapi.
               </p>
             </div>
