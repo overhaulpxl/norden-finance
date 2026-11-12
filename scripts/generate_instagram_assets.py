@@ -17,7 +17,7 @@ def main():
     print("Loading brand assets...")
     icon_b64 = get_base64_image('public/brand/norden-icon.png')
     horizontal_b64 = get_base64_image('public/brand/norden-horizontal.png')
-    favicon_b64 = get_base64_image('public/brand/norden-favicon-32.png')
+    favicon_b64 = get_base64_image('public/brand/favicon-64.png')
 
     out_base = r'D:\norden-finance\public\instagram'
     os.makedirs(out_base, exist_ok=True)
@@ -370,8 +370,13 @@ h2 {{
           </div>
         </div>
         <div class="v-card">
-          <div class="v-thumb" style="background: #FFFFFF;">
-            <img src="{favicon_b64}" alt="Favicon" style="width: 48px; height: 48px;" />
+          <div class="v-thumb" style="background: #FAF9F5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px;">
+            <div style="background: #FFFFFF; border: 2.5px solid #000000; box-shadow: 3px 3px 0px 0px #000000; padding: 6px 12px; display: inline-flex; align-items: center; gap: 8px;">
+              <img src="{favicon_b64}" alt="Favicon" style="width: 24px; height: 24px; object-fit: contain; display: block;" />
+              <span style="font-size: 13px; font-weight: 800; color: #000000; letter-spacing: -0.01em;">Norden</span>
+              <span style="font-size: 14px; font-weight: 900; color: #666666; margin-left: 2px; line-height: 1;">&times;</span>
+            </div>
+            <span style="font-size: 10px; font-weight: 900; color: #555555; letter-spacing: 0.08em; text-transform: uppercase;">TAB BROWSER</span>
           </div>
           <div class="v-meta">
             <div class="v-title">03 / FAVICON</div>
