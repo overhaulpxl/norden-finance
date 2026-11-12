@@ -111,14 +111,12 @@ export default async function LandingPage() {
             <Zap className="w-3.5 h-3.5 stroke-[3px]" /> Personal Finance Operating System
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-black max-w-4xl leading-[1.05] mb-6 uppercase select-none reveal">
-            Kelola Keuangan Pribadi <br />
-            Lebih Teratur dengan Norden
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black max-w-5xl mx-auto leading-tight mb-5 uppercase select-none reveal lg:whitespace-nowrap">
+            Kelola Keuangan Pribadi Lebih Teratur dengan Norden
           </h1>
 
-          <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-2xl leading-relaxed mb-8 uppercase tracking-wide select-none reveal">
-            Catat pemasukan dan pengeluaran harian dalam hitungan detik dengan Smart Input natural. <br className="hidden sm:inline" />
-            Pantau seluruh rekening bank, e-wallet, pos anggaran, dan target tabungan dalam satu sistem terstruktur.
+          <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-5xl mx-auto leading-relaxed mb-8 uppercase tracking-wide select-none reveal lg:whitespace-nowrap">
+            Catat pemasukan dan pengeluaran harian dalam hitungan detik dengan Smart Input natural.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 reveal w-full sm:w-auto">
@@ -179,14 +177,14 @@ export default async function LandingPage() {
         <section id="features" className="py-20 bg-white border-y-[3px] border-black relative scroll-mt-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-            <div className="text-center max-w-2xl mx-auto space-y-3 mb-16 reveal">
+            <div className="text-center max-w-5xl mx-auto space-y-3 mb-16 reveal">
               <span className="inline-block bg-[#FAF9F5] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 Fitur Inti Produk
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
                 Tiga Fondasi Utama Aplikasi Keuangan Norden
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide lg:whitespace-nowrap">
                 Dirancang khusus untuk memotong kerumitan spreadsheet dan memusatkan kendali finansial Anda.
               </p>
             </div>
@@ -334,14 +332,14 @@ export default async function LandingPage() {
         <section id="testimonials" className="py-20 bg-[#FAF9F5] border-b-[3px] border-black relative scroll-mt-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-            <div className="text-center max-w-2xl mx-auto space-y-3 mb-14 reveal">
+            <div className="text-center max-w-5xl mx-auto space-y-3 mb-14 reveal">
               <span className="inline-block bg-[#FFE066] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 Ulasan Pengguna
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
                 Apa Kata Pengguna Norden?
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide lg:whitespace-nowrap">
                 Cerita nyata dari pengguna aktif yang beralih ke pencatatan keuangan pribadi mandiri.
               </p>
             </div>
@@ -407,14 +405,14 @@ export default async function LandingPage() {
         <section className="py-20 bg-white border-t-[3px] border-black relative">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-            <div className="text-center max-w-2xl mx-auto space-y-3 mb-16 reveal">
+            <div className="text-center max-w-5xl mx-auto space-y-3 mb-16 reveal">
               <span className="inline-block bg-[#bbf7d0] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 Transparansi &amp; Keamanan
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
                 Privasi dan Keamanan Data Finansial Anda
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide lg:whitespace-nowrap">
                 Kami percaya data keuangan Anda adalah milik Anda sepenuhnya.
               </p>
             </div>
@@ -461,14 +459,14 @@ export default async function LandingPage() {
         <section id="pricing" className="py-20 bg-[#FAF9F5] border-t-[3px] border-black relative scroll-mt-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-            <div className="text-center max-w-2xl mx-auto space-y-3 mb-16 reveal">
+            <div className="text-center max-w-5xl mx-auto space-y-3 mb-16 reveal">
               <span className="inline-block bg-[#FFE066] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 Paket Langganan
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
                 Pilihan Paket Langganan Norden Finance
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
+              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide lg:whitespace-nowrap">
                 Mulai dengan trial gratis 14 hari. Lanjutkan ke Pro atau tetap gunakan Free Basic.
               </p>
             </div>
@@ -587,13 +585,13 @@ export default async function LandingPage() {
 
         {/* FAQ Section */}
         <section id="faq" className="py-20 bg-white border-t-[3px] border-black relative scroll-mt-24">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
 
             <div className="text-center space-y-3 mb-14 reveal">
               <span className="inline-block bg-[#FAF9F5] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 FAQ
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
                 Pertanyaan yang Sering Diajukan Seputar Norden
               </h2>
             </div>
