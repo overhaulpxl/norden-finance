@@ -108,7 +108,10 @@
   /* Admin panel isolation from dark mode */
   .admin-panel,
   .admin-panel .brutal-card,
-  .admin-panel .brutal-card-static {
+  .admin-panel .brutal-card-static,
+  .landing-page,
+  .landing-page .brutal-card,
+  .landing-page .brutal-card-static {
     color: #000000;
   }
   .dark .admin-panel {
@@ -120,6 +123,20 @@
     border-color: #000000;
     box-shadow: 3px 3px 0px 0px #000000;
     color: #000000;
+  }
+  .dark .landing-page {
+    color: #000000;
+    background-color: #FAF9F5;
+  }
+  .dark .landing-page .brutal-card,
+  .dark .landing-page .brutal-card-static {
+    background-color: #ffffff;
+    border-color: #000000;
+    box-shadow: 3px 3px 0px 0px #000000;
+    color: #000000;
+  }
+  .dark .landing-page .brutal-card:hover {
+    box-shadow: 4px 4px 0px 0px #000000;
   }
   
   .brutal-btn {

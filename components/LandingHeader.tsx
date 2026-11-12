@@ -18,6 +18,7 @@ export default function LandingHeader({ isLoggedIn = false }: LandingHeaderProps
     () => [
       { href: '#home', label: lang === 'en' ? 'Home' : 'Beranda' },
       { href: '#features', label: lang === 'en' ? 'Features' : 'Fitur' },
+      { href: '#testimonials', label: lang === 'en' ? 'Reviews' : 'Ulasan' },
       { href: '#philosophy', label: lang === 'en' ? 'Philosophy' : 'Filosofi' },
       { href: '#pricing', label: lang === 'en' ? 'Pricing' : 'Paket' },
       { href: '#faq', label: 'FAQ' },

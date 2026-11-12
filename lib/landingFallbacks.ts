@@ -55,7 +55,27 @@ export const FALLBACK_PUBLIC_TESTIMONIALS: PublicTestimonial[] = [
 ];
 
 export function isPublicSafeFeedback(message: string) {
-  return !/(whatsapp|chat\s+wa|via\s+wa|\bwa\b|crypto|saham|investasi)/i.test(message);
+  if (!message || typeof message !== 'string') return false;
+  const trimmed = message.trim();
+  if (trimmed.length < 2 || trimmed.length > 1000) return false;
+
+  // Block external URLs and link schemes
+  if (/https?:\/\/|www\.|wa\.me\/|bit\.ly\/|t\.me\//i.test(trimmed)) return false;
+
+  // Block explicit phone numbers (Indonesian format 08xx or +62xx with 8+ digits)
+  if (/(?:\+?62|08)\d{8,}/.test(trimmed.replace(/[\s-]/g, ''))) return false;
+
+  // Block predatory scam, gambling, or offensive keywords
+  if (/\b(?:slot|judi|gacor|togel|bokep|pinjol|porno|open\s*bo|deposit\s*pulsa)\b/i.test(trimmed)) {
+    return false;
+  }
+
+  // Block explicit off-platform contact solicitation
+  if (/\b(?:hubungi|kontak)\s+(?:wa|kami|nomor|admin)\s+(?:di|ke)\b/i.test(trimmed)) {
+    return false;
+  }
+
+  return true;
 }
 
 export function clampPublicRating(rating: number) {

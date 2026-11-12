@@ -12,7 +12,7 @@ import {
   RotateCcw,
   HelpCircle,
   Zap,
-  Lock
+  Lock,
 } from 'lucide-react';
 import ChatSandbox from '../components/ChatSandbox';
 import BackToTop from '../components/BackToTop';
@@ -20,6 +20,8 @@ import LandingUX from '../components/LandingUX';
 import BrandLogo from '../components/BrandLogo';
 import LandingHeader from '../components/LandingHeader';
 import JsonLd from '../components/JsonLd';
+import TestimonialsCarousel from '../components/TestimonialsCarousel';
+import { getPublicTestimonials } from '../lib/publicTestimonials';
 import {
   LANDING_MONTHLY_PRICE,
   LANDING_TRIAL_DAYS,
@@ -31,7 +33,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Norden Finance — Aplikasi Keuangan Pribadi',
+    absolute: 'Norden Finance - Aplikasi Keuangan Pribadi',
   },
   description: 'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian dalam satu aplikasi.',
   alternates: {
@@ -45,13 +47,14 @@ export default async function LandingPage() {
     redirect('/dashboard');
   }
 
+  const testimonials = await getPublicTestimonials();
   const trialDays = LANDING_TRIAL_DAYS;
   const monthlyPrice = LANDING_MONTHLY_PRICE;
   const yearlyPrice = LANDING_YEARLY_PRICE;
   const yearlySavingsPercent = Math.max(0, Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100));
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] font-sans antialiased relative">
+    <div className="landing-page min-h-screen bg-[#FAF9F5] text-black selection:bg-black selection:text-[#FFE066] font-sans antialiased relative">
       <JsonLd />
       <LandingUX />
 
@@ -108,17 +111,16 @@ export default async function LandingPage() {
             <Zap className="w-3.5 h-3.5 stroke-[3px]" /> Personal Finance Operating System
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-black max-w-4xl leading-[1.05] mb-6 uppercase select-none reveal">
+          <h1 className="text-4xl sm:text-6xl lg:text-[68px] font-black tracking-tight text-black max-w-4xl leading-[1.08] mb-5 select-none reveal">
             Kelola Keuangan Pribadi <br />
             Lebih Teratur dengan Norden
           </h1>
 
-          <p className="text-xs sm:text-sm font-bold text-neutral-600 max-w-2xl leading-relaxed mb-8 uppercase tracking-wide select-none reveal">
-            Catat pemasukan dan pengeluaran harian dalam hitungan detik dengan Smart Input natural. <br className="hidden sm:inline" />
-            Pantau seluruh rekening bank, e-wallet, pos anggaran, dan target tabungan dalam satu sistem terstruktur.
+          <p className="text-sm sm:text-base font-bold text-neutral-700 max-w-2xl leading-relaxed mb-8 select-none reveal">
+            Catat pemasukan dan pengeluaran secepat chat dengan Smart Input natural. Pantau seluruh rekening bank, dompet digital, pos anggaran, dan target tabungan dalam satu sistem mandiri tanpa kerumitan spreadsheet.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-14 reveal w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 reveal w-full sm:w-auto">
             <Link
               href="/register"
               className="w-full sm:w-auto text-center brutal-btn bg-[#FFE066] text-black border-[3px] border-black text-xs sm:text-sm px-8 py-3.5 shadow-[4px_4px_0px_0px_#000] hover:bg-yellow-300 tracking-wider"
@@ -133,6 +135,17 @@ export default async function LandingPage() {
             </Link>
           </div>
 
+          {/* Trust Highlights Strip — Breaks vertical monotony */}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mb-12 text-[11px] font-black uppercase tracking-wider text-neutral-800 reveal">
+            <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3px]" /> 100% Bebas Iklan</span>
+            <span className="text-neutral-300 hidden sm:inline">•</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3px]" /> Tanpa Kartu Kredit</span>
+            <span className="text-neutral-300 hidden sm:inline">•</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3px]" /> Parser Lokal Deterministik</span>
+            <span className="text-neutral-300 hidden sm:inline">•</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3px]" /> Ekspor CSV &amp; PDF</span>
+          </div>
+
           {/* Interactive Chat Sandbox Playground */}
           <div className="w-full max-w-4xl relative mt-2 reveal">
             <div className="brutal-card bg-white border-[3px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full overflow-hidden text-left aspect-[16/10] flex flex-col">
@@ -141,7 +154,7 @@ export default async function LandingPage() {
               <div className="border-b-[3px] border-black px-4 py-3 bg-[#FAF9F5] flex justify-between items-center select-none">
                 <div className="flex items-center gap-4">
                   <span className="font-black text-xs uppercase tracking-widest text-black">NORDEN SMART INPUT</span>
-                  <span className="hidden sm:inline font-bold text-[10px] text-neutral-500 uppercase tracking-wider">Demo Interaktif Langsung</span>
+                  <span className="hidden sm:inline font-bold text-[10px] text-neutral-600 uppercase tracking-wider">Demo Interaktif Langsung</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 bg-[#FFE066] border border-black inline-block" />
@@ -155,7 +168,7 @@ export default async function LandingPage() {
                 <ChatSandbox />
               </div>
             </div>
-            <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider mt-3 text-center">
+            <p className="text-xs font-bold text-neutral-600 tracking-normal mt-3 text-center">
               Coba ketik transaksi seperti contoh di atas untuk melihat cara kerja Smart Input lokal Norden.
             </p>
           </div>
@@ -169,10 +182,10 @@ export default async function LandingPage() {
               <span className="inline-block bg-[#FAF9F5] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 Fitur Inti Produk
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
-                Tiga Fondasi Utama Aplikasi Keuangan Norden
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black leading-tight">
+                Tiga Fondasi Utama Norden Finance
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
+              <p className="text-sm sm:text-base font-bold text-neutral-700 leading-relaxed max-w-2xl mx-auto">
                 Dirancang khusus untuk memotong kerumitan spreadsheet dan memusatkan kendali finansial Anda.
               </p>
             </div>
@@ -181,86 +194,134 @@ export default async function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
               {/* Pillar 1: Smart Input */}
-              <div className="brutal-card p-6 sm:p-7 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000] flex flex-col justify-between reveal">
+              <div className="brutal-card p-6 sm:p-7 bg-white text-black border-[3px] border-black shadow-[6px_6px_0px_0px_#000] flex flex-col justify-between reveal">
                 <div className="space-y-4">
                   <div className="w-12 h-12 border-[2.5px] border-black bg-[#bbf7d0] flex items-center justify-center shadow-[2.5px_2.5px_0px_0px_#000]">
                     <MessageSquare className="w-6 h-6 stroke-[2.5px] text-black" />
                   </div>
-                  <h3 className="text-xl font-black text-black uppercase tracking-wide">
+                  <h3 className="text-xl font-black text-black tracking-wide">
                     1. Smart Input Cepat
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
+                  <p className="text-xs sm:text-sm text-neutral-800 font-bold leading-relaxed">
                     Ketik transaksi seperti chat biasa. Parser lokal kami mengenali nominal angka, wallet tujuan, kategori, dan tanggal secara deterministik tanpa jeda jaringan.
                   </p>
 
-                  <div className="bg-[#FAF9F5] border-[2px] border-black p-3 space-y-2 text-xs font-bold">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 border-b border-black pb-1">
-                      Format Input Populer:
-                    </p>
-                    <p className="font-mono text-[11px] bg-white p-1 border border-black">kopi 25k gopay</p>
-                    <p className="font-mono text-[11px] bg-white p-1 border border-black">gaji bca 5jt</p>
-                    <p className="font-mono text-[11px] bg-white p-1 border border-black">transfer bca ke dana 100k</p>
+                  <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 space-y-2.5 text-neutral-900">
+                    <div className="flex items-center justify-between border-b-[1.5px] border-black pb-1.5">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-black">
+                        Format Input Populer:
+                      </span>
+                      <span className="text-[10px] font-extrabold bg-[#bbf7d0] border border-black px-1.5 py-0.5 uppercase text-black">
+                        Instan
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 font-mono text-xs font-bold">
+                      <div className="bg-white text-black px-2.5 py-1.5 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-between">
+                        <span>kopi 25k gopay</span>
+                        <span className="text-[10px] text-neutral-500 font-sans font-extrabold">Rp 25.000</span>
+                      </div>
+                      <div className="bg-white text-black px-2.5 py-1.5 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-between">
+                        <span>gaji bca 5jt</span>
+                        <span className="text-[10px] text-neutral-500 font-sans font-extrabold">Rp 5.000.000</span>
+                      </div>
+                      <div className="bg-white text-black px-2.5 py-1.5 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000] flex items-center justify-between">
+                        <span>transfer bca ke dana 100k</span>
+                        <span className="text-[10px] text-neutral-500 font-sans font-extrabold">Pindah Buku</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t-[2px] border-black mt-6 text-[11px] font-black uppercase tracking-wider text-neutral-700">
-                  Didukung OCR pemindaian struk foto
+                <div className="pt-4 border-t-[2px] border-black mt-6 text-xs font-black uppercase tracking-wider text-neutral-800 flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-black stroke-[3px]" /> Didukung OCR pemindaian struk foto
                 </div>
               </div>
 
               {/* Pillar 2: Multi-Wallet */}
-              <div className="brutal-card p-6 sm:p-7 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000] flex flex-col justify-between reveal">
+              <div className="brutal-card p-6 sm:p-7 bg-white text-black border-[3px] border-black shadow-[6px_6px_0px_0px_#000] flex flex-col justify-between reveal">
                 <div className="space-y-4">
                   <div className="w-12 h-12 border-[2.5px] border-black bg-[#FFE066] flex items-center justify-center shadow-[2.5px_2.5px_0px_0px_#000]">
                     <Wallet className="w-6 h-6 stroke-[2.5px] text-black" />
                   </div>
-                  <h3 className="text-xl font-black text-black uppercase tracking-wide">
-                    2. Multi-Dompet & Saldo
+                  <h3 className="text-xl font-black text-black tracking-wide">
+                    2. Multi-Dompet &amp; Saldo
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
+                  <p className="text-xs sm:text-sm text-neutral-800 font-bold leading-relaxed">
                     Pantau seluruh saldo likuid di satu tempat. Catat dan kelola mutasi kas tunai, rekening bank (BCA, BNI, Mandiri), dan saldo dompet digital (DANA, GoPay, OVO, ShopeePay) secara mandiri.
                   </p>
 
-                  <div className="bg-[#FAF9F5] border-[2px] border-black p-3 space-y-2 text-xs font-bold">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 border-b border-black pb-1">
-                      Kemampuan Utama:
-                    </p>
-                    <p className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-800 stroke-[3px]" /> Transfer antar dompet instan</p>
-                    <p className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-800 stroke-[3px]" /> Arsipkan dompet tanpa hapus data</p>
-                    <p className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-800 stroke-[3px]" /> Lacak arus kas bersih bulanan</p>
+                  <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 space-y-2.5 text-neutral-900">
+                    <div className="flex items-center justify-between border-b-[1.5px] border-black pb-1.5">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-black">
+                        Kemampuan Utama:
+                      </span>
+                      <span className="text-[10px] font-extrabold bg-[#FFE066] border border-black px-1.5 py-0.5 uppercase text-black">
+                        Realtime
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-xs font-bold text-neutral-900">
+                      <div className="flex items-center gap-2 bg-white p-2 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000]">
+                        <Check className="w-4 h-4 text-emerald-700 stroke-[3px] shrink-0" />
+                        <span className="text-black font-extrabold">Transfer antar dompet instan</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white p-2 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000]">
+                        <Check className="w-4 h-4 text-emerald-700 stroke-[3px] shrink-0" />
+                        <span className="text-black font-extrabold">Arsipkan dompet tanpa hapus data</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white p-2 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000]">
+                        <Check className="w-4 h-4 text-emerald-700 stroke-[3px] shrink-0" />
+                        <span className="text-black font-extrabold">Lacak arus kas bersih bulanan</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t-[2px] border-black mt-6 text-[11px] font-black uppercase tracking-wider text-neutral-700">
-                  Sinkronisasi saldo otomatis saat transfer
+                <div className="pt-4 border-t-[2px] border-black mt-6 text-xs font-black uppercase tracking-wider text-neutral-800 flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-black stroke-[3px]" /> Sinkronisasi saldo otomatis saat transfer
                 </div>
               </div>
 
               {/* Pillar 3: Goals & Planning */}
-              <div className="brutal-card p-6 sm:p-7 bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_#000] flex flex-col justify-between reveal">
+              <div className="brutal-card p-6 sm:p-7 bg-white text-black border-[3px] border-black shadow-[6px_6px_0px_0px_#000] flex flex-col justify-between reveal">
                 <div className="space-y-4">
                   <div className="w-12 h-12 border-[2.5px] border-black bg-[#bfdbfe] flex items-center justify-center shadow-[2.5px_2.5px_0px_0px_#000]">
                     <Target className="w-6 h-6 stroke-[2.5px] text-black" />
                   </div>
-                  <h3 className="text-xl font-black text-black uppercase tracking-wide">
-                    3. Anggaran & Disiplin
+                  <h3 className="text-xl font-black text-black tracking-wide">
+                    3. Anggaran &amp; Disiplin
                   </h3>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
+                  <p className="text-xs sm:text-sm text-neutral-800 font-bold leading-relaxed">
                     Kendalikan kebiasaan belanja dengan limit anggaran per kategori, monitor cicilan paylater serta utang piutang, dan susun dana darurat terukur.
                   </p>
 
-                  <div className="bg-[#FAF9F5] border-[2px] border-black p-3 space-y-2 text-xs font-bold">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 border-b border-black pb-1">
-                      Manajemen Risiko:
-                    </p>
-                    <p className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-800 stroke-[3px]" /> Peringatan batas budget 75% & 90%</p>
-                    <p className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-800 stroke-[3px]" /> Target tabungan dengan estimasi waktu</p>
-                    <p className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-800 stroke-[3px]" /> Kalkulator dana darurat 3-12 bulan</p>
+                  <div className="bg-[#FAF9F5] border-[2px] border-black p-3.5 space-y-2.5 text-neutral-900">
+                    <div className="flex items-center justify-between border-b-[1.5px] border-black pb-1.5">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-black">
+                        Manajemen Risiko:
+                      </span>
+                      <span className="text-[10px] font-extrabold bg-[#bfdbfe] border border-black px-1.5 py-0.5 uppercase text-black">
+                        Terkontrol
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-xs font-bold text-neutral-900">
+                      <div className="flex items-center gap-2 bg-white p-2 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000]">
+                        <Check className="w-4 h-4 text-emerald-700 stroke-[3px] shrink-0" />
+                        <span className="text-black font-extrabold">Peringatan batas budget 75% &amp; 90%</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white p-2 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000]">
+                        <Check className="w-4 h-4 text-emerald-700 stroke-[3px] shrink-0" />
+                        <span className="text-black font-extrabold">Target tabungan dengan estimasi waktu</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white p-2 border-[1.5px] border-black shadow-[2px_2px_0px_0px_#000]">
+                        <Check className="w-4 h-4 text-emerald-700 stroke-[3px] shrink-0" />
+                        <span className="text-black font-extrabold">Kalkulator dana darurat 3-12 bulan</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t-[2px] border-black mt-6 text-[11px] font-black uppercase tracking-wider text-neutral-700">
-                  Pengingat tagihan in-app dan email
+                <div className="pt-4 border-t-[2px] border-black mt-6 text-xs font-black uppercase tracking-wider text-neutral-800 flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-black stroke-[3px]" /> Pengingat tagihan in-app dan email
                 </div>
               </div>
 
@@ -268,8 +329,31 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* User Reviews & Testimonials Section */}
+        <section id="testimonials" className="py-20 bg-[#FAF9F5] border-b-[3px] border-black relative scroll-mt-24">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+            <div className="text-center max-w-2xl mx-auto space-y-3 mb-14 reveal">
+              <span className="inline-block bg-[#FFE066] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
+                Ulasan Pengguna
+              </span>
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black leading-tight">
+                Apa Kata Pengguna Norden?
+              </h2>
+              <p className="text-sm sm:text-base font-bold text-neutral-700 leading-relaxed">
+                Cerita nyata dari pengguna aktif yang beralih ke pencatatan keuangan pribadi mandiri.
+              </p>
+            </div>
+
+            <div className="reveal">
+              <TestimonialsCarousel testimonials={testimonials} />
+            </div>
+
+          </div>
+        </section>
+
         {/* Philosophy Section */}
-        <section id="philosophy" className="py-20 bg-[#FAF9F5] relative scroll-mt-24">
+        <section id="philosophy" className="py-20 bg-white relative scroll-mt-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
 
@@ -277,10 +361,10 @@ export default async function LandingPage() {
                 <span className="inline-block bg-[#FFE066] border-[2px] border-black px-3.5 py-1 font-black text-[10px] uppercase tracking-widest shadow-[2px_2px_0px_0px_#000]">
                   Filosofi Produk
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase leading-[1.05]">
+                <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black leading-tight">
                   Kenapa Memilih Norden Finance?
                 </h2>
-                <div className="space-y-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-700">
+                <div className="space-y-4 text-sm font-bold leading-relaxed text-neutral-800">
                   <p>
                     Banyak orang menyadari saldo rekeningnya berkurang, namun sering kali tidak tahu persis ke mana uang itu pergi setiap bulannya.
                   </p>
@@ -304,11 +388,11 @@ export default async function LandingPage() {
                     <BrandLogo variant="icon" theme="light" className="w-32 h-auto" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black uppercase tracking-wider text-black mb-3">Makna Lambang Norden</h3>
-                    <div className="space-y-2 text-xs font-bold leading-relaxed text-neutral-700">
+                    <h3 className="text-lg font-black tracking-wider text-black mb-3">Makna Lambang Norden</h3>
+                    <div className="space-y-2 text-xs font-bold leading-relaxed text-neutral-800">
                       <p>• <strong>Huruf N</strong> mewakili identitas Norden dan arah utara.</p>
                       <p>• <strong>Panah Menanjak</strong> melambangkan progres, akumulasi aset, dan arah pertumbuhan.</p>
-                      <p>• <strong>Warna Kuning & Garis Hitam</strong> memberi kontras tajam, stabilitas, dan keterbacaan tinggi.</p>
+                      <p>• <strong>Warna Kuning &amp; Garis Hitam</strong> memberi kontras tajam, stabilitas, dan keterbacaan tinggi.</p>
                     </div>
                   </div>
                 </div>
@@ -319,51 +403,51 @@ export default async function LandingPage() {
         </section>
 
         {/* Trust, Security & Transparency Section */}
-        <section className="py-20 bg-white border-t-[3px] border-black relative">
+        <section className="py-20 bg-[#FAF9F5] border-t-[3px] border-black relative">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
             <div className="text-center max-w-2xl mx-auto space-y-3 mb-16 reveal">
               <span className="inline-block bg-[#bbf7d0] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
-                Transparansi & Keamanan
+                Transparansi &amp; Keamanan
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black leading-tight">
                 Privasi dan Keamanan Data Finansial Anda
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
+              <p className="text-sm sm:text-base font-bold text-neutral-700 leading-relaxed">
                 Kami percaya data keuangan Anda adalah milik Anda sepenuhnya.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
+              <div className="brutal-card p-5 bg-white border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <ShieldCheck className="w-7 h-7 text-black stroke-[2.5px]" />
-                <h4 className="font-black text-sm uppercase tracking-wider text-black">Isolasi Identitas Akun</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
+                <h4 className="font-black text-sm tracking-wide text-black">Isolasi Identitas Akun</h4>
+                <p className="text-xs font-bold text-neutral-700 leading-relaxed">
                   Setiap transaksi dan saldo diisolasi berdasarkan Firebase UID pengguna. Pengguna lain tidak memiliki akses ke database catatan Anda.
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
+              <div className="brutal-card p-5 bg-white border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <Lock className="w-7 h-7 text-black stroke-[2.5px]" />
-                <h4 className="font-black text-sm uppercase tracking-wider text-black">Otentikasi Aman</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
+                <h4 className="font-black text-sm tracking-wide text-black">Otentikasi Aman</h4>
+                <p className="text-xs font-bold text-neutral-700 leading-relaxed">
                   Login diverifikasi langsung oleh Google Firebase Auth. Sesi server dilindungi cookie httpOnly dengan verifikasi token admin.
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
+              <div className="brutal-card p-5 bg-white border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <Download className="w-7 h-7 text-black stroke-[2.5px]" />
-                <h4 className="font-black text-sm uppercase tracking-wider text-black">Portabilitas Penuh</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
+                <h4 className="font-black text-sm tracking-wide text-black">Portabilitas Penuh</h4>
+                <p className="text-xs font-bold text-neutral-700 leading-relaxed">
                   Unduh seluruh catatan transaksi kapan saja dalam format CSV, JSON, atau laporan PDF bulanan untuk arsip pribadi Anda.
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
+              <div className="brutal-card p-5 bg-white border-[2.5px] border-black shadow-[4px_4px_0px_0px_#000] space-y-3 reveal">
                 <RotateCcw className="w-7 h-7 text-black stroke-[2.5px]" />
-                <h4 className="font-black text-sm uppercase tracking-wider text-black">Reset Data Fleksibel</h4>
-                <p className="text-xs font-bold text-neutral-600 leading-relaxed">
+                <h4 className="font-black text-sm tracking-wide text-black">Reset Data Fleksibel</h4>
+                <p className="text-xs font-bold text-neutral-700 leading-relaxed">
                   Ingin memulai kembali dari nol? Anda dapat mereset seluruh transaksi dan dompet tanpa menghapus akun atau membatalkan langganan.
                 </p>
               </div>
@@ -373,44 +457,44 @@ export default async function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-20 bg-[#FAF9F5] border-t-[3px] border-black relative scroll-mt-24">
+        <section id="pricing" className="py-20 bg-white border-t-[3px] border-black relative scroll-mt-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
             <div className="text-center max-w-2xl mx-auto space-y-3 mb-16 reveal">
               <span className="inline-block bg-[#FFE066] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 Paket Langganan
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black leading-tight">
                 Pilihan Paket Langganan Norden Finance
               </h2>
-              <p className="text-xs sm:text-sm font-bold text-neutral-600 leading-relaxed uppercase tracking-wide">
-                Mulai dengan trial gratis 14 hari. Lanjutkan ke Pro atau tetap gunakan Free Basic.
+              <p className="text-sm sm:text-base font-bold text-neutral-700 leading-relaxed">
+                Mulai dengan trial gratis 14 hari tanpa kartu kredit. Lanjutkan ke Pro atau gunakan Free Basic.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
 
               {/* Trial Plan Card */}
-              <div className="brutal-card bg-white p-7 flex flex-col justify-between border-[3px] border-black shadow-[6px_6px_0px_0px_#000] reveal">
+              <div className="brutal-card bg-[#FAF9F5] p-7 flex flex-col justify-between border-[3px] border-black shadow-[6px_6px_0px_0px_#000] reveal">
                 <div className="space-y-4">
                   <div className="border-b-2 border-black pb-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Uji Coba Penuh</span>
-                    <h3 className="text-xl font-black text-black uppercase tracking-wider mt-0.5">Trial 14 Hari</h3>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">Uji Coba Penuh</span>
+                    <h3 className="text-xl font-black text-black tracking-wide mt-0.5">Trial 14 Hari</h3>
                   </div>
 
                   <div>
                     <div className="text-4xl font-black text-black tracking-tight">Rp 0</div>
-                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1">
+                    <p className="text-xs font-bold text-neutral-600 mt-1">
                       Akses penuh selama {trialDays} hari setelah onboarding
                     </p>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 pt-3 border-t-2 border-neutral-100">
+                  <ul className="space-y-2.5 text-xs font-bold text-neutral-800 pt-3 border-t-2 border-black/10">
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Unlimited pencatatan transaksi</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Multi-wallet (Bank, E-Wallet, Cash)</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Smart Input natural language parser</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Pemindaian struk foto (Receipt OCR)</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Ekspor data CSV, JSON & PDF</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Ekspor data CSV, JSON &amp; PDF</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Otomatisasi transaksi berulang</li>
                   </ul>
                 </div>
@@ -419,31 +503,31 @@ export default async function LandingPage() {
                   href="/register"
                   className="mt-8 block text-center brutal-btn-light border-[2.5px] border-black text-xs font-black uppercase tracking-wider py-3 shadow-[3px_3px_0px_0px_#000]"
                 >
-                  Daftar & Mulai Trial
+                  Daftar &amp; Mulai Trial
                 </Link>
               </div>
 
               {/* Pro Monthly Card */}
-              <div className="brutal-card bg-white p-7 flex flex-col justify-between border-[3px] border-black shadow-[6px_6px_0px_0px_#000] reveal">
+              <div className="brutal-card bg-[#FAF9F5] p-7 flex flex-col justify-between border-[3px] border-black shadow-[6px_6px_0px_0px_#000] reveal">
                 <div className="space-y-4">
                   <div className="border-b-2 border-black pb-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Fleksibel Bulanan</span>
-                    <h3 className="text-xl font-black text-black uppercase tracking-wider mt-0.5">Pro Bulanan</h3>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">Fleksibel Bulanan</span>
+                    <h3 className="text-xl font-black text-black tracking-wide mt-0.5">Pro Bulanan</h3>
                   </div>
 
                   <div>
                     <div className="text-4xl font-black text-black tracking-tight">
                       {formatCurrency(monthlyPrice)}
-                      <span className="text-xs font-bold text-neutral-500"> / bulan</span>
+                      <span className="text-xs font-bold text-neutral-600"> / bulan</span>
                     </div>
-                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1">
+                    <p className="text-xs font-bold text-neutral-600 mt-1">
                       Perpanjangan per 30 hari via transfer manual
                     </p>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 pt-3 border-t-2 border-neutral-100">
+                  <ul className="space-y-2.5 text-xs font-bold text-neutral-800 pt-3 border-t-2 border-black/10">
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Seluruh fitur paket Trial tanpa batas</li>
-                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Pengingat tagihan in-app & email</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Pengingat tagihan in-app &amp; email</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Pemindaian struk berulang tanpa kuota</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Prioritas verifikasi pembayaran</li>
                   </ul>
@@ -458,7 +542,7 @@ export default async function LandingPage() {
               </div>
 
               {/* Pro Yearly Card */}
-              <div className="brutal-card bg-white p-7 flex flex-col justify-between border-[3px] border-black shadow-[6px_6px_0px_0px_#000] relative reveal">
+              <div className="brutal-card bg-[#FAF9F5] p-7 flex flex-col justify-between border-[3px] border-black shadow-[6px_6px_0px_0px_#000] relative reveal">
                 {yearlySavingsPercent > 0 && (
                   <div className="absolute -top-4 right-5 bg-[#bbf7d0] text-black border-[2px] border-black px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
                     Hemat {yearlySavingsPercent}%
@@ -468,20 +552,20 @@ export default async function LandingPage() {
                 <div className="space-y-4">
                   <div className="border-b-2 border-black pb-3">
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Paling Hemat</span>
-                    <h3 className="text-xl font-black text-black uppercase tracking-wider mt-0.5">Pro Tahunan</h3>
+                    <h3 className="text-xl font-black text-black tracking-wide mt-0.5">Pro Tahunan</h3>
                   </div>
 
                   <div>
                     <div className="text-4xl font-black text-black tracking-tight">
                       {formatCurrency(yearlyPrice)}
-                      <span className="text-xs font-bold text-neutral-500"> / tahun</span>
+                      <span className="text-xs font-bold text-neutral-600"> / tahun</span>
                     </div>
-                    <p className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide mt-1">
+                    <p className="text-xs font-bold text-neutral-600 mt-1">
                       Setara {formatCurrency(Math.round(yearlyPrice / 12))} per bulan
                     </p>
                   </div>
 
-                  <ul className="space-y-2.5 text-xs font-bold text-neutral-700 pt-3 border-t-2 border-neutral-100">
+                  <ul className="space-y-2.5 text-xs font-bold text-neutral-800 pt-3 border-t-2 border-black/10">
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Seluruh fitur Pro selama 365 hari</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Hemat biaya dibandingkan paket bulanan</li>
                     <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-700 stroke-[3px]" /> Akses fitur baru yang akan datang</li>
@@ -501,22 +585,22 @@ export default async function LandingPage() {
         </section>
 
         {/* FAQ Section */}
-        <section id="faq" className="py-20 bg-white border-t-[3px] border-black relative scroll-mt-24">
+        <section id="faq" className="py-20 bg-[#FAF9F5] border-t-[3px] border-black relative scroll-mt-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
 
             <div className="text-center space-y-3 mb-14 reveal">
-              <span className="inline-block bg-[#FAF9F5] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
+              <span className="inline-block bg-white border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 FAQ
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-black uppercase">
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-black leading-tight">
                 Pertanyaan yang Sering Diajukan Seputar Norden
               </h2>
             </div>
 
             <div className="space-y-4">
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
-                <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
+              <div className="brutal-card p-5 bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
+                <h4 className="font-black text-sm text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Apakah saya perlu kartu kredit untuk mendaftar?
                 </h4>
                 <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
@@ -524,8 +608,8 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
-                <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
+              <div className="brutal-card p-5 bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
+                <h4 className="font-black text-sm text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Apa yang terjadi setelah masa trial 14 hari selesai?
                 </h4>
                 <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
@@ -533,8 +617,8 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
-                <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
+              <div className="brutal-card p-5 bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
+                <h4 className="font-black text-sm text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Bagaimana metode pembayaran jika ingin upgrade ke Pro?
                 </h4>
                 <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
@@ -542,8 +626,8 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
-                <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
+              <div className="brutal-card p-5 bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
+                <h4 className="font-black text-sm text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Bisakah saya mengekspor data keuangan saya?
                 </h4>
                 <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
@@ -551,8 +635,8 @@ export default async function LandingPage() {
                 </p>
               </div>
 
-              <div className="brutal-card p-5 bg-[#FAF9F5] border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
-                <h4 className="font-black text-sm uppercase tracking-wide text-black flex items-center gap-2">
+              <div className="brutal-card p-5 bg-white border-[2px] border-black shadow-[3px_3px_0px_0px_#000] space-y-1.5 reveal">
+                <h4 className="font-black text-sm text-black flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 stroke-[2.5px]" /> Bagaimana jika saya ingin membersihkan catatan transaksi dan mulai ulang?
                 </h4>
                 <p className="text-xs sm:text-sm font-bold text-neutral-700 leading-relaxed pl-6">
@@ -566,22 +650,23 @@ export default async function LandingPage() {
 
         {/* Footer */}
         <footer className="bg-[#FAF9F5] border-t-[3px] border-black pt-16 pb-12 px-4 sm:px-6 select-none">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-left font-bold text-xs uppercase tracking-wide">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-left font-bold text-xs tracking-wide">
 
             {/* Col 1: Brand & Bio */}
             <div className="space-y-3">
               <BrandLogo variant="horizontal" theme="light" className="h-9 w-auto" />
-              <p className="text-[11px] font-bold text-neutral-600 leading-relaxed lowercase first-letter:uppercase">
-                Personal finance operating system untuk mencatat, melacak, dan mengarahkan keuangan pribadi Anda secara rapi.
+              <p className="text-[11px] font-bold text-neutral-600 leading-relaxed">
+                Personal finance operating system untuk mencatat, melacak, dan mengarahkan keuangan pribadi Anda secara rapi dan mandiri.
               </p>
             </div>
 
             {/* Col 2: Navigation Links */}
             <div>
-              <h5 className="font-black text-black mb-3">Navigasi</h5>
+              <h5 className="font-black text-black mb-3 uppercase tracking-wider text-[11px]">Navigasi</h5>
               <ul className="space-y-2 text-neutral-600">
                 <li><a href="#home" className="hover:text-black">Beranda</a></li>
                 <li><a href="#features" className="hover:text-black">Fitur Utama</a></li>
+                <li><a href="#testimonials" className="hover:text-black">Ulasan Pengguna</a></li>
                 <li><a href="#philosophy" className="hover:text-black">Filosofi</a></li>
                 <li><a href="#pricing" className="hover:text-black">Paket Harga</a></li>
                 <li><a href="#faq" className="hover:text-black">Pertanyaan (FAQ)</a></li>
@@ -590,9 +675,9 @@ export default async function LandingPage() {
 
             {/* Col 3: Legal & Akun */}
             <div>
-              <h5 className="font-black text-black mb-3">Legal & Akun</h5>
+              <h5 className="font-black text-black mb-3 uppercase tracking-wider text-[11px]">Legal &amp; Akun</h5>
               <ul className="space-y-2 text-neutral-600">
-                <li><Link href="/legal/terms" className="hover:text-black">Syarat & Ketentuan</Link></li>
+                <li><Link href="/legal/terms" className="hover:text-black">Syarat &amp; Ketentuan</Link></li>
                 <li><Link href="/legal/privacy" className="hover:text-black">Kebijakan Privasi</Link></li>
                 <li><Link href="/login" className="hover:text-black">Masuk Akun</Link></li>
                 <li><Link href="/register" className="hover:text-black">Daftar Akun Baru</Link></li>
@@ -601,7 +686,7 @@ export default async function LandingPage() {
 
             {/* Col 4: Kontak Resmi */}
             <div>
-              <h5 className="font-black text-black mb-3">Kontak Resmi</h5>
+              <h5 className="font-black text-black mb-3 uppercase tracking-wider text-[11px]">Kontak Resmi</h5>
               <ul className="space-y-2.5 text-neutral-600">
                 <li>
                   <a
@@ -630,10 +715,9 @@ export default async function LandingPage() {
 
           </div>
 
-          {/* Footer bottom */}
-          <div className="max-w-6xl mx-auto border-t-[2px] border-black pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 font-bold text-[10px] text-neutral-500 uppercase tracking-widest">
-            <p>Norden Finance • Smart Financial Engine</p>
-            <p>© 2026 Norden Finance. All rights reserved.</p>
+          <div className="max-w-6xl mx-auto border-t-2 border-black/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-bold text-neutral-500">
+            <p>&copy; {new Date().getFullYear()} Norden Finance. Hak cipta dilindungi undang-undang.</p>
+            <p className="font-mono text-[10px]">Track your money. Find your direction.</p>
           </div>
         </footer>
 
