@@ -66,9 +66,9 @@ export default async function LandingPage() {
         }
 
         .reveal {
-          opacity: 0;
-          transform: translateY(24px);
-          transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .reveal.active {
           opacity: 1;
