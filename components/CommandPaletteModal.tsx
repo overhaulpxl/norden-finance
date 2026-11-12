@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { Transaction, Balance } from '../types';
 import {
   Search,
@@ -38,6 +39,8 @@ interface CommandPaletteModalProps {
   userId: string;
 }
 
+const emptySubscribe = () => () => {};
+
 export default function CommandPaletteModal({
   isOpen,
   onClose,
@@ -48,6 +51,7 @@ export default function CommandPaletteModal({
   userId,
 }: CommandPaletteModalProps) {
   const { lang } = useLanguage();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { isBalanceHidden, toggleHideBalance, maskBalance } = useHideBalance();
@@ -207,9 +211,9 @@ export default function CommandPaletteModal({
       .slice(0, 5);
   }, [transactions, q]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-start justify-center p-4 pt-12 sm:pt-20 select-none animate-in fade-in duration-150">
       <div
         className="fixed inset-0"
@@ -421,6 +425,7 @@ export default function CommandPaletteModal({
           <span>{lang === 'en' ? 'ESC to close' : 'ESC untuk menutup'}</span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

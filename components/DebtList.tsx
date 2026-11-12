@@ -8,6 +8,7 @@ import { addDebt, toggleDebtSettled, deleteDebt } from '../app/actions';
 import { useHideBalance } from '../lib/HideBalanceContext';
 import { useLanguage } from '../lib/i18n';
 import { triggerHaptic } from '../lib/haptics';
+import DebtPayoffSimulator from './DebtPayoffSimulator';
 
 export default function DebtList({ debts }: { debts: Debt[] }) {
   const { lang } = useLanguage();
@@ -271,6 +272,9 @@ export default function DebtList({ debts }: { debts: Debt[] }) {
           </button>
         </form>
       )}
+
+      {/* Simulator Pelunasan Utang (Snowball vs Avalanche) */}
+      <DebtPayoffSimulator debts={debts} />
 
       {/* Filter Tabs */}
       <div className="flex gap-4 sm:gap-6 mb-6 border-b-2 border-black dark:border-neutral-700">

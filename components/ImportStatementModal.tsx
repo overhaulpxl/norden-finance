@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { Balance } from '../types';
 import WalletSelect from './WalletSelect';
 import { parseStatementCSV, ParsedStatementRow } from '../lib/parsers/statementParser';
@@ -25,6 +26,8 @@ interface ImportStatementModalProps {
   onSuccess?: () => void;
 }
 
+const emptySubscribe = () => () => {};
+
 export default function ImportStatementModal({
   balances,
   isOpen,
@@ -34,6 +37,7 @@ export default function ImportStatementModal({
   const { lang } = useLanguage();
   const isId = lang === 'id';
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const [targetWalletId, setTargetWalletId] = useState<string>(() => balances[0]?.id || '');
   const [rawText, setRawText] = useState('');
@@ -44,7 +48,28 @@ export default function ImportStatementModal({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  // Lock body scroll and handle Escape key for accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        triggerHaptic('light');
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -154,11 +179,24 @@ export default function ImportStatementModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="brutal-card w-full max-w-2xl max-h-[90vh] bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[6px_6px_0px_0px_#000] text-black dark:text-white flex flex-col overflow-hidden">
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          triggerHaptic('light');
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm select-none animate-in fade-in duration-200"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-statement-title"
+        className="brutal-card w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-2xl shadow-[6px_6px_0px_0px_#000] text-black dark:text-white flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+      >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b-2 border-black dark:border-neutral-700 flex justify-between items-center bg-[#FAF9F5] dark:bg-neutral-800">
+        <div className="p-4 sm:p-5 border-b-2 border-black dark:border-neutral-700 flex justify-between items-center bg-[#FAF9F5] dark:bg-neutral-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div
               className="p-2 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000]"
@@ -167,7 +205,7 @@ export default function ImportStatementModal({
               <UploadCloud className="w-5 h-5 stroke-[2.5px]" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black uppercase tracking-wider">
+              <h3 id="import-statement-title" className="text-sm sm:text-base font-black uppercase tracking-wider">
                 {isId ? 'Import Mutasi E-Statement' : 'Import Bank Statement'}
               </h3>
               <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
@@ -178,10 +216,14 @@ export default function ImportStatementModal({
 
           <button
             type="button"
-            onClick={onClose}
-            className="p-1.5 border-2 border-black dark:border-neutral-700 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer transition-colors shadow-[1.5px_1.5px_0px_0px_#000]"
+            onClick={() => {
+              triggerHaptic('light');
+              onClose();
+            }}
+            aria-label={isId ? 'Tutup modal import' : 'Close import modal'}
+            className="p-2 border-2 border-black dark:border-neutral-700 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer transition-colors shadow-[1.5px_1.5px_0px_0px_#000] min-w-[36px] min-h-[36px] flex items-center justify-center"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 stroke-[2.5px]" />
           </button>
         </div>
 
@@ -259,7 +301,7 @@ export default function ImportStatementModal({
                   type="button"
                   disabled={!rawText.trim()}
                   onClick={() => processCSVText(rawText)}
-                  className="mt-2 w-full py-2 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer disabled:opacity-50"
+                  className="mt-2 w-full py-2.5 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] cursor-pointer disabled:opacity-50 active:translate-x-[1px] active:translate-y-[1px]"
                   style={{ backgroundColor: 'var(--theme-accent, #FFE066)', color: '#000' }}
                 >
                   {isId ? 'Proses Teks Mutasi ⚡' : 'Parse Statement Text ⚡'}
@@ -282,7 +324,7 @@ export default function ImportStatementModal({
                 <button
                   type="button"
                   onClick={toggleAll}
-                  className="px-2.5 py-1 text-[10px] font-black uppercase border border-black rounded-lg bg-white dark:bg-neutral-700 shadow-[1px_1px_0px_0px_#000] cursor-pointer"
+                  className="px-2.5 py-1 text-[10px] font-black uppercase border border-black rounded-lg bg-white dark:bg-neutral-700 shadow-[1px_1px_0px_0px_#000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
                 >
                   {selectedRowIds.size === parsedRows.length ? (isId ? 'Batalkan Semua' : 'Deselect All') : (isId ? 'Pilih Semua' : 'Select All')}
                 </button>
@@ -305,7 +347,7 @@ export default function ImportStatementModal({
               </div>
 
               {/* Table Rows Preview */}
-              <div className="max-h-64 overflow-y-auto border-2 border-black dark:border-neutral-700 rounded-xl divide-y-2 divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
+              <div className="max-h-60 overflow-y-auto border-2 border-black dark:border-neutral-700 rounded-xl divide-y-2 divide-neutral-200 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
                 {parsedRows.map((row) => {
                   const isChecked = selectedRowIds.has(row.id);
                   const isIncome = row.type === 'masuk';
@@ -365,11 +407,11 @@ export default function ImportStatementModal({
 
         {/* Footer Actions */}
         {parsedRows.length > 0 && (
-          <div className="p-4 border-t-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 flex items-center justify-between gap-3">
+          <div className="p-4 border-t-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 flex items-center justify-between gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border-2 border-black rounded-xl text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer"
+              className="px-4 py-2.5 border-2 border-black rounded-xl text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] cursor-pointer hover:bg-neutral-100"
             >
               {isId ? 'Batal' : 'Cancel'}
             </button>
@@ -378,7 +420,7 @@ export default function ImportStatementModal({
               type="button"
               disabled={loading || selectedRows.length === 0}
               onClick={handleExecuteImport}
-              className="flex-1 py-2.5 bg-[#bbf7d0] dark:bg-emerald-800 text-black dark:text-white border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 py-2.5 bg-[#bbf7d0] dark:bg-emerald-800 text-black dark:text-white border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_#000] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 active:translate-x-[1px] active:translate-y-[1px]"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -396,6 +438,7 @@ export default function ImportStatementModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

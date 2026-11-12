@@ -428,9 +428,9 @@ export default function AppLayout({
         />
       </div>
 
-      <main className="flex-1 lg:ml-64 w-full max-w-full overflow-x-hidden p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
+      <div className="flex-1 lg:ml-64 w-full max-w-full min-w-0 flex flex-col min-h-screen">
         {/* Responsive Header (Desktop: Single Row, Mobile: Tier 1 Action Row + Tier 2 Dedicated Title Card) */}
-        <header className="sticky top-0 z-30 bg-[#FAF9F5]/95 dark:bg-neutral-900/95 backdrop-blur-md -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 -mt-4 sm:-mt-6 lg:-mt-8 mb-4 lg:mb-8 border-b-2 border-black dark:border-neutral-700 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3 lg:py-4 select-none">
+        <header className="sticky top-0 z-30 w-full bg-[#FAF9F5]/95 dark:bg-neutral-900/95 backdrop-blur-md border-b-2 border-black dark:border-neutral-700 px-4 sm:px-6 lg:px-8 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3 lg:py-4 select-none">
           {/* Top Row: Mobile Controls + Desktop Header */}
           <div className="flex justify-between items-center gap-2">
             {/* Desktop Page Title / Mobile Hamburger + Brand */}
@@ -584,7 +584,8 @@ export default function AppLayout({
           </div>
         </header>
 
-        {dataError && (
+        <main className="flex-1 w-full max-w-full overflow-x-hidden p-4 sm:p-6 lg:p-8 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 min-w-0">
+          {dataError && (
           <div className="mb-6 border-[3px] border-black dark:border-neutral-700 bg-[#ffccd5] dark:bg-red-950/80 p-4 text-xs font-black uppercase tracking-wider text-black dark:text-red-200 shadow-[3px_3px_0px_0px_#000] rounded-none">
             {dataError}
           </div>
@@ -786,6 +787,7 @@ export default function AppLayout({
           )}
         </div>
       </main>
+      </div>
 
       {/* Mobile Sticky Bottom Navigation Bar (Soft-Neobrutalism + Dynamic Accent FAB) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-neutral-900 border-t-2 border-black dark:border-neutral-700 safe-bottom shadow-[0px_-2px_0px_0px_rgba(0,0,0,1)] select-none">

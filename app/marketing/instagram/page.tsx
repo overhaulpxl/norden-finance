@@ -48,6 +48,550 @@ interface PinnedPostItem {
   slides: PinnedSlide[];
 }
 
+interface HighlightStorySlide {
+  slideNumber: number;
+  title: string;
+  src: string;
+  description: string;
+}
+
+interface HighlightItem {
+  id: string;
+  name: string;
+  title: string;
+  icon: string;
+  tagBg: string;
+  coverSrc: string;
+  description: string;
+  stories: HighlightStorySlide[];
+}
+
+interface InteractiveStorySlide {
+  slideNumber: number;
+  label: string;
+  title: string;
+  src: string;
+  description: string;
+  instructions: string;
+}
+
+interface InteractiveThemeItem {
+  id: string;
+  name: string;
+  title: string;
+  category: string;
+  tagBg: string;
+  description: string;
+  slides: InteractiveStorySlide[];
+}
+
+const CHEATSHEET_SLIDES: SlideItem[] = [
+  {
+    id: 'cs-01',
+    name: 'Slide 1: Cover Cheat Sheet',
+    title: 'SMART INPUT CHEAT SHEET',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/cheatsheet/slide-01.png',
+    description: 'Tulis transaksi seperti biasa. Norden membantu membaca nominal, kategori, diskon, dan dompet yang kamu gunakan.',
+  },
+  {
+    id: 'cs-02',
+    name: 'Slide 2: Diskon & Pajak Restoran',
+    title: 'HITUNG DISKON DAN PAJAK',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/cheatsheet/slide-02.png',
+    description: 'makan siang 120k bca diskon 20% & sushi 350k mandiri diskon 10% + tax 10%. Diskon dihitung lebih dulu, lalu pajak dari harga setelah diskon.',
+  },
+  {
+    id: 'cs-03',
+    name: 'Slide 3: Mutasi Saldo & Tarik Tunai',
+    title: 'TARIK TUNAI BUKAN PENGELUARAN',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/cheatsheet/slide-03.png',
+    description: 'tarik tunai 500k bca ke cash & transfer 200k bni ke gopay. Uang berpindah antar-dompet tanpa menambah pengeluaran.',
+  },
+  {
+    id: 'cs-04',
+    name: 'Slide 4: Bensin Literan, Valas, dan Emas',
+    title: 'CATAT BENSIN VALAS DAN EMAS',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/cheatsheet/slide-04.png',
+    description: 'isi bensin pertamax 20 liter bca, beli 100 usd bca, & beli emas 2 gram bsi. Smart Input mengenali literan BBM, kurs valas, dan aset emas.',
+  },
+  {
+    id: 'cs-05',
+    name: 'Slide 5: Rangkuman & CTA',
+    title: 'SIMPAN DULU COBA NANTI',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/cheatsheet/slide-05.png',
+    description: 'Simpan postingan ini supaya contoh inputnya bisa kamu lihat lagi saat mencatat transaksi. Coba trial Pro 14 hari tanpa kartu kredit di nordenfinance.site.',
+  },
+];
+
+const HIGHLIGHTS_DATA: HighlightItem[] = [
+  {
+    id: 'hl-fitur',
+    name: 'Highlight 1: FITUR',
+    title: 'FITUR UTAMA NORDEN FINANCE',
+    icon: '✦',
+    tagBg: '#FFE066',
+    coverSrc: '/instagram/highlights/cover-fitur.png',
+    description: 'Cover sorotan kuning dengan ikon brand mark Norden dalam badge brutalist. Berisi 3 story pilar fitur inti.',
+    stories: [
+      {
+        slideNumber: 1,
+        title: 'Semua Dompet Satu Tempat',
+        src: '/instagram/highlights/story-fitur-1.png',
+        description: 'Pisahkan rekening bank, e-wallet, dan uang tunai sebagai dompet yang berbeda. Kamu bisa melihat catatan saldonya dari satu tempat.',
+      },
+      {
+        slideNumber: 2,
+        title: 'Tulis Transaksi Seperti Biasa',
+        src: '/instagram/highlights/story-fitur-2.png',
+        description: 'Coba tulis "kopi susu 22k gopay". Norden membantu membaca nominal, kategori, dan dompet dari kalimat tersebut. Periksa hasilnya sebelum disimpan.',
+      },
+      {
+        slideNumber: 3,
+        title: 'Laporan Keuangan Siap Disimpan',
+        src: '/instagram/highlights/story-fitur-3.png',
+        description: 'Simpan ringkasan keuangan untuk dilihat kembali. Tersedia pilihan ekspor PDF, CSV, dan JSON.',
+      },
+    ],
+  },
+  {
+    id: 'hl-pintasan',
+    name: 'Highlight 2: PINTASAN',
+    title: 'PINTASAN CEPAT APPLE SHORTCUTS',
+    icon: '⚡',
+    tagBg: '#FFE066',
+    coverSrc: '/instagram/highlights/cover-pintasan.png',
+    description: 'Cover sorotan kuning dengan ikon Apple vector dalam badge brutalist. Berisi 3 story cara aktivasi pintasan cepat.',
+    stories: [
+      {
+        slideNumber: 1,
+        title: 'Tekan Tombol Mulai Mencatat',
+        src: '/instagram/highlights/story-pintasan-1.png',
+        description: 'Setelah shortcut Norden diatur, kamu bisa menghubungkannya ke Action Button atau Back Tap di iPhone. Input transaksi bisa dibuka tanpa harus mencari website lebih dulu.',
+      },
+      {
+        slideNumber: 2,
+        title: 'Catat Lewat Suara Siri',
+        src: '/instagram/highlights/story-pintasan-2.png',
+        description: 'Jalankan shortcut dengan perintah Siri yang sudah kamu atur, misalnya, “Hey Siri, Catat Norden”. Masukkan detail transaksi, lalu periksa hasilnya.',
+      },
+      {
+        slideNumber: 3,
+        title: 'Akses Pintasan Punya Kunci Sendiri',
+        src: '/instagram/highlights/story-pintasan-3.png',
+        description: 'Setiap akun menggunakan token akses sendiri untuk menghubungkan shortcut dengan Norden. Kamu bisa membuat ulang token melalui Pengaturan jika diperlukan.',
+      },
+    ],
+  },
+  {
+    id: 'hl-faq',
+    name: 'Highlight 3: FAQ',
+    title: 'PERTANYAAN UMUM NORDEN FINANCE',
+    icon: '?',
+    tagBg: '#bbf7d0',
+    coverSrc: '/instagram/highlights/cover-faq.png',
+    description: 'Cover sorotan hijau pastel dengan ikon tanda tanya. Menjawab keraguan calon pengguna.',
+    stories: [
+      {
+        slideNumber: 1,
+        title: 'Perlu Download Dari Store?',
+        src: '/instagram/highlights/story-faq-1.png',
+        description: 'Tidak perlu. Norden bisa dibuka langsung melalui browser di ponsel atau laptop. Kamu juga bisa menambahkannya ke layar utama jika perangkat dan browser mendukungnya.',
+      },
+      {
+        slideNumber: 2,
+        title: 'Setelah Trial Apa Yang Terjadi?',
+        src: '/instagram/highlights/story-faq-2.png',
+        description: 'Setelah trial 14 hari selesai, akun akan menggunakan akses Free Basic. Tidak ada tagihan otomatis dan tidak ada pemotongan saldo.',
+      },
+      {
+        slideNumber: 3,
+        title: 'Bagaimana Cara Membuat Akun?',
+        src: '/instagram/highlights/story-faq-3.png',
+        description: 'Buka nordenfinance.site, daftar menggunakan email, lalu ikuti langkah setup awal. Setelah selesai, kamu bisa mulai mencatat transaksi.',
+      },
+    ],
+  },
+  {
+    id: 'hl-privasi',
+    name: 'Highlight 4: PRIVASI',
+    title: 'PRIVASI DATA KEUANGANMU',
+    icon: '🔒',
+    tagBg: '#bfdbfe',
+    coverSrc: '/instagram/highlights/cover-privasi.png',
+    description: 'Cover sorotan biru pastel dengan ikon gembok. Komitmen keamanan zero bank linking.',
+    stories: [
+      {
+        slideNumber: 1,
+        title: 'Data Keuangan Tetap Kamu Atur',
+        src: '/instagram/highlights/story-privasi-1.png',
+        description: 'Norden tidak meminta username, password mobile banking, PIN, atau OTP rekening bank. Saldo dan transaksi kamu masukkan sendiri ke dalam aplikasi.',
+      },
+      {
+        slideNumber: 2,
+        title: 'Data Milikmu Bisa Kamu Kelola',
+        src: '/instagram/highlights/story-privasi-2.png',
+        description: 'Kamu bisa mengekspor data keuangan dalam format yang tersedia. Norden juga menyediakan fitur Reset Finansial untuk menghapus catatan keuangan tanpa menghapus identitas akun.',
+      },
+      {
+        slideNumber: 3,
+        title: 'Bagaimana Struk Diproses?',
+        src: '/instagram/highlights/story-privasi-3.png',
+        description: 'Fitur scan struk menggunakan layanan AI Google Gemini untuk membantu membaca informasi pada foto. Periksa kembali hasil pembacaannya sebelum menyimpan transaksi.',
+      },
+    ],
+  },
+  {
+    id: 'hl-trial',
+    name: 'Highlight 5: TRIAL PRO',
+    title: 'TRIAL PRO 14 HARI',
+    icon: '★',
+    tagBg: '#FFE066',
+    coverSrc: '/instagram/highlights/cover-trial.png',
+    description: 'Cover sorotan kuning bintang. Berisi ajakan mencoba seluruh fitur Pro tanpa biaya.',
+    stories: [
+      {
+        slideNumber: 1,
+        title: 'Kenali Fitur Paket Pro',
+        src: '/instagram/highlights/story-trial-1.png',
+        description: 'Selama trial, kamu bisa mencoba fitur Pro yang tersedia, termasuk Smart Input, scan struk, dan pengelolaan beberapa dompet. Lihat sendiri fitur mana yang paling membantu keseharianmu.',
+      },
+      {
+        slideNumber: 2,
+        title: 'Tanpa Perlu Kartu Kredit',
+        src: '/instagram/highlights/story-trial-2.png',
+        description: 'Kamu tidak perlu memasukkan nomor kartu kredit untuk memulai trial. Trial 14 hari dimulai setelah setup awal akun selesai.',
+      },
+      {
+        slideNumber: 3,
+        title: 'Mulai Catat Hari Ini',
+        src: '/instagram/highlights/story-trial-3.png',
+        description: 'Kunjungi nordenfinance.site atau buka tautan di bio @norden.finance untuk membuat akun.',
+      },
+    ],
+  },
+  {
+    id: 'hl-templates',
+    name: 'Highlight 6: TEMPLATES',
+    title: 'TEMPLATE STORY INTERAKTIF',
+    icon: '💬',
+    tagBg: '#FFE066',
+    coverSrc: '/instagram/highlights/cover-templates.png',
+    description: 'Cover sorotan kuning dengan ikon balon percakapan. Menampung 6 slide dari 3 tema story interaktif.',
+    stories: [
+      {
+        slideNumber: 1,
+        title: 'Cover: Polling Kopi Bulanan',
+        src: '/instagram/highlights/story-poll-cover.png',
+        description: 'Kopi Rp20 ribu sehari mungkin terasa biasa. Tapi kalau dikumpulkan sebulan jumlahnya lumayan. Yuk cek lewat polling berikutnya.',
+      },
+      {
+        slideNumber: 2,
+        title: 'Stiker: Polling Pilihan Jawaban',
+        src: '/instagram/highlights/story-poll-interactive.png',
+        description: 'Slot stiker polling 4 pilihan rentang pengeluaran kopi bulanan dan contoh Smart Input "kopi 22k bca".',
+      },
+      {
+        slideNumber: 3,
+        title: 'Cover: Tips Kebocoran Halus',
+        src: '/instagram/highlights/story-tips-cover.png',
+        description: 'Bukan belanja besar yang bikin uang cepat habis, tapi biaya kecil yang muncul berulang kali tanpa disadari.',
+      },
+      {
+        slideNumber: 4,
+        title: 'Stiker: Tips & Slider Reaksi',
+        src: '/instagram/highlights/story-tips-interactive.png',
+        description: '3 kebocoran halus (langganan lupa dimatikan, biaya admin & ongkir, tabungan campur belanja) dan stiker emoji slider.',
+      },
+      {
+        slideNumber: 5,
+        title: 'Cover: Pintasan Action Button',
+        src: '/instagram/highlights/story-action-cover.png',
+        description: 'Mencatat transaksi bisa dimulai dari tombol di sisi iPhone tanpa perlu membuka safari atau browser.',
+      },
+      {
+        slideNumber: 6,
+        title: 'Stiker: Cara Pakai & Link Sticker',
+        src: '/instagram/highlights/story-action-interactive.png',
+        description: '3 langkah mudah pakai shortcut Action Button dan slot link sticker menuju nordenfinance.site.',
+      },
+    ],
+  },
+];
+
+const INTERACTIVE_THEMES: InteractiveThemeItem[] = [
+  {
+    id: 'theme-poll',
+    name: 'Tema 1: Polling Kopi & Jajan Bulanan',
+    title: 'BERAPA BUDGET KOPI BULANANMU?',
+    category: 'POLLING & INTERAKSI',
+    tagBg: '#FFE066',
+    description: 'Ajak audiens menghitung pengeluaran kopi atau jajan harian yang terakumulasi dalam sebulan.',
+    slides: [
+      {
+        slideNumber: 1,
+        label: 'Cover Pengantar',
+        title: 'Berapa Budget Kopi Bulananmu?',
+        src: '/instagram/stories/story-poll-cover.png',
+        description: 'Kopi Rp20 ribu sehari mungkin terasa biasa. Tapi kalau dikumpulkan selama sebulan, jumlahnya bisa lumayan juga. Yuk, lihat kebiasaan jajan kita lewat polling berikutnya.',
+        instructions: 'Unggah sebagai slide pertama untuk membangun interaksi dan konteks sebelum audiens mengisi stiker polling.',
+      },
+      {
+        slideNumber: 2,
+        label: 'Slide Interaktif Stiker',
+        title: 'Berapa Banyak Kamu Habiskan?',
+        src: '/instagram/stories/story-poll-interactive.png',
+        description: 'Slot stiker polling 4 pilihan (<Rp200 Ribu, Rp200 Ribu–500 Ribu, Rp500 Ribu–1 Juta, >Rp1 Juta) & contoh Smart Input "kopi 22k bca".',
+        instructions: 'Buka menu Stiker Instagram Story, pilih "Polling", lalu masukkan 4 rentang nominal sesuai kotak yang tersedia.',
+      },
+    ],
+  },
+  {
+    id: 'theme-tips',
+    name: 'Tema 2: Tips Kebocoran Halus',
+    title: 'PENGELUARAN KECIL YANG SERING LOLOS',
+    category: 'EDUKASI FINANSIAL',
+    tagBg: '#bbf7d0',
+    description: 'Edukasi pengeluaran kecil berulang yang sering tidak disadari membuat anggaran bulanan cepat menipis.',
+    slides: [
+      {
+        slideNumber: 1,
+        label: 'Cover Pengantar',
+        title: 'Pengeluaran Kecil yang Sering Lolos',
+        src: '/instagram/stories/story-tips-cover.png',
+        description: 'Kadang bukan belanja besar yang bikin uang cepat habis. Justru ada biaya kecil yang muncul berulang kali dan sering luput dari perhatian. Coba cek tiga contohnya di story berikutnya.',
+        instructions: 'Unggah sebagai slide pertama pengantar untuk meningkatkan retensi dan rasa ingin tahu audiens.',
+      },
+      {
+        slideNumber: 2,
+        label: 'Slide Interaktif Tips & Reaksi',
+        title: 'Tiga Hal Kecil Sering Terlewat',
+        src: '/instagram/stories/story-tips-interactive.png',
+        description: '3 kebocoran halus (langganan lupa dimatikan, biaya admin & ongkir, tabungan campur belanja) dan slot stiker pertanyaan / emoji slider.',
+        instructions: 'Buka menu Stiker Instagram, pilih "Slider Emoji" (misal api atau mata) atau "Pertanyaan": "Mana yang paling sering kamu alami?".',
+      },
+    ],
+  },
+  {
+    id: 'theme-action',
+    name: 'Tema 3: Showcase Action Button iPhone',
+    title: 'CATAT TRANSAKSI TANPA BUKA BROWSER',
+    category: 'FITUR UNGGULAN',
+    tagBg: '#bfdbfe',
+    description: 'Demonstrasi kepraktisan mencatat transaksi dalam 3 detik menggunakan Action Button iPhone dan Apple Shortcuts.',
+    slides: [
+      {
+        slideNumber: 1,
+        label: 'Cover Pengantar',
+        title: 'Catat Transaksi Tanpa Buka Browser',
+        src: '/instagram/stories/story-action-cover.png',
+        description: 'Kalau shortcut Norden sudah kamu atur ke Action Button, mencatat transaksi bisa dimulai dari tombol di sisi iPhone. Lihat cara menggunakannya di story berikutnya.',
+        instructions: 'Unggah sebagai slide pengantar untuk menarik perhatian pengguna iPhone yang menyukai kepraktisan.',
+      },
+      {
+        slideNumber: 2,
+        label: 'Slide Interaktif & Link Sticker',
+        title: 'Tekan Tombol Mulai Mencatat',
+        src: '/instagram/stories/story-action-interactive.png',
+        description: '3 langkah praktis penggunaan Action Button dan slot link sticker resmi menuju website nordenfinance.site.',
+        instructions: 'Buka menu Stiker Instagram, pilih "Tautan / Link", tempel URL https://nordenfinance.site dengan label tombol "Coba Norden".',
+      },
+    ],
+  },
+];
+
+const ADVANCED_CAROUSEL_SLIDES: SlideItem[] = [
+  {
+    id: 'adv-01',
+    name: 'Slide 1 — Cover Fitur Lanjutan',
+    title: 'LEBIH DARI SEKADAR CATAT UANG',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-01.png',
+    description: 'Cover carousel: Pengenalan 9 fitur lanjutan Norden Finance di luar pencatatan harian.',
+  },
+  {
+    id: 'adv-02',
+    name: 'Slide 2 — Pintasan Apple & Action Button',
+    title: 'CATAT DARI LAYAR UTAMA',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-02.png',
+    description: 'Pintasan Action Button / Back Tap di iOS untuk mencatat transaksi tanpa buka browser.',
+  },
+  {
+    id: 'adv-03',
+    name: 'Slide 3 — Perintah Suara Siri',
+    title: 'CATAT LEWAT SUARA SIRI',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-03.png',
+    description: 'Catat transaksi via perintah suara Siri dengan token akses webhook akun yang aman.',
+  },
+  {
+    id: 'adv-04',
+    name: 'Slide 4 — Smart Input: Diskon & Pajak',
+    title: 'DISKON DAN PAJAK SEKALIGUS',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-04.png',
+    description: 'Smart input natural language: kalkulasi otomatis diskon dan pajak dalam satu baris.',
+  },
+  {
+    id: 'adv-05',
+    name: 'Slide 5 — Smart Input: Tarik Tunai & Mutasi',
+    title: 'PINDAH SALDO ANTAR DOMPET',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-05.png',
+    description: 'Mutasi saldo antar-dompet (tarik tunai/transfer internal) tanpa mengurangi kekayaan bersih.',
+  },
+  {
+    id: 'adv-06',
+    name: 'Slide 6 — Scan Struk Belanja',
+    title: 'FOTO STRUK JADI CATATAN',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-06.png',
+    description: 'Ekstraksi otomatis foto struk: tanggal, toko, item, dan total dengan verifikasi manual.',
+  },
+  {
+    id: 'adv-07',
+    name: 'Slide 7 — Transparansi Pemrosesan Data',
+    title: 'TAHU BAGAIMANA DATA DIPROSES',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-07.png',
+    description: 'Transparansi privasi: scan struk diproses oleh layanan AI terverifikasi, bukan offline lokal.',
+  },
+  {
+    id: 'adv-08',
+    name: 'Slide 8 — Saldo Terpadu & Multi-Dompet',
+    title: 'SEMUA SALDO SATU TAMPILAN',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-08.png',
+    description: 'Pantau saldo rekening, e-wallet, dan kas tunai terpusat tanpa menghubungkan akun bank.',
+  },
+  {
+    id: 'adv-09',
+    name: 'Slide 9 — Aset Terpadu: Kurs USD & Emas',
+    title: 'KURS RUPIAH DAN EMAS',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-09.png',
+    description: 'Nilai acuan kurs USD/IDR dan harga emas Antam per gram langsung di dashboard portofolio.',
+  },
+  {
+    id: 'adv-10',
+    name: 'Slide 10 — Split Bill Proporsional',
+    title: 'BAGI TAGIHAN LEBIH MUDAH',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-10.png',
+    description: 'Bagi tagihan makan bersama dengan pembagian pajak, diskon, dan service charge proporsional.',
+  },
+  {
+    id: 'adv-11',
+    name: 'Slide 11 — Format Rincian WhatsApp',
+    title: 'RINCIAN TAGIHAN SIAP DIBAGIKAN',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-11.png',
+    description: 'Salin rincian split bill siap kirim ke grup WhatsApp lengkap dengan info rekening.',
+  },
+  {
+    id: 'adv-12',
+    name: 'Slide 12 — Simulasi Ketahanan Dana (Runway)',
+    title: 'BERAPA LAMA TABUNGAN BERTAHAN?',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-12.png',
+    description: 'Simulasi survival runway: perkiraan ketahanan tabungan jika pemasukan mendadak berhenti.',
+  },
+  {
+    id: 'adv-13',
+    name: 'Slide 13 — Panduan Alokasi Dana Darurat',
+    title: 'SIAPKAN DANA DARURATMU',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-13.png',
+    description: 'Pedoman alokasi dana darurat: 3 bulan (lajang), 6 bulan (keluarga), 9-12 bulan (wirausaha).',
+  },
+  {
+    id: 'adv-14',
+    name: 'Slide 14 — Strategi Bebas Utang: Snowball vs Avalanche',
+    title: 'SUSUN RENCANA PELUNASAN UTANG',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-14.png',
+    description: 'Perbandingan strategi Snowball (saldo terkecil) vs Avalanche (bunga tertinggi).',
+  },
+  {
+    id: 'adv-15',
+    name: 'Slide 15 — Estimasi Waktu Bebas Utang',
+    title: 'PERKIRAKAN WAKTU PELUNASAN',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-15.png',
+    description: 'Proyeksi tanggal bebas utang dengan simulasi alokasi pembayaran ekstra bulanan.',
+  },
+  {
+    id: 'adv-16',
+    name: 'Slide 16 — Laporan Keuangan Format PDF',
+    title: 'LAPORAN RAPI DALAM FORMAT PDF',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-16.png',
+    description: 'Ekspor dokumen laporan 2 halaman standar akuntansi: ringkasan arus kas dan rincian transaksi.',
+  },
+  {
+    id: 'adv-17',
+    name: 'Slide 17 — Buku Kas & Arsip Bulanan',
+    title: 'BUKU KAS LEBIH TERTATA',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-17.png',
+    description: 'Audit arus kas bulanan dan ekspor data fleksibel format PDF, CSV, dan JSON.',
+  },
+  {
+    id: 'adv-18',
+    name: 'Slide 18 — Keamanan Akses PIN & Biometrik',
+    title: 'JAGA AKSES CATATAN KEUANGANMU',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-18.png',
+    description: 'Perlindungan akses lokal perangkat menggunakan PIN 6-digit, Face ID, atau sidik jari.',
+  },
+  {
+    id: 'adv-19',
+    name: 'Slide 19 — Rangkuman 9 Fitur Lanjutan',
+    title: 'LEBIH BANYAK YANG BISA DILAKUKAN',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-19.png',
+    description: 'Daftar ringkas seluruh 9 modul fitur lanjutan Norden yang siap digunakan.',
+  },
+  {
+    id: 'adv-20',
+    name: 'Slide 20 — Trial Pro 14 Hari & Penutup',
+    title: 'COBA DULU KENALI FITURNYA',
+    ratio: '4:5',
+    dimensions: '1080 × 1350 px',
+    src: '/instagram/advanced/slide-20.png',
+    description: 'Penutup CTA: Coba 14 hari Trial Pro tanpa kartu kredit di nordenfinance.site.',
+  },
+];
+
 const CAROUSEL_SLIDES: SlideItem[] = [
   {
     id: 'slide-1',
@@ -399,8 +943,94 @@ Kenali Norden di nordenfinance.site.
 
 #NordenFinance #CatatKeuangan #AturUang #PersonalFinance #FintechIndonesia`;
 
+const ADVANCED_CAROUSEL_CAPTION = `Mencatat pengeluaran sehari-hari memang penting. Tapi kadang, ada hal lain yang juga ingin kita atur.
+
+Misalnya, membagi tagihan setelah makan bersama, menghitung diskon dan pajak, mengetahui berapa lama tabungan bisa bertahan, atau mencari cara untuk melunasi utang dengan lebih terencana.
+
+Karena itu, Norden juga punya beberapa fitur untuk membantu kebutuhan tersebut.
+
+Beberapa di antaranya:
+
+1. Pintasan Apple & Action Button
+Mulai mencatat transaksi dari shortcut yang sudah kamu atur.
+
+2. Smart Input
+Masukkan nominal, diskon, pajak, atau mutasi antar-dompet dalam satu catatan.
+
+3. Scan Struk
+Gunakan foto struk untuk membantu membaca informasi transaksi. Hasilnya tetap bisa kamu periksa sebelum disimpan.
+
+4. Saldo Terpadu
+Kelola saldo rekening, e-wallet, dan uang tunai dalam satu tempat.
+
+5. Split Bill
+Bagi tagihan sesuai pesanan masing-masing dan salin rinciannya untuk dibagikan.
+
+6. Simulasi Dana
+Dapatkan gambaran berapa lama tabungan bisa mencukupi kebutuhan berdasarkan pengeluaranmu.
+
+7. Simulator Pelunasan Utang
+Bandingkan metode Snowball dan Avalanche untuk menyusun rencana pembayaran.
+
+8. Laporan PDF
+Simpan ringkasan keuangan untuk evaluasi dan arsip pribadi.
+
+9. Kunci Akses
+Gunakan pilihan pengamanan perangkat yang tersedia untuk menjaga akses ke catatanmu.
+
+Setiap orang punya kebutuhan keuangan yang berbeda. Tidak semua fitur harus langsung digunakan. Kamu bisa mulai dari yang paling sesuai dengan kebutuhanmu sekarang.
+
+Semua fitur Pro dapat dicoba melalui trial 14 hari tanpa kartu kredit. Tidak ada tagihan otomatis setelah trial berakhir.
+
+Kenali Norden lebih dekat di nordenfinance.site. Tautannya juga tersedia di bio.
+
+#NordenFinance #KelolaKeuangan #CatatKeuangan #PersonalFinance #FintechIndonesia #AturUang`;
+
+const CHEATSHEET_CAPTION = `Mencatat transaksi di Norden bisa dimulai dari kalimat yang biasa kamu pakai sehari-hari.
+
+Smart Input akan membantu membaca nominal, kategori, diskon, dan dompet yang kamu gunakan.
+
+Ini beberapa contoh input yang bisa langsung kamu coba:
+
+1. Hitung Diskon
+"makan siang 120k bca diskon 20%"
+
+2. Diskon + Pajak Resto
+"sushi 350k mandiri diskon 10% + tax 10%"
+(Diskon dihitung lebih dulu, lalu pajak dari harga setelah diskon)
+
+3. Tarik Tunai di ATM
+"tarik tunai 500k bca ke cash"
+(Uang berpindah antar-dompet, bukan pengeluaran)
+
+4. Transfer Antar-Dompet
+"transfer 200k bni ke gopay"
+
+5. Isi Bensin Literan
+"isi bensin pertamax 20 liter bca"
+
+6. Beli Mata Uang Asing
+"beli 100 usd bca"
+
+7. Beli Tabungan Emas
+"beli emas 2 gram bsi"
+
+Simpan postingan ini supaya contoh formatnya bisa kamu lihat lagi saat mencatat pengeluaran.
+
+Coba trial Pro selama 14 hari tanpa kartu kredit di nordenfinance.site. Tautannya ada di bio.
+
+#NordenFinance #SmartInput #CatatKeuangan #KelolaUang #PersonalFinance #TipsKeuangan #FintechIndonesia`;
+
 export default function InstagramMarketingStudio() {
-  const [activeTab, setActiveTab] = useState<'carousel' | 'pinned' | 'pfp' | 'square'>('pinned');
+  const [activeTab, setActiveTab] = useState<
+    'cheatsheet' | 'highlights' | 'stories' | 'downloads' | 'advanced' | 'pinned' | 'carousel' | 'pfp' | 'square'
+  >('cheatsheet');
+  const [activeCheatsheetIdx, setActiveCheatsheetIdx] = useState(0);
+  const [activeHighlightIdx, setActiveHighlightIdx] = useState(0);
+  const [activeHighlightSlideIdx, setActiveHighlightSlideIdx] = useState<number>(-1);
+  const [activeStoryThemeIdx, setActiveStoryThemeIdx] = useState(0);
+  const [activeStorySlideIdx, setActiveStorySlideIdx] = useState(0);
+  const [activeAdvancedSlideIdx, setActiveAdvancedSlideIdx] = useState(0);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   const [activePfpIdx, setActivePfpIdx] = useState(0);
   const [activePinIdx, setActivePinIdx] = useState(0);
@@ -408,7 +1038,37 @@ export default function InstagramMarketingStudio() {
   const [pfpCropMode, setPfpCropMode] = useState<'circle' | 'square'>('circle');
   const [copiedCaption, setCopiedCaption] = useState(false);
 
-  const activeSlide = activeTab === 'carousel' ? CAROUSEL_SLIDES[activeSlideIdx] : SQUARE_HERO;
+  const activeSlide = activeTab === 'cheatsheet'
+    ? CHEATSHEET_SLIDES[activeCheatsheetIdx]
+    : activeTab === 'advanced'
+    ? ADVANCED_CAROUSEL_SLIDES[activeAdvancedSlideIdx]
+    : activeTab === 'carousel'
+    ? CAROUSEL_SLIDES[activeSlideIdx]
+    : SQUARE_HERO;
+
+  const activeHighlight = HIGHLIGHTS_DATA[activeHighlightIdx] || HIGHLIGHTS_DATA[0];
+  const activeHighlightStory = activeHighlightSlideIdx >= 0 && activeHighlightSlideIdx < activeHighlight.stories.length
+    ? activeHighlight.stories[activeHighlightSlideIdx]
+    : null;
+
+  const activeHighlightItem = activeHighlightSlideIdx === -1 || !activeHighlightStory
+    ? {
+        title: `${activeHighlight.name}: Cover Sampul (Circle-Safe 600×600 px)`,
+        badge: 'HIGHLIGHT COVER',
+        src: activeHighlight.coverSrc,
+        description: activeHighlight.description,
+        downloadName: `cover-${activeHighlight.id.replace('hl-', '')}.png`,
+      }
+    : {
+        title: `${activeHighlight.name}: Slide ${activeHighlightStory.slideNumber} / ${activeHighlight.stories.length} (${activeHighlightStory.title})`,
+        badge: `STORY ${activeHighlightStory.slideNumber} / ${activeHighlight.stories.length}`,
+        src: activeHighlightStory.src,
+        description: activeHighlightStory.description,
+        downloadName: activeHighlightStory.src.split('/').pop() || `story-${activeHighlight.id.replace('hl-', '')}-${activeHighlightStory.slideNumber}.png`,
+      };
+
+  const activeTheme = INTERACTIVE_THEMES[activeStoryThemeIdx] || INTERACTIVE_THEMES[0];
+  const activeThemeSlide = activeTheme.slides[activeStorySlideIdx] || activeTheme.slides[0];
   const activePfp = PFP_VARIANTS[activePfpIdx];
   const activePin = PINNED_POSTS[activePinIdx];
   const activePinSlide = activePin.slides[activePinSlideIdx];
@@ -447,14 +1107,37 @@ export default function InstagramMarketingStudio() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="/instagram/zips/norden-instagram-master-bundle.zip"
+              download="norden-instagram-master-bundle.zip"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#FFE066] border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+            >
+              📦 Download All Assets (ZIP) &darr;
+            </a>
+            <a
+              href="/instagram/HIGHLIGHTS_AND_STORIES_GUIDE.md"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#FFE066] transition-colors"
+            >
+              Panduan Highlight & Stories MD &rarr;
+            </a>
+            <a
+              href="/instagram/CAROUSEL_ADVANCED_GUIDE.md"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#FFE066] transition-colors"
+            >
+              Panduan Fitur Lanjutan MD &rarr;
+            </a>
             <a
               href="/instagram/INSTAGRAM_GUIDE.md"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#bbf7d0] transition-colors"
             >
-              Baca Panduan MD &rarr;
+              Panduan Launch MD &rarr;
             </a>
           </div>
         </div>
@@ -462,65 +1145,316 @@ export default function InstagramMarketingStudio() {
         {/* Hero Section */}
         <div className="mb-10">
           <div className="inline-block mb-3 px-3 py-1 bg-[#bbf7d0] border-[2px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-widest text-emerald-950">
-            Brand Launch & Content System // 2026
+            Brand Launch &amp; Content System // 2026
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight leading-none mb-3">
             Studio Konten Instagram Norden Finance
           </h1>
           <p className="text-base sm:text-lg font-bold text-neutral-700 max-w-3xl leading-relaxed">
-            Aset visual dan copywriting resmi: 3 Pinned Post Carousel (masing-masing 4 slide), Feed Launch Carousel 5 Slide, 4 Varian PFP Circle-Safe, dan 1:1 Single Square Post.
+            Aset visual dan copywriting resmi: 5 Slide Cheat Sheet Feed, 6 Cover Highlight + 21 Slide Story Profil, 3 Template Story Interaktif (6 Slide), 20 Slide Fitur Lanjutan, 3 Pinned Post Carousel, Feed Launch Carousel, dan 4 Varian PFP Circle-Safe.
           </p>
         </div>
 
         {/* View Mode Selector Tabs */}
-        <div className="flex flex-wrap gap-4 mb-8">
+        <div className="flex flex-wrap gap-3 mb-8">
+          <button
+            type="button"
+            onClick={() => setActiveTab('cheatsheet')}
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+              activeTab === 'cheatsheet'
+                ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
+            }`}
+          >
+            📝 Cheat Sheet Feed (5 Slide)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('highlights')}
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+              activeTab === 'highlights'
+                ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
+            }`}
+          >
+            🌟 6 Highlight Profil (27 Aset)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('stories')}
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+              activeTab === 'stories'
+                ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
+            }`}
+          >
+            📱 3 Story Interaktif (6 Slide)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('downloads')}
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+              activeTab === 'downloads'
+                ? 'bg-[#bbf7d0] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-[#dcfce7]'
+            }`}
+          >
+            📦 Download All Assets (ZIP)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('advanced')}
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+              activeTab === 'advanced'
+                ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
+                : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
+            }`}
+          >
+            ⚡ Fitur Lanjutan (20 Slide)
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab('pinned')}
-            className={`px-5 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
               activeTab === 'pinned'
                 ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
                 : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
             }`}
           >
-            📌 3 Pinned Carousel (3 Post × 4 Slide)
+            📌 3 Pinned Carousel
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('carousel')}
-            className={`px-5 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
               activeTab === 'carousel'
                 ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
                 : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
             }`}
           >
-            Feed Launch Carousel (5 Slide)
+            Feed Launch (5 Slide)
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('pfp')}
-            className={`px-5 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
               activeTab === 'pfp'
                 ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
                 : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
             }`}
           >
-            Foto Profil / PFP (1:1 Circle Safe)
+            PFP (Circle Safe)
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('square')}
-            className={`px-5 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
+            className={`px-4 py-2.5 border-[3px] border-black font-black text-sm uppercase tracking-wider transition-all ${
               activeTab === 'square'
                 ? 'bg-[#FFE066] shadow-[5px_5px_0px_0px_#000] translate-x-[-1px] translate-y-[-1px]'
                 : 'bg-white shadow-[3px_3px_0px_0px_#000] hover:bg-neutral-100'
             }`}
           >
-            Single Post (1:1 Square)
+            Single Post (1:1)
           </button>
         </div>
 
-        {/* Main Content Grid */}
+        {/* Main Content Grid or Download Center */}
+        {activeTab === 'downloads' ? (
+          <div className="flex flex-col gap-8">
+            {/* Master Bundle Card */}
+            <div className="bg-[#FFE066] border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6 sm:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b-[3px] border-black">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="px-3 py-1 bg-black text-[#FFE066] font-black text-xs uppercase tracking-widest border border-black">
+                    MASTER ALL-IN-ONE BUNDLE
+                  </span>
+                  <span className="font-bold text-xs uppercase text-neutral-800">
+                    38 ASET PNG + DOKUMEN PANDUAN
+                  </span>
+                </div>
+                <a
+                  href="/instagram/zips/norden-instagram-master-bundle.zip"
+                  download="norden-instagram-master-bundle.zip"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_#000] font-black text-sm uppercase tracking-wider hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+                >
+                  📦 Unduh Semua Aset (Master ZIP) &darr;
+                </a>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight mb-2">
+                Download Seluruh Aset Konten Instagram Norden Finance
+              </h2>
+              <p className="text-sm font-bold text-neutral-800 max-w-3xl leading-relaxed mb-6">
+                Satu berkas ZIP lengkap berisi seluruh materi publikasi siap unggah: 5 slide Cheat Sheet Feed Post (4:5), 6 Cover Highlight profil (Circle-Safe 600×600 px), 21 slide Story sorotan (9:16), 6 slide Template Story Interaktif (3 tema pengantar + stiker), serta panduan teks dan copywriting resmi.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t-[2.5px] border-black">
+                <div className="bg-white p-3 border-[2px] border-black">
+                  <span className="block font-black text-xs uppercase text-neutral-600 mb-1">
+                    Feed Post Carousel
+                  </span>
+                  <span className="block font-black text-sm">5 Slide Cheat Sheet</span>
+                  <span className="text-[11px] font-bold text-neutral-500">1080 × 1350 px (4:5)</span>
+                </div>
+                <div className="bg-white p-3 border-[2px] border-black">
+                  <span className="block font-black text-xs uppercase text-neutral-600 mb-1">
+                    Sorotan Profil
+                  </span>
+                  <span className="block font-black text-sm">6 Cover + 21 Story</span>
+                  <span className="text-[11px] font-bold text-neutral-500">Circle-Safe + 9:16 Story</span>
+                </div>
+                <div className="bg-white p-3 border-[2px] border-black">
+                  <span className="block font-black text-xs uppercase text-neutral-600 mb-1">
+                    Story Interaktif
+                  </span>
+                  <span className="block font-black text-sm">3 Tema (6 Slide)</span>
+                  <span className="text-[11px] font-bold text-neutral-500">Pengantar + Slot Stiker</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Bundles Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Bundle 1: Cheatsheet */}
+              <div className="bg-white border-[4px] border-black shadow-[6px_6px_0px_0px_#000] p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-2 py-0.5 bg-[#FFE066] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                      FEED POST (4:5)
+                    </span>
+                    <span className="text-xs font-black text-neutral-500">5 SLIDE</span>
+                  </div>
+                  <h3 className="text-lg font-black uppercase mb-2">
+                    Cheat Sheet Smart Input
+                  </h3>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    Carousel panduan cepat menulis kalimat transaksi di Smart Input: Diskon &amp; pajak, mutasi saldo, literan BBM, valas USD, emas, dan CTA trial.
+                  </p>
+                  <div className="flex flex-col gap-1.5 mb-6 text-[11px] font-bold text-neutral-700 bg-[#FAF9F5] p-3 border-[2px] border-black">
+                    <div>• slide-01: Cover Smart Input Cheat Sheet</div>
+                    <div>• slide-02: Diskon &amp; Pajak Restoran</div>
+                    <div>• slide-03: Mutasi Saldo &amp; Tarik Tunai</div>
+                    <div>• slide-04: Bensin Literan, Valas &amp; Emas</div>
+                    <div>• slide-05: Rangkuman &amp; CTA Trial Pro</div>
+                  </div>
+                </div>
+                <a
+                  href="/instagram/zips/norden-cheatsheet-feed.zip"
+                  download="norden-cheatsheet-feed.zip"
+                  className="w-full text-center px-4 py-2.5 bg-[#bbf7d0] border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_#000] transition-all"
+                >
+                  Unduh ZIP Cheat Sheet &darr;
+                </a>
+              </div>
+
+              {/* Bundle 2: Highlights */}
+              <div className="bg-white border-[4px] border-black shadow-[6px_6px_0px_0px_#000] p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-2 py-0.5 bg-[#bfdbfe] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                      HIGHLIGHTS &amp; STORY
+                    </span>
+                    <span className="text-xs font-black text-neutral-500">27 FILE</span>
+                  </div>
+                  <h3 className="text-lg font-black uppercase mb-2">
+                    Sorotan Profil (6 Cover + 21 Story)
+                  </h3>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    Paket lengkap 6 sorotan Instagram: FITUR, PINTASAN, FAQ, PRIVASI, TRIAL PRO, dan TEMPLATES. Komposisi circle-safe 600×600 px tepat di tengah.
+                  </p>
+                  <div className="flex flex-col gap-1.5 mb-6 text-[11px] font-bold text-neutral-700 bg-[#FAF9F5] p-3 border-[2px] border-black">
+                    <div>• 6 Cover Highlight (Fitur, Pintasan, FAQ, dll)</div>
+                    <div>• 3 Story Fitur (Multi-dompet, Smart Input, PDF)</div>
+                    <div>• 3 Story Pintasan (Action Button, Siri, Token)</div>
+                    <div>• 3 Story FAQ (Web PWA, Pasca-trial, Daftar)</div>
+                    <div>• 3 Story Privasi (Zero link, Hak data, Gemini)</div>
+                    <div>• 3 Story Trial (Fitur Pro, Bebas kartu, CTA)</div>
+                    <div>• 6 Story Templates (3 tema pengantar &amp; stiker)</div>
+                  </div>
+                </div>
+                <a
+                  href="/instagram/zips/norden-highlights-bundle.zip"
+                  download="norden-highlights-bundle.zip"
+                  className="w-full text-center px-4 py-2.5 bg-[#bbf7d0] border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_#000] transition-all"
+                >
+                  Unduh ZIP Highlights &darr;
+                </a>
+              </div>
+
+              {/* Bundle 3: Interactive Stories */}
+              <div className="bg-white border-[4px] border-black shadow-[6px_6px_0px_0px_#000] p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-2 py-0.5 bg-[#FFE066] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                      STORIES 9:16
+                    </span>
+                    <span className="text-xs font-black text-neutral-500">6 SLIDE</span>
+                  </div>
+                  <h3 className="text-lg font-black uppercase mb-2">
+                    Template Story Interaktif
+                  </h3>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    3 tema template Instagram Story vertikal (1080×1920 px). Masing-masing terdiri dari slide cover pengantar dan slide interaktif stiker polling/tips/link.
+                  </p>
+                  <div className="flex flex-col gap-1.5 mb-6 text-[11px] font-bold text-neutral-700 bg-[#FAF9F5] p-3 border-[2px] border-black">
+                    <div>• Tema 1: Polling Kopi (Cover + Stiker 4 Pilihan)</div>
+                    <div>• Tema 2: Tips Kebocoran Halus (Cover + Slider Reaksi)</div>
+                    <div>• Tema 3: Action Button iPhone (Cover + Link Stiker)</div>
+                  </div>
+                </div>
+                <a
+                  href="/instagram/zips/norden-interactive-stories.zip"
+                  download="norden-interactive-stories.zip"
+                  className="w-full text-center px-4 py-2.5 bg-[#bbf7d0] border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_#000] transition-all"
+                >
+                  Unduh ZIP Story Interaktif &darr;
+                </a>
+              </div>
+            </div>
+
+            {/* Markdown Docs Reference */}
+            <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6 sm:p-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-2 py-0.5 bg-[#bbf7d0] border-[2px] border-black font-black text-[11px] uppercase tracking-wider text-emerald-950">
+                  DOKUMENTASI NASKAH
+                </span>
+                <span className="font-black text-sm uppercase">PANDUAN COPYWRITING RESMI</span>
+              </div>
+              <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                Naskah copy, susunan headline dua baris, panduan stiker Instagram, dan checklist kepatuhan brand tersedia dalam format Markdown:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <a
+                  href="/instagram/HIGHLIGHTS_AND_STORIES_GUIDE.md"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-3 bg-[#FAF9F5] border-[2px] border-black font-mono text-xs font-bold hover:bg-[#FFE066] transition-colors flex items-center justify-between"
+                >
+                  <span>HIGHLIGHTS_AND_STORIES_GUIDE.md</span>
+                  <span>&rarr;</span>
+                </a>
+                <a
+                  href="/instagram/CAROUSEL_ADVANCED_GUIDE.md"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-3 bg-[#FAF9F5] border-[2px] border-black font-mono text-xs font-bold hover:bg-[#FFE066] transition-colors flex items-center justify-between"
+                >
+                  <span>CAROUSEL_ADVANCED_GUIDE.md</span>
+                  <span>&rarr;</span>
+                </a>
+                <a
+                  href="/instagram/INSTAGRAM_GUIDE.md"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-3 bg-[#FAF9F5] border-[2px] border-black font-mono text-xs font-bold hover:bg-[#FFE066] transition-colors flex items-center justify-between"
+                >
+                  <span>INSTAGRAM_GUIDE.md</span>
+                  <span>&rarr;</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        ) : (
+        /* Main Content Grid */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Image Viewer (7 cols) */}
           <div className="lg:col-span-7 flex flex-col items-center">
@@ -634,8 +1568,131 @@ export default function InstagramMarketingStudio() {
                     </a>
                   </div>
                 </>
+              ) : activeTab === 'highlights' ? (
+                /* HIGHLIGHTS & STORY VIEWER (9:16) */
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b-[2.5px] border-black pb-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-sm uppercase tracking-wider">
+                        {activeHighlightItem.title}
+                      </span>
+                      <span
+                        className="text-[11px] font-black px-2 py-0.5 border-[1.5px] border-black"
+                        style={{ backgroundColor: activeHighlight.tagBg }}
+                      >
+                        {activeHighlightItem.badge}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 bg-neutral-100 p-1 border-[2px] border-black">
+                      <button
+                        type="button"
+                        onClick={() => setActiveHighlightSlideIdx(-1)}
+                        className={`px-2 py-1 text-[11px] font-black uppercase transition-all ${
+                          activeHighlightSlideIdx === -1
+                            ? 'bg-[#FFE066] border-[1.5px] border-black shadow-[2px_2px_0px_#000]'
+                            : 'bg-transparent text-neutral-600 hover:text-black'
+                        }`}
+                      >
+                        ● Cover
+                      </button>
+                      {activeHighlight.stories.map((st, sIdx) => (
+                        <button
+                          key={st.slideNumber}
+                          type="button"
+                          onClick={() => setActiveHighlightSlideIdx(sIdx)}
+                          className={`px-2 py-1 text-[11px] font-black uppercase transition-all ${
+                            activeHighlightSlideIdx === sIdx
+                              ? 'bg-[#FFE066] border-[1.5px] border-black shadow-[2px_2px_0px_#000]'
+                              : 'bg-transparent text-neutral-600 hover:text-black'
+                          }`}
+                        >
+                          Story {st.slideNumber}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative w-full flex items-center justify-center bg-[#FAF9F5] border-[3px] border-black overflow-hidden shadow-inner p-2 sm:p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activeHighlightItem.src}
+                      alt={activeHighlightItem.title}
+                      className="w-full object-contain max-h-[600px] aspect-[9/16] border-[2px] border-black/20"
+                    />
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-[2px] border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <p className="text-xs font-bold text-neutral-700">
+                      {activeHighlightItem.description}
+                    </p>
+                    <a
+                      href={activeHighlightItem.src}
+                      download={activeHighlightItem.downloadName}
+                      className="shrink-0 px-4 py-2 bg-[#bbf7d0] border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+                    >
+                      Download PNG (9:16) &darr;
+                    </a>
+                  </div>
+                </>
+              ) : activeTab === 'stories' ? (
+                /* INTERACTIVE STORY VIEWER (9:16) */
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b-[2.5px] border-black pb-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-sm uppercase tracking-wider">
+                        {activeTheme.name}: {activeThemeSlide.label}
+                      </span>
+                      <span
+                        className="text-[11px] font-black px-2 py-0.5 border-[1.5px] border-black"
+                        style={{ backgroundColor: activeTheme.tagBg }}
+                      >
+                        {activeTheme.category}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 bg-neutral-100 p-1 border-[2px] border-black">
+                      {activeTheme.slides.map((sl, sIdx) => (
+                        <button
+                          key={sl.slideNumber}
+                          type="button"
+                          onClick={() => setActiveStorySlideIdx(sIdx)}
+                          className={`px-2 py-1 text-[11px] font-black uppercase transition-all ${
+                            activeStorySlideIdx === sIdx
+                              ? 'bg-[#FFE066] border-[1.5px] border-black shadow-[2px_2px_0px_#000]'
+                              : 'bg-transparent text-neutral-600 hover:text-black'
+                          }`}
+                        >
+                          Slide {sl.slideNumber}: {sl.label.split(' ')[0]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative w-full flex items-center justify-center bg-[#FAF9F5] border-[3px] border-black overflow-hidden shadow-inner p-2 sm:p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activeThemeSlide.src}
+                      alt={activeThemeSlide.title}
+                      className="w-full object-contain max-h-[600px] aspect-[9/16] border-[2px] border-black/20"
+                    />
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-[2px] border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <p className="text-xs font-bold text-neutral-700">
+                      {activeThemeSlide.description}
+                    </p>
+                    <a
+                      href={activeThemeSlide.src}
+                      download={activeThemeSlide.src.split('/').pop()}
+                      className="shrink-0 px-4 py-2 bg-[#bbf7d0] border-[2.5px] border-black shadow-[3px_3px_0px_0px_#000] font-black text-xs uppercase tracking-wider hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+                    >
+                      Download Story Template &darr;
+                    </a>
+                  </div>
+                </>
               ) : (
-                /* CAROUSEL & SQUARE VIEWER */
+                /* CAROUSEL & SQUARE & CHEATSHEET VIEWER */
                 <>
                   <div className="flex items-center justify-between border-b-[2.5px] border-black pb-3 mb-4">
                     <div className="flex items-center gap-2">
@@ -657,7 +1714,7 @@ export default function InstagramMarketingStudio() {
                       src={activeSlide.src}
                       alt={activeSlide.name}
                       className={`w-full object-contain border-[2px] border-black/20 ${
-                        activeTab === 'carousel' ? 'max-h-[600px] aspect-[4/5]' : 'max-h-[500px] aspect-square'
+                        activeTab === 'carousel' || activeTab === 'advanced' || activeTab === 'cheatsheet' ? 'max-h-[600px] aspect-[4/5]' : 'max-h-[500px] aspect-square'
                       }`}
                     />
                   </div>
@@ -677,6 +1734,328 @@ export default function InstagramMarketingStudio() {
                 </>
               )}
             </div>
+
+            {/* Cheatsheet Navigator */}
+            {activeTab === 'cheatsheet' && (
+              <div className="w-full flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-xs uppercase tracking-wider text-neutral-600">
+                    PILIH SLIDE CHEAT SHEET (5 SLIDE):
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={activeCheatsheetIdx === 0}
+                      onClick={() => setActiveCheatsheetIdx((prev) => Math.max(0, prev - 1))}
+                      className="px-3 py-1 bg-white border-[2px] border-black font-black text-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000]"
+                    >
+                      &larr; Prev
+                    </button>
+                    <span className="font-black text-xs">
+                      {activeCheatsheetIdx + 1} / {CHEATSHEET_SLIDES.length}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={activeCheatsheetIdx === CHEATSHEET_SLIDES.length - 1}
+                      onClick={() => setActiveCheatsheetIdx((prev) => Math.min(CHEATSHEET_SLIDES.length - 1, prev + 1))}
+                      className="px-3 py-1 bg-white border-[2px] border-black font-black text-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000]"
+                    >
+                      Next &rarr;
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                  {CHEATSHEET_SLIDES.map((slide, idx) => {
+                    const isSelected = activeCheatsheetIdx === idx;
+                    return (
+                      <button
+                        key={slide.id}
+                        type="button"
+                        onClick={() => setActiveCheatsheetIdx(idx)}
+                        className={`p-1.5 border-[2.5px] border-black text-left flex flex-col gap-1 transition-all ${
+                          isSelected
+                            ? 'bg-[#FFE066] shadow-[4px_4px_0px_0px_#000] -translate-y-1'
+                            : 'bg-white shadow-[2px_2px_0px_0px_#000] hover:bg-neutral-100'
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={slide.src}
+                          alt={slide.name}
+                          className="w-full aspect-[4/5] object-cover border-[1.5px] border-black"
+                        />
+                        <span className="text-[10px] font-black uppercase truncate mt-0.5">
+                          Slide {idx + 1}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Highlights Navigator */}
+            {activeTab === 'highlights' && (
+              <div className="w-full flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-xs uppercase tracking-wider text-neutral-600">
+                    PILIH KATEGORI SOROTAN (6 COVER HIGHLIGHT):
+                  </span>
+                  <span className="text-[11px] font-black text-neutral-500">
+                    Circle-Safe 600×600 px
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {HIGHLIGHTS_DATA.map((hl, idx) => {
+                    const isSelected = activeHighlightIdx === idx;
+                    return (
+                      <button
+                        key={hl.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveHighlightIdx(idx);
+                          setActiveHighlightSlideIdx(-1);
+                        }}
+                        className={`p-1.5 sm:p-2 border-[2.5px] border-black text-left flex flex-col items-center gap-1.5 transition-all ${
+                          isSelected
+                            ? 'bg-[#FFE066] shadow-[4px_4px_0px_0px_#000] -translate-y-1'
+                            : 'bg-white shadow-[2px_2px_0px_0px_#000] hover:bg-neutral-100'
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={hl.coverSrc}
+                          alt={hl.name}
+                          className="w-full aspect-square object-cover rounded-full border-[2px] border-black"
+                        />
+                        <span className="text-[11px] font-black uppercase truncate text-center">
+                          {hl.icon} {hl.id.replace('hl-', '')}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="p-3 bg-[#FAF9F5] border-[2.5px] border-black">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-black uppercase tracking-wider">
+                      SLIDE DALAM SOROTAN {activeHighlight.name.toUpperCase()}:
+                    </span>
+                    <span className="text-[11px] font-bold text-neutral-500">
+                      1 Cover + {activeHighlight.stories.length} Slide Story
+                    </span>
+                  </div>
+                  <div className={`grid gap-2 ${activeHighlight.stories.length > 3 ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-4'}`}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveHighlightSlideIdx(-1)}
+                      className={`p-1.5 border-[2px] border-black flex flex-col items-center gap-1 text-center transition-all ${
+                        activeHighlightSlideIdx === -1
+                          ? 'bg-[#FFE066] shadow-[3px_3px_0px_#000] -translate-y-0.5'
+                          : 'bg-white shadow-[1.5px_1.5px_0px_#000] hover:bg-neutral-100'
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={activeHighlight.coverSrc}
+                        alt="Cover"
+                        className="w-full aspect-[9/16] object-cover border border-black"
+                      />
+                      <span className="text-[10px] font-black uppercase truncate">
+                        Cover
+                      </span>
+                    </button>
+                    {activeHighlight.stories.map((st, sIdx) => {
+                      const isSelected = activeHighlightSlideIdx === sIdx;
+                      return (
+                        <button
+                          key={st.slideNumber}
+                          type="button"
+                          onClick={() => setActiveHighlightSlideIdx(sIdx)}
+                          className={`p-1.5 border-[2px] border-black flex flex-col items-center gap-1 text-center transition-all ${
+                            isSelected
+                              ? 'bg-[#FFE066] shadow-[3px_3px_0px_#000] -translate-y-0.5'
+                              : 'bg-white shadow-[1.5px_1.5px_0px_#000] hover:bg-neutral-100'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={st.src}
+                            alt={st.title}
+                            className="w-full aspect-[9/16] object-cover border border-black"
+                          />
+                          <span className="text-[10px] font-black uppercase truncate">
+                            #{st.slideNumber}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Interactive Stories Navigator */}
+            {activeTab === 'stories' && (
+              <div className="w-full flex flex-col gap-4">
+                <span className="font-black text-xs uppercase tracking-wider text-neutral-600">
+                  PILIH TEMA STORY INTERAKTIF (3 TEMA • MASING-MASING 2 SLIDE):
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {INTERACTIVE_THEMES.map((theme, idx) => {
+                    const isSelected = activeStoryThemeIdx === idx;
+                    return (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveStoryThemeIdx(idx);
+                          setActiveStorySlideIdx(0);
+                        }}
+                        className={`p-2.5 border-[2.5px] border-black text-left flex flex-col gap-2 transition-all ${
+                          isSelected
+                            ? 'bg-[#FFE066] shadow-[4px_4px_0px_0px_#000] -translate-y-1'
+                            : 'bg-white shadow-[2px_2px_0px_0px_#000] hover:bg-neutral-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className="text-[10px] font-black px-2 py-0.5 border border-black uppercase"
+                            style={{ backgroundColor: theme.tagBg }}
+                          >
+                            {theme.category}
+                          </span>
+                          <span className="text-[10px] font-bold text-neutral-600">
+                            2 Slide
+                          </span>
+                        </div>
+                        <span className="text-xs font-black uppercase line-clamp-1">
+                          {theme.name}
+                        </span>
+                        <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-black/20">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={theme.slides[0].src}
+                            alt="Cover"
+                            className="w-full aspect-[9/16] object-cover border border-black"
+                          />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={theme.slides[1].src}
+                            alt="Stiker"
+                            className="w-full aspect-[9/16] object-cover border border-black"
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="p-3 bg-[#FAF9F5] border-[2.5px] border-black">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-black uppercase tracking-wider">
+                      SLIDE DALAM {activeTheme.name.toUpperCase()}:
+                    </span>
+                    <span className="text-[11px] font-bold text-neutral-500">
+                      2 Slide Vertikal (1080×1920 px)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {activeTheme.slides.map((sl, sIdx) => {
+                      const isSelected = activeStorySlideIdx === sIdx;
+                      return (
+                        <button
+                          key={sl.slideNumber}
+                          type="button"
+                          onClick={() => setActiveStorySlideIdx(sIdx)}
+                          className={`p-2 border-[2px] border-black flex items-center gap-3 text-left transition-all ${
+                            isSelected
+                              ? 'bg-[#FFE066] shadow-[3px_3px_0px_#000] -translate-y-0.5'
+                              : 'bg-white shadow-[1.5px_1.5px_0px_#000] hover:bg-neutral-100'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={sl.src}
+                            alt={sl.title}
+                            className="w-12 aspect-[9/16] object-cover border border-black shrink-0"
+                          />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[11px] font-black uppercase">
+                              Slide {sl.slideNumber}: {sl.label}
+                            </span>
+                            <span className="text-[10px] font-bold text-neutral-600 truncate">
+                              {sl.title}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Advanced Carousel Navigator (if Advanced active) */}
+            {activeTab === 'advanced' && (
+              <div className="w-full flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-xs uppercase tracking-wider text-neutral-600">
+                    PILIH SLIDE (20 SLIDE CAROUSEL):
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={activeAdvancedSlideIdx === 0}
+                      onClick={() => setActiveAdvancedSlideIdx((prev) => Math.max(0, prev - 1))}
+                      className="px-3 py-1 bg-white border-[2px] border-black font-black text-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000]"
+                    >
+                      &larr; Prev
+                    </button>
+                    <span className="font-black text-xs">
+                      {activeAdvancedSlideIdx + 1} / {ADVANCED_CAROUSEL_SLIDES.length}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={activeAdvancedSlideIdx === ADVANCED_CAROUSEL_SLIDES.length - 1}
+                      onClick={() => setActiveAdvancedSlideIdx((prev) => Math.min(ADVANCED_CAROUSEL_SLIDES.length - 1, prev + 1))}
+                      className="px-3 py-1 bg-white border-[2px] border-black font-black text-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000]"
+                    >
+                      Next &rarr;
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                  {ADVANCED_CAROUSEL_SLIDES.map((slide, idx) => {
+                    const isSelected = activeAdvancedSlideIdx === idx;
+                    return (
+                      <button
+                        key={slide.id}
+                        type="button"
+                        onClick={() => setActiveAdvancedSlideIdx(idx)}
+                        className={`p-1 border-[2px] border-black text-left flex flex-col gap-1 transition-all ${
+                          isSelected
+                            ? 'bg-[#FFE066] shadow-[3px_3px_0px_0px_#000] -translate-y-1'
+                            : 'bg-white shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100'
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={slide.src}
+                          alt={slide.name}
+                          className="w-full aspect-[4/5] object-cover border border-black"
+                        />
+                        <span className="text-[9px] font-black uppercase truncate text-center w-full">
+                          {idx + 1}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Pinned Navigator (if Pinned tab active) */}
             {activeTab === 'pinned' && (
@@ -882,7 +2261,364 @@ export default function InstagramMarketingStudio() {
 
           {/* Right Column: Copywriting & Actions (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
-            {activeTab === 'pinned' ? (
+            {activeTab === 'cheatsheet' ? (
+              /* CHEATSHEET ACTIONS & CAPTIONS */
+              <>
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-[#FFE066] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                        CAROUSEL ASET
+                      </span>
+                      <span className="font-black text-sm uppercase">UNDUH 5 SLIDE CHEAT SHEET</span>
+                    </div>
+                    <a
+                      href="/instagram/zips/norden-cheatsheet-feed.zip"
+                      download="norden-cheatsheet-feed.zip"
+                      className="px-2.5 py-1 bg-[#bbf7d0] border-[1.5px] border-black font-black text-xs uppercase hover:bg-[#86efac] transition-colors"
+                    >
+                      📦 ZIP (5 Slide) &darr;
+                    </a>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    Format 4:5 Portrait (1080×1350 px). Dirancang untuk edukasi praktis dan save &amp; share tinggi:
+                  </p>
+
+                  <div className="flex flex-col gap-2">
+                    {CHEATSHEET_SLIDES.map((s, idx) => (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between p-2.5 bg-[#FAF9F5] border-[2px] border-black"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-xs px-2 py-0.5 bg-[#FFE066] border border-black">
+                            #{idx + 1}
+                          </span>
+                          <span className="font-bold text-xs truncate max-w-[190px]">{s.title}</span>
+                        </div>
+                        <a
+                          href={s.src}
+                          download={`cheatsheet-slide-${idx + 1}.png`}
+                          className="px-2.5 py-1 bg-white border-[1.5px] border-black font-black text-[11px] hover:bg-[#FFE066] transition-colors"
+                        >
+                          PNG &darr;
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-[2px] border-neutral-200">
+                    <a
+                      href="/instagram/HIGHLIGHTS_AND_STORIES_GUIDE.md"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border-[2px] border-black shadow-[3px_3px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#FFE066] transition-colors"
+                    >
+                      Buka Panduan Cheatsheet &amp; Highlights MD &rarr;
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-[#bfdbfe] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                        CAPTION INSTAGRAM
+                      </span>
+                      <span className="font-black text-sm uppercase">CHEAT SHEET SMART INPUT</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(CHEATSHEET_CAPTION)}
+                      className={`px-3 py-1 border-[2px] border-black font-black text-xs uppercase tracking-wider transition-all ${
+                        copiedCaption
+                          ? 'bg-[#bbf7d0] text-emerald-950'
+                          : 'bg-[#FFE066] hover:translate-x-[1px] hover:translate-y-[1px]'
+                      }`}
+                    >
+                      {copiedCaption ? 'Tersalin! ✓' : 'Salin Caption'}
+                    </button>
+                  </div>
+
+                  <div className="relative">
+                    <textarea
+                      readOnly
+                      rows={14}
+                      value={CHEATSHEET_CAPTION}
+                      className="w-full p-3 bg-[#FAF9F5] border-[2.5px] border-black font-mono text-xs font-semibold leading-relaxed resize-none focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : activeTab === 'highlights' ? (
+              /* HIGHLIGHTS ACTIONS & GUIDES */
+              <>
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span 
+                        className="px-2 py-0.5 border-[2px] border-black font-black text-[11px] uppercase tracking-wider"
+                        style={{ backgroundColor: activeHighlight.tagBg }}
+                      >
+                        {activeHighlight.icon} {activeHighlight.id.replace('hl-', '').toUpperCase()}
+                      </span>
+                      <span className="font-black text-sm uppercase">
+                        ASET ({activeHighlight.stories.length + 1} FILE)
+                      </span>
+                    </div>
+                    <a
+                      href="/instagram/zips/norden-highlights-bundle.zip"
+                      download="norden-highlights-bundle.zip"
+                      className="px-2.5 py-1 bg-[#bbf7d0] border-[1.5px] border-black font-black text-xs uppercase hover:bg-[#86efac] transition-colors"
+                    >
+                      📦 ZIP (27 File) &darr;
+                    </a>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    Setiap sorotan terdiri dari 1 Cover Circle-Safe (600×600 center) dan {activeHighlight.stories.length} Slide Story konten vertikal (9:16 • 1080×1920):
+                  </p>
+
+                  <div className="max-h-[320px] overflow-y-auto pr-1 flex flex-col gap-2 border-[2px] border-black p-2 bg-[#FAF9F5]">
+                    <div className="flex items-center justify-between p-2 bg-white border-[1.5px] border-black">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-xs px-2 py-0.5 bg-[#FFE066] border border-black">
+                          COVER
+                        </span>
+                        <span className="font-bold text-xs truncate max-w-[180px]">
+                          Cover Sampul ({activeHighlight.name})
+                        </span>
+                      </div>
+                      <a
+                        href={activeHighlight.coverSrc}
+                        download={`cover-${activeHighlight.id.replace('hl-', '')}.png`}
+                        className="px-2.5 py-1 bg-white border-[1.5px] border-black font-black text-[11px] hover:bg-[#FFE066] transition-colors"
+                      >
+                        PNG &darr;
+                      </a>
+                    </div>
+
+                    {activeHighlight.stories.map((st) => (
+                      <div
+                        key={st.slideNumber}
+                        className="flex items-center justify-between p-2 bg-white border-[1.5px] border-black"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-xs px-2 py-0.5 bg-[#bbf7d0] border border-black">
+                            STORY {st.slideNumber}
+                          </span>
+                          <span className="font-bold text-xs truncate max-w-[180px]">
+                            {st.title}
+                          </span>
+                        </div>
+                        <a
+                          href={st.src}
+                          download={st.src.split('/').pop()}
+                          className="px-2.5 py-1 bg-white border-[1.5px] border-black font-black text-[11px] hover:bg-[#FFE066] transition-colors"
+                        >
+                          PNG &darr;
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-[2px] border-neutral-200">
+                    <a
+                      href="/instagram/HIGHLIGHTS_AND_STORIES_GUIDE.md"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#bbf7d0] border-[2px] border-black shadow-[3px_3px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#86efac] transition-colors"
+                    >
+                      Buka Panduan Lengkap Highlights MD &rarr;
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-2 py-0.5 bg-[#bbf7d0] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                      CARA SETTING HIGHLIGHT
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(`Cara Pasang Highlight Norden Finance:\n1. Unggah ${activeHighlight.stories.length} story ke Instagram Stories akun @norden.finance.\n2. Buka story, tekan icon "Sorotan / Highlight" di pojok bawah.\n3. Masukkan ke sorotan "${activeHighlight.name.toUpperCase()}".\n4. Tekan Edit Sorotan > Edit Sampul, pilih cover-${activeHighlight.id.replace('hl-', '')}.png.\n5. Badge Neobrutalism otomatis pas tepat di dalam lingkaran crop Instagram!`)}
+                      className="px-2.5 py-1 bg-white border-[1.5px] border-black font-black text-[11px] hover:bg-[#FFE066]"
+                    >
+                      Salin Instruksi
+                    </button>
+                  </div>
+                  <div className="p-3 bg-[#FAF9F5] border-[2px] border-black flex flex-col gap-2 font-mono text-xs leading-relaxed">
+                    <div><strong>1. Unggah Story:</strong> Posting {activeHighlight.stories.length} slide story ke Instagram Stories.</div>
+                    <div><strong>2. Buat Sorotan:</strong> Buka story, klik &ldquo;Highlight / Sorotan&rdquo;, beri nama <strong>{activeHighlight.name}</strong>.</div>
+                    <div><strong>3. Pasang Cover:</strong> Edit Sorotan &rarr; Edit Sampul &rarr; Pilih <strong>cover-{activeHighlight.id.replace('hl-', '')}.png</strong>.</div>
+                    <div className="text-emerald-800 font-bold mt-1">&check; Lingkaran 600px circle-safe otomatis pas tanpa terpotong!</div>
+                  </div>
+                </div>
+              </>
+            ) : activeTab === 'stories' ? (
+              /* STORIES ACTIONS & INSTRUCTIONS */
+              <>
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-[#FFE066] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                        STORY TEMPLATES
+                      </span>
+                      <span className="font-black text-sm uppercase">UNDUH 3 TEMA INTERAKTIF</span>
+                    </div>
+                    <a
+                      href="/instagram/zips/norden-interactive-stories.zip"
+                      download="norden-interactive-stories.zip"
+                      className="px-2.5 py-1 bg-[#bbf7d0] border-[1.5px] border-black font-black text-xs uppercase hover:bg-[#86efac] transition-colors"
+                    >
+                      📦 ZIP (6 Slide) &darr;
+                    </a>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    Template Instagram Story 9:16 (1080×1920 px) dengan slot khusus untuk stiker polling, tips, dan link:
+                  </p>
+
+                  <div className="flex flex-col gap-2.5">
+                    {INTERACTIVE_THEMES.map((theme, idx) => (
+                      <div
+                        key={theme.id}
+                        className="p-3 bg-[#FAF9F5] border-[2px] border-black flex flex-col gap-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-xs px-2 py-0.5 bg-[#FFE066] border border-black">
+                              TEMA #{idx + 1}
+                            </span>
+                            <span className="font-black text-xs truncate max-w-[200px]">{theme.name}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-neutral-500">{theme.category}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-neutral-300">
+                          {theme.slides.map((sl) => (
+                            <div key={sl.slideNumber} className="flex items-center justify-between p-1.5 bg-white border border-black">
+                              <span className="text-[10px] font-bold truncate">#{sl.slideNumber}: {sl.label.split(' ')[0]}</span>
+                              <a
+                                href={sl.src}
+                                download={sl.src.split('/').pop()}
+                                className="px-1.5 py-0.5 bg-[#FFE066] border border-black font-black text-[10px] hover:bg-black hover:text-white transition-colors"
+                              >
+                                PNG &darr;
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-[2px] border-neutral-200">
+                    <a
+                      href="/instagram/HIGHLIGHTS_AND_STORIES_GUIDE.md"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border-[2px] border-black shadow-[3px_3px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#FFE066] transition-colors"
+                    >
+                      Buka Panduan Story Interaktif MD &rarr;
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 bg-[#bbf7d0] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                      PETUNJUK STIKER
+                    </span>
+                    <span className="font-black text-sm uppercase">{activeTheme.category}</span>
+                  </div>
+                  <div className="p-3 bg-[#FAF9F5] border-[2px] border-black flex flex-col gap-2 font-mono text-xs leading-relaxed">
+                    <div className="font-bold text-sm text-black">{activeThemeSlide.title}</div>
+                    <div className="text-neutral-700">{activeThemeSlide.description}</div>
+                    <div className="mt-2 pt-2 border-t border-neutral-300">
+                      <strong>Cara Posting:</strong> {activeThemeSlide.instructions}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : activeTab === 'advanced' ? (
+              /* ADVANCED CAROUSEL ACTIONS & CAPTIONS */
+              <>
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 bg-[#FFE066] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                      CAROUSEL ASET
+                    </span>
+                    <span className="font-black text-sm uppercase">UNDUH 20 SLIDE FITUR LANJUTAN</span>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-600 mb-4 leading-relaxed">
+                    Format 4:5 Portrait (1080×1350 px). Siap unggah sebagai carousel multi-fitur di Instagram:
+                  </p>
+
+                  <div className="max-h-[380px] overflow-y-auto pr-1 flex flex-col gap-2 border-[2px] border-black p-2 bg-[#FAF9F5]">
+                    {ADVANCED_CAROUSEL_SLIDES.map((s, idx) => (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between p-2 bg-white border-[1.5px] border-black"
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <span className="font-black text-xs px-1.5 py-0.5 bg-[#FFE066] border border-black shrink-0">
+                            #{idx + 1}
+                          </span>
+                          <span className="font-bold text-xs truncate max-w-[200px]">{s.title}</span>
+                        </div>
+                        <a
+                          href={s.src}
+                          download={`slide-${String(idx + 1).padStart(2, '0')}.png`}
+                          className="shrink-0 px-2.5 py-1 bg-[#bbf7d0] border-[1.5px] border-black font-black text-[11px] hover:bg-[#86efac] transition-colors"
+                        >
+                          PNG &darr;
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t-[2px] border-neutral-200">
+                    <a
+                      href="/instagram/CAROUSEL_ADVANCED_GUIDE.md"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border-[2px] border-black shadow-[3px_3px_0px_#000] font-black text-xs uppercase tracking-wider hover:bg-[#FFE066] transition-colors"
+                    >
+                      Buka Panduan Copywriting MD &rarr;
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-[#bfdbfe] border-[2px] border-black font-black text-[11px] uppercase tracking-wider">
+                        CAPTION INSTAGRAM
+                      </span>
+                      <span className="font-black text-sm uppercase">20 SLIDE FITUR LANJUTAN</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(ADVANCED_CAROUSEL_CAPTION)}
+                      className={`px-3 py-1 border-[2px] border-black font-black text-xs uppercase tracking-wider transition-all ${
+                        copiedCaption
+                          ? 'bg-[#bbf7d0] text-emerald-950'
+                          : 'bg-[#FFE066] hover:translate-x-[1px] hover:translate-y-[1px]'
+                      }`}
+                    >
+                      {copiedCaption ? 'Tersalin! ✓' : 'Salin Caption'}
+                    </button>
+                  </div>
+
+                  <div className="relative">
+                    <textarea
+                      readOnly
+                      rows={14}
+                      value={ADVANCED_CAROUSEL_CAPTION}
+                      className="w-full p-3 bg-[#FAF9F5] border-[2.5px] border-black font-mono text-xs font-semibold leading-relaxed resize-none focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : activeTab === 'pinned' ? (
               /* PINNED POSTS ACTIONS & CAPTIONS */
               <>
                 <div className="bg-white border-[4px] border-black shadow-[8px_8px_0px_0px_#000] p-6">
@@ -1136,6 +2872,7 @@ Mulai di nordenfinance.site`}
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ import {
   YAxis,
 } from 'recharts';
 import { addBudget } from '../app/actions';
+import { buildWrappedSvg, type WrappedShareData } from '../lib/wrappedSvg';
 import {
   Achievement,
   AppSubscription,
@@ -65,7 +66,7 @@ interface MonthlyFinance {
 }
 
 const DAY_MS = 86_400_000;
-const CARD_COLORS = ['#bbf7d0', '#bfdbfe', '#fef08a', '#fecaca', '#ddd6fe'];
+const CARD_COLORS = ['#FAF9F5', '#FFE066', '#BBF7D0', '#BAE6FD', '#18181B'];
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -85,84 +86,6 @@ function sameMonth(date: Date, reference: Date) {
 
 function daysInMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-}
-
-function sanitizeSvgText(text: string) {
-  return text.replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&apos;',
-  }[char] || char));
-}
-
-function wrapSvgText(text: string, maxChars: number, maxLines = 4) {
-  if (!text || !text.trim()) return ['-'];
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return ['-'];
-
-  const lines: string[] = [];
-  let current = '';
-
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const testLine = current ? `${current} ${word}` : word;
-
-    if (testLine.length <= maxChars) {
-      current = testLine;
-    } else {
-      if (lines.length === maxLines - 1) {
-        // Last line reached: fill as much as possible, append ellipsis if remaining
-        const remainingWords = [current, ...words.slice(i)].filter(Boolean).join(' ');
-        if (remainingWords.length > maxChars) {
-          const cut = remainingWords.slice(0, Math.max(10, maxChars - 3)).trimEnd();
-          lines.push(`${cut}...`);
-        } else {
-          lines.push(remainingWords);
-        }
-        current = '';
-        break;
-      }
-      if (current) lines.push(current);
-      current = word;
-    }
-  }
-
-  if (current && lines.length < maxLines) {
-    lines.push(current);
-  }
-
-  return lines.length ? lines : ['-'];
-}
-
-function svgMultilineText({
-  text,
-  x,
-  y,
-  maxChars,
-  maxLines = 3,
-  lineHeight,
-  fontSize,
-  fontWeight = 900,
-  fill = '#000',
-  anchor = 'start',
-}: {
-  text: string;
-  x: number;
-  y: number;
-  maxChars: number;
-  maxLines?: number;
-  lineHeight: number;
-  fontSize: number;
-  fontWeight?: number;
-  fill?: string;
-  anchor?: 'start' | 'middle' | 'end';
-}) {
-  const fontFam = "'Outfit', 'Plus Jakarta Sans', 'Arial Black', 'Impact', sans-serif";
-  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="${fontFam}" font-size="${fontSize}" font-weight="${fontWeight}" fill="${fill}">
-    ${wrapSvgText(text, maxChars, maxLines).map((line, index) => `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${sanitizeSvgText(line)}</tspan>`).join('')}
-  </text>`;
 }
 
 function getMonthlyFinances(transactions: Transaction[], monthFormat: Intl.DateTimeFormat): MonthlyFinance[] {
@@ -208,99 +131,6 @@ function categoryTotals(transactions: Transaction[], fallbackCategoryLabel: stri
   });
 
   return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
-}
-
-interface WrappedShareData {
-  month: string;
-  totalExpense: string;
-  topCategoryName: string;
-  topCategoryAmount: string;
-  topCategoryPercent: number;
-  totalTransactions: string;
-  cashflow: string;
-  walletBalance: string;
-  insight: string;
-}
-
-function buildWrappedSvg(data: WrappedShareData, background: string, lang: 'id' | 'en' = 'id') {
-  const width = 1080;
-  const height = 1920;
-  const fontFam = "'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-  const isId = lang === 'id';
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <!-- Background and Decorative Grid -->
-      <rect width="100%" height="100%" fill="${background}"/>
-      <path d="M0 250H1080M0 580H1080M0 910H1080M0 1240H1080M0 1570H1080" stroke="#000" stroke-width="3" opacity="0.12"/>
-      <path d="M210 0V1920M540 0V1920M870 0V1920" stroke="#000" stroke-width="3" opacity="0.08"/>
-
-      <!-- Outer Card with Neobrutalist Shadow -->
-      <rect x="74" y="74" width="964" height="1804" fill="#000"/>
-      <rect x="58" y="58" width="964" height="1804" fill="#fff" stroke="#000" stroke-width="10"/>
-
-      <!-- Header Bar with Shadow -->
-      <rect x="108" y="108" width="896" height="104" fill="#FFE066"/>
-      <rect x="92" y="92" width="896" height="104" fill="#000" stroke="#000" stroke-width="8"/>
-      <text x="136" y="158" font-family="${fontFam}" font-size="42" font-weight="900" fill="#FFE066" letter-spacing="2">NORDEN FINANCE</text>
-      <rect x="856" y="112" width="76" height="50" fill="#FFE066" stroke="#fff" stroke-width="4"/>
-      <text x="894" y="148" text-anchor="middle" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">N</text>
-
-      <!-- Title Area -->
-      <text x="92" y="275" font-family="${fontFam}" font-size="70" font-weight="900" fill="#000">Monthly</text>
-      <text x="92" y="348" font-family="${fontFam}" font-size="70" font-weight="900" fill="#000">Wrapped</text>
-      <text x="96" y="396" font-family="${fontFam}" font-size="28" font-weight="800" fill="#525252">${sanitizeSvgText(data.month)}</text>
-
-      <!-- Total Pengeluaran Card -->
-      <rect x="108" y="456" width="896" height="255" fill="#000"/>
-      <rect x="92" y="440" width="896" height="255" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="138" y="510" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000" letter-spacing="1">${isId ? 'TOTAL PENGELUARAN' : 'TOTAL EXPENSES'}</text>
-      ${svgMultilineText({ text: data.totalExpense, x: 138, y: 615, maxChars: 18, maxLines: 1, lineHeight: 0, fontSize: 84 })}
-
-      <!-- Row 1: Kategori Utama (Left) & Total Transaksi (Right) -->
-      <rect x="108" y="746" width="416" height="230" fill="#000"/>
-      <rect x="92" y="730" width="416" height="230" fill="#fff" stroke="#000" stroke-width="8"/>
-      <rect x="126" y="756" width="110" height="34" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="181" y="779" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'UTAMA' : 'TOP'}</text>
-      <text x="136" y="836" font-family="${fontFam}" font-size="28" font-weight="900" fill="#000">${isId ? 'Kategori Utama' : 'Top Category'}</text>
-      ${svgMultilineText({ text: data.topCategoryName, x: 136, y: 885, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 36 })}
-      <text x="136" y="928" font-family="${fontFam}" font-size="22" font-weight="900" fill="#737373">${sanitizeSvgText(data.topCategoryAmount)} · ${data.topCategoryPercent}%</text>
-
-      <rect x="588" y="746" width="416" height="230" fill="#FFE066"/>
-      <rect x="572" y="730" width="416" height="230" fill="#000" stroke="#000" stroke-width="8"/>
-      <rect x="606" y="756" width="130" height="34" fill="#fff" stroke="#000" stroke-width="4"/>
-      <text x="671" y="779" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'AKTIVITAS' : 'ACTIVITY'}</text>
-      <text x="616" y="836" font-family="${fontFam}" font-size="28" font-weight="900" fill="#FFE066">${isId ? 'Total Transaksi' : 'Total Transactions'}</text>
-      ${svgMultilineText({ text: data.totalTransactions, x: 616, y: 896, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 48, fill: '#fff' })}
-
-      <!-- Row 2: Cashflow (Left) & Wallet Aktif (Right) -->
-      <rect x="108" y="1016" width="416" height="230" fill="#FFE066"/>
-      <rect x="92" y="1000" width="416" height="230" fill="#000" stroke="#000" stroke-width="8"/>
-      <rect x="126" y="1026" width="130" height="34" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="191" y="1049" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">CASHFLOW</text>
-      <text x="136" y="1106" font-family="${fontFam}" font-size="28" font-weight="900" fill="#FFE066">Cashflow</text>
-      ${svgMultilineText({ text: data.cashflow, x: 136, y: 1166, maxChars: 16, maxLines: 1, lineHeight: 0, fontSize: 44, fill: '#fff' })}
-
-      <rect x="588" y="1016" width="416" height="230" fill="#000"/>
-      <rect x="572" y="1000" width="416" height="230" fill="#fff" stroke="#000" stroke-width="8"/>
-      <rect x="606" y="1026" width="110" height="34" fill="#FFE066" stroke="#000" stroke-width="4"/>
-      <text x="661" y="1049" text-anchor="middle" font-family="${fontFam}" font-size="15" font-weight="900" fill="#000">${isId ? 'DOMPET' : 'WALLET'}</text>
-      <text x="616" y="1106" font-family="${fontFam}" font-size="28" font-weight="900" fill="#000">${isId ? 'Wallet Aktif' : 'Active Wallet'}</text>
-      ${svgMultilineText({ text: data.walletBalance, x: 616, y: 1166, maxChars: 17, maxLines: 1, lineHeight: 0, fontSize: 38 })}
-
-      <!-- Insight Card (Generous height so no text is ever clipped or lost) -->
-      <rect x="108" y="1286" width="896" height="340" fill="#000"/>
-      <rect x="92" y="1270" width="896" height="340" fill="#FFE066" stroke="#000" stroke-width="8"/>
-      <text x="136" y="1332" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000" letter-spacing="1">${sanitizeSvgText(isId ? 'INSIGHT & STRATEGI BULAN INI' : 'MONTHLY INSIGHT & STRATEGY')}</text>
-      ${svgMultilineText({ text: data.insight, x: 136, y: 1386, maxChars: 46, maxLines: 5, lineHeight: 38, fontSize: 24, fontWeight: 800 })}
-
-      <!-- Footer Brand Elements -->
-      <text x="92" y="1695" font-family="${fontFam}" font-size="30" font-weight="900" fill="#000">Track your money. Find your direction.</text>
-      <text x="92" y="1735" font-family="${fontFam}" font-size="22" font-weight="800" fill="#525252">https://www.nordenfinance.site</text>
-      <rect x="866" y="1666" width="86" height="86" fill="#000"/>
-      <rect x="850" y="1650" width="86" height="86" fill="#FFE066" stroke="#000" stroke-width="6"/>
-      <text x="893" y="1710" text-anchor="middle" font-family="${fontFam}" font-size="52" font-weight="900" fill="#000">N</text>
-    </svg>
-  `;
 }
 
 function downloadSharePng({ data, background, lang }: { data: WrappedShareData; background: string; lang: 'id' | 'en' }) {
@@ -653,9 +483,9 @@ export default function NextGenIntelligence({
     walletBalance: formatCurrency(analysis.totalBalance),
     insight: analysis.topCategory
       ? (isId
-          ? `Pengeluaran terbesar bulan ini berasal dari kategori ${analysis.topCategory.name}.`
-          : `Top expense this month comes from ${analysis.topCategory.name} category.`)
-      : (isId ? 'Belum ada transaksi bulan ini.' : 'No transactions recorded this month.'),
+          ? `Pengeluaran terbesar bulan ini tercatat pada pos ${analysis.topCategory.name} (${topCategoryPercent}%). ${analysis.currentMonth.net >= 0 ? 'Arus kas berada dalam zona surplus yang sehat.' : 'Waspadai rasio belanja agar arus kas kembali seimbang.'}`
+          : `Top expense this month recorded in ${analysis.topCategory.name} (${topCategoryPercent}%). ${analysis.currentMonth.net >= 0 ? 'Net cashflow remains in a healthy surplus.' : 'Monitor non-essential spend to recover cashflow balance.'}`)
+      : (isId ? 'Belum ada transaksi tercatat bulan ini.' : 'No transactions recorded this month.'),
   };
   const wrappedPreviewSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(buildWrappedSvg(wrappedData, shareBackground, lang))}`;
   const shareTemplates = useMemo(() => {
@@ -772,7 +602,7 @@ export default function NextGenIntelligence({
                 <SmallMetric label={isId ? 'Pertumbuhan' : 'Growth'} value={`${analysis.journeyGrowth >= 0 ? '+' : ''}${analysis.journeyGrowth.toFixed(1)}%`} tone={analysis.journeyGrowth >= 0 ? 'bg-[#bbf7d0]' : 'bg-[#fecaca]'} />
               </div>
               <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <AreaChart data={analysis.journey.length ? analysis.journey : [{ label: isId ? 'Saat ini' : 'Current', value: analysis.netWorth }]}>
                     <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
                     <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
@@ -813,7 +643,7 @@ export default function NextGenIntelligence({
               </h4>
             </div>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={analysis.recentMonths}>
                   <CartesianGrid stroke="#d4d4d4" strokeDasharray="4 4" />
                   <XAxis dataKey="label" tick={{ fill: '#171717', fontSize: 10, fontWeight: 800 }} tickLine={false} axisLine={{ stroke: '#000', strokeWidth: 2 }} />
@@ -1071,15 +901,15 @@ export default function NextGenIntelligence({
                   <label className="block text-xs font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1 tracking-wider">
                     {isId ? 'Warna Latar' : 'Background Color'}
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     {CARD_COLORS.map((color) => (
                       <button
                         key={color}
                         type="button"
                         onClick={() => setShareBackground(color)}
-                        className={`h-9 w-9 border-2 border-black dark:border-neutral-700 ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : ''}`}
+                        className={`h-9 w-9 border-2 border-black dark:border-neutral-700 rounded-lg cursor-pointer transition-transform active:scale-95 ${shareBackground === color ? 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ring-2 ring-black dark:ring-white scale-105' : 'shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]'}`}
                         style={{ backgroundColor: color }}
-                        aria-label={isId ? `Pilih warna ${color}` : `Select color ${color}`}
+                        aria-label={isId ? `Pilih warna latar ${color}` : `Select background color ${color}`}
                       />
                     ))}
                   </div>

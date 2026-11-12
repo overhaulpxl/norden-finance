@@ -66,7 +66,7 @@ export default function ExpenseChart({ transactions }: { transactions: Transacti
       </h3>
       <div className="flex flex-col md:flex-row items-center gap-6">
         <div className="w-32 h-32 flex-shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <PieChart>
               <Pie
                 data={chartData}

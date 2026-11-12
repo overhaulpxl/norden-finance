@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { processInput } from '../../actions';
-import { processUserInput } from '../../actions/transactions';
+import { processInput, processUserInput } from '../../actions/transactions';
 import { assertSameOrigin } from '../../../lib/requestSecurity';
 import {
   assertRateLimit,
@@ -26,12 +25,23 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const requestUrl = new URL(request.url);
+  if (requestUrl.searchParams.has('token')) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Token di URL query parameter dilarang demi keamanan. Gunakan header Authorization: Bearer <TOKEN>.',
+      },
+      { status: 400 }
+    );
+  }
+
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   let bearerToken: string | null = null;
   if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
     bearerToken = authHeader.slice(7).trim();
   }
-  const token = bearerToken || new URL(request.url).searchParams.get('token');
+  const token = bearerToken;
   let tokenUserId: string | null = null;
 
   if (token) {

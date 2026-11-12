@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { Transaction, TransactionType } from '../types';
 import { X, Loader2, Save } from 'lucide-react';
 import { updateTransaction } from '../app/actions';
@@ -95,7 +96,12 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
   const labelClass =
     'text-[10px] font-black text-black dark:text-neutral-300 mb-1 block uppercase tracking-widest';
 
-  return (
+  const emptySubscribe = () => () => {};
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
       {/* Backdrop */}
       <div
@@ -232,6 +238,7 @@ export default function EditTransactionModal({ transaction, onClose }: Props) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

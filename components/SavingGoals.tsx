@@ -536,7 +536,7 @@ export default function SavingGoals({ goals, transactions = [] }: SavingGoalsPro
                   </div>
 
                   <div className="mt-4 h-44 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <LineChart
                         data={projection.chartData}
                         margin={{ top: 8, right: 8, left: -18, bottom: 0 }}

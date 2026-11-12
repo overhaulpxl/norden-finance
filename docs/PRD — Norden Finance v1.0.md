@@ -365,9 +365,10 @@ Financial Health Score adalah metrik komposit tunggal (0–100) yang mengukur ke
 Norden Finance menyediakan integrasi kelas satu dengan ekosistem perangkat bergerak tanpa harus merilis aplikasi native app store.
 
 ## Mekanisme Integrasi:
-1. Setiap pengguna mendapatkan URL endpoint webhook unik yang diamankan dengan tanda tangan kriptografi HMAC:
+1. Setiap pengguna mendapatkan URL endpoint webhook unik yang diamankan dengan token kriptografi HMAC via header:
    ```text
-   POST https://nordenfinance.vercel.app/api/shortcut?token={SIGNED_HMAC_TOKEN}
+   POST https://www.nordenfinance.site/api/shortcut
+   Header: Authorization: Bearer {SIGNED_HMAC_TOKEN}
    Payload: { "text": "kopi kenangan 35k gopay" }
    ```
 2. **Apple Shortcuts iOS:**

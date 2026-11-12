@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Send,
   Loader2,
@@ -111,6 +112,8 @@ export default function QuickInputModal({
 }) {
   const { lang } = useLanguage();
   const router = useRouter();
+  const emptySubscribe = () => () => {};
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [mode, setMode] = useState<ModalTab>('quick');
 
   // Quick/Chat mode states
@@ -231,15 +234,21 @@ export default function QuickInputModal({
     }
   }, [chatMessages, loading, mode]);
 
-  // Handle Escape key to close modal
+  // Handle Escape key and body scroll lock
   useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [onClose]);
 
   const clearCloseTimer = () => {
@@ -707,7 +716,9 @@ export default function QuickInputModal({
     setMAmount('');
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -1363,6 +1374,7 @@ export default function QuickInputModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

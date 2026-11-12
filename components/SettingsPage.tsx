@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2, Palette, Sun, Moon, Laptop, Camera, Bell, BellRing } from 'lucide-react';
+import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2, Palette, Sun, Moon, Laptop, Camera, Bell, BellRing, Copy, RefreshCw, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { deleteUserAccountData, resetUserFinancialData } from '../app/actions';
+import { deleteUserAccountData, resetUserFinancialData, getShortcutEndpoint, regenerateShortcutToken } from '../app/actions';
 import { forgotPasswordAction } from '../app/authActions';
 import { saveUserAvatarAction, getUserAvatarAction } from '../app/actions/user';
 import Link from 'next/link';
@@ -106,6 +106,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     }
     return 'unsupported';
   });
+
+  // Apple Shortcuts integration states
+  const [shortcutData, setShortcutData] = useState<{ endpoint: string; token: string } | null>(null);
+  const [shortcutLoading, setShortcutLoading] = useState(false);
+  const [shortcutRegenerating, setShortcutRegenerating] = useState(false);
+  const [shortcutCopiedUrl, setShortcutCopiedUrl] = useState(false);
+  const [shortcutCopiedToken, setShortcutCopiedToken] = useState(false);
+  const [showShortcutToken, setShowShortcutToken] = useState(false);
+  const [showShortcutGuide, setShowShortcutGuide] = useState(false);
+  const [shortcutError, setShortcutError] = useState<string | null>(null);
+  const [shortcutSuccess, setShortcutSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     isBiometricSupported().then(setBiometricDeviceSupport);
@@ -470,6 +481,64 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
       setDeleteError(err instanceof Error ? err.message : (lang === 'en' ? 'An error occurred while deleting account.' : 'Terjadi kesalahan saat menghapus akun.'));
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleLoadShortcut = async () => {
+    setShortcutLoading(true);
+    setShortcutError(null);
+    try {
+      const res = await getShortcutEndpoint();
+      if (res.success && res.endpoint && res.token) {
+        setShortcutData({ endpoint: res.endpoint, token: res.token });
+      } else {
+        setShortcutError(res.error || (lang === 'en' ? 'Failed to fetch shortcut token' : 'Gagal memuat token shortcut'));
+      }
+    } catch (err: unknown) {
+      setShortcutError(err instanceof Error ? err.message : 'Error');
+    } finally {
+      setShortcutLoading(false);
+    }
+  };
+
+  const handleRegenerateShortcut = async () => {
+    const confirmMsg = lang === 'en'
+      ? 'Reset and generate a new token? Existing iOS shortcuts will stop working until updated.'
+      : 'Reset dan buat token baru? Pintasan iOS lama akan berhenti berfungsi sampai token diperbarui.';
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+    setShortcutRegenerating(true);
+    setShortcutError(null);
+    try {
+      const res = await regenerateShortcutToken();
+      if (res.success && res.endpoint && res.token) {
+        setShortcutData({ endpoint: res.endpoint, token: res.token });
+        setShortcutSuccess(lang === 'en' ? 'New shortcut token generated successfully!' : 'Token shortcut baru berhasil diperbarui!');
+        setTimeout(() => setShortcutSuccess(null), 4000);
+      } else {
+        setShortcutError(res.error || (lang === 'en' ? 'Failed to regenerate token' : 'Gagal membuat ulang token'));
+      }
+    } catch (err: unknown) {
+      setShortcutError(err instanceof Error ? err.message : 'Error');
+    } finally {
+      setShortcutRegenerating(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string, type: 'url' | 'token') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      triggerHaptic('light');
+      if (type === 'url') {
+        setShortcutCopiedUrl(true);
+        setTimeout(() => setShortcutCopiedUrl(false), 2000);
+      } else {
+        setShortcutCopiedToken(true);
+        setTimeout(() => setShortcutCopiedToken(false), 2000);
+      }
+    } catch {
+      // Fallback
     }
   };
 
@@ -1510,6 +1579,218 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Integrasi Apple Shortcuts & Action Button */}
+      <div className="brutal-card p-6 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-black dark:text-white rounded-2xl shadow-[4px_4px_0px_0px_#000]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b-2 border-black dark:border-neutral-700 pb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-500 fill-amber-400 stroke-[2.5px]" />
+              {lang === 'en' ? 'Apple Shortcuts & Action Button' : 'Pintasan Apple & Action Button (iOS)'}
+            </h3>
+            <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mt-1">
+              {lang === 'en'
+                ? 'Record transactions in < 1s via Siri, Action Button, Back Tap, or Widget without opening the browser'
+                : 'Catat transaksi < 1 detik via Siri, Action Button, Ketuk Punggung, atau Widget tanpa buka browser'}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-neutral-700 rounded-lg shadow-[2px_2px_0px_0px_#000] shrink-0 bg-[#FFE066] text-black self-start sm:self-auto">
+            {lang === 'en' ? '⚡ FAST CAPTURE' : '⚡ PINTASAN CEPAT'}
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          {!shortcutData ? (
+            <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                  {lang === 'en' ? 'Shortcut Webhook Token' : 'Token Webhook Pintasan Pribadi'}
+                </p>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
+                  {lang === 'en'
+                    ? 'Generate your secure HMAC cryptographic token to connect iOS Shortcuts directly to your account.'
+                    : 'Tampilkan token kriptografi HMAC aman untuk menghubungkan Shortcuts iPhone langsung ke akun Anda.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleLoadShortcut}
+                disabled={shortcutLoading}
+                className="px-4 py-2.5 bg-black hover:bg-neutral-800 text-white border-2 border-black text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-2 shrink-0 disabled:opacity-50"
+              >
+                {shortcutLoading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>{lang === 'en' ? 'Loading...' : 'Memuat...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3.5 h-3.5 text-[#FFE066] fill-[#FFE066]" />
+                    <span>{lang === 'en' ? 'Show My Shortcut Key' : 'Tampilkan Kunci Pintasan'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {shortcutSuccess && (
+                <div className="p-3 bg-emerald-100 dark:bg-emerald-950/80 border-2 border-black dark:border-neutral-700 text-emerald-800 dark:text-emerald-200 font-bold text-xs uppercase tracking-wider">
+                  ✅ {shortcutSuccess}
+                </div>
+              )}
+              {shortcutError && (
+                <div className="p-3 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 font-bold text-xs uppercase tracking-wider">
+                  ❌ {shortcutError}
+                </div>
+              )}
+
+              {/* Webhook Endpoint */}
+              <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                    {lang === 'en' ? 'Webhook Endpoint URL (POST)' : 'URL Endpoint Webhook (POST)'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(shortcutData.endpoint, 'url')}
+                    className="px-2.5 py-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    {shortcutCopiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{shortcutCopiedUrl ? (lang === 'en' ? 'Copied!' : 'Tersalin!') : (lang === 'en' ? 'Copy URL' : 'Salin URL')}</span>
+                  </button>
+                </div>
+                <div className="p-2.5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded font-mono text-xs text-neutral-800 dark:text-neutral-200 break-all select-all">
+                  {shortcutData.endpoint}
+                </div>
+              </div>
+
+              {/* Secret Bearer Token */}
+              <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                    {lang === 'en' ? 'Secret Authorization Token (HMAC)' : 'Token Otorisasi Rahasia (HMAC)'}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowShortcutToken((prev) => !prev)}
+                      className="px-2 py-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      {showShortcutToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span>{showShortcutToken ? (lang === 'en' ? 'Hide' : 'Sembunyi') : (lang === 'en' ? 'Show' : 'Lihat')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(shortcutData.token, 'token')}
+                      className="px-2.5 py-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      {shortcutCopiedToken ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{shortcutCopiedToken ? (lang === 'en' ? 'Copied!' : 'Tersalin!') : (lang === 'en' ? 'Copy Token' : 'Salin Token')}</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="p-2.5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded font-mono text-xs text-neutral-800 dark:text-neutral-200 break-all select-all">
+                  {showShortcutToken ? shortcutData.token : '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••'}
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1">
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
+                    ⚠️ {lang === 'en' ? 'Keep this token private. It grants permission to record transactions into your account.' : 'Jaga kerahasiaan token ini. Siapa pun yang memiliki token ini dapat mencatat transaksi ke akun Anda.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRegenerateShortcut}
+                    disabled={shortcutRegenerating}
+                    className="text-[11px] text-red-600 dark:text-red-400 hover:underline font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${shortcutRegenerating ? 'animate-spin' : ''}`} />
+                    <span>{lang === 'en' ? 'Reset / Invalidate Token' : 'Reset / Buat Token Baru'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step-by-Step iOS Shortcuts Setup Guide */}
+              <div className="border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-[3px_3px_0px_0px_#000]">
+                <button
+                  type="button"
+                  onClick={() => setShowShortcutGuide((prev) => !prev)}
+                  className="w-full p-4 flex items-center justify-between text-left font-black text-xs uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700/80 transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>📖</span>
+                    <span>{lang === 'en' ? 'Step-by-Step Setup Guide in iOS Shortcuts' : 'Panduan Pasang di Aplikasi Pintasan (Shortcuts iOS)'}</span>
+                  </span>
+                  {showShortcutGuide ? <ChevronUp className="w-4 h-4 stroke-[2.5px]" /> : <ChevronDown className="w-4 h-4 stroke-[2.5px]" />}
+                </button>
+
+                {showShortcutGuide && (
+                  <div className="p-4 space-y-3.5 text-xs text-neutral-700 dark:text-neutral-300 font-medium border-t-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-900">
+                    <div className="space-y-1">
+                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
+                        1. Buat Pintasan Baru
+                      </p>
+                      <p className="leading-relaxed">
+                        Buka aplikasi bawaan <strong>Shortcuts (Pintasan)</strong> di iPhone, lalu ketuk tombol <strong>+</strong> di pojok kanan atas. Beri nama pintasan, misalnya: <em>&ldquo;Catat Norden&rdquo;</em>.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
+                        2. Tambah Aksi &ldquo;Minta Masukan&rdquo; (Ask for Input)
+                      </p>
+                      <p className="leading-relaxed">
+                        Cari aksi <strong>Ask for Input (Minta Masukan)</strong>. Pilih tipe: <code>Teks</code>, pertanyaan: <code>Catat transaksi apa?</code>.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
+                        3. Tambah Aksi &ldquo;Dapatkan Isi URL&rdquo; (Get Contents of URL)
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                        <li><strong>URL</strong>: Masukkan URL Endpoint di atas.</li>
+                        <li><strong>Metode (Method)</strong>: <code>POST</code>.</li>
+                        <li>
+                          <strong>Tajuk (Headers)</strong>:
+                          <span className="block pl-2 pt-0.5 space-y-0.5 font-mono text-[11px]">
+                            <span>• <code>Content-Type</code>: <code>application/json</code></span><br />
+                            <span>• <code>Authorization</code>: <code>Bearer [Salin Token Anda]</code></span>
+                          </span>
+                        </li>
+                        <li>
+                          <strong>Isi Permintaan (Request Body)</strong>: <code>JSON</code>.
+                          <div className="pt-0.5">
+                            Tambahkan field baru bertipe <strong>Text</strong>: Key = <code>text</code>, Value = variabel <strong>[Input yang Disediakan]</strong> dari langkah 2.
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
+                        4. Tambah Aksi &ldquo;Tampilkan Pemberitahuan&rdquo; (Show Notification)
+                      </p>
+                      <p className="leading-relaxed">
+                        Tampilkan konfirmasi dengan memasukkan variabel hasil <code>[Isi URL]</code> agar notifikasi mencatat status berhasil.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-amber-100 dark:bg-amber-950/60 border-2 border-black dark:border-neutral-700 rounded-lg text-black dark:text-white space-y-1">
+                      <p className="font-black uppercase tracking-wider text-[11px] text-amber-900 dark:text-amber-200">
+                        💡 Cara Memicu di iPhone:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-0.5 text-[11px] leading-relaxed">
+                        <li><strong>Action Button (iPhone 15 Pro / 16)</strong>: Buka <em>Settings &gt; Action Button &gt; Shortcut &gt; Catat Norden</em>.</li>
+                        <li><strong>Ketuk Punggung (Back Tap)</strong>: Buka <em>Settings &gt; Aksesibilitas &gt; Sentuh &gt; Ketuk Bagian Belakang &gt; Ketuk Dua Kali &gt; Catat Norden</em>.</li>
+                        <li><strong>Siri Voice</strong>: Cukup ucapkan <em>&ldquo;Hey Siri, Catat Norden&rdquo;</em>, lalu sebutkan <em>&ldquo;kopi 25k bca&rdquo;</em>.</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
