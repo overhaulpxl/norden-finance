@@ -111,7 +111,7 @@ export default async function LandingPage() {
             <Zap className="w-3.5 h-3.5 stroke-[3px]" /> Personal Finance Operating System
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-black max-w-5xl mx-auto leading-tight mb-5 uppercase select-none reveal lg:whitespace-nowrap">
+          <h1 className="text-2xl sm:text-3xl lg:text-[32px] xl:text-[36px] font-black tracking-tight text-black max-w-6xl mx-auto leading-tight mb-5 uppercase select-none reveal lg:whitespace-nowrap">
             Kelola Keuangan Pribadi Lebih Teratur dengan Norden
           </h1>
 
@@ -198,7 +198,7 @@ export default async function LandingPage() {
                   <div className="w-12 h-12 border-[2.5px] border-black bg-[#bbf7d0] flex items-center justify-center shadow-[2.5px_2.5px_0px_0px_#000]">
                     <MessageSquare className="w-6 h-6 stroke-[2.5px] text-black" />
                   </div>
-                  <h3 className="text-xl font-black text-black uppercase tracking-wide">
+                  <h3 className="text-lg sm:text-xl font-black text-black uppercase tracking-wide whitespace-nowrap">
                     1. Smart Input Cepat
                   </h3>
                   <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
@@ -242,7 +242,7 @@ export default async function LandingPage() {
                   <div className="w-12 h-12 border-[2.5px] border-black bg-[#FFE066] flex items-center justify-center shadow-[2.5px_2.5px_0px_0px_#000]">
                     <Wallet className="w-6 h-6 stroke-[2.5px] text-black" />
                   </div>
-                  <h3 className="text-xl font-black text-black uppercase tracking-wide">
+                  <h3 className="text-lg sm:text-xl font-black text-black uppercase tracking-wide whitespace-nowrap">
                     2. Multi-Dompet &amp; Saldo
                   </h3>
                   <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
@@ -286,7 +286,7 @@ export default async function LandingPage() {
                   <div className="w-12 h-12 border-[2.5px] border-black bg-[#bfdbfe] flex items-center justify-center shadow-[2.5px_2.5px_0px_0px_#000]">
                     <Target className="w-6 h-6 stroke-[2.5px] text-black" />
                   </div>
-                  <h3 className="text-xl font-black text-black uppercase tracking-wide">
+                  <h3 className="text-lg sm:text-xl font-black text-black uppercase tracking-wide whitespace-nowrap">
                     3. Anggaran &amp; Disiplin
                   </h3>
                   <p className="text-xs sm:text-sm text-neutral-700 font-bold leading-relaxed">
@@ -360,7 +360,7 @@ export default async function LandingPage() {
                 <span className="inline-block bg-[#FFE066] border-[2px] border-black px-3.5 py-1 font-black text-[10px] uppercase tracking-widest shadow-[2px_2px_0px_0px_#000]">
                   Filosofi Produk
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase leading-[1.05]">
+                <h2 className="text-2xl sm:text-3xl lg:text-[28px] xl:text-3xl font-black tracking-tight text-black uppercase leading-tight lg:whitespace-nowrap">
                   Kenapa Memilih Norden Finance?
                 </h2>
                 <div className="space-y-4 text-xs sm:text-sm font-bold leading-relaxed text-neutral-700">
@@ -591,7 +591,7 @@ export default async function LandingPage() {
               <span className="inline-block bg-[#FAF9F5] border-[2px] border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000]">
                 FAQ
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
+              <h2 className="text-2xl sm:text-3xl lg:text-[32px] xl:text-4xl font-black tracking-tight text-black uppercase lg:whitespace-nowrap">
                 Pertanyaan yang Sering Diajukan Seputar Norden
               </h2>
             </div>
