@@ -44,7 +44,7 @@ function TestimonialCard({
             />
           ))}
         </div>
-        <p className={`text-xs sm:text-sm text-neutral-800 font-bold leading-relaxed mb-6 ${expanded ? '' : 'line-clamp-5'}`}>
+        <p className={`text-xs sm:text-sm text-neutral-800 font-bold leading-relaxed mb-6 text-justify ${expanded ? '' : 'line-clamp-5'}`}>
           &quot;{testimonial.message}&quot;
         </p>
       </div>
