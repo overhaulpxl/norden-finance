@@ -50,18 +50,23 @@ export async function preprocessReceiptImage(file: File | Blob): Promise<HTMLCan
       const imgData = ctx.getImageData(0, 0, w, h);
       const d = imgData.data;
 
-      // Grayscale & contrast enhancement
+      // Grayscale & gentle contrast stretching for thermal paper
+      let min = 255;
+      let max = 0;
       for (let i = 0; i < d.length; i += 4) {
-        const r = d[i];
-        const g = d[i + 1];
-        const b = d[i + 2];
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        if (gray < min) min = gray;
+        if (gray > max) max = gray;
+      }
 
-        // Simple high-contrast stretching
-        const contrast = gray > 140 ? 255 : Math.max(0, gray - 20);
-        d[i] = contrast;
-        d[i + 1] = contrast;
-        d[i + 2] = contrast;
+      const range = max - min || 1;
+      for (let i = 0; i < d.length; i += 4) {
+        const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        // Normalize range slightly to enhance faint thermal print
+        const stretched = Math.round(((gray - min) / range) * 255);
+        d[i] = stretched;
+        d[i + 1] = stretched;
+        d[i + 2] = stretched;
       }
 
       ctx.putImageData(imgData, 0, 0);
@@ -89,10 +94,11 @@ export function parseReceiptOcrText(rawText: string): ParsedReceipt {
   // 1. Total Amount extraction
   let amount = 0;
   const totalRegexes = [
-    /\b(?:grand\s*total|total\s*akhir|total\s*bayar)\b\s*[:=]?\s*(?:rp\.?\s*)?([0-9.,]+)/i,
-    /\b(?:total|jumlah\s*bayar|tagihan|netto)\b\s*[:=]?\s*(?:rp\.?\s*)?([0-9.,]+)/i,
+    /\b(?:grand\s*total|total\s*akhir|total\s*bayar|tot\s*bayar)\b\s*[:=]?\s*(?:rp\.?\s*)?([0-9.,]+)/i,
+    /\b(?:total|jumlah\s*bayar|tagihan|netto|jumlah)\b\s*[:=]?\s*(?:rp\.?\s*)?([0-9.,]+)/i,
     /\b(?:subtotal|sub\s*total)\b\s*[:=]?\s*(?:rp\.?\s*)?([0-9.,]+)/i,
-    /(?:rp\.?\s*)([0-9]{1,3}(?:\.[0-9]{3})+)/i,
+    /(?:rp\.?\s*)([0-9]{1,3}(?:[.,][0-9]{3})+)/i,
+    /\b(?:cash|tunai|debit|qris|bca|mandiri)\b\s*[:=]?\s*(?:rp\.?\s*)?([0-9.,]+)/i,
   ];
 
   for (const regex of totalRegexes) {
@@ -103,6 +109,19 @@ export function parseReceiptOcrText(rawText: string): ParsedReceipt {
       if (Number.isFinite(parsed) && parsed > 0) {
         amount = parsed;
         break;
+      }
+    }
+  }
+
+  // Fallback: If no explicit keyword matched, extract max thousand-separated number
+  if (amount === 0) {
+    const fallbackMatches = rawText.match(/\b\d{1,3}(?:[.,]\d{3})+\b/g);
+    if (fallbackMatches && fallbackMatches.length > 0) {
+      const parsedNumbers = fallbackMatches
+        .map((m) => parseInt(m.replace(/[.,]/g, ''), 10))
+        .filter((n) => Number.isFinite(n) && n >= 1000 && n <= 100_000_000);
+      if (parsedNumbers.length > 0) {
+        amount = Math.max(...parsedNumbers);
       }
     }
   }
@@ -210,17 +229,27 @@ export async function scanReceiptOffline(
   onProgress?: (progress: number) => void
 ): Promise<ParsedReceipt> {
   const canvas = await preprocessReceiptImage(file);
-  const Tesseract = await import('tesseract.js');
+  try {
+    const Tesseract = await import('tesseract.js');
 
-  const {
-    data: { text },
-  } = await Tesseract.recognize(canvas, 'eng', {
-    logger: (m) => {
-      if (m.status === 'recognizing text' && typeof m.progress === 'number' && onProgress) {
-        onProgress(Math.round(m.progress * 100));
-      }
-    },
-  });
+    const {
+      data: { text },
+    } = await Tesseract.recognize(canvas, 'eng', {
+      logger: (m) => {
+        if (m.status === 'recognizing text' && typeof m.progress === 'number' && onProgress) {
+          onProgress(Math.round(m.progress * 100));
+        }
+      },
+    });
 
-  return parseReceiptOcrText(text);
+    if (text && text.trim().length > 0) {
+      return parseReceiptOcrText(text);
+    }
+  } catch (err) {
+    console.warn('Tesseract offline engine error:', err);
+  }
+
+  // Graceful fallback if OCR engine fails or yields empty text
+  const fallbackName = file instanceof File ? file.name.replace(/\.[^/.]+$/, '').replace(/[_\-+]/g, ' ') : 'Struk Belanja';
+  return parseReceiptOcrText(fallbackName);
 }

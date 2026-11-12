@@ -12,11 +12,8 @@ import {
   MicOff,
   ClipboardPaste,
   Calculator,
-  Plus,
-  Trash2,
   FileText,
   Smartphone,
-  Check,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
@@ -99,14 +96,7 @@ interface ChatMessage {
   txId?: string | null;
 }
 
-interface ReceiptRowItem {
-  id: string;
-  name: string;
-  qty: string;
-  price: string;
-}
-
-type ModalTab = 'quick' | 'manual' | 'receipt' | 'split';
+type ModalTab = 'quick' | 'manual' | 'split';
 
 export default function QuickInputModal({
   balances,
@@ -210,17 +200,10 @@ export default function QuickInputModal({
   const [isAllocateGoal, setIsAllocateGoal] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string>('');
 
-  // Option B: Receipt Attachment & 3-Column Quick Entry Sheet
+  // Receipt Image Attachment states
   const [receiptImageThumbnail, setReceiptImageThumbnail] = useState<string | null>(null);
   const [receiptImageName, setReceiptImageName] = useState<string | null>(null);
-  const [receiptMerchant, setReceiptMerchant] = useState('');
-  const [receiptWallet, setReceiptWallet] = useState('');
-  const [receiptCategory, setReceiptCategory] = useState(lang === 'en' ? 'Shopping' : 'Belanja');
   const [receiptCompressing, setReceiptCompressing] = useState(false);
-  const [receiptRows, setReceiptRows] = useState<ReceiptRowItem[]>([
-    { id: '1', name: '', qty: '1', price: '' },
-    { id: '2', name: '', qty: '1', price: '' },
-  ]);
 
   // Common states
   const [loading, setLoading] = useState(false);
@@ -470,35 +453,29 @@ export default function QuickInputModal({
       const url = URL.createObjectURL(compressed);
       setReceiptImageThumbnail(url);
       setReceiptImageName(file.name);
-      setMode('receipt');
 
       // 100% Offline Client-Side Tesseract OCR
       try {
         const ocrData = await scanReceiptOffline(compressed);
-        if (ocrData.merchant) setReceiptMerchant(ocrData.merchant);
-        if (ocrData.category) setReceiptCategory(ocrData.category);
-        if (Array.isArray(ocrData.items) && ocrData.items.length > 0) {
-          setReceiptRows(ocrData.items);
-        } else if (ocrData.amount > 0) {
-          setReceiptRows([
-            {
-              id: Math.random().toString(),
-              name: ocrData.merchant || (lang === 'en' ? 'Shopping' : 'Belanja'),
-              qty: '1',
-              price: formatRupiahInput(String(ocrData.amount)),
-            },
-          ]);
-        }
+        if (ocrData.amount > 0 || ocrData.suggestedText) {
+          const autoText = ocrData.suggestedText || `${ocrData.amount} ${ocrData.merchant || 'Belanja'} cash`;
+          setInput(autoText);
 
-        triggerHaptic('success');
-        setMessage({
-          type: 'success',
-          text:
-            lang === 'en'
-              ? `📷 Receipt scanned (Tesseract OCR): ${ocrData.merchant || 'Attached'} (${ocrData.amount > 0 ? `Rp ${ocrData.amount.toLocaleString()}` : ''})`
-              : `📷 Struk terpindai (Tesseract OCR): ${ocrData.merchant || 'Terlampir'} (${ocrData.amount > 0 ? `Rp ${ocrData.amount.toLocaleString('id-ID')}` : ''})`,
-        });
-        return;
+          // Also populate manual fields if user switches to manual tab
+          setMAmount(formatRupiahInput(String(ocrData.amount)));
+          if (ocrData.category) setMCategory(ocrData.category);
+          setMNote(ocrData.merchant || 'Struk');
+
+          triggerHaptic('success');
+          setMessage({
+            type: 'success',
+            text:
+              lang === 'en'
+                ? `📷 Receipt detected: Rp ${ocrData.amount.toLocaleString()} (${ocrData.merchant}). Press Enter or Catat.`
+                : `📷 Struk terdeteksi: Rp ${ocrData.amount.toLocaleString('id-ID')} (${ocrData.merchant}). Siap dicatat.`,
+          });
+          return;
+        }
       } catch (scanErr) {
         console.warn('Tesseract offline OCR error, keeping thumbnail:', scanErr);
       }
@@ -508,8 +485,8 @@ export default function QuickInputModal({
         type: 'success',
         text:
           lang === 'en'
-            ? `📷 Receipt photo "${file.name}" attached. Fill in quick details below.`
-            : `📷 Foto struk "${file.name}" terlampir. Isi rincian cepat di bawah.`,
+            ? `📷 Receipt photo "${file.name}" attached. Type details in Smart Input.`
+            : `📷 Foto struk "${file.name}" terlampir. Masukkan nominal & catatan di Smart Input.`,
       });
     } catch {
       triggerHaptic('warning');
@@ -532,136 +509,7 @@ export default function QuickInputModal({
     setReceiptImageName(null);
   };
 
-  // Option B: 3-Column Sheet Row Operations
-  const handleAddReceiptRow = () => {
-    triggerHaptic('light');
-    setReceiptRows((prev) => [
-      ...prev,
-      { id: Math.random().toString(), name: '', qty: '1', price: '' },
-    ]);
-  };
 
-  const handleRemoveReceiptRow = (id: string) => {
-    triggerHaptic('light');
-    setReceiptRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
-  };
-
-  const handleUpdateReceiptRow = (id: string, field: 'name' | 'qty' | 'price', value: string) => {
-    setReceiptRows((prev) =>
-      prev.map((row) => {
-        if (row.id !== id) return row;
-        if (field === 'price') {
-          return { ...row, price: formatRupiahInput(value) };
-        }
-        return { ...row, [field]: value };
-      })
-    );
-  };
-
-  // Total Subtotal of Option B Sheet
-  const receiptSubtotal = useMemo(() => {
-    return receiptRows.reduce((sum, row) => sum + (parseRupiahInput(row.price) || 0), 0);
-  }, [receiptRows]);
-
-  // Option B: Save Directly
-  const handleSaveReceiptSheet = async () => {
-    if (loading) return;
-    if (receiptSubtotal <= 0) {
-      triggerHaptic('warning');
-      setMessage({
-        type: 'error',
-        text: lang === 'en' ? 'Fill in price for at least one item.' : 'Isi harga minimal satu item pada struk.',
-      });
-      return;
-    }
-
-    setLoading(true);
-    triggerHaptic('medium');
-
-    const wallet = receiptWallet || currentMethod || 'Cash';
-    const validRows = receiptRows.filter(
-      (r) => r.name.trim() || (parseRupiahInput(r.price) || 0) > 0
-    );
-
-    try {
-      const res = await addExplicitTransaction({
-        type: 'keluar',
-        amount: receiptSubtotal,
-        category: receiptCategory || (lang === 'en' ? 'Shopping' : 'Belanja'),
-        wallet,
-        note: receiptMerchant.trim()
-          ? (lang === 'en' ? `Receipt: ${receiptMerchant.trim()}` : `Struk: ${receiptMerchant.trim()}`)
-          : (lang === 'en' ? 'Receipt Shopping (Option B)' : 'Struk Belanja (Opsi B)'),
-        tags: ['receipt', 'option-b'],
-        receiptMerchant: receiptMerchant.trim() || undefined,
-        receiptItems: validRows,
-        receiptDate: new Date().toISOString(),
-      });
-
-      if (res.success) {
-        triggerHaptic('success');
-        refreshAfterMutation();
-        if (res.transactionId) {
-          const createdId = res.transactionId;
-          setUndoTxId(createdId);
-          triggerUndoToast({
-            message:
-              lang === 'en'
-                ? `Receipt ${formatRupiah(receiptSubtotal)} recorded`
-                : `Struk ${formatRupiah(receiptSubtotal)} dicatat`,
-            onUndo: async () => {
-              await deleteTransaction(createdId);
-              refreshAfterMutation();
-            },
-          });
-        }
-        setMessage({
-          type: 'success',
-          text:
-            lang === 'en'
-              ? `✅ Receipt ${receiptMerchant || 'Shopping'} (${formatRupiah(receiptSubtotal)}) saved!`
-              : `✅ Struk ${receiptMerchant || 'Belanja'} (${formatRupiah(receiptSubtotal)}) berhasil disimpan!`,
-        });
-        setReceiptRows([
-          { id: '1', name: '', qty: '1', price: '' },
-          { id: '2', name: '', qty: '1', price: '' },
-        ]);
-        setReceiptMerchant('');
-        handleRemoveReceiptImage();
-        scheduleClose();
-      } else {
-        triggerHaptic('warning');
-        setMessage({
-          type: 'error',
-          text: res.error || (lang === 'en' ? 'Failed to save receipt transaction.' : 'Gagal menyimpan transaksi struk.'),
-        });
-      }
-    } catch {
-      triggerHaptic('warning');
-      setMessage({
-        type: 'error',
-        text: lang === 'en' ? 'System error while saving.' : 'Terjadi kesalahan sistem saat menyimpan.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Transfer Receipt Total to Manual Form
-  const handleTransferReceiptToManual = () => {
-    triggerHaptic('selection');
-    setMAmount(formatRupiahInput(receiptSubtotal.toString()));
-    setMNote(receiptMerchant ? (lang === 'en' ? `Receipt: ${receiptMerchant}` : `Struk: ${receiptMerchant}`) : (lang === 'en' ? 'Receipt Shopping' : 'Struk Belanja'));
-    setMCategory(receiptCategory || (lang === 'en' ? 'Shopping' : 'Belanja'));
-    setMode('manual');
-    setMessage({
-      type: 'success',
-      text:
-        lang === 'en'
-          ? `Receipt total ${formatRupiah(receiptSubtotal)} moved to Manual Form.`
-          : `Total struk ${formatRupiah(receiptSubtotal)} dipindahkan ke Formulir Manual.`,
-    });
-  };
 
   // Manual submit handler
   const handleManualSubmit = async (e: React.FormEvent) => {
@@ -731,7 +579,6 @@ export default function QuickInputModal({
             method: currentMethod,
             note: mNote,
             tags: tagsArray,
-            receiptItems: receiptRows.length > 0 ? receiptRows : undefined,
           },
         });
       }
@@ -913,8 +760,8 @@ export default function QuickInputModal({
           </div>
         </div>
 
-        {/* 4 Tabs with Soft-Neobrutalism Navigation */}
-        <div className="grid grid-cols-4 border-b-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shrink-0 text-center text-[10px] sm:text-xs font-black uppercase tracking-wider">
+        {/* 3 Tabs with Soft-Neobrutalism Navigation */}
+        <div className="grid grid-cols-3 border-b-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 shrink-0 text-center text-[10px] sm:text-xs font-black uppercase tracking-wider">
           <button
             type="button"
             onClick={() => {
@@ -955,27 +802,6 @@ export default function QuickInputModal({
           >
             <FileText className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
             <span>{lang === 'en' ? 'Manual Form' : 'Formulir'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic('selection');
-              setMode('receipt');
-            }}
-            className={`py-2.5 px-1 border-r-2 border-black dark:border-neutral-700 transition-all cursor-pointer flex items-center justify-center gap-1 ${
-              mode === 'receipt' ? 'bg-white dark:bg-neutral-900 font-black' : 'text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-700'
-            }`}
-            style={
-              mode === 'receipt'
-                ? {
-                    borderBottom: '2px solid var(--theme-accent, #FFE066)',
-                  }
-                : {}
-            }
-          >
-            <Camera className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
-            <span>{lang === 'en' ? 'Receipt (B)' : 'Struk (B)'}</span>
           </button>
 
           <button
@@ -1076,6 +902,32 @@ export default function QuickInputModal({
                   {lang === 'en' ? '🚗 Ride 22k Cash' : '🚗 Gojek 22rb Cash'}
                 </button>
               </div>
+
+              {/* Receipt Thumbnail Preview */}
+              {receiptImageThumbnail && (
+                <div className="p-2 bg-[#FAF9F5] dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl flex items-center justify-between gap-2 shadow-[2px_2px_0px_0px_#000]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={receiptImageThumbnail}
+                      alt="Receipt preview"
+                      className="w-9 h-9 object-cover rounded-md border border-black shadow-[1px_1px_0px_0px_#000]"
+                    />
+                    <span className="text-[11px] font-black truncate">
+                      {receiptImageName || (lang === 'id' ? 'Struk terlampir' : 'Receipt attached')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveReceiptImage}
+                    className="p-1 text-red-600 hover:text-red-800 cursor-pointer"
+                    title={lang === 'id' ? 'Hapus lampiran struk' : 'Remove receipt attachment'}
+                    aria-label={lang === 'id' ? 'Hapus lampiran struk' : 'Remove receipt attachment'}
+                  >
+                    <X className="w-4 h-4 stroke-[2.5px]" />
+                  </button>
+                </div>
+              )}
 
               {/* Chat Input Bar */}
               <form
@@ -1465,236 +1317,7 @@ export default function QuickInputModal({
             </form>
           )}
 
-          {/* TAB 3: Option B: Receipt Attachment + 3-Column Quick Entry Sheet */}
-          {mode === 'receipt' && (
-            <div className="space-y-4">
-              <div className="p-3.5 bg-[#FAF9F5] dark:bg-neutral-800/80 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2.5px_2.5px_0px_0px_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  {receiptImageThumbnail ? (
-                    <div className="relative w-14 h-14 shrink-0 rounded-xl border-2 border-black overflow-hidden shadow-[2px_2px_0px_0px_#000]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={receiptImageThumbnail}
-                        alt={lang === 'en' ? 'Receipt thumbnail' : 'Thumbnail struk'}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleRemoveReceiptImage}
-                        className="absolute top-0 right-0 p-0.5 bg-red-600 text-white cursor-pointer"
-                        title={lang === 'en' ? 'Delete receipt photo' : 'Hapus foto struk'}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-14 h-14 shrink-0 rounded-xl border-2 border-dashed border-black dark:border-neutral-600 bg-white dark:bg-neutral-900 flex items-center justify-center">
-                      <Camera className="w-6 h-6 text-neutral-400 stroke-[2px]" />
-                    </div>
-                  )}
-
-                  <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white truncate">
-                      {receiptImageName || (lang === 'en' ? 'Receipt Attachment (Option B)' : 'Lampiran Struk (Opsi B)')}
-                    </p>
-                    <p className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mt-0.5">
-                      {receiptImageThumbnail
-                        ? (lang === 'en' ? 'Photo saved locally on device. Fill quick details below.' : 'Foto tersimpan di memori perangkat. Rincian cepat diisi di bawah.')
-                        : (lang === 'en' ? 'Upload/take photo of receipt, then log items with 3-column sheet without cloud OCR.' : 'Unggah/foto struk, lalu catat cepat 3-kolom tanpa cloud OCR.')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    ref={fileInputRef}
-                    onChange={handleReceiptAttachment}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={receiptCompressing}
-                    className="w-full sm:w-auto px-3 py-1.5 border-2 border-black dark:border-neutral-700 rounded-lg text-xs font-black uppercase tracking-wider bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    {receiptCompressing ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Camera className="w-3.5 h-3.5" />
-                    )}
-                    <span>{receiptImageThumbnail ? (lang === 'en' ? 'Change Photo' : 'Ganti Foto') : (lang === 'en' ? 'Take/Upload Photo' : 'Ambil/Unggah Foto')}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Merchant, Wallet & Category for Receipt */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    {lang === 'en' ? 'Store / Merchant Name' : 'Nama Toko / Tempat'}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={lang === 'en' ? 'e.g. Walmart, Starbucks, Pharmacy' : 'Contoh: Indomaret, Hokben, Apotek'}
-                    value={receiptMerchant}
-                    onChange={(e) => setReceiptMerchant(e.target.value)}
-                    className="w-full brutal-input text-xs font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                    {lang === 'en' ? 'Paid With Wallet' : 'Bayar Pakai Wallet'}
-                  </label>
-                  <WalletSelect
-                    wallets={balances}
-                    value={receiptWallet || currentMethod}
-                    onChange={setReceiptWallet}
-                    className="w-full brutal-input text-xs uppercase font-bold"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Category Quick Chips for Receipt */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
-                  {lang === 'en' ? 'Receipt Category' : 'Kategori Struk'}
-                </label>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {(lang === 'en' ? QUICK_EXPENSE_CATEGORIES_EN : QUICK_EXPENSE_CATEGORIES_ID).map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => {
-                        triggerHaptic('selection');
-                        setReceiptCategory(cat);
-                      }}
-                      className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border border-black dark:border-neutral-700 rounded-md shadow-[1px_1px_0px_0px_#000] cursor-pointer ${
-                        receiptCategory === cat
-                          ? 'bg-[#FFE066] text-black font-black'
-                          : 'bg-white dark:bg-neutral-800 text-black dark:text-white'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 3-Column Sheet Table */}
-              <div className="border-2 border-black dark:border-neutral-700 rounded-xl overflow-hidden shadow-[3px_3px_0px_0px_#000] bg-white dark:bg-neutral-900">
-                <div className="px-3 py-2 bg-neutral-100 dark:bg-neutral-800 border-b-2 border-black dark:border-neutral-700 flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
-                  <span>{lang === 'en' ? 'Quick Entry Sheet (3 Columns)' : 'Lembar Masuk Cepat (3 Kolom)'}</span>
-                  <button
-                    type="button"
-                    onClick={handleAddReceiptRow}
-                    className="px-2 py-0.5 border border-black dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-black dark:text-white flex items-center gap-1 cursor-pointer shadow-[1px_1px_0px_0px_#000]"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>{lang === 'en' ? 'Add Row' : 'Tambah Baris'}</span>
-                  </button>
-                </div>
-
-                <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                  <div className="grid grid-cols-[1fr_80px_110px_36px] gap-2 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-neutral-500 bg-neutral-50 dark:bg-neutral-900">
-                    <div>{lang === 'en' ? 'Item Name' : 'Nama Barang'}</div>
-                    <div>{lang === 'en' ? 'Qty / Note' : 'Qty / Ket.'}</div>
-                    <div>{lang === 'en' ? 'Price (Rp)' : 'Harga (Rp)'}</div>
-                    <div className="text-center">{lang === 'en' ? 'Action' : 'Aksi'}</div>
-                  </div>
-
-                  {receiptRows.map((row, index) => (
-                    <div
-                      key={row.id}
-                      className="grid grid-cols-[1fr_80px_110px_36px] gap-2 p-2.5 items-center"
-                    >
-                      <input
-                        type="text"
-                        placeholder={lang === 'en' ? `Item #${index + 1}` : `Barang #${index + 1}`}
-                        value={row.name}
-                        onChange={(e) => handleUpdateReceiptRow(row.id, 'name', e.target.value)}
-                        className="w-full px-2 py-1 text-xs font-bold border border-black dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        placeholder="1 pcs"
-                        value={row.qty}
-                        onChange={(e) => handleUpdateReceiptRow(row.id, 'qty', e.target.value)}
-                        className="w-full px-2 py-1 text-xs font-bold border border-black dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white focus:outline-none text-center"
-                      />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="0"
-                        value={row.price}
-                        onChange={(e) => handleUpdateReceiptRow(row.id, 'price', e.target.value)}
-                        className="w-full px-2 py-1 text-xs font-black border border-black dark:border-neutral-700 rounded-md bg-white dark:bg-neutral-800 text-black dark:text-white focus:outline-none text-right"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveReceiptRow(row.id)}
-                        disabled={receiptRows.length <= 1}
-                        className="p-1 text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
-                        title={lang === 'en' ? 'Delete row' : 'Hapus baris'}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Subtotal Footer */}
-                <div className="p-3 bg-[#FAF9F5] dark:bg-neutral-800 border-t-2 border-black dark:border-neutral-700 flex justify-between items-center">
-                  <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    {lang === 'en' ? 'Receipt Subtotal:' : 'Total Rincian Struk:'}
-                  </span>
-                  <span className="text-base font-black text-black dark:text-white">
-                    {formatRupiah(receiptSubtotal)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={handleTransferReceiptToManual}
-                  disabled={receiptSubtotal <= 0}
-                  className="w-full sm:w-auto px-4 py-2.5 border-2 border-black dark:border-neutral-700 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-neutral-800 text-black dark:text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>{lang === 'en' ? 'Copy to Form' : 'Salin ke Formulir'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSaveReceiptSheet}
-                  disabled={loading || receiptSubtotal <= 0}
-                  className="flex-1 w-full py-2.5 px-4 border-2 border-black rounded-xl text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                  style={{
-                    backgroundColor: 'var(--theme-accent, #FFE066)',
-                    color: 'var(--theme-accent-text, #000000)',
-                  }}
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-black" />
-                  ) : (
-                    <Check className="w-4 h-4 stroke-[3px]" />
-                  )}
-                  <span>
-                    {lang === 'en'
-                      ? `Save Receipt Transaction (${formatRupiah(receiptSubtotal)})`
-                      : `Simpan Transaksi Struk (${formatRupiah(receiptSubtotal)})`}
-                  </span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: Split Bill Calculator Mode */}
+          {/* TAB 3: Split Bill Calculator Mode */}
           {mode === 'split' && (
             <div>
               <SplitBillCalculator

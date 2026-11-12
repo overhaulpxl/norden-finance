@@ -705,8 +705,8 @@ export default function OverviewLayout({
                 {t('banner_smart_input_title')}
               </h3>
             </div>
-            <p className="text-xs font-bold leading-relaxed opacity-95">
-              {lang === 'id' ? 'Ketik cepat:' : 'Quick type:'} <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px]">kopi 25k gopay</span>, <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px]">gaji 5jt bca</span>, {lang === 'id' ? 'atau' : 'or'} <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px]">transfer bca ke dana 100k</span>.
+            <p className="text-xs font-bold leading-relaxed opacity-95 break-words">
+              {lang === 'id' ? 'Ketik cepat:' : 'Quick type:'} <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px] inline-block my-0.5">kopi 25k gopay</span>, <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px] inline-block my-0.5">gaji 5jt bca</span>, {lang === 'id' ? 'atau' : 'or'} <span className="font-mono bg-white text-black px-1.5 py-0.5 border border-black rounded-md font-black text-[11px] inline-block my-0.5">transfer bca ke dana 100k</span>.
             </p>
           </div>
 
