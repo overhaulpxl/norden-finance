@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { NORDEN_HORIZONTAL_LOGO_BASE64 } from '../lib/brandLogoBase64';
 
 export const runtime = 'edge';
 export const alt = 'Norden Finance — Aplikasi Keuangan Pribadi';
@@ -36,32 +37,33 @@ export default async function Image() {
             alignItems: 'center',
           }}
         >
-          {/* Logo & Brand Identity */}
+          {/* Official Brand Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={NORDEN_HORIZONTAL_LOGO_BASE64}
+              alt="Norden Finance logo"
+              width={126}
+              height={46}
+              style={{
+                width: '126px',
+                height: '46px',
+                objectFit: 'contain',
+              }}
+            />
             <div
               style={{
-                width: '42px',
-                height: '42px',
-                backgroundColor: '#FFE066',
-                border: '3px solid #000000',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '2.5px 2.5px 0px #000000',
+                height: '24px',
+                width: '2px',
+                backgroundColor: '#000000',
+                opacity: 0.15,
+                margin: '0 4px',
               }}
-            >
-              <span style={{ fontSize: 26, fontWeight: 900, color: '#000000' }}>
-                N
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 22, fontWeight: 900, letterSpacing: '1.5px', color: '#000000', textTransform: 'uppercase' }}>
-                NORDEN FINANCE
-              </span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#525252', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                Track your money. Find your direction.
-              </span>
-            </div>
+            />
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#525252', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              Track your money. Find your direction.
+            </span>
           </div>
 
           {/* Right Header Badges */}
