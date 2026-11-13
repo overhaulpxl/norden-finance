@@ -206,6 +206,7 @@ export default function AppLayout({
   useEffect(() => {
     let startY = 0;
     let isPulling = false;
+    let rafActive = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       // Auto-dismiss keyboard when tapping outside input/textarea/select/button
@@ -243,7 +244,13 @@ export default function AppLayout({
       if (diffY > 0) {
         const distance = Math.min(80, diffY * 0.4);
         pullDistanceRef.current = distance;
-        setPullDistance(distance);
+        if (!rafActive) {
+          rafActive = true;
+          requestAnimationFrame(() => {
+            setPullDistance(distance);
+            rafActive = false;
+          });
+        }
       }
     };
 

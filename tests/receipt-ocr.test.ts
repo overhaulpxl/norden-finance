@@ -60,4 +60,48 @@ TUNAI: Rp 50.000
     assert.equal(parsed.category, 'Makanan');
     assert.equal(parsed.suggestedText, '28000 KOPI KENANGAN cash');
   });
+
+  it('normalizes PT Sumber Alfaria Trijaya to Alfamart and detects QRIS payment method', () => {
+    const rawAlfamart = `
+PT SUMBER ALFARIA TRIJAYA TBK
+ALFAMART CIPETE 2
+JL. CIPETE RAYA NO. 88
+TGL: 12-11-2026 19:45
+BEAR BRAND 189ML
+1 * 10.500 10.500
+AQUA 600ML
+2 * 3.500 7.000
+TOTAL BELANJA: 17.500
+PEMBAYARAN: QRIS
+BAYAR: 17.500
+KEMBALIAN: 0
+    `;
+
+    const parsed = parseReceiptOcrText(rawAlfamart);
+    assert.equal(parsed.amount, 17500);
+    assert.ok(/alfamart/i.test(parsed.merchant));
+    assert.equal(parsed.category, 'Belanja');
+    assert.equal(parsed.method, 'qris');
+    assert.equal(parsed.suggestedText, `17500 ${parsed.merchant} qris`);
+    assert.ok(parsed.items.length >= 2);
+  });
+
+  it('correctly detects SPBU Pertamina and maps category to Bensin', () => {
+    const rawSpbu = `
+SPBU PERTAMINA 31.12345
+JL. MT HARYONO KAV 10
+PERTAMAX
+LITER: 20.00
+TOTAL: Rp 260.000
+TUNAI: Rp 300.000
+KEMBALIAN: Rp 40.000
+TERIMA KASIH
+    `;
+
+    const parsed = parseReceiptOcrText(rawSpbu);
+    assert.equal(parsed.amount, 260000);
+    assert.equal(parsed.merchant, 'SPBU PERTAMINA 31.12345');
+    assert.equal(parsed.category, 'Bensin');
+    assert.equal(parsed.suggestedText, '260000 SPBU PERTAMINA 31.12345 cash');
+  });
 });

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Send, Loader2, Camera, RotateCcw, X, ClipboardPaste } from 'lucide-react';
+import { Send, Loader2, Camera, RotateCcw, X, ClipboardPaste, Check } from 'lucide-react';
 import { processInput, deleteTransaction } from '../app/actions';
 import { compressReceiptImage } from '../lib/imageCompression';
-import { scanReceiptOffline } from '../lib/receiptOcr';
+import { scanReceiptOffline, type ParsedReceipt } from '../lib/receiptOcr';
 import { useLanguage } from '../lib/i18n';
 import { enqueueOfflineTransaction } from '../lib/offlineQueue';
 import { parseBankNotificationText } from '../lib/smartClipboard';
@@ -19,6 +19,8 @@ export default function QuickInput() {
   const [undoTxId, setUndoTxId] = useState<string | null>(null);
   const [receiptThumbnail, setReceiptThumbnail] = useState<string | null>(null);
   const [receiptName, setReceiptName] = useState<string | null>(null);
+  const [ocrProgress, setOcrProgress] = useState<number | null>(null);
+  const [ocrReview, setOcrReview] = useState<ParsedReceipt | null>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +63,8 @@ export default function QuickInput() {
     if (!file) return;
 
     setScanning(true);
+    setOcrProgress(5);
+    setOcrReview(null);
     setMessage(null);
     triggerHaptic('light');
 
@@ -69,24 +73,36 @@ export default function QuickInput() {
       const url = URL.createObjectURL(compressedFile);
       setReceiptThumbnail(url);
       setReceiptName(file.name);
+      setOcrProgress(15);
 
       // 100% Offline Client-Side Tesseract OCR
       try {
-        const ocrResult = await scanReceiptOffline(compressedFile);
+        const ocrResult = await scanReceiptOffline(compressedFile, (p) => {
+          setOcrProgress(Math.min(95, Math.max(15, p)));
+        });
+        setOcrProgress(100);
+        setTimeout(() => setOcrProgress(null), 600);
+
         if (ocrResult.amount > 0 || ocrResult.suggestedText) {
-          setInput(ocrResult.suggestedText || `${ocrResult.amount} ${ocrResult.merchant || 'Belanja'} cash`);
+          const autoText =
+            ocrResult.suggestedText ||
+            `${ocrResult.amount} ${ocrResult.merchant || 'Belanja'} ${ocrResult.method || 'cash'}`;
+          setInput(autoText);
+          setOcrReview(ocrResult);
           triggerHaptic('success');
           setMessage({
             type: 'success',
             text:
               lang === 'id'
-                ? `✅ Struk terdeteksi (Tesseract OCR): Rp ${ocrResult.amount.toLocaleString('id-ID')} (${ocrResult.merchant})`
-                : `✅ Receipt detected (Tesseract OCR): Rp ${ocrResult.amount.toLocaleString('id-ID')} (${ocrResult.merchant})`,
+                ? `✅ Struk terdeteksi: Rp ${ocrResult.amount.toLocaleString('id-ID')} (${ocrResult.merchant})`
+                : `✅ Receipt detected: Rp ${ocrResult.amount.toLocaleString('id-ID')} (${ocrResult.merchant})`,
           });
           return;
         }
       } catch (ocrErr) {
         console.warn('Tesseract OCR failed, keeping thumbnail:', ocrErr);
+      } finally {
+        setOcrProgress(null);
       }
 
       triggerHaptic('success');
@@ -119,6 +135,8 @@ export default function QuickInput() {
     }
     setReceiptThumbnail(null);
     setReceiptName(null);
+    setOcrReview(null);
+    setOcrProgress(null);
   };
 
   // Smart Clipboard Paste
@@ -297,6 +315,92 @@ export default function QuickInput() {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* OCR Progress Bar */}
+      {ocrProgress !== null && (
+        <div className="mb-3 p-2.5 bg-amber-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] space-y-1.5">
+          <div className="flex items-center justify-between text-xs font-black text-black dark:text-white">
+            <span className="flex items-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {lang === 'id' ? 'Membaca teks struk...' : 'Reading receipt text...'}
+            </span>
+            <span>{ocrProgress}%</span>
+          </div>
+          <div className="w-full bg-neutral-200 dark:bg-neutral-700 h-2 rounded-full overflow-hidden border border-black">
+            <div
+              className="bg-amber-400 dark:bg-amber-500 h-full transition-all duration-200"
+              style={{ width: `${ocrProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Receipt OCR Review Card */}
+      {ocrReview && (
+        <div className="mb-3 p-3 bg-emerald-50 dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] text-xs">
+          <div className="flex items-center justify-between font-black border-b border-black/20 dark:border-neutral-700 pb-1.5 mb-2">
+            <span className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-400">
+              <Check className="w-3.5 h-3.5 stroke-[3px]" />
+              {lang === 'id' ? 'Hasil Scan Struk' : 'Receipt Scan Result'}
+            </span>
+            <span className="text-sm font-black text-black dark:text-white">
+              Rp {ocrReview.amount.toLocaleString('id-ID')}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-2 text-[11px]">
+            <div>
+              <span className="text-neutral-500 font-bold block">{lang === 'id' ? 'Merchant' : 'Merchant'}</span>
+              <span className="font-black text-black dark:text-white truncate block">{ocrReview.merchant}</span>
+            </div>
+            <div>
+              <span className="text-neutral-500 font-bold block">{lang === 'id' ? 'Kategori & Dompet' : 'Category & Wallet'}</span>
+              <span className="font-black text-black dark:text-white block">
+                {ocrReview.category} • {ocrReview.method?.toUpperCase() || 'CASH'}
+              </span>
+            </div>
+          </div>
+          {ocrReview.items && ocrReview.items.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-black/10 dark:border-neutral-800">
+              <span className="text-[10px] font-black uppercase text-neutral-500 block mb-1">
+                {lang === 'id' ? 'Rincian Item' : 'Line Items'} ({ocrReview.items.length})
+              </span>
+              <div className="max-h-20 overflow-y-auto space-y-1 pr-1">
+                {ocrReview.items.slice(0, 4).map((item, idx) => (
+                  <div key={item.id || idx} className="flex justify-between text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
+                    <span className="truncate max-w-[140px]">{item.qty}x {item.name}</span>
+                    <span>Rp {item.price}</span>
+                  </div>
+                ))}
+                {ocrReview.items.length > 4 && (
+                  <span className="text-[9px] text-neutral-500 italic block">
+                    +{ocrReview.items.length - 4} item lainnya
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2 mt-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                const textToSubmit = ocrReview.suggestedText || `${ocrReview.amount} ${ocrReview.merchant} ${ocrReview.method || 'cash'}`;
+                setInput(textToSubmit);
+                setOcrReview(null);
+              }}
+              className="flex-1 py-1.5 px-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] rounded-lg border border-black shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+            >
+              {lang === 'id' ? '✓ Pasang ke Input' : '✓ Fill to Input'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOcrReview(null)}
+              className="py-1.5 px-2 bg-white dark:bg-neutral-800 text-black dark:text-white font-bold text-[11px] rounded-lg border border-black shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+            >
+              {lang === 'id' ? 'Tutup' : 'Dismiss'}
+            </button>
+          </div>
         </div>
       )}
 

@@ -15,6 +15,7 @@ import {
   Calculator,
   FileText,
   Smartphone,
+  Check,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
@@ -28,7 +29,7 @@ import { Balance, SavingGoal } from '../types';
 import WalletSelect, { getActiveWallets } from './WalletSelect';
 import { formatCurrency, formatRupiah, formatRupiahInput, parseRupiahInput } from '../lib/format';
 import { compressReceiptImage } from '../lib/imageCompression';
-import { scanReceiptOffline } from '../lib/receiptOcr';
+import { scanReceiptOffline, type ParsedReceipt } from '../lib/receiptOcr';
 import { triggerHaptic } from '../lib/haptics';
 import { triggerUndoToast } from '../lib/undoToast';
 import { getCategoryEmoji } from '../lib/categoryEmoji';
@@ -207,6 +208,8 @@ export default function QuickInputModal({
   const [receiptImageThumbnail, setReceiptImageThumbnail] = useState<string | null>(null);
   const [receiptImageName, setReceiptImageName] = useState<string | null>(null);
   const [receiptCompressing, setReceiptCompressing] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState<number | null>(null);
+  const [ocrReview, setOcrReview] = useState<ParsedReceipt | null>(null);
 
   // Common states
   const [loading, setLoading] = useState(false);
@@ -471,6 +474,8 @@ export default function QuickInputModal({
     if (!file) return;
 
     setReceiptCompressing(true);
+    setOcrProgress(5);
+    setOcrReview(null);
     triggerHaptic('light');
 
     try {
@@ -478,18 +483,33 @@ export default function QuickInputModal({
       const url = URL.createObjectURL(compressed);
       setReceiptImageThumbnail(url);
       setReceiptImageName(file.name);
+      setOcrProgress(15);
 
       // 100% Offline Client-Side Tesseract OCR
       try {
-        const ocrData = await scanReceiptOffline(compressed);
+        const ocrData = await scanReceiptOffline(compressed, (p) => {
+          setOcrProgress(Math.min(95, Math.max(15, p)));
+        });
+        setOcrProgress(100);
+        setTimeout(() => setOcrProgress(null), 600);
+
         if (ocrData.amount > 0 || ocrData.suggestedText) {
-          const autoText = ocrData.suggestedText || `${ocrData.amount} ${ocrData.merchant || 'Belanja'} cash`;
+          const autoText =
+            ocrData.suggestedText ||
+            `${ocrData.amount} ${ocrData.merchant || 'Belanja'} ${ocrData.method || 'cash'}`;
           setInput(autoText);
+          setOcrReview(ocrData);
 
           // Also populate manual fields if user switches to manual tab
           setMAmount(formatRupiahInput(String(ocrData.amount)));
           if (ocrData.category) setMCategory(ocrData.category);
           setMNote(ocrData.merchant || 'Struk');
+          if (ocrData.method) {
+            const matchedWallet = activeWallets.find(
+              (w) => w.name.toLowerCase() === ocrData.method?.toLowerCase()
+            );
+            if (matchedWallet) setMMethod(matchedWallet.name);
+          }
 
           triggerHaptic('success');
           setMessage({
@@ -503,6 +523,8 @@ export default function QuickInputModal({
         }
       } catch (scanErr) {
         console.warn('Tesseract offline OCR error, keeping thumbnail:', scanErr);
+      } finally {
+        setOcrProgress(null);
       }
 
       triggerHaptic('success');
@@ -532,6 +554,8 @@ export default function QuickInputModal({
     }
     setReceiptImageThumbnail(null);
     setReceiptImageName(null);
+    setOcrReview(null);
+    setOcrProgress(null);
   };
 
 
@@ -989,6 +1013,92 @@ export default function QuickInputModal({
                   >
                     <X className="w-4 h-4 stroke-[2.5px]" />
                   </button>
+                </div>
+              )}
+
+              {/* OCR Progress Bar */}
+              {ocrProgress !== null && (
+                <div className="p-2.5 bg-amber-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-black text-black dark:text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {lang === 'id' ? 'Membaca teks struk...' : 'Reading receipt text...'}
+                    </span>
+                    <span>{ocrProgress}%</span>
+                  </div>
+                  <div className="w-full bg-neutral-200 dark:bg-neutral-700 h-2 rounded-full overflow-hidden border border-black">
+                    <div
+                      className="bg-amber-400 dark:bg-amber-500 h-full transition-all duration-200"
+                      style={{ width: `${ocrProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Receipt OCR Review Card */}
+              {ocrReview && (
+                <div className="p-3 bg-emerald-50 dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl shadow-[2px_2px_0px_0px_#000] text-xs">
+                  <div className="flex items-center justify-between font-black border-b border-black/20 dark:border-neutral-700 pb-1.5 mb-2">
+                    <span className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-400">
+                      <Check className="w-3.5 h-3.5 stroke-[3px]" />
+                      {lang === 'id' ? 'Hasil Scan Struk' : 'Receipt Scan Result'}
+                    </span>
+                    <span className="text-sm font-black text-black dark:text-white">
+                      Rp {ocrReview.amount.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2 text-[11px]">
+                    <div>
+                      <span className="text-neutral-500 font-bold block">{lang === 'id' ? 'Merchant' : 'Merchant'}</span>
+                      <span className="font-black text-black dark:text-white truncate block">{ocrReview.merchant}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 font-bold block">{lang === 'id' ? 'Kategori & Dompet' : 'Category & Wallet'}</span>
+                      <span className="font-black text-black dark:text-white block">
+                        {ocrReview.category} • {ocrReview.method?.toUpperCase() || 'CASH'}
+                      </span>
+                    </div>
+                  </div>
+                  {ocrReview.items && ocrReview.items.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-black/10 dark:border-neutral-800">
+                      <span className="text-[10px] font-black uppercase text-neutral-500 block mb-1">
+                        {lang === 'id' ? 'Rincian Item' : 'Line Items'} ({ocrReview.items.length})
+                      </span>
+                      <div className="max-h-24 overflow-y-auto space-y-1 pr-1">
+                        {ocrReview.items.slice(0, 5).map((item, idx) => (
+                          <div key={item.id || idx} className="flex justify-between text-[10px] font-bold text-neutral-700 dark:text-neutral-300">
+                            <span className="truncate max-w-[140px]">{item.qty}x {item.name}</span>
+                            <span>Rp {item.price}</span>
+                          </div>
+                        ))}
+                        {ocrReview.items.length > 5 && (
+                          <span className="text-[9px] text-neutral-500 italic block">
+                            +{ocrReview.items.length - 5} item lainnya
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSend(ocrReview.suggestedText || `${ocrReview.amount} ${ocrReview.merchant} ${ocrReview.method || 'cash'}`);
+                        setOcrReview(null);
+                      }}
+                      disabled={loading}
+                      className="flex-1 py-1.5 px-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] rounded-lg border border-black shadow-[1.5px_1.5px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+                    >
+                      {lang === 'id' ? '✓ Catat Sekarang' : '✓ Record Now'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOcrReview(null)}
+                      className="py-1.5 px-2 bg-white dark:bg-neutral-800 text-black dark:text-white font-bold text-[11px] rounded-lg border border-black shadow-[1.5px_1.5px_0px_0px_#000] cursor-pointer"
+                    >
+                      {lang === 'id' ? 'Tutup Review' : 'Dismiss'}
+                    </button>
+                  </div>
                 </div>
               )}
 

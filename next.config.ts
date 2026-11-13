@@ -33,6 +33,9 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+  },
   async redirects() {
     return [
       {

@@ -8,7 +8,10 @@ import CookieConsentBanner from '../components/CookieConsentBanner';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
-const font = Outfit({ subsets: ['latin'] });
+const font = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 import { getPublicAppUrl } from '../lib/appUrl';
 
