@@ -5,10 +5,10 @@ def create_overview_sheet():
     pfp_dir = r'D:\norden-finance\public\instagram\pfp'
     
     variants = [
-        ("pfp-signature-yellow-circle-preview.png", "1. SIGNATURE YELLOW (HERO)", "#FFE066", "Rekomendasi Utama: Terang, mencolok di Stories & DM"),
-        ("pfp-pure-white-circle-preview.png", "2. PURE WHITE", "#FFFFFF", "Kontras Tajam: Bersih di feed & explore Instagram"),
-        ("pfp-obsidian-dark-circle-preview.png", "3. OBSIDIAN DARK", "#0D0E11", "Fintech Premium: Nuansa dark mode dengan aksen kuning"),
-        ("pfp-brand-cream-circle-preview.png", "4. BRAND CREAM", "#FAF9F5", "Identitas Web App: Kanvas signature Norden Finance"),
+        ("pfp-signature-yellow-circle-preview.png", "1. NEO-BRUTALIST YELLOW BADGE", "#FFE066", "Circle Badge: Kuning signature #FFE066 dengan hard shadow 20px hitam"),
+        ("pfp-brutalist-tile-circle-preview.png", "2. NEO-BRUTALIST APP TILE", "#FFFFFF", "Icon Tile: Kotak kuning sudut lengkung 68px, border 15px & shadow 20px"),
+        ("pfp-pure-white-circle-preview.png", "3. INVERTED YELLOW BADGE", "#FFE066", "High Impact: Kanvas kuning dengan badge putih kontras & shadow hitam"),
+        ("pfp-obsidian-dark-circle-preview.png", "4. OBSIDIAN DARK FINTECH", "#0D0E11", "Dark Mode: Obsidian #18181B dengan border & hard shadow kuning neon"),
     ]
 
     # Create 2x2 grid image (2400 x 2600 px)
@@ -17,7 +17,6 @@ def create_overview_sheet():
 
     # Header
     draw.rectangle([0, 0, 2400, 220], fill='#FFE066', outline='#000000', width=6)
-    # Header text
     try:
         font_title = ImageFont.truetype('arial.ttf', 64)
         font_sub = ImageFont.truetype('arial.ttf', 32)
@@ -26,8 +25,8 @@ def create_overview_sheet():
     except:
         font_title = font_sub = font_card_title = font_card_desc = None
 
-    draw.text((80, 50), "NORDEN FINANCE — INSTAGRAM PROFILE PICTURE OPTIONS", fill='#000000', font=font_title)
-    draw.text((80, 135), "1080 x 1080 px Lossless PNG | 100% Circle-Safe Margin | Functional Neo-Brutalism", fill='#222222', font=font_sub)
+    draw.text((80, 50), "NORDEN FINANCE — NEO-BRUTALIST INSTAGRAM PFP OPTIONS", fill='#000000', font=font_title)
+    draw.text((80, 135), "1080 x 1080 px Lossless PNG | 100% Circle-Safe Margin | Authentic Neo-Brutalism", fill='#222222', font=font_sub)
 
     positions = [
         (80, 280),
@@ -53,7 +52,6 @@ def create_overview_sheet():
         if os.path.exists(img_path):
             with Image.open(img_path) as im:
                 thumb = im.resize((840, 840), Image.Resampling.LANCZOS)
-                # paste centered in card
                 canvas.paste(thumb, (x + 120, y + 180), thumb if thumb.mode == 'RGBA' else None)
 
     sheet_path = os.path.join(pfp_dir, 'pfp-all-variants-sheet.png')
