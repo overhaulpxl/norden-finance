@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Transaction, Balance, Debt, WishlistItem, Budget, AppSubscription, EmergencyFundPlan, SavingGoal, Achievement, Paylater } from '../types';
-import { formatRupiah } from '../lib/format';
+import { formatRupiah, formatShortDateTime } from '../lib/format';
 import { ArrowDownRight, ArrowUpRight, ArrowRightLeft, Wallet, Scale, Sparkles, SlidersHorizontal, Calendar, Coins } from 'lucide-react';
 import { addCustomNotification } from '../app/actions/notifications';
 import { useLanguage } from '../lib/i18n';
@@ -412,8 +412,8 @@ export default function OverviewLayout({
                       }`}>
                         {t.type === 'masuk' ? '+' : t.type === 'transfer' ? '' : '-'}{maskBalance(formatRupiah(t.amount))}
                       </span>
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">
-                        {new Date(t.transactionDate).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' })}
+                      <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mt-0.5 whitespace-nowrap">
+                        {formatShortDateTime(t.transactionDate, lang)}
                       </p>
                     </div>
                   </div>

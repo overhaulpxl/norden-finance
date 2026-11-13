@@ -33,6 +33,16 @@ export function formatTanggal(dateString: string | Date | null | undefined): str
   return format(date, 'd MMM yyyy, HH:mm', { locale: id });
 }
 
+export function formatShortDateTime(dateString: string | Date | null | undefined, lang: 'id' | 'en' = 'id'): string {
+  if (!dateString) return '-';
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  if (!date || isNaN(date.getTime())) return '-';
+  const dayMonth = date.toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short' });
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${dayMonth} • ${hours}:${minutes}`;
+}
+
 // "bni" -> "BNI", "gopay" -> "GOPAY"
 export function formatMethodName(method: string): string {
   return method.toUpperCase();
