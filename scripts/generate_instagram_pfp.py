@@ -1,20 +1,21 @@
 import os
-import base64
 import subprocess
 import threading
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from PIL import Image, ImageDraw
+import re
 
-def get_base64_image(rel_path):
-    if os.path.exists(rel_path):
-        with open(rel_path, 'rb') as f:
-            ext = os.path.splitext(rel_path)[1].lower()
-            mime = 'image/png' if ext == '.png' else 'image/svg+xml' if ext == '.svg' else 'image/jpeg'
-            return f"data:{mime};base64,{base64.b64encode(f.read()).decode('utf-8')}"
-    return ""
+def get_emblem_svg_path():
+    with open('public/brand/norden-icon.svg', 'r', encoding='utf-8') as f:
+        svg_content = f.read()
+
+    path2 = re.findall(r'fill="#000000"[^>]*d="([^"]*)"', svg_content)[0]
+    subpaths2 = [s.strip() for s in path2.split('Z') if s.strip()]
+    # subpaths2[2] is the exact N emblem with upward arrow
+    return subpaths2[2] + " Z"
 
 def generate_pfp_assets():
-    icon_b64 = get_base64_image('public/brand/norden-icon.png')
+    n_path = get_emblem_svg_path()
     
     out_dir = r'D:\norden-finance\public\instagram\pfp'
     os.makedirs(out_dir, exist_ok=True)
@@ -23,8 +24,8 @@ def generate_pfp_assets():
     temp_dir = r'C:\Users\blur\AppData\Local\Temp\antigravity'
     os.makedirs(temp_dir, exist_ok=True)
 
-    # 1. PFP 1: Signature Yellow (Hero) - White brutalist card with master logo on yellow canvas
-    v1_html = f"""<!DOCTYPE html>
+    def render_pfp_template(bg_color, ring_color, n_color, ring_width=14, ring_inset=44, emblem_width="640px"):
+        return f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -33,157 +34,94 @@ def generate_pfp_assets():
   body {{
     width: 1080px;
     height: 1080px;
-    background-color: #FFE066;
+    background-color: {bg_color};
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     overflow: hidden;
   }}
-  .badge-card {{
-    width: 580px;
-    height: 580px;
-    background: #FFFFFF;
-    border: 6px solid #000000;
-    box-shadow: 18px 18px 0px 0px #000000;
+  /* Concentric circular ring style matching norden.grp */
+  .concentric-ring {{
+    position: absolute;
+    width: {1080 - ring_inset * 2}px;
+    height: {1080 - ring_inset * 2}px;
+    border-radius: 50%;
+    border: {ring_width}px solid {ring_color};
+    pointer-events: none;
+    box-sizing: border-box;
+  }}
+  .emblem-wrap {{
+    width: {emblem_width};
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    z-index: 2;
   }}
-  .badge-card img {{
+  .emblem-wrap svg {{
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: auto;
+    display: block;
+    overflow: visible;
   }}
 </style>
 </head>
 <body>
-  <div class="badge-card">
-    <img src="{icon_b64}" alt="Norden Icon" />
+  <div class="concentric-ring"></div>
+  <div class="emblem-wrap">
+    <svg viewBox="136 156 427 333" preserveAspectRatio="xMidYMid meet">
+      <path fill="{n_color}" d="{n_path}" />
+    </svg>
   </div>
 </body>
 </html>"""
 
-    # 2. PFP 2: Pure White - Master logo floating with solid black shadow on white canvas
-    v2_html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{
-    width: 1080px;
-    height: 1080px;
-    background-color: #FFFFFF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }}
-  .icon-wrapper {{
-    width: 640px;
-    height: 640px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }}
-  .icon-wrapper img {{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }}
-</style>
-</head>
-<body>
-  <div class="icon-wrapper">
-    <img src="{icon_b64}" alt="Norden Icon" />
-  </div>
-</body>
-</html>"""
+    # 1. Pure White - Exact norden.grp style: Pure white canvas, concentric ring, black N arrow emblem filling circle
+    v_white = render_pfp_template(
+        bg_color="#FFFFFF",
+        ring_color="#000000",
+        n_color="#000000",
+        ring_width=14,
+        ring_inset=44,
+        emblem_width="640px"
+    )
 
-    # 3. PFP 3: Obsidian Dark - High-contrast dark card with yellow border & yellow brutalist shadow
-    v3_html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{
-    width: 1080px;
-    height: 1080px;
-    background-color: #0D0E11;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }}
-  .dark-card {{
-    width: 580px;
-    height: 580px;
-    background: #18181B;
-    border: 6px solid #FFE066;
-    box-shadow: 18px 18px 0px 0px #FFE066;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }}
-  .dark-card img {{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }}
-</style>
-</head>
-<body>
-  <div class="dark-card">
-    <img src="{icon_b64}" alt="Norden Icon" />
-  </div>
-</body>
-</html>"""
+    # 2. Signature Yellow - Bold yellow canvas, concentric ring, black N arrow emblem
+    v_yellow = render_pfp_template(
+        bg_color="#FFE066",
+        ring_color="#000000",
+        n_color="#000000",
+        ring_width=14,
+        ring_inset=44,
+        emblem_width="640px"
+    )
 
-    # 4. PFP 4: Brand Cream - Exact #FAF9F5 canvas matching app layout
-    v4_html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{
-    width: 1080px;
-    height: 1080px;
-    background-color: #FAF9F5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }}
-  .icon-wrapper {{
-    width: 640px;
-    height: 640px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }}
-  .icon-wrapper img {{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }}
-</style>
-</head>
-<body>
-  <div class="icon-wrapper">
-    <img src="{icon_b64}" alt="Norden Icon" />
-  </div>
-</body>
-</html>"""
+    # 3. Obsidian Dark - Premium fintech dark mode, yellow concentric ring, yellow N arrow emblem
+    v_dark = render_pfp_template(
+        bg_color="#0D0E11",
+        ring_color="#FFE066",
+        n_color="#FFE066",
+        ring_width=14,
+        ring_inset=44,
+        emblem_width="640px"
+    )
+
+    # 4. Brand Cream - Warm cream canvas matching website app canvas
+    v_cream = render_pfp_template(
+        bg_color="#FAF9F5",
+        ring_color="#000000",
+        n_color="#000000",
+        ring_width=14,
+        ring_inset=44,
+        emblem_width="640px"
+    )
 
     variants = [
-        ("pfp-signature-yellow", v1_html),
-        ("pfp-pure-white", v2_html),
-        ("pfp-obsidian-dark", v3_html),
-        ("pfp-brand-cream", v4_html),
+        ("pfp-pure-white", v_white),
+        ("pfp-signature-yellow", v_yellow),
+        ("pfp-obsidian-dark", v_dark),
+        ("pfp-brand-cream", v_cream),
     ]
 
     for name, html in variants:
@@ -228,17 +166,17 @@ def generate_pfp_assets():
                 im.convert("RGB").save(final_png, "PNG", optimize=True)
                 print(f"Created square PFP: {final_png}")
 
-                # 2. Create circular crop preview with Instagram Story ring
+                # 2. Create circular crop preview with Instagram Story/Profile ring
                 mask = Image.new('L', (1080, 1080), 0)
                 draw_mask = ImageDraw.Draw(mask)
-                draw_mask.ellipse((10, 10, 1070, 1070), fill=255)
+                draw_mask.ellipse((8, 8, 1072, 1072), fill=255)
 
                 circle_im = Image.new('RGBA', (1080, 1080), (0, 0, 0, 0))
                 circle_im.paste(im.convert("RGBA"), (0, 0), mask=mask)
 
-                # Add a crisp circular border
+                # Add a crisp circular boundary border
                 draw_circle = ImageDraw.Draw(circle_im)
-                draw_circle.ellipse((10, 10, 1070, 1070), outline=(0, 0, 0, 180), width=6)
+                draw_circle.ellipse((8, 8, 1072, 1072), outline=(0, 0, 0, 200), width=6)
 
                 circle_im.save(circle_preview_png, "PNG", optimize=True)
                 print(f"Created circular preview: {circle_preview_png}")

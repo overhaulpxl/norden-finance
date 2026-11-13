@@ -574,87 +574,116 @@ h2 {{
     post_square_html = f"""<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><style>{common_css}
-.main-box {{ display: flex; flex-direction: column; gap: 24px; margin: auto 0; }}
+.main-box {{ display: flex; flex-direction: column; gap: 20px; margin: 26px 0; }}
 .hero-card {{
-  background: #FFFFFF;
+  background: #FFE066;
   border: 5px solid #000000;
-  box-shadow: 12px 12px 0px 0px #000000;
-  padding: 44px;
+  box-shadow: 10px 10px 0px 0px #000000;
+  padding: 38px 44px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 20px;
+  gap: 18px;
 }}
-.icon-box {{
-  width: 140px;
-  height: 140px;
-  background: #FFE066;
-  border: 4px solid #000000;
-  box-shadow: 6px 6px 0px 0px #000000;
-  display: flex;
+.brand-pill-logo {{
+  background: #FFFFFF;
+  border: 3.5px solid #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
+  padding: 9px 18px;
+  display: inline-flex;
+  align-self: flex-start;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
 }}
-.icon-box img {{
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.brand-pill-logo img {{
+  height: 26px;
+  width: auto;
+  display: block;
 }}
 h1 {{
   font-size: 52px;
   font-weight: 900;
   text-transform: uppercase;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
 }}
 .desc {{
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 600;
-  color: #333333;
-  line-height: 1.45;
-  max-width: 680px;
+  line-height: 1.42;
+  color: #111111;
+  max-width: 860px;
 }}
-.pills-row {{
+.grid-features {{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}}
+.feature-card {{
+  background: #FFFFFF;
+  border: 3.5px solid #000000;
+  box-shadow: 5px 5px 0px 0px #000000;
+  padding: 22px 22px;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
 }}
-.pill {{
-  background: #FAF9F5;
-  border: 2.5px solid #000000;
-  box-shadow: 3px 3px 0px 0px #000000;
-  padding: 8px 14px;
+.card-num {{
+  font-size: 13px;
+  font-weight: 900;
+  color: #555555;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}}
+.card-title {{
+  font-size: 17.5px;
+  font-weight: 800;
+  color: #000000;
+  line-height: 1.3;
+}}
+.cta-badge {{
+  background: #FFFFFF;
+  border: 3px solid #000000;
+  box-shadow: 3.5px 3.5px 0px 0px #000000;
+  padding: 8px 18px;
   font-size: 14px;
   font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }}
 </style></head>
 <body>
   <div class="slide-square">
     <div class="top-header">
-      <div class="brand-pill">NORDEN FINANCE / 2026</div>
+      <div class="brand-pill">KENALI UANGMU BERSAMA NORDEN</div>
       <div class="meta-tag">PENGELOLAAN KEUANGAN PRIBADI</div>
     </div>
     <div class="main-box">
       <div class="hero-card">
-        <div class="icon-box">
-          <img src="{icon_b64}" alt="Norden Icon" />
+        <div class="brand-pill-logo">
+          <img src="{horizontal_b64}" alt="Norden Finance" />
         </div>
         <h1>KENALI UANGMU<br>BERSAMA NORDEN</h1>
         <p class="desc">
-          Catat transaksi, kelola beberapa dompet, dan lihat gambaran keuanganmu dalam satu tempat.
+          Norden Finance membantu kamu mencatat transaksi harian, mengelola multi-dompet, dan memahami ke mana uangmu bergerak.
         </p>
-        <div class="pills-row">
-          <div class="pill" style="background: #bbf7d0;">SMART INPUT</div>
-          <div class="pill" style="background: #bfdbfe;">MULTI-DOMPET</div>
-          <div class="pill" style="background: #FFE066;">TRIAL PRO 14 HARI</div>
+      </div>
+      <div class="grid-features">
+        <div class="feature-card">
+          <div class="card-num">01 / SMART INPUT</div>
+          <div class="card-title">Catat cepat via suara, struk OCR, & teks.</div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">02 / MULTI-DOMPET</div>
+          <div class="card-title">Pisahkan rekening bank, e-wallet, & kas.</div>
+        </div>
+        <div class="feature-card">
+          <div class="card-num">03 / ARUS KAS REALTIME</div>
+          <div class="card-title">Pantau pola pengeluaran & alokasi dompet.</div>
         </div>
       </div>
     </div>
     <div class="bottom-bar">
       <div class="handle-tag">@norden.finance • nordenfinance.site</div>
-      <div class="pagination-badge">FEED LAUNCH POST</div>
+      <div class="cta-badge">TRIAL PRO 14 HARI • COBA SEKARANG &rarr;</div>
     </div>
   </div>
 </body></html>"""
