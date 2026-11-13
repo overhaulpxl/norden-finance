@@ -240,12 +240,20 @@ export async function getShortcutEndpoint() {
 export async function regenerateShortcutToken() {
   try {
     const { user } = await requireUser(false);
-    const profile = await prisma.profile.update({
+    const profile = await prisma.profile.upsert({
       where: { userId: user.uid },
-      data: { shortcutTokenVersion: { increment: 1 } },
+      create: {
+        userId: user.uid,
+        shortcutTokenVersion: 2,
+        trialEndsAt: new Date(),
+      },
+      update: {
+        shortcutTokenVersion: { increment: 1 },
+      },
       select: { shortcutTokenVersion: true },
     });
-    const token = signShortcutToken(user.uid, profile.shortcutTokenVersion);
+    const version = profile?.shortcutTokenVersion ?? 2;
+    const token = signShortcutToken(user.uid, version);
 
     return { success: true, endpoint: buildShortcutEndpoint(), token };
   } catch (error: unknown) {

@@ -416,15 +416,31 @@ export default function QuickInputModal({
         },
       ]);
     } catch {
-      triggerHaptic('warning');
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: Math.random().toString(),
-          sender: 'ai',
-          text: lang === 'en' ? '❌ An error occurred while processing your input.' : '❌ Terjadi kesalahan saat memproses input Anda.',
-        },
-      ]);
+      if (typeof window !== 'undefined' && (!navigator.onLine || !window.navigator.onLine)) {
+        triggerHaptic('success');
+        enqueueOfflineTransaction({ type: 'smart', input: userMsgText });
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Math.random().toString(),
+            sender: 'ai',
+            text:
+              lang === 'en'
+                ? '💾 [Offline Mode] Connection dropped. Transaction saved locally and will auto-sync when back online.'
+                : '💾 [Offline Mode] Koneksi terputus. Transaksi disimpan di memori HP dan otomatis sinkron saat online.',
+          },
+        ]);
+      } else {
+        triggerHaptic('warning');
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Math.random().toString(),
+            sender: 'ai',
+            text: lang === 'en' ? '❌ An error occurred while processing your input.' : '❌ Terjadi kesalahan saat memproses input Anda.',
+          },
+        ]);
+      }
     } finally {
       setLoading(false);
     }
@@ -638,7 +654,43 @@ export default function QuickInputModal({
         }
       }
     } catch {
-      res = { success: false, error: lang === 'en' ? 'Connection failed. Try again.' : 'Koneksi gagal. Coba lagi.' };
+      if (typeof window !== 'undefined' && (!navigator.onLine || !window.navigator.onLine)) {
+        triggerHaptic('success');
+        if (mType === 'transfer') {
+          enqueueOfflineTransaction({
+            type: 'transfer',
+            amount,
+            fromWallet: currentMethod,
+            toWallet: currentToMethod,
+            note: mNote,
+            tags: tagsArray,
+          });
+        } else {
+          enqueueOfflineTransaction({
+            type: 'explicit',
+            data: {
+              type: mType,
+              amount,
+              category: mCategory,
+              method: currentMethod,
+              note: mNote,
+              tags: tagsArray,
+            },
+          });
+        }
+        res = {
+          success: true,
+        };
+        setMessage({
+          type: 'success',
+          text:
+            lang === 'en'
+              ? '💾 Network lost! Saved locally, will auto-sync when connected.'
+              : '💾 Sinyal hilang! Disimpan di memori HP, sinkron otomatis saat online.',
+        });
+      } else {
+        res = { success: false, error: lang === 'en' ? 'Connection failed. Try again.' : 'Koneksi gagal. Coba lagi.' };
+      }
     }
 
     if (res.success) {

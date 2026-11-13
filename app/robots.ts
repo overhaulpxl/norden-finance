@@ -1,20 +1,28 @@
-import type { MetadataRoute } from 'next';
+import { MetadataRoute } from 'next';
 import { getPublicAppUrl } from '../lib/appUrl';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getPublicAppUrl();
+  const baseUrl = getPublicAppUrl().replace(/\/+$/, '');
+
   return {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: ['/', '/login', '/register', '/legal/terms', '/legal/privacy'],
         disallow: [
-          '/api/',
-          '/_next/data/',
+          '/dashboard',
+          '/dashboard/*',
+          '/norden-control-center',
+          '/norden-control-center/*',
+          '/api/*',
+          '/auth/*',
+          '/verify-email',
+          '/onboarding',
+          '/upgrade',
+          '/forgot-password',
         ],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
   };
 }

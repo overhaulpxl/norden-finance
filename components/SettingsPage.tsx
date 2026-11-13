@@ -1605,13 +1605,18 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
           {!shortcutData ? (
             <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                  {lang === 'en' ? 'Shortcut Webhook Token' : 'Token Webhook Pintasan Pribadi'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    {lang === 'en' ? 'Shortcut Webhook Token' : 'Token Webhook Pintasan Pribadi'}
+                  </p>
+                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 border border-black dark:border-neutral-600 rounded">
+                    {lang === 'en' ? '🔒 SECURE / HIDDEN' : '🔒 TERKUNCI / TERLINDUNGI'}
+                  </span>
+                </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
                   {lang === 'en'
-                    ? 'Generate your secure HMAC cryptographic token to connect iOS Shortcuts directly to your account.'
-                    : 'Tampilkan token kriptografi HMAC aman untuk menghubungkan Shortcuts iPhone langsung ke akun Anda.'}
+                    ? 'Press the button below to decrypt and load your secure HMAC cryptographic token. It remains masked until revealed.'
+                    : 'Tekan tombol di bawah untuk memuat token kriptografi HMAC Anda. Token akan tetap tersensor/tertutup secara default demi keamanan.'}
                 </p>
               </div>
               <button
@@ -1628,7 +1633,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 ) : (
                   <>
                     <Zap className="w-3.5 h-3.5 text-[#FFE066] fill-[#FFE066]" />
-                    <span>{lang === 'en' ? 'Show My Shortcut Key' : 'Tampilkan Kunci Pintasan'}</span>
+                    <span>{lang === 'en' ? 'Unlock & Show Key' : 'Buka Kunci & Tampilkan Token'}</span>
                   </>
                 )}
               </button>
@@ -1641,8 +1646,15 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 </div>
               )}
               {shortcutError && (
-                <div className="p-3 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 font-bold text-xs uppercase tracking-wider">
-                  ❌ {shortcutError}
+                <div className="p-3 bg-red-100 dark:bg-red-950/80 border-2 border-black dark:border-neutral-700 text-red-700 dark:text-red-200 font-bold text-xs uppercase tracking-wider flex items-center justify-between gap-2">
+                  <span>❌ {shortcutError}</span>
+                  <button
+                    type="button"
+                    onClick={handleLoadShortcut}
+                    className="px-2 py-1 bg-white text-black border border-black text-[10px] font-black uppercase rounded"
+                  >
+                    {lang === 'en' ? 'Retry' : 'Coba Lagi'}
+                  </button>
                 </div>
               )}
 
@@ -1669,9 +1681,26 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               {/* Secret Bearer Token */}
               <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
-                    {lang === 'en' ? 'Secret Authorization Token (HMAC)' : 'Token Otorisasi Rahasia (HMAC)'}
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                      {lang === 'en' ? 'Secret Authorization Token (HMAC)' : 'Token Otorisasi Rahasia (HMAC)'}
+                    </label>
+                    <span
+                      className={`px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider border border-black dark:border-neutral-600 rounded ${
+                        showShortcutToken
+                          ? 'bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100'
+                          : 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100'
+                      }`}
+                    >
+                      {showShortcutToken
+                        ? lang === 'en'
+                          ? '🔓 VISIBLE'
+                          : '🔓 TERLIHAT'
+                        : lang === 'en'
+                        ? '🔒 MASKED'
+                        : '🔒 TERSENSOR'}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -1679,14 +1708,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                       className="px-2 py-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 cursor-pointer active:scale-95"
                     >
                       {showShortcutToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      <span>{showShortcutToken ? (lang === 'en' ? 'Hide' : 'Sembunyi') : (lang === 'en' ? 'Show' : 'Lihat')}</span>
+                      <span>{showShortcutToken ? (lang === 'en' ? 'Mask Key' : 'Sensor') : (lang === 'en' ? 'Reveal' : 'Buka Sensor')}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => copyToClipboard(shortcutData.token, 'token')}
-                      className="px-2.5 py-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      className="px-2.5 py-1 bg-[#FFE066] text-black border-2 border-black text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-amber-300 flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
-                      {shortcutCopiedToken ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {shortcutCopiedToken ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{shortcutCopiedToken ? (lang === 'en' ? 'Copied!' : 'Tersalin!') : (lang === 'en' ? 'Copy Token' : 'Salin Token')}</span>
                     </button>
                   </div>
@@ -1698,15 +1727,27 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
                     ⚠️ {lang === 'en' ? 'Keep this token private. It grants permission to record transactions into your account.' : 'Jaga kerahasiaan token ini. Siapa pun yang memiliki token ini dapat mencatat transaksi ke akun Anda.'}
                   </p>
-                  <button
-                    type="button"
-                    onClick={handleRegenerateShortcut}
-                    disabled={shortcutRegenerating}
-                    className="text-[11px] text-red-600 dark:text-red-400 hover:underline font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50 shrink-0"
-                  >
-                    <RefreshCw className={`w-3 h-3 ${shortcutRegenerating ? 'animate-spin' : ''}`} />
-                    <span>{lang === 'en' ? 'Reset / Invalidate Token' : 'Reset / Buat Token Baru'}</span>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShortcutData(null);
+                        setShowShortcutToken(false);
+                      }}
+                      className="text-[11px] text-neutral-600 dark:text-neutral-400 hover:underline font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      {lang === 'en' ? '🔒 Lock & Hide Panel' : '🔒 Kunci & Tutup'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateShortcut}
+                      disabled={shortcutRegenerating}
+                      className="text-[11px] text-red-600 dark:text-red-400 hover:underline font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${shortcutRegenerating ? 'animate-spin' : ''}`} />
+                      <span>{lang === 'en' ? 'Reset / Invalidate Token' : 'Reset / Buat Token Baru'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 

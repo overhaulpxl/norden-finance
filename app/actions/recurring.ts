@@ -289,3 +289,84 @@ export async function processDueRecurringTransactions(limit = 50) {
 
   return { success: true, processedCount: dueRules.length, createdCount, skippedCount, failedCount };
 }
+
+export async function processUserDueRecurringTransactions() {
+  try {
+    const { user } = await requireUser(true);
+    const userId = user.uid;
+    const now = new Date();
+
+    const dueRules = await prisma.recurringTransaction.findMany({
+      where: {
+        userId,
+        isActive: true,
+        nextRunAt: { lte: now },
+      },
+      orderBy: { nextRunAt: 'asc' },
+    });
+
+    if (dueRules.length === 0) {
+      return { success: true, count: 0, message: 'Tidak ada transaksi berulang yang jatuh tempo saat ini.' };
+    }
+
+    let createdCount = 0;
+    for (const rule of dueRules) {
+      await prisma.$transaction(async (tx) => {
+        const claimed = await tx.recurringTransaction.updateMany({
+          where: {
+            id: rule.id,
+            userId,
+            isActive: true,
+            nextRunAt: { lte: now },
+          },
+          data: {
+            lastRunAt: now,
+            nextRunAt: nextMonthlyRun(rule.dayOfMonth, now),
+          },
+        });
+
+        if (claimed.count === 0) return;
+
+        const [category, wallet] = await Promise.all([
+          resolveCategory(tx, rule.userId, rule.categoryName, rule.type as TransactionType),
+          resolveWallet(tx, rule.userId, rule.walletName),
+        ]);
+
+        await tx.transaction.create({
+          data: {
+            userId: rule.userId,
+            categoryId: category.id,
+            walletId: wallet.id,
+            type: rule.type,
+            amount: rule.amount,
+            note: rule.note || `Recurring: ${rule.name}`,
+            tags: rule.tags,
+            rawInput: `recurring:${rule.id}`,
+            transactionDate: now,
+          },
+        });
+
+        await tx.balance.update({
+          where: { id: wallet.id },
+          data: {
+            currentBalance: {
+              increment: rule.type === 'masuk' ? rule.amount : -rule.amount,
+            },
+          },
+        });
+
+        createdCount++;
+      });
+    }
+
+    if (createdCount > 0) {
+      await createAuditLog(userId, 'TRIGGER_USER_RECURRING', 'recurringTransaction', `${createdCount}_transactions`);
+      revalidatePath('/dashboard');
+    }
+
+    return { success: true, count: createdCount };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Gagal memproses transaksi berulang';
+    return { success: false, error: message };
+  }
+}

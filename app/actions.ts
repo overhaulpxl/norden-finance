@@ -240,6 +240,9 @@ export async function toggleRecurringRule(id: string) {
 export async function deleteRecurringRule(id: string) {
   return recurring.deleteRecurringRule(id);
 }
+export async function processUserDueRecurringTransactions() {
+  return recurring.processUserDueRecurringTransactions();
+}
 
 // Dashboard
 export async function getDashboardData() {

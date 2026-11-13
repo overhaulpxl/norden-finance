@@ -5,6 +5,8 @@ import { LanguageProvider } from '../lib/i18n';
 import { HideBalanceProvider } from '../lib/HideBalanceContext';
 import { ThemeProvider } from '../lib/themeContext';
 import CookieConsentBanner from '../components/CookieConsentBanner';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const font = Outfit({ subsets: ['latin'] });
 
@@ -110,6 +112,45 @@ export default function RootLayout({
             `,
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'WebApplication',
+                  '@id': `${appUrl}/#app`,
+                  'name': 'Norden Finance',
+                  'url': appUrl,
+                  'description':
+                    'Kelola keuangan pribadi lebih teratur dengan Norden Finance. Catat pemasukan dan pengeluaran, atur anggaran, pantau tabungan, dan kelola keuangan harian.',
+                  'applicationCategory': 'FinanceApplication',
+                  'operatingSystem': 'All',
+                  'offers': {
+                    '@type': 'Offer',
+                    'price': '0',
+                    'priceCurrency': 'IDR',
+                  },
+                  'featureList': [
+                    'Smart Input Transaksi Otomatis',
+                    'Integrasi Pintasan Apple & Action Button (iOS)',
+                    'Offline Queue & Sinkronisasi Otomatis',
+                    'Anggaran & Target Tabungan Neobrutalisme',
+                    'Manajemen Transaksi Berulang & Pengingat Tagihan',
+                  ],
+                },
+                {
+                  '@type': 'Organization',
+                  '@id': `${appUrl}/#organization`,
+                  'name': 'Norden Finance',
+                  'url': appUrl,
+                  'logo': `${appUrl}/brand/norden-icon.png`,
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body className={`${font.className} transition-colors duration-300 antialiased`} suppressHydrationWarning>
         <ThemeProvider>
@@ -117,6 +158,8 @@ export default function RootLayout({
             <HideBalanceProvider>
               {children}
               <CookieConsentBanner />
+              <Analytics />
+              <SpeedInsights />
             </HideBalanceProvider>
           </LanguageProvider>
         </ThemeProvider>
