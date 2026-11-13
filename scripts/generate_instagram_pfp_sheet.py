@@ -5,10 +5,10 @@ def create_overview_sheet():
     pfp_dir = r'D:\norden-finance\public\instagram\pfp'
     
     variants = [
-        ("pfp-signature-yellow-circle-preview.png", "1. NEO-BRUTALIST YELLOW BADGE", "#FFE066", "Circle Badge: Kuning signature #FFE066 dengan hard shadow 20px hitam"),
-        ("pfp-brutalist-tile-circle-preview.png", "2. NEO-BRUTALIST APP TILE", "#FFFFFF", "Icon Tile: Kotak kuning sudut lengkung 68px, border 15px & shadow 20px"),
-        ("pfp-pure-white-circle-preview.png", "3. INVERTED YELLOW BADGE", "#FFE066", "High Impact: Kanvas kuning dengan badge putih kontras & shadow hitam"),
-        ("pfp-obsidian-dark-circle-preview.png", "4. OBSIDIAN DARK FINTECH", "#0D0E11", "Dark Mode: Obsidian #18181B dengan border & hard shadow kuning neon"),
+        ("pfp-pure-white-circle-preview.png", "1. PURE WHITE NEO-BRUTALIST (HERO)", "#FFFFFF", "White Circle Canvas: Signature Yellow N + Inked 18px Black Stroke & 14px Hard Shadow"),
+        ("pfp-signature-yellow-circle-preview.png", "2. SIGNATURE YELLOW STICKER POP", "#FFE066", "Yellow Canvas: Pure White N + Inked 18px Black Stroke & 14px Hard Drop Shadow"),
+        ("pfp-signature-bold-circle-preview.png", "3. SIGNATURE YELLOW PURE BOLD", "#FFE066", "Bauhaus Fintech: Kanvas kuning dengan emblem N hitam solid & dual concentric ring"),
+        ("pfp-obsidian-dark-circle-preview.png", "4. OBSIDIAN DARK FINTECH", "#0D0E11", "Dark Mode: Obsidian #0D0E11 dengan dual ring kuning & emblem kuning neon"),
     ]
 
     # Create 2x2 grid image (2400 x 2600 px)
@@ -18,15 +18,15 @@ def create_overview_sheet():
     # Header
     draw.rectangle([0, 0, 2400, 220], fill='#FFE066', outline='#000000', width=6)
     try:
-        font_title = ImageFont.truetype('arial.ttf', 64)
-        font_sub = ImageFont.truetype('arial.ttf', 32)
-        font_card_title = ImageFont.truetype('arial.ttf', 44)
-        font_card_desc = ImageFont.truetype('arial.ttf', 28)
+        font_title = ImageFont.truetype('arial.ttf', 60)
+        font_sub = ImageFont.truetype('arial.ttf', 30)
+        font_card_title = ImageFont.truetype('arial.ttf', 42)
+        font_card_desc = ImageFont.truetype('arial.ttf', 26)
     except:
         font_title = font_sub = font_card_title = font_card_desc = None
 
-    draw.text((80, 50), "NORDEN FINANCE — NEO-BRUTALIST INSTAGRAM PFP OPTIONS", fill='#000000', font=font_title)
-    draw.text((80, 135), "1080 x 1080 px Lossless PNG | 100% Circle-Safe Margin | Authentic Neo-Brutalism", fill='#222222', font=font_sub)
+    draw.text((80, 50), "NORDEN FINANCE — INSTAGRAM PFP NEO-BRUTALISM", fill='#000000', font=font_title)
+    draw.text((80, 135), "1080 x 1080 px Lossless PNG | 100% Full-Bleed Circular Profile | Zero Sawtooth Geometry", fill='#222222', font=font_sub)
 
     positions = [
         (80, 280),
@@ -45,7 +45,7 @@ def create_overview_sheet():
         draw.rectangle([x, y, x + 1080, y + 120], fill=bg_color, outline='#000000', width=4)
         text_fill = '#000000' if bg_color != '#0D0E11' else '#FFFFFF'
         draw.text((x + 30, y + 25), title, fill=text_fill, font=font_card_title)
-        draw.text((x + 30, y + 78), desc, fill='#555555' if bg_color != '#0D0E11' else '#AAAAAA', font=font_card_desc)
+        draw.text((x + 30, y + 78), desc, fill='#555555' if bg_color != '#0D0E11' else '#FFE066', font=font_card_desc)
 
         # Paste preview image
         img_path = os.path.join(pfp_dir, filename)
