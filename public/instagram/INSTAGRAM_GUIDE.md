@@ -409,19 +409,22 @@ Kunjungi nordenfinance.site.
 
 ---
 
-# BAGIAN 3: SINGLE SQUARE POST (1:1 • 1080×1080 px)
+# BAGIAN 3: SINGLE PORTRAIT FEED POST (4:5 • 1080×1350 px)
 
 ### Teks di Dalam Gambar (`post-square-hero.png`)
-* **Header:** NORDEN FINANCE / 2026
+* **Header:** KENALI UANGMU BERSAMA NORDEN
 * **Eyebrow:** PENGELOLAAN KEUANGAN PRIBADI
 * **Headline (2 baris):**
   ```text
   KENALI UANGMU
   BERSAMA NORDEN
   ```
-* **Deskripsi:** Catat transaksi, kelola beberapa dompet, dan lihat gambaran keuanganmu dalam satu tempat.
-* **Label kecil:** SMART INPUT | MULTI-DOMPET | TRIAL PRO 14 HARI
-* **Footer:** @norden.finance • nordenfinance.site
+* **Deskripsi:** Norden Finance membantu kamu mencatat transaksi harian, mengelola multi-dompet, dan memahami ke mana uangmu bergerak.
+* **3 Kartu Fitur:**
+  - 01 SMART INPUT: Catat cepat via suara, struk OCR, & teks bahasa alami.
+  - 02 MULTI-DOMPET: Pisahkan rekening bank, e-wallet, & uang tunai secara rapi.
+  - 03 ARUS KAS REALTIME: Pantau pola pengeluaran & alokasi dompet tanpa ilusi.
+* **Footer:** @norden.finance • nordenfinance.site | TRIAL PRO 14 HARI • COBA SEKARANG →
 
 ### Caption Single Square Post
 ```text

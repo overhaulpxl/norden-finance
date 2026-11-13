@@ -642,12 +642,12 @@ const CAROUSEL_SLIDES: SlideItem[] = [
 
 const SQUARE_HERO: SlideItem = {
   id: 'post-square',
-  name: 'Feed Post — 1:1 Square Hero',
+  name: 'Feed Post — 4:5 Portrait Hero',
   title: 'KENALI UANGMU BERSAMA NORDEN',
-  ratio: '1:1',
-  dimensions: '1080 × 1080 px',
+  ratio: '4:5',
+  dimensions: '1080 × 1350 px',
   src: '/instagram/post-square-hero.png',
-  description: 'Desain neo-brutalist selaras carousel dengan kartu kuning hero, brand pill, dan 3 kartu pilar fitur fungsional.',
+  description: 'Desain neo-brutalist selaras carousel dalam rasio portrait 4:5 dengan kartu kuning hero, brand pill, dan 3 kartu pilar fitur fungsional.',
 };
 
 const PFP_VARIANTS: PfpItem[] = [
@@ -2795,7 +2795,7 @@ Mulai di nordenfinance.site`}
                     <div className="flex items-center justify-between p-2.5 bg-[#FAF9F5] border-[2px] border-black mt-1">
                       <div className="flex items-center gap-2">
                         <span className="font-black text-xs">#FEED</span>
-                        <span className="font-bold text-xs truncate max-w-[170px]">Square Hero 1:1</span>
+                        <span className="font-bold text-xs truncate max-w-[170px]">Portrait Hero 4:5</span>
                       </div>
                       <a
                         href={SQUARE_HERO.src}
