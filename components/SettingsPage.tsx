@@ -113,6 +113,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [shortcutRegenerating, setShortcutRegenerating] = useState(false);
   const [shortcutCopiedUrl, setShortcutCopiedUrl] = useState(false);
   const [shortcutCopiedToken, setShortcutCopiedToken] = useState(false);
+  const [shortcutCopiedBearer, setShortcutCopiedBearer] = useState(false);
+  const [shortcutGuideLang, setShortcutGuideLang] = useState<'en' | 'id'>('en');
   const [showShortcutToken, setShowShortcutToken] = useState(false);
   const [showShortcutGuide, setShowShortcutGuide] = useState(false);
   const [shortcutError, setShortcutError] = useState<string | null>(null);
@@ -526,13 +528,16 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
     }
   };
 
-  const copyToClipboard = async (text: string, type: 'url' | 'token') => {
+  const copyToClipboard = async (text: string, type: 'url' | 'token' | 'bearer') => {
     try {
       await navigator.clipboard.writeText(text);
       triggerHaptic('light');
       if (type === 'url') {
         setShortcutCopiedUrl(true);
         setTimeout(() => setShortcutCopiedUrl(false), 2000);
+      } else if (type === 'bearer') {
+        setShortcutCopiedBearer(true);
+        setTimeout(() => setShortcutCopiedBearer(false), 2000);
       } else {
         setShortcutCopiedToken(true);
         setTimeout(() => setShortcutCopiedToken(false), 2000);
@@ -1679,8 +1684,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               </div>
 
               {/* Secret Bearer Token */}
-              <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
+              <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 shadow-[3px_3px_0px_0px_#000] rounded-xl space-y-2.5 overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <label className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
                       {lang === 'en' ? 'Secret Authorization Token (HMAC)' : 'Token Otorisasi Rahasia (HMAC)'}
@@ -1701,14 +1706,14 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                         : '🔒 TERSENSOR'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <button
                       type="button"
                       onClick={() => setShowShortcutToken((prev) => !prev)}
                       className="px-2 py-1 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1 cursor-pointer active:scale-95"
                     >
                       {showShortcutToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      <span>{showShortcutToken ? (lang === 'en' ? 'Mask Key' : 'Sensor') : (lang === 'en' ? 'Reveal' : 'Buka Sensor')}</span>
+                      <span>{showShortcutToken ? (lang === 'en' ? 'Mask' : 'Sensor') : (lang === 'en' ? 'Reveal' : 'Buka Sensor')}</span>
                     </button>
                     <button
                       type="button"
@@ -1718,10 +1723,25 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                       {shortcutCopiedToken ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{shortcutCopiedToken ? (lang === 'en' ? 'Copied!' : 'Tersalin!') : (lang === 'en' ? 'Copy Token' : 'Salin Token')}</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(`Bearer ${shortcutData.token}`, 'bearer')}
+                      className="px-2.5 py-1 bg-white dark:bg-neutral-900 text-black dark:text-white border-2 border-black dark:border-neutral-700 text-[11px] font-black uppercase tracking-wider rounded shadow-[1.5px_1.5px_0px_0px_#000] hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      title={lang === 'en' ? 'Copy complete Header value with "Bearer " prefix' : 'Salin format Header lengkap dengan kata "Bearer "'}
+                    >
+                      {shortcutCopiedBearer ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{shortcutCopiedBearer ? (lang === 'en' ? 'Header Copied!' : 'Header Tersalin!') : (lang === 'en' ? 'Salin Header Siap Pakai' : 'Salin Header Siap Pakai')}</span>
+                    </button>
                   </div>
                 </div>
-                <div className="p-2.5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded font-mono text-xs text-neutral-800 dark:text-neutral-200 break-all select-all">
-                  {showShortcutToken ? shortcutData.token : '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••'}
+                <div className="p-2.5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded font-mono text-xs text-neutral-800 dark:text-neutral-200 overflow-hidden w-full max-w-full select-all">
+                  {showShortcutToken ? (
+                    <span className="break-all whitespace-normal leading-relaxed block font-mono text-[11px]">{shortcutData.token}</span>
+                  ) : (
+                    <span className="tracking-widest text-neutral-400 select-none block truncate">
+                      •••• •••• •••• •••• •••• •••• •••• ••••
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1">
                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
@@ -1766,64 +1786,178 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                 </button>
 
                 {showShortcutGuide && (
-                  <div className="p-4 space-y-3.5 text-xs text-neutral-700 dark:text-neutral-300 font-medium border-t-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-900">
-                    <div className="space-y-1">
-                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
-                        1. Buat Pintasan Baru
-                      </p>
-                      <p className="leading-relaxed">
-                        Buka aplikasi bawaan <strong>Shortcuts (Pintasan)</strong> di iPhone, lalu ketuk tombol <strong>+</strong> di pojok kanan atas. Beri nama pintasan, misalnya: <em>&ldquo;Catat Norden&rdquo;</em>.
-                      </p>
+                  <div className="p-4 space-y-4 text-xs text-neutral-700 dark:text-neutral-300 font-medium border-t-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-900">
+                    {/* Language Selector for iPhone Settings */}
+                    <div className="flex items-center justify-between pb-2 border-b border-black/15 dark:border-neutral-800">
+                      <span className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400">
+                        {lang === 'en' ? 'Match your iPhone Language:' : 'Pilih Bahasa iPhone Anda:'}
+                      </span>
+                      <div className="flex gap-1 bg-white dark:bg-neutral-800 p-1 border border-black dark:border-neutral-700 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => setShortcutGuideLang('en')}
+                          className={`px-2 py-0.5 text-[10px] font-black rounded cursor-pointer transition-all ${
+                            shortcutGuideLang === 'en'
+                              ? 'bg-[#FFE066] text-black border border-black shadow-[1px_1px_0px_0px_#000]'
+                              : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                          }`}
+                        >
+                          🇺🇸 English (US)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShortcutGuideLang('id')}
+                          className={`px-2 py-0.5 text-[10px] font-black rounded cursor-pointer transition-all ${
+                            shortcutGuideLang === 'id'
+                              ? 'bg-[#FFE066] text-black border border-black shadow-[1px_1px_0px_0px_#000]'
+                              : 'text-neutral-500 hover:text-black dark:hover:text-white'
+                          }`}
+                        >
+                          🇮🇩 Indonesia
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
-                        2. Tambah Aksi &ldquo;Minta Masukan&rdquo; (Ask for Input)
-                      </p>
-                      <p className="leading-relaxed">
-                        Cari aksi <strong>Ask for Input (Minta Masukan)</strong>. Pilih tipe: <code>Teks</code>, pertanyaan: <code>Catat transaksi apa?</code>.
-                      </p>
+                    {/* Visual Blueprint Schema */}
+                    <div className="p-3 bg-neutral-900 text-white rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_#000] font-mono text-[10px] leading-relaxed">
+                      <div className="text-amber-400 font-bold mb-1 pb-1 border-b border-neutral-700 uppercase tracking-wider flex items-center justify-between">
+                        <span>📱 Alur Aksi Pintasan (Shortcuts Blueprint)</span>
+                        <span className="text-[9px] text-neutral-400 font-normal">Hanya 3 Langkah</span>
+                      </div>
+                      <div className="space-y-1.5 text-neutral-300">
+                        <div>
+                          <span className="text-emerald-400 font-bold">1️⃣ {shortcutGuideLang === 'en' ? 'Ask for Input' : 'Minta Masukan'}</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Prompt: &quot;Catat transaksi apa?&quot;</span>
+                        </div>
+                        <div>
+                          <span className="text-emerald-400 font-bold">2️⃣ {shortcutGuideLang === 'en' ? 'Get Contents of URL' : 'Dapatkan Isi URL'}</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Method: POST</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Header: Authorization = Bearer [Token]</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Body JSON: Key &quot;text&quot; = [Provided Input]</span>
+                        </div>
+                        <div>
+                          <span className="text-emerald-400 font-bold">3️⃣ {shortcutGuideLang === 'en' ? 'Show Notification' : 'Tampilkan Pemberitahuan'}</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Text: [Contents of URL]</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
-                        3. Tambah Aksi &ldquo;Dapatkan Isi URL&rdquo; (Get Contents of URL)
-                      </p>
-                      <ul className="list-disc pl-5 space-y-1 leading-relaxed">
-                        <li><strong>URL</strong>: Masukkan URL Endpoint di atas.</li>
-                        <li><strong>Metode (Method)</strong>: <code>POST</code>.</li>
-                        <li>
-                          <strong>Tajuk (Headers)</strong>:
-                          <span className="block pl-2 pt-0.5 space-y-0.5 font-mono text-[11px]">
-                            <span>• <code>Content-Type</code>: <code>application/json</code></span><br />
-                            <span>• <code>Authorization</code>: <code>Bearer [Salin Token Anda]</code></span>
-                          </span>
-                        </li>
-                        <li>
-                          <strong>Isi Permintaan (Request Body)</strong>: <code>JSON</code>.
-                          <div className="pt-0.5">
-                            Tambahkan field baru bertipe <strong>Text</strong>: Key = <code>text</code>, Value = variabel <strong>[Input yang Disediakan]</strong> dari langkah 2.
-                          </div>
-                        </li>
-                      </ul>
+                    {/* Step-by-Step Instructions */}
+                    <div className="space-y-3.5">
+                      {/* Step 1 */}
+                      <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl space-y-1.5 shadow-[2px_2px_0px_0px_#000]">
+                        <p className="font-black text-black dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-[10px] font-black">1</span>
+                          <span>{shortcutGuideLang === 'en' ? 'Cari & Tambah "Ask for Input"' : 'Cari & Tambah "Minta Masukan"'}</span>
+                        </p>
+                        <ul className="list-disc pl-5 space-y-1 text-[11px] leading-relaxed">
+                          <li>
+                            Lihat kolom <strong>Search</strong> di bagian bawah layar iPhone Anda.
+                          </li>
+                          <li>
+                            Ketik kata kunci: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Ask for Input' : 'Minta Masukan'}</code>, lalu ketuk aksi tersebut.
+                          </li>
+                          <li>
+                            Ketuk pada teks <em>&quot;Prompt&quot;</em>, lalu ketik pertanyaan Anda, misal: <code className="px-1 bg-neutral-200 dark:bg-neutral-700 rounded">Catat apa?</code>.
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Step 2 */}
+                      <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl space-y-2 shadow-[2px_2px_0px_0px_#000]">
+                        <p className="font-black text-black dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-[10px] font-black">2</span>
+                          <span>{shortcutGuideLang === 'en' ? 'Cari & Tambah "Get Contents of URL"' : 'Cari & Tambah "Dapatkan Isi URL"'}</span>
+                        </p>
+                        <ul className="list-disc pl-5 space-y-1.5 text-[11px] leading-relaxed">
+                          <li>
+                            Di kolom Search bawah, ketik: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Get Contents of URL' : 'Dapatkan Isi URL'}</code>, lalu ketuk aksi tersebut.
+                          </li>
+                          <li>
+                            Di kolom <strong>URL</strong>, ketuk lalu tempelkan (Paste) URL Webhook:
+                            <div className="pt-1">
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(shortcutData.endpoint, 'url')}
+                                className="px-2 py-0.5 bg-[#FFE066] text-black border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
+                              >
+                                {shortcutCopiedUrl ? <Check className="w-3 h-3 text-emerald-700" /> : <Copy className="w-3 h-3" />}
+                                <span>{shortcutCopiedUrl ? 'URL Tersalin!' : '📋 Salin URL Webhook'}</span>
+                              </button>
+                            </div>
+                          </li>
+                          <li className="pt-1">
+                            <span className="text-red-600 dark:text-red-400 font-black uppercase">Penting: </span>
+                            Ketuk tanda panah kecil <strong>(&gt;)</strong> di samping URL untuk membuka setelan lanjutan:
+                            <div className="mt-1 pl-2 space-y-1 border-l-2 border-black/30 dark:border-neutral-600">
+                              <div>
+                                • <strong>Method</strong>: Ubah dari <code>GET</code> menjadi <strong><code>POST</code></strong>.
+                              </div>
+                              <div>
+                                • <strong>Headers</strong>: Ketuk <em>Add new field</em>.
+                                <div className="pl-3 pt-0.5 space-y-0.5">
+                                  <div>Key = <code>Authorization</code></div>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span>Text = </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyToClipboard(`Bearer ${shortcutData.token}`, 'bearer')}
+                                      className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
+                                    >
+                                      {shortcutCopiedBearer ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                      <span>{shortcutCopiedBearer ? 'Header Tersalin!' : '📋 Salin Format "Bearer + Token"'}</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="pt-0.5">
+                                • <strong>Request Body</strong>: Ubah dari <code>File</code> menjadi <strong><code>JSON</code></strong>.
+                                <div className="pl-3 pt-0.5 space-y-0.5">
+                                  <div>Ketuk <em>Add new field</em> (pilih tipe <strong>Text</strong>):</div>
+                                  <div>Key = <code>text</code></div>
+                                  <div>
+                                    Text/Value = Ketuk kolomnya, lalu pilih variabel warna biru <strong>{shortcutGuideLang === 'en' ? 'Provided Input' : 'Input yang Disediakan'}</strong> (hasil input dari Langkah 1).
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="p-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl space-y-1.5 shadow-[2px_2px_0px_0px_#000]">
+                        <p className="font-black text-black dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-[10px] font-black">3</span>
+                          <span>{shortcutGuideLang === 'en' ? 'Cari & Tambah "Show Notification"' : 'Cari & Tambah "Tampilkan Pemberitahuan"'}</span>
+                        </p>
+                        <ul className="list-disc pl-5 space-y-1 text-[11px] leading-relaxed">
+                          <li>
+                            Di kolom Search bawah lagi, ketik: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Show Notification' : 'Tampilkan Pemberitahuan'}</code>, lalu ketuk aksi tersebut.
+                          </li>
+                          <li>
+                            Hapus tulisan defaultnya, lalu pilih variabel warna biru <strong>{shortcutGuideLang === 'en' ? 'Contents of URL' : 'Isi URL'}</strong> agar konfirmasi berhasil otomatis muncul di notifikasi.
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Finish */}
+                      <div className="p-3 bg-emerald-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-black dark:text-white flex items-center gap-2">
+                        <span className="text-xl">🎉</span>
+                        <div className="text-[11px] leading-relaxed">
+                          <strong>Selesai!</strong> Ketuk tombol <strong>Done</strong> di pojok kanan atas iPhone. Pintasan siap dipakai via Siri, Back Tap, atau Action Button.
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="font-black text-black dark:text-white uppercase tracking-wider">
-                        4. Tambah Aksi &ldquo;Tampilkan Pemberitahuan&rdquo; (Show Notification)
-                      </p>
-                      <p className="leading-relaxed">
-                        Tampilkan konfirmasi dengan memasukkan variabel hasil <code>[Isi URL]</code> agar notifikasi mencatat status berhasil.
-                      </p>
-                    </div>
-
+                    {/* How to trigger */}
                     <div className="p-3 bg-amber-100 dark:bg-amber-950/60 border-2 border-black dark:border-neutral-700 rounded-lg text-black dark:text-white space-y-1">
                       <p className="font-black uppercase tracking-wider text-[11px] text-amber-900 dark:text-amber-200">
-                        💡 Cara Memicu di iPhone:
+                        💡 Cara Memicu Pintasan di iPhone:
                       </p>
                       <ul className="list-disc pl-4 space-y-0.5 text-[11px] leading-relaxed">
                         <li><strong>Action Button (iPhone 15 Pro / 16)</strong>: Buka <em>Settings &gt; Action Button &gt; Shortcut &gt; Catat Norden</em>.</li>
-                        <li><strong>Ketuk Punggung (Back Tap)</strong>: Buka <em>Settings &gt; Aksesibilitas &gt; Sentuh &gt; Ketuk Bagian Belakang &gt; Ketuk Dua Kali &gt; Catat Norden</em>.</li>
+                        <li><strong>Ketuk Punggung (Back Tap)</strong>: Buka <em>Settings &gt; Accessibility &gt; Touch &gt; Back Tap &gt; Double Tap &gt; Catat Norden</em>.</li>
                         <li><strong>Siri Voice</strong>: Cukup ucapkan <em>&ldquo;Hey Siri, Catat Norden&rdquo;</em>, lalu sebutkan <em>&ldquo;kopi 25k bca&rdquo;</em>.</li>
                       </ul>
                     </div>
