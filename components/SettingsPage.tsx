@@ -114,6 +114,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [shortcutCopiedUrl, setShortcutCopiedUrl] = useState(false);
   const [shortcutCopiedToken, setShortcutCopiedToken] = useState(false);
   const [shortcutCopiedBearer, setShortcutCopiedBearer] = useState(false);
+  const [shortcutCopiedKey, setShortcutCopiedKey] = useState<string | null>(null);
   const [shortcutGuideLang, setShortcutGuideLang] = useState<'en' | 'id'>('en');
   const [showShortcutToken, setShowShortcutToken] = useState(false);
   const [showShortcutGuide, setShowShortcutGuide] = useState(false);
@@ -542,6 +543,17 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
         setShortcutCopiedToken(true);
         setTimeout(() => setShortcutCopiedToken(false), 2000);
       }
+    } catch {
+      // Fallback
+    }
+  };
+
+  const copyShortcutKey = async (text: string, keyName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      triggerHaptic('light');
+      setShortcutCopiedKey(keyName);
+      setTimeout(() => setShortcutCopiedKey(null), 2000);
     } catch {
       // Fallback
     }
@@ -1827,17 +1839,137 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                       <div className="space-y-1.5 text-neutral-300">
                         <div>
                           <span className="text-emerald-400 font-bold">1️⃣ {shortcutGuideLang === 'en' ? 'Ask for Input' : 'Minta Masukan'}</span>
-                          <span className="block pl-3.5 text-neutral-400">&rarr; Prompt: &quot;Catat transaksi apa?&quot;</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Type: Text | Prompt: &quot;Catat transaksi apa?&quot;</span>
                         </div>
                         <div>
                           <span className="text-emerald-400 font-bold">2️⃣ {shortcutGuideLang === 'en' ? 'Get Contents of URL' : 'Dapatkan Isi URL'}</span>
                           <span className="block pl-3.5 text-neutral-400">&rarr; Method: POST</span>
-                          <span className="block pl-3.5 text-neutral-400">&rarr; Header: Authorization = Bearer [Token]</span>
-                          <span className="block pl-3.5 text-neutral-400">&rarr; Body JSON: Key &quot;text&quot; = [Provided Input]</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Headers: Key = Authorization | Value = Bearer [Token]</span>
+                          <span className="block pl-3.5 text-neutral-400">&rarr; Request Body: JSON | Key = text | Value = [Provided Input]</span>
                         </div>
                         <div>
                           <span className="text-emerald-400 font-bold">3️⃣ {shortcutGuideLang === 'en' ? 'Show Notification' : 'Tampilkan Pemberitahuan'}</span>
                           <span className="block pl-3.5 text-neutral-400">&rarr; Text: [Contents of URL]</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Critical Common Mistakes Callout */}
+                    <div className="p-3.5 bg-red-50 dark:bg-red-950/40 border-2 border-red-600 rounded-xl space-y-2.5 text-black dark:text-white shadow-[2px_2px_0px_0px_#dc2626]">
+                      <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-black text-xs uppercase tracking-wider">
+                        <span className="text-base">⚠️</span>
+                        <span>{lang === 'en' ? '2 Common Mistakes on iPhone (Must Check!):' : '2 Jebakan Pengaturan iPhone (Wajib Diperhatikan):'}</span>
+                      </div>
+                      <div className="space-y-2 text-[11px] leading-relaxed">
+                        <div className="p-2 bg-white dark:bg-neutral-900 border border-red-300 dark:border-red-900 rounded-lg">
+                          <p className="font-bold text-red-700 dark:text-red-300">
+                            1. Kolom &ldquo;Key&rdquo; abu-abu itu KOSONG, bukan sudah terisi!
+                          </p>
+                          <p className="text-neutral-600 dark:text-neutral-300 mt-0.5">
+                            Tulisan abu-abu <em>Key</em> di iPhone adalah placeholder. Anda <strong>wajib mengetuk</strong> tulisan <em>Key</em> tersebut lalu mengetik:
+                          </p>
+                          <ul className="list-disc pl-4 mt-1 space-y-1 font-mono text-[10px]">
+                            <li>Di bagian <strong>Headers</strong>: ketik <code className="bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded font-black text-emerald-600 dark:text-emerald-400">Authorization</code></li>
+                            <li>Di bagian <strong>Request Body</strong>: ketik <code className="bg-neutral-100 dark:bg-neutral-800 px-1 py-0.5 rounded font-black text-emerald-600 dark:text-emerald-400">text</code></li>
+                          </ul>
+                        </div>
+                        <div className="p-2 bg-white dark:bg-neutral-900 border border-red-300 dark:border-red-900 rounded-lg">
+                          <p className="font-bold text-red-700 dark:text-red-300">
+                            2. Cara mengganti tulisan bawaan &ldquo;Hello, world!&rdquo; di notifikasi:
+                          </p>
+                          <p className="text-neutral-600 dark:text-neutral-300 mt-0.5">
+                            Ketuk tanda silang abu-abu <strong>(X)</strong> di samping tulisan <em>Hello,</em> untuk mengosongkannya. Lalu ketuk tombol hijau <strong>&ldquo;Contents of URL&rdquo;</strong> yang muncul tepat di atas keyboard iPhone Anda.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Visual Mockup: Cocokkan dengan Layar iPhone */}
+                    <div className="p-3.5 bg-neutral-950 text-white border-2 border-black rounded-xl space-y-2.5 font-sans shadow-[3px_3px_0px_0px_#000]">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-neutral-800">
+                        <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>📸</span>
+                          <span>{lang === 'en' ? 'Exact Screen Match (Check Your iPhone Screen):' : 'Tampilan Layar iPhone Yang Benar (Cocokkan Ini):'}</span>
+                        </span>
+                        <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.5 rounded font-bold uppercase">
+                          Target Benar
+                        </span>
+                      </div>
+
+                      {/* Mockup Card 1: Headers */}
+                      <div className="p-2.5 bg-neutral-900 rounded-lg border border-neutral-800 space-y-2 text-[11px]">
+                        <div className="flex items-center justify-between text-neutral-400 font-bold text-[10px] uppercase">
+                          <span>Headers</span>
+                          <span className="text-[9px] text-emerald-400">✅ Method POST</span>
+                        </div>
+                        <div className="p-2 bg-neutral-950 rounded border border-emerald-500/60 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded-full bg-red-500/80 text-white flex items-center justify-center text-[10px] font-bold">-</span>
+                            <span className="font-mono text-emerald-400 font-bold">Authorization</span>
+                          </div>
+                          <span className="font-mono text-[10px] text-neutral-300 truncate max-w-[130px] sm:max-w-[200px]">
+                            Bearer eyJ1c2V...
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => copyShortcutKey('Authorization', 'auth')}
+                            className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 rounded text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95"
+                          >
+                            {shortcutCopiedKey === 'auth' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            <span>{shortcutCopiedKey === 'auth' ? 'Tersalin!' : '📋 Salin "Authorization"'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(`Bearer ${shortcutData.token}`, 'bearer')}
+                            className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 rounded text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95"
+                          >
+                            {shortcutCopiedBearer ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            <span>{shortcutCopiedBearer ? 'Tersalin!' : '📋 Salin Format "Bearer + Token"'}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Mockup Card 2: Request Body */}
+                      <div className="p-2.5 bg-neutral-900 rounded-lg border border-neutral-800 space-y-2 text-[11px]">
+                        <div className="flex items-center justify-between text-neutral-400 font-bold text-[10px] uppercase">
+                          <span>Request Body</span>
+                          <span className="text-[10px] font-mono text-cyan-400">JSON</span>
+                        </div>
+                        <div className="p-2 bg-neutral-950 rounded border border-emerald-500/60 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded-full bg-red-500/80 text-white flex items-center justify-center text-[10px] font-bold">-</span>
+                            <span className="font-mono text-emerald-400 font-bold">text</span>
+                          </div>
+                          <span className="px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-700 rounded font-bold text-[10px] flex items-center gap-1">
+                            <span>💬</span> Provided Input
+                          </span>
+                        </div>
+                        <div className="pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => copyShortcutKey('text', 'textKey')}
+                            className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 rounded text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95"
+                          >
+                            {shortcutCopiedKey === 'textKey' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            <span>{shortcutCopiedKey === 'textKey' ? 'Tersalin!' : '📋 Salin "text"'}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Mockup Card 3: Show Notification */}
+                      <div className="p-2.5 bg-neutral-900 rounded-lg border border-neutral-800 space-y-1.5 text-[11px]">
+                        <div className="flex items-center justify-between text-neutral-400 font-bold text-[10px] uppercase">
+                          <span>Show Notification</span>
+                          <span className="text-[9px] text-amber-400">Hapus &quot;Hello, world!&quot;</span>
+                        </div>
+                        <div className="p-2 bg-neutral-950 rounded border border-emerald-500/60 flex items-center gap-2">
+                          <span className="text-amber-400">🔔</span>
+                          <span className="font-bold text-neutral-300">Show notification</span>
+                          <span className="px-2 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-700 rounded font-bold text-[10px] flex items-center gap-1">
+                            <span>🌐</span> Contents of URL
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1858,7 +1990,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                             Ketik kata kunci: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Ask for Input' : 'Minta Masukan'}</code>, lalu ketuk aksi tersebut.
                           </li>
                           <li>
-                            Ketuk pada teks <em>&quot;Prompt&quot;</em>, lalu ketik pertanyaan Anda, misal: <code className="px-1 bg-neutral-200 dark:bg-neutral-700 rounded">Catat apa?</code>.
+                            Pastikan tipe input adalah <strong>Text</strong>. Ketuk teks <em>&quot;Prompt&quot;</em>, lalu ketik: <code className="px-1 bg-neutral-200 dark:bg-neutral-700 rounded">Catat transaksi apa?</code>.
                           </li>
                         </ul>
                       </div>
@@ -1869,7 +2001,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                           <span className="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-[10px] font-black">2</span>
                           <span>{shortcutGuideLang === 'en' ? 'Cari & Tambah "Get Contents of URL"' : 'Cari & Tambah "Dapatkan Isi URL"'}</span>
                         </p>
-                        <ul className="list-disc pl-5 space-y-1.5 text-[11px] leading-relaxed">
+                        <ul className="list-disc pl-5 space-y-2 text-[11px] leading-relaxed">
                           <li>
                             Di kolom Search bawah, ketik: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Get Contents of URL' : 'Dapatkan Isi URL'}</code>, lalu ketuk aksi tersebut.
                           </li>
@@ -1879,7 +2011,7 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                               <button
                                 type="button"
                                 onClick={() => copyToClipboard(shortcutData.endpoint, 'url')}
-                                className="px-2 py-0.5 bg-[#FFE066] text-black border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
+                                className="px-2.5 py-1 bg-[#FFE066] text-black border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95 shadow-[1px_1px_0px_0px_#000]"
                               >
                                 {shortcutCopiedUrl ? <Check className="w-3 h-3 text-emerald-700" /> : <Copy className="w-3 h-3" />}
                                 <span>{shortcutCopiedUrl ? 'URL Tersalin!' : '📋 Salin URL Webhook'}</span>
@@ -1887,36 +2019,56 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                             </div>
                           </li>
                           <li className="pt-1">
-                            <span className="text-red-600 dark:text-red-400 font-black uppercase">Penting: </span>
+                            <span className="text-red-600 dark:text-red-400 font-black uppercase">PENTING: </span>
                             Ketuk tanda panah kecil <strong>(&gt;)</strong> di samping URL untuk membuka setelan lanjutan:
-                            <div className="mt-1 pl-2 space-y-1 border-l-2 border-black/30 dark:border-neutral-600">
+                            <div className="mt-1.5 pl-2 space-y-2 border-l-2 border-black/30 dark:border-neutral-600">
                               <div>
                                 • <strong>Method</strong>: Ubah dari <code>GET</code> menjadi <strong><code>POST</code></strong>.
                               </div>
-                              <div>
-                                • <strong>Headers</strong>: Ketuk <em>Add new field</em>.
-                                <div className="pl-3 pt-0.5 space-y-0.5">
-                                  <div>Key = <code>Authorization</code></div>
+                              <div className="space-y-1">
+                                <div>• <strong>Headers</strong>: Ketuk <em>{shortcutGuideLang === 'en' ? 'Add new header' : 'Tambah tajuk baru'}</em>.</div>
+                                <div className="pl-3 space-y-1 bg-amber-50 dark:bg-neutral-800/80 p-2 rounded-lg border border-amber-200 dark:border-neutral-700">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span>Text = </span>
+                                    <span>Kolom Kiri (Key): ketik <strong><code>Authorization</code></strong></span>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyShortcutKey('Authorization', 'auth')}
+                                      className="px-2 py-0.5 bg-white dark:bg-neutral-900 border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
+                                    >
+                                      {shortcutCopiedKey === 'auth' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                      <span>{shortcutCopiedKey === 'auth' ? 'Tersalin!' : 'Salin "Authorization"'}</span>
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                    <span>Kolom Kanan (Text): </span>
                                     <button
                                       type="button"
                                       onClick={() => copyToClipboard(`Bearer ${shortcutData.token}`, 'bearer')}
-                                      className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-700 border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
+                                      className="px-2 py-0.5 bg-[#FFE066] text-black border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
                                     >
                                       {shortcutCopiedBearer ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                                      <span>{shortcutCopiedBearer ? 'Header Tersalin!' : '📋 Salin Format "Bearer + Token"'}</span>
+                                      <span>{shortcutCopiedBearer ? 'Header Tersalin!' : 'Salin Format "Bearer + Token"'}</span>
                                     </button>
                                   </div>
                                 </div>
                               </div>
-                              <div className="pt-0.5">
-                                • <strong>Request Body</strong>: Ubah dari <code>File</code> menjadi <strong><code>JSON</code></strong>.
-                                <div className="pl-3 pt-0.5 space-y-0.5">
-                                  <div>Ketuk <em>Add new field</em> (pilih tipe <strong>Text</strong>):</div>
-                                  <div>Key = <code>text</code></div>
-                                  <div>
-                                    Text/Value = Ketuk kolomnya, lalu pilih variabel warna biru <strong>{shortcutGuideLang === 'en' ? 'Provided Input' : 'Input yang Disediakan'}</strong> (hasil input dari Langkah 1).
+                              <div className="space-y-1">
+                                <div>• <strong>Request Body</strong>: Ubah dari <code>File</code> menjadi <strong><code>JSON</code></strong>.</div>
+                                <div className="pl-3 space-y-1 bg-amber-50 dark:bg-neutral-800/80 p-2 rounded-lg border border-amber-200 dark:border-neutral-700">
+                                  <div>Ketuk <em>{shortcutGuideLang === 'en' ? 'Add new field' : 'Tambah bidang baru'}</em> (tipe <strong>Text</strong>):</div>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span>Kolom Kiri (Key): ketik <strong><code>text</code></strong></span>
+                                    <button
+                                      type="button"
+                                      onClick={() => copyShortcutKey('text', 'textKey')}
+                                      className="px-2 py-0.5 bg-white dark:bg-neutral-900 border border-black rounded text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95"
+                                    >
+                                      {shortcutCopiedKey === 'textKey' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                      <span>{shortcutCopiedKey === 'textKey' ? 'Tersalin!' : 'Salin "text"'}</span>
+                                    </button>
+                                  </div>
+                                  <div className="pt-0.5">
+                                    Kolom Kanan (Text): Ketuk kolomnya, lalu pilih pil biru <strong>{shortcutGuideLang === 'en' ? 'Provided Input' : 'Input yang Disediakan'}</strong> yang ada di atas keyboard.
                                   </div>
                                 </div>
                               </div>
@@ -1931,12 +2083,15 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                           <span className="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-[10px] font-black">3</span>
                           <span>{shortcutGuideLang === 'en' ? 'Cari & Tambah "Show Notification"' : 'Cari & Tambah "Tampilkan Pemberitahuan"'}</span>
                         </p>
-                        <ul className="list-disc pl-5 space-y-1 text-[11px] leading-relaxed">
+                        <ul className="list-disc pl-5 space-y-1.5 text-[11px] leading-relaxed">
                           <li>
-                            Di kolom Search bawah lagi, ketik: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Show Notification' : 'Tampilkan Pemberitahuan'}</code>, lalu ketuk aksi tersebut.
+                            Di kolom Search bawah, ketik: <code className="bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded font-black text-black dark:text-white">{shortcutGuideLang === 'en' ? 'Show Notification' : 'Tampilkan Pemberitahuan'}</code>, lalu ketuk aksi tersebut.
                           </li>
                           <li>
-                            Hapus tulisan defaultnya, lalu pilih variabel warna biru <strong>{shortcutGuideLang === 'en' ? 'Contents of URL' : 'Isi URL'}</strong> agar konfirmasi berhasil otomatis muncul di notifikasi.
+                            Aksi ini otomatis terisi teks bawaan <em>&quot;Hello, world!&quot;</em>.
+                          </li>
+                          <li className="font-bold text-neutral-800 dark:text-neutral-200">
+                            Cara ganti: Ketuk tanda silang <strong>(X)</strong> abu-abu di samping teks &quot;Hello,&quot; untuk menghapusnya. Lalu langsung ketuk pil hijau <strong>{shortcutGuideLang === 'en' ? 'Contents of URL' : 'Isi URL'}</strong> yang muncul di atas keyboard iPhone Anda.
                           </li>
                         </ul>
                       </div>
@@ -1945,9 +2100,21 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                       <div className="p-3 bg-emerald-50 dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-black dark:text-white flex items-center gap-2">
                         <span className="text-xl">🎉</span>
                         <div className="text-[11px] leading-relaxed">
-                          <strong>Selesai!</strong> Ketuk tombol <strong>Done</strong> di pojok kanan atas iPhone. Pintasan siap dipakai via Siri, Back Tap, atau Action Button.
+                          <strong>Selesai!</strong> Ketuk tombol <strong>Done</strong> (atau tanda centang/kembali) di pojok atas iPhone. Pintasan siap dipakai via Siri, Back Tap, atau Action Button.
                         </div>
                       </div>
+                    </div>
+
+                    {/* How to trigger */}
+                    <div className="p-3 bg-amber-100 dark:bg-amber-950/60 border-2 border-black dark:border-neutral-700 rounded-lg text-black dark:text-white space-y-1">
+                      <p className="font-black uppercase tracking-wider text-[11px] text-amber-900 dark:text-amber-200">
+                        💡 Cara Memicu Pintasan di iPhone:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-0.5 text-[11px] leading-relaxed">
+                        <li><strong>Action Button (iPhone 15 Pro / 16)</strong>: Buka <em>Settings &gt; Action Button &gt; Shortcut &gt; Catat Norden</em>.</li>
+                        <li><strong>Ketuk Punggung (Back Tap)</strong>: Buka <em>Settings &gt; Accessibility &gt; Touch &gt; Back Tap &gt; Double Tap &gt; Catat Norden</em>.</li>
+                        <li><strong>Siri Voice</strong>: Cukup ucapkan <em>&ldquo;Hey Siri, Catat Norden&rdquo;</em>, lalu sebutkan <em>&ldquo;kopi 25k bca&rdquo;</em>.</li>
+                      </ul>
                     </div>
 
                     {/* How to trigger */}
