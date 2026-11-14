@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { User, Crown, Check, Zap, Database, Trash2, Key, RotateCcw, Mail, Loader2, ShieldCheck, MessageCircle, ExternalLink, HelpCircle, Lock, Fingerprint, ShieldAlert, X, Smartphone, Download, CheckCircle2, Palette, Sun, Moon, Laptop, Camera, Bell, BellRing, Copy, RefreshCw, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth } from '../lib/firebase';
@@ -26,6 +26,13 @@ import { triggerHaptic } from '../lib/haptics';
 import { isPwaInstalled, promptPwaInstall, isIosDevice } from '../lib/pwa';
 import { useTheme } from '../lib/themeContext';
 import { useLanguage } from '../lib/i18n';
+import {
+  getNotificationSupportStatus,
+  subscribeNotificationPermission,
+  requestBrowserNotification,
+  showSystemNotification,
+  NotificationStatus,
+} from '../lib/browserNotification';
 
 interface SettingsProps {
   user: {
@@ -100,12 +107,15 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null);
 
   // Notification states
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      return Notification.permission;
-    }
-    return 'unsupported';
-  });
+  const syncedNotificationPermission = useSyncExternalStore(
+    subscribeNotificationPermission,
+    getNotificationSupportStatus,
+    () => 'unsupported' as NotificationStatus
+  );
+  const [overrideNotificationPermission, setOverrideNotificationPermission] = useState<NotificationStatus | null>(null);
+  const notificationPermission = overrideNotificationPermission || syncedNotificationPermission;
+  const [notificationFeedback, setNotificationFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [notificationLoading, setNotificationLoading] = useState(false);
 
   // Apple Shortcuts integration states
   const [shortcutData, setShortcutData] = useState<{ endpoint: string; token: string } | null>(null);
@@ -221,45 +231,89 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
   };
 
   const handleRequestNotification = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      triggerHaptic('warning');
-      return;
-    }
-
     triggerHaptic('medium');
-    try {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
+    setNotificationFeedback(null);
+    setNotificationLoading(true);
 
-      if (permission === 'granted') {
+    try {
+      const status = await requestBrowserNotification();
+      setOverrideNotificationPermission(status as NotificationStatus);
+
+      if (status === 'granted') {
         triggerHaptic('success');
         localStorage.setItem('norden_browser_notification_enabled', 'true');
+        setNotificationFeedback({
+          type: 'success',
+          message: lang === 'en'
+            ? 'Notifications successfully enabled! A test reminder has been sent.'
+            : 'Notifikasi berhasil diaktifkan! Pengingat uji coba telah dikirim ke perangkat Anda.',
+        });
 
-        new Notification('Norden Finance', {
+        await showSystemNotification('Norden Finance', {
           body:
             lang === 'en'
               ? 'Notifications enabled! Norden will remind you to track cashflow.'
               : 'Notifikasi aktif! Norden akan mengingatkan Anda untuk mencatat transaksi dan arus kas.',
-          icon: '/brand/norden-icon.png',
+        });
+      } else if (status === 'ios_needs_pwa') {
+        triggerHaptic('warning');
+        setNotificationFeedback({
+          type: 'info',
+          message: lang === 'en'
+            ? 'On iOS Safari, tap the Share button and choose "Add to Home Screen" first to enable notifications.'
+            : 'Di iPhone/iPad Safari, ketuk tombol Bagikan (Share) lalu pilih "Tambah ke Layar Utama" terlebih dahulu untuk mengaktifkan notifikasi.',
+        });
+      } else if (status === 'denied') {
+        triggerHaptic('warning');
+        localStorage.setItem('norden_browser_notification_enabled', 'false');
+        setNotificationFeedback({
+          type: 'error',
+          message: lang === 'en'
+            ? 'Notification permission was denied. Please allow notifications in your browser site settings.'
+            : 'Izin notifikasi ditolak. Silakan izinkan notifikasi di setelan peramban Anda untuk situs ini.',
         });
       } else {
         triggerHaptic('warning');
-        localStorage.setItem('norden_browser_notification_enabled', 'false');
+        setNotificationFeedback({
+          type: 'info',
+          message: lang === 'en'
+            ? 'Your browser does not support web system notifications.'
+            : 'Peramban ini tidak mendukung notifikasi sistem web.',
+        });
       }
     } catch {
       triggerHaptic('warning');
+    } finally {
+      setNotificationLoading(false);
     }
   };
 
-  const handleTestNotification = () => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      triggerHaptic('light');
-      new Notification('Norden Finance ⚡', {
-        body:
-          lang === 'en'
-            ? 'Reminder: Have you logged all your transactions today?'
-            : 'Pengingat Harian: Sudahkah Anda mencatat mutasi dan pengeluaran hari ini?',
-        icon: '/brand/norden-icon.png',
+  const handleTestNotification = async () => {
+    triggerHaptic('light');
+    setNotificationFeedback(null);
+
+    const success = await showSystemNotification('Norden Finance ⚡', {
+      body:
+        lang === 'en'
+          ? 'Reminder: Have you logged all your transactions today?'
+          : 'Pengingat Harian: Sudahkah Anda mencatat mutasi dan pengeluaran hari ini?',
+    });
+
+    if (success) {
+      triggerHaptic('success');
+      setNotificationFeedback({
+        type: 'success',
+        message: lang === 'en'
+          ? 'Test reminder notification sent to your device.'
+          : 'Pengingat uji coba berhasil dikirim ke perangkat Anda.',
+      });
+    } else {
+      triggerHaptic('warning');
+      setNotificationFeedback({
+        type: 'error',
+        message: lang === 'en'
+          ? 'Failed to display system notification. Please ensure notifications are permitted in your device settings.'
+          : 'Gagal menampilkan notifikasi sistem. Pastikan izin notifikasi diaktifkan di setelan perangkat Anda.',
       });
     }
   };
@@ -1532,12 +1586,18 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
               ? 'bg-[#bbf7d0] text-black'
               : notificationPermission === 'denied'
               ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-200'
+              : notificationPermission === 'ios_needs_pwa'
+              ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200'
               : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
           }`}>
             {notificationPermission === 'granted'
               ? (lang === 'en' ? '✓ Notifications Active' : '✓ Notifikasi Aktif')
               : notificationPermission === 'denied'
               ? (lang === 'en' ? 'Blocked by Browser' : 'Diblokir Browser')
+              : notificationPermission === 'ios_needs_pwa'
+              ? (lang === 'en' ? 'Requires PWA Setup' : 'Perlu Pasang PWA')
+              : notificationPermission === 'unsupported'
+              ? (lang === 'en' ? 'Unsupported' : 'Tidak Didukung')
               : (lang === 'en' ? 'Not Permitted' : 'Belum Diizinkan')}
           </span>
         </div>
@@ -1555,6 +1615,8 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   ? (lang === 'en' ? 'Browser Notification Permission Granted' : 'Izin Notifikasi Web Sudah Aktif')
                   : notificationPermission === 'denied'
                   ? (lang === 'en' ? 'Notification Permission Denied' : 'Izin Notifikasi Tidak Diizinkan')
+                  : notificationPermission === 'ios_needs_pwa'
+                  ? (lang === 'en' ? 'iOS Safari Requires Home Screen PWA' : 'Safari iOS Memerlukan PWA di Layar Utama')
                   : (lang === 'en' ? 'Allow Instant Reminders' : 'Aktifkan Pengingat Pencatatan')}
               </p>
               <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
@@ -1566,6 +1628,10 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
                   ? (lang === 'en'
                     ? 'Notifications are blocked in your browser settings. Please click the padlock or settings icon in your browser address bar to allow notifications.'
                     : 'Notifikasi diblokir pada setelan peramban Anda. Klik ikon gembok atau setelan di bilah alamat browser untuk mengizinkannya.')
+                  : notificationPermission === 'ios_needs_pwa'
+                  ? (lang === 'en'
+                    ? 'Apple iOS requires Norden Finance to be added to your Home Screen before it can deliver web push notifications. Tap the Share button in Safari and choose "Add to Home Screen".'
+                    : 'Apple iOS mewajibkan Norden Finance dipasang ke Layar Utama (Home Screen) untuk menerima notifikasi web. Ketuk tombol Share di Safari lalu pilih "Tambah ke Layar Utama".')
                   : (lang === 'en'
                     ? 'Click button below to enable native browser notifications without installing any heavy apps.'
                     : 'Klik tombol di bawah untuk mengizinkan notifikasi browser langsung tanpa perlu unduh aplikasi berat.')}
@@ -1573,14 +1639,38 @@ export default function SettingsPage({ user, stats, trialDays, pricingPlans }: S
             </div>
           </div>
 
+          {notificationFeedback && (
+            <div className={`p-3 border-2 border-black dark:border-neutral-700 text-xs font-bold rounded-lg shadow-[2px_2px_0px_0px_#000] flex items-center justify-between gap-2 ${
+              notificationFeedback.type === 'success'
+                ? 'bg-[#bbf7d0] dark:bg-emerald-950 text-emerald-950 dark:text-emerald-200'
+                : notificationFeedback.type === 'error'
+                ? 'bg-red-100 dark:bg-red-950 text-red-950 dark:text-red-200'
+                : 'bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-200'
+            }`}>
+              <span>{notificationFeedback.message}</span>
+              <button
+                type="button"
+                onClick={() => setNotificationFeedback(null)}
+                className="p-1 hover:opacity-70 cursor-pointer shrink-0"
+              >
+                <X className="w-3.5 h-3.5 stroke-[2.5px]" />
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-2 pt-1">
             {notificationPermission !== 'granted' && notificationPermission !== 'denied' && (
               <button
                 type="button"
                 onClick={handleRequestNotification}
-                className="px-4 py-2 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5"
+                disabled={notificationLoading}
+                className="px-4 py-2 bg-[#FFE066] hover:bg-yellow-300 text-black border-[2px] border-black font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
-                <Bell className="w-3.5 h-3.5 stroke-[2.5px]" />
+                {notificationLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Bell className="w-3.5 h-3.5 stroke-[2.5px]" />
+                )}
                 <span>{lang === 'en' ? 'Allow Notifications' : 'Izinkan Notifikasi'}</span>
               </button>
             )}
