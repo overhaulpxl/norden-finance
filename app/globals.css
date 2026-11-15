@@ -57,6 +57,16 @@
     color: #f8fafc;
   }
 
+  /* Epoch-safe tab fade: opacity only, NEVER transform — a transformed ancestor
+     becomes the containing block for fixed-position modals inside tab content. */
+  @keyframes norden-tab-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .tab-fade-in {
+    animation: norden-tab-fade 0.25s ease-out;
+  }
+
   .norden-canvas {
     background-color: #FAF9F5;
     background-image: radial-gradient(#d4d4d8 1.5px, transparent 1.5px);
@@ -85,11 +95,12 @@
     border: 2px solid #000000;
     border-radius: 0px !important;
     box-shadow: 3px 3px 0px 0px #000000;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    /* NOTE: no transform here (and on :hover) — any non-none transform makes the
+       card the containing block for position:fixed descendants, trapping modals. */
+    transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .brutal-card:hover {
     box-shadow: 4px 4px 0px 0px #000000;
-    transform: translate(-1px, -1px);
   }
   .dark .brutal-card {
     background-color: #1e1e1e;

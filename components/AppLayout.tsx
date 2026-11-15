@@ -598,7 +598,7 @@ export default function AppLayout({
           </div>
         )}
 
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="tab-fade-in">
           {activeTab === 'overview' && (
             <OverviewLayout
               user={user}
