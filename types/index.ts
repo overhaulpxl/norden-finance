@@ -281,6 +281,7 @@ export interface PortfolioAsset {
   lastPriceUpdate?: string | null;
   updatedAt?: Date | string;
   isFallback?: boolean;
+  apy?: number;
 }
 
 export interface Setting {

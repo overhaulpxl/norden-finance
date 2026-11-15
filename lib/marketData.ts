@@ -245,6 +245,11 @@ const CRYPTO_COINGECKO_MAP: Record<string, string> = {
   ETHEREUM: 'ethereum',
   USDT: 'tether',
   TETHER: 'tether',
+  USDC: 'usd-coin',
+  'USD-COIN': 'usd-coin',
+  'USD COIN': 'usd-coin',
+  FDUSD: 'first-digital-usd',
+  DAI: 'dai',
   SOL: 'solana',
   SOLANA: 'solana',
   BNB: 'binancecoin',
@@ -270,8 +275,14 @@ export async function getCryptoQuote(symbolInput: string): Promise<{
   changePercent?: number;
   updatedAt: string;
 } | null> {
-  const clean = symbolInput.trim().toUpperCase();
+  let clean = symbolInput.trim().toUpperCase();
   if (!clean) return null;
+
+  // Extract base ticker from compound names like "USDT (Binance Flexible Earn)" or "Tether (USDT)"
+  const tickerMatch = clean.match(/\b(BTC|ETH|SOL|BNB|USDT|USDC|FDUSD|DAI|DOGE|XRP|ADA|AVAX|DOT|MATIC|TRX|LINK|TON)\b/i);
+  if (tickerMatch) {
+    clean = tickerMatch[1].toUpperCase();
+  }
 
   const cacheKey = `crypto_${clean}`;
   const cached = getCached<{
@@ -330,6 +341,25 @@ export async function getCryptoQuote(symbolInput: string): Promise<{
     }
   } catch (err) {
     console.warn('CoinGecko fetch failed:', err);
+  }
+
+  // 3. Fallback for USD-pegged stablecoins (USDT, USDC, DAI, FDUSD) to USD/IDR exchange rate
+  if (clean === 'USDT' || clean === 'USDC' || clean === 'DAI' || clean === 'FDUSD') {
+    try {
+      const usdIdr = await getUsdIdrRate();
+      if (typeof usdIdr === 'number' && usdIdr > 5000) {
+        const result = {
+          symbol: clean,
+          name: clean,
+          priceIdr: Math.round(usdIdr),
+          updatedAt: new Date().toISOString(),
+        };
+        setCache(cacheKey, result);
+        return result;
+      }
+    } catch {
+      // ignore fallback error
+    }
   }
 
   return null;

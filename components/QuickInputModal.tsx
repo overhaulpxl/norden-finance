@@ -125,8 +125,8 @@ export default function QuickInputModal({
       sender: 'ai',
       text:
         lang === 'en'
-          ? 'Hello! I am Norden AI Parser. Type your transaction in natural language (e.g. "dinner 15k cash" or "gopay balance 200k"). I will automatically record it to your database.'
-          : 'Halo! Saya Norden AI Parser. Silakan ketik transaksi Anda seperti chat biasa (contoh: "makan soto 15k cash" atau "saldo gopay 200k"). Saya akan mencatatnya ke database Anda secara otomatis.',
+          ? 'Hello! I am Smart Input. Type your transaction in natural language (e.g. "dinner 15k cash" or "gopay balance 200k"). I will automatically record it to your database.'
+          : 'Halo! Saya Smart Input. Silakan ketik transaksi Anda seperti chat biasa (contoh: "makan soto 15k cash" atau "saldo gopay 200k"). Saya akan mencatatnya ke database Anda secara otomatis.',
     },
   ]);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -867,7 +867,7 @@ export default function QuickInputModal({
             }
           >
             <Sparkles className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
-            <span>{lang === 'en' ? 'Quick AI' : 'AI Cepat'}</span>
+            <span>Smart Input</span>
           </button>
 
           <button
@@ -932,7 +932,7 @@ export default function QuickInputModal({
                       <span
                         className={`text-[9px] font-black block mb-0.5 uppercase ${msg.sender === 'user' ? 'text-neutral-700' : 'text-[#4B6DFE]'}`}
                       >
-                        {msg.sender === 'user' ? (lang === 'en' ? 'You' : 'Anda') : 'Norden AI'}
+                        {msg.sender === 'user' ? (lang === 'en' ? 'You' : 'Anda') : 'Smart Input'}
                       </span>
                       <p className="text-[11px] font-bold leading-snug whitespace-pre-line">
                         {msg.text}

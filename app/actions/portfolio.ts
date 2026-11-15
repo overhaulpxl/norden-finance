@@ -55,6 +55,7 @@ export async function savePortfolioAsset(data: {
   institution?: string;
   notes?: string;
   lastPriceUpdate?: string | null;
+  apy?: number;
 }) {
   try {
     const { user } = await requireUser('basic');
@@ -72,6 +73,11 @@ export async function savePortfolioAsset(data: {
     if (!Number.isFinite(data.currentPrice) || data.currentPrice < 0 || data.currentPrice > 1_000_000_000_000) {
       throw new Error('Harga terkini tidak valid');
     }
+
+    const validatedApy =
+      typeof data.apy === 'number' && Number.isFinite(data.apy) && data.apy >= 0 && data.apy <= 1000
+        ? Number(data.apy.toFixed(2))
+        : undefined;
 
     const setting = await prisma.setting.findUnique({
       where: { key },
@@ -95,6 +101,7 @@ export async function savePortfolioAsset(data: {
           currentPrice: data.currentPrice,
           institution: data.institution?.trim().slice(0, 80) || undefined,
           notes: data.notes?.trim().slice(0, 300) || undefined,
+          apy: validatedApy,
           lastPriceUpdate: data.lastPriceUpdate ?? assets[idx].lastPriceUpdate,
           updatedAt: now,
         };
@@ -119,6 +126,7 @@ export async function savePortfolioAsset(data: {
         currentPrice: data.currentPrice,
         institution: data.institution?.trim().slice(0, 80) || undefined,
         notes: data.notes?.trim().slice(0, 300) || undefined,
+        apy: validatedApy,
         lastPriceUpdate: data.lastPriceUpdate || null,
         updatedAt: now,
       };

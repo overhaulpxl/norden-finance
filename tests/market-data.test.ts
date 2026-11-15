@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { getGoldPriceIdr, getUsdIdrRate, getLiveQuoteForAsset } from '../lib/marketData';
+import { getGoldPriceIdr, getUsdIdrRate, getLiveQuoteForAsset, getCryptoQuote } from '../lib/marketData';
 
 describe('Market Data Engine', () => {
   it('fetches or falls back USD/IDR rate with realistic number', async () => {
@@ -36,5 +36,38 @@ describe('Market Data Engine', () => {
       name: '',
     });
     assert.equal(quote, null);
+  });
+
+  it('returns a realistic IDR quote for USDT (stablecoin)', async () => {
+    const quote = await getCryptoQuote('USDT');
+    assert.ok(quote, 'USDT quote should never be null');
+    assert.equal(quote.symbol, 'USDT');
+    assert.ok(quote.priceIdr >= 10000 && quote.priceIdr <= 30000);
+    assert.ok(typeof quote.updatedAt === 'string');
+  });
+
+  it('returns a realistic IDR quote for USDC (stablecoin)', async () => {
+    const quote = await getCryptoQuote('USDC');
+    assert.ok(quote, 'USDC quote should never be null');
+    assert.equal(quote.symbol, 'USDC');
+    assert.ok(quote.priceIdr >= 10000 && quote.priceIdr <= 30000);
+    assert.ok(typeof quote.updatedAt === 'string');
+  });
+
+  it('resolves stablecoin tickers embedded in compound asset names', async () => {
+    const quote = await getCryptoQuote('USDT (Binance Flexible Earn)');
+    assert.ok(quote, 'compound USDT name should resolve to USDT');
+    assert.equal(quote.symbol, 'USDT');
+    assert.ok(quote.priceIdr >= 10000 && quote.priceIdr <= 30000);
+  });
+
+  it('returns live IDR quote via getLiveQuoteForAsset for kripto class', async () => {
+    const quote = await getLiveQuoteForAsset({
+      assetClass: 'kripto',
+      symbol: 'USDC',
+      name: 'USDC (Binance Flexible Earn)',
+    });
+    assert.ok(quote);
+    assert.ok(quote.priceIdr >= 10000 && quote.priceIdr <= 30000);
   });
 });

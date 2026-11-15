@@ -205,7 +205,7 @@ export default function ChatSandbox() {
                   {lang === 'en' ? 'You' : 'Anda'}
                 </span>
               ) : (
-                <span className="text-[9px] font-black text-[#4B6DFE] dark:text-[#93c5fd] block mb-0.5">Norden AI Parser</span>
+                <span className="text-[9px] font-black text-[#4B6DFE] dark:text-[#93c5fd] block mb-0.5">Smart Input</span>
               )}
               <p className="text-[10px] font-bold leading-snug">{msg.text}</p>
             </div>
@@ -215,7 +215,7 @@ export default function ChatSandbox() {
         {isTyping && (
           <div className="self-start bg-white dark:bg-neutral-800 border-[1.5px] border-black dark:border-neutral-700 p-2 max-w-[85%] rounded-none shadow-[2px_2px_0px_0px_#000] flex gap-1.5 items-center">
             <span className="text-[9px] font-black text-neutral-400 dark:text-neutral-500 animate-pulse">
-              {lang === 'en' ? 'Norden AI is recording...' : 'Norden AI sedang mencatat...'}
+              {lang === 'en' ? 'Smart Input is recording...' : 'Smart Input sedang mencatat...'}
             </span>
           </div>
         )}

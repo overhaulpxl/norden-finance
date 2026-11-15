@@ -360,6 +360,7 @@ export async function savePortfolioAsset(data: {
   institution?: string;
   notes?: string;
   lastPriceUpdate?: string | null;
+  apy?: number;
 }) {
   const { savePortfolioAsset: saveFn } = await import('./actions/portfolio');
   return saveFn(data);

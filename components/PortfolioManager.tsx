@@ -152,6 +152,7 @@ export default function PortfolioManager({
   const [formUnit, setFormUnit] = useState('gram');
   const [formBuyPrice, setFormBuyPrice] = useState('');
   const [formCurrentPrice, setFormCurrentPrice] = useState('');
+  const [formApy, setFormApy] = useState('');
   const [formNotes, setFormNotes] = useState('');
   const [fetchingQuote, setFetchingQuote] = useState(false);
   const [quoteSource, setQuoteSource] = useState<string | null>(null);
@@ -174,6 +175,7 @@ export default function PortfolioManager({
   const metrics = useMemo(() => {
     let totalInvested = 0;
     let totalCurrent = 0;
+    let totalAnnualPassiveYield = 0;
     const classDistribution: Record<AssetClass, number> = {
       emas: 0,
       saham: 0,
@@ -188,6 +190,9 @@ export default function PortfolioManager({
       const current = a.currentPrice * a.quantity;
       totalInvested += invested;
       totalCurrent += current;
+      if (typeof a.apy === 'number' && a.apy > 0) {
+        totalAnnualPassiveYield += current * (a.apy / 100);
+      }
       classDistribution[a.assetClass] = (classDistribution[a.assetClass] || 0) + current;
     });
 
@@ -199,6 +204,7 @@ export default function PortfolioManager({
       totalCurrent,
       netProfitRp,
       netProfitPct,
+      totalAnnualPassiveYield,
       classDistribution,
     };
   }, [assets]);
@@ -241,6 +247,7 @@ export default function PortfolioManager({
     setFormUnit(ASSET_CLASS_META[presetClass].defaultUnit);
     setFormBuyPrice('');
     setFormCurrentPrice('');
+    setFormApy('');
     setFormNotes('');
     setQuoteSource(null);
     setError(null);
@@ -303,6 +310,7 @@ export default function PortfolioManager({
     setFormUnit(asset.unit);
     setFormBuyPrice(formatRupiahInput(asset.buyPrice));
     setFormCurrentPrice(formatRupiahInput(asset.currentPrice));
+    setFormApy(typeof asset.apy === 'number' ? String(asset.apy) : '');
     setFormNotes(asset.notes || '');
     setQuoteSource(null);
     lastFetchedKeyRef.current = `${asset.assetClass}:${asset.symbol || ''}:${asset.name}`;
@@ -425,6 +433,8 @@ export default function PortfolioManager({
 
     const buyPrice = parseRupiahInput(formBuyPrice);
     const currentPrice = parseRupiahInput(formCurrentPrice);
+    const parsedApy = formApy.trim() ? parseFloat(formApy.replace(',', '.')) : undefined;
+    const apy = typeof parsedApy === 'number' && !Number.isNaN(parsedApy) && parsedApy >= 0 ? parsedApy : undefined;
 
     setLoading(true);
     setError(null);
@@ -441,6 +451,7 @@ export default function PortfolioManager({
       currentPrice: currentPrice || buyPrice,
       institution: formInstitution,
       notes: formNotes,
+      apy,
     });
 
     setLoading(false);
@@ -643,6 +654,35 @@ export default function PortfolioManager({
           </div>
         </div>
 
+        {/* ─── Passive Income / Earn APY Banner ─── */}
+        {metrics.totalAnnualPassiveYield > 0 && (
+          <div className="mt-3.5 p-3 bg-[#FFF9DB] dark:bg-amber-950/60 border-2 border-black dark:border-neutral-700 rounded-none shadow-[2px_2px_0px_0px_#000] flex flex-wrap items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="p-1.5 border-2 border-black rounded-none bg-[#FFE066] text-black shadow-[1px_1px_0px_0px_#000]">
+                <Zap className="w-4 h-4 stroke-[3px]" />
+              </span>
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-950 dark:text-amber-200 block">
+                  {isId ? 'Estimasi Imbal Hasil Pasif (Earn / Staking)' : 'Estimated Passive Income (Earn / Staking)'}
+                </span>
+                <span className="text-[9px] font-bold text-neutral-600 dark:text-neutral-400">
+                  {isId
+                    ? 'Dihitung otomatis dari aset portofolio dengan APY aktif (Binance Flexible Earn dll)'
+                    : 'Auto-calculated from portfolio assets with active APY (Binance Earn, etc)'}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-xs sm:text-sm font-black text-emerald-700 dark:text-emerald-400 font-mono block">
+                +{maskBalance(formatRupiah(metrics.totalAnnualPassiveYield / 365))}/hari (~{maskBalance(formatRupiah(metrics.totalAnnualPassiveYield / 12))}/bln)
+              </span>
+              <span className="text-[9px] font-bold text-neutral-600 dark:text-neutral-400 block font-mono">
+                ~{maskBalance(formatRupiah(metrics.totalAnnualPassiveYield))}/tahun
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* ─── Asset Allocation Mini Bar ─── */}
         {metrics.totalCurrent > 0 && (
           <div className="mt-4 pt-3 border-t-2 border-neutral-100 dark:border-neutral-800 space-y-2">
@@ -792,6 +832,13 @@ export default function PortfolioManager({
                           {asset.symbol}
                         </span>
                       )}
+
+                      {typeof asset.apy === 'number' && asset.apy > 0 && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider border border-black dark:border-neutral-700 bg-[#FFE066] text-black rounded-none shadow-[1px_1px_0px_0px_#000]">
+                          <Zap className="w-2.5 h-2.5 stroke-[3px]" />
+                          <span>APY {asset.apy}%</span>
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-1">
@@ -880,6 +927,18 @@ export default function PortfolioManager({
                       </span>
                     </div>
                   </div>
+
+                  {typeof asset.apy === 'number' && asset.apy > 0 && (
+                    <div className="mt-2 p-1.5 bg-amber-50 dark:bg-amber-950/40 border border-black dark:border-neutral-700 text-[9px] font-bold text-amber-950 dark:text-amber-200 flex items-center justify-between">
+                      <span className="flex items-center gap-1 uppercase font-black">
+                        <Zap className="w-3 h-3 text-amber-600 stroke-[3px]" />
+                        <span>{isId ? 'Est. Bunga Pasif' : 'Est. Yield'}:</span>
+                      </span>
+                      <span className="font-mono font-black">
+                        +{maskBalance(formatRupiah((current * (asset.apy / 100)) / 365))}/hari (~{maskBalance(formatRupiah(current * (asset.apy / 100)))}/thn)
+                      </span>
+                    </div>
+                  )}
 
                   {asset.lastPriceUpdate && (
                     <div className="mt-1 text-[8px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest text-right">
@@ -995,6 +1054,7 @@ export default function PortfolioManager({
                             setFormName(nextName);
                             setFormBuyPrice('');
                             setFormCurrentPrice('');
+                            setFormApy('');
                             setQuoteSource(null);
                             if (nextSymbol || nextName) {
                               fetchLiveQuoteNow(ac, nextSymbol, nextName);
@@ -1088,31 +1148,72 @@ export default function PortfolioManager({
 
                   {/* Quick-select chips */}
                   {formClass === 'kripto' && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {['BTC', 'ETH', 'SOL', 'BNB', 'DOGE', 'XRP'].map((coin) => (
-                        <button
-                          key={coin}
-                          type="button"
-                          onClick={() => {
-                            setFormSymbol(coin);
-                            let coinName = 'Bitcoin';
-                            if (coin === 'ETH') coinName = 'Ethereum';
-                            else if (coin === 'SOL') coinName = 'Solana';
-                            else if (coin === 'BNB') coinName = 'BNB';
-                            else if (coin === 'DOGE') coinName = 'Dogecoin';
-                            else if (coin === 'XRP') coinName = 'XRP';
-                            setFormName(coinName);
-                            fetchLiveQuoteNow('kripto', coin, coinName);
-                          }}
-                          className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
-                            formSymbol === coin
-                              ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
-                              : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-                          }`}
-                        >
-                          {coin}
-                        </button>
-                      ))}
+                    <div className="space-y-1.5 mt-1.5">
+                      {/* Binance Flexible Earn 1-Click Presets */}
+                      <div className="p-1.5 bg-[#FFF9DB] dark:bg-amber-950/40 border border-black dark:border-neutral-700 rounded-none">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-amber-950 dark:text-amber-300 flex items-center gap-1">
+                            <Zap className="w-2.5 h-2.5 stroke-[3px]" />
+                            <span>{isId ? 'Preset Binance Flexible Earn:' : 'Binance Earn Presets:'}</span>
+                          </span>
+                          <span className="text-[8px] font-bold text-neutral-500 uppercase">1-Click</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {[
+                            { s: 'USDT', n: 'USDT (Binance Flexible Earn)', apy: '8.0', u: 'USDT' },
+                            { s: 'USDC', n: 'USDC (Binance Flexible Earn)', apy: '6.0', u: 'USDC' },
+                            { s: 'BNB', n: 'BNB (Binance Flexible Earn)', apy: '1.5', u: 'BNB' },
+                          ].map((earn) => (
+                            <button
+                              key={earn.s}
+                              type="button"
+                              onClick={() => {
+                                setFormSymbol(earn.s);
+                                setFormName(earn.n);
+                                setFormInstitution('Binance Earn');
+                                setFormUnit(earn.u);
+                                setFormApy(earn.apy);
+                                fetchLiveQuoteNow('kripto', earn.s, earn.s);
+                              }}
+                              className="px-1.5 py-0.5 bg-white dark:bg-neutral-900 border border-black dark:border-neutral-700 text-[9px] font-black uppercase text-black dark:text-white hover:bg-[#FFE066] hover:text-black transition-colors cursor-pointer shadow-[1px_1px_0px_0px_#000]"
+                            >
+                              ⚡ {earn.s} Earn ({earn.apy}%)
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Top Cryptos Quick Chips */}
+                      <div className="flex flex-wrap gap-1">
+                        {['USDT', 'USDC', 'BTC', 'ETH', 'SOL', 'BNB', 'DOGE', 'XRP'].map((coin) => (
+                          <button
+                            key={coin}
+                            type="button"
+                            onClick={() => {
+                              setFormSymbol(coin);
+                              let coinName = 'Bitcoin';
+                              const coinUnit = coin;
+                              if (coin === 'USDT') coinName = 'Tether (USDT)';
+                              else if (coin === 'USDC') coinName = 'USD Coin (USDC)';
+                              else if (coin === 'ETH') coinName = 'Ethereum';
+                              else if (coin === 'SOL') coinName = 'Solana';
+                              else if (coin === 'BNB') coinName = 'BNB';
+                              else if (coin === 'DOGE') coinName = 'Dogecoin';
+                              else if (coin === 'XRP') coinName = 'XRP';
+                              setFormName(coinName);
+                              setFormUnit(coinUnit);
+                              fetchLiveQuoteNow('kripto', coin, coinName);
+                            }}
+                            className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
+                              formSymbol === coin
+                                ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
+                                : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                            }`}
+                          >
+                            {coin}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -1223,6 +1324,32 @@ export default function PortfolioManager({
                   onChange={(e) => setFormInstitution(e.target.value)}
                   className="w-full brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
                 />
+                {/* Quick platform chips */}
+                {(formClass === 'kripto' || formClass === 'saham' || formClass === 'emas' || formClass === 'reksadana') && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {(formClass === 'kripto'
+                      ? ['Binance Earn', 'Binance', 'Indodax', 'Tokocrypto', 'Coinbase', 'Ledger']
+                      : formClass === 'saham'
+                        ? ['Stockbit', 'Ajaib', 'Mandiri Sekuritas', 'IPOT', 'Bibit']
+                        : formClass === 'emas'
+                          ? ['Pegadaian', 'Treasury', 'Antam', 'Brankas Pribadi']
+                          : ['Bibit', 'Bareksa', 'Ajaib', 'IPOT']
+                    ).map((platform) => (
+                      <button
+                        key={platform}
+                        type="button"
+                        onClick={() => setFormInstitution(platform)}
+                        className={`px-1.5 py-0.5 border text-[9px] font-black uppercase rounded-none cursor-pointer transition-all ${
+                          formInstitution === platform
+                            ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white shadow-[1px_1px_0px_0px_#000]'
+                            : 'bg-white dark:bg-neutral-800 text-black dark:text-white border-black dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        {platform}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Quantity & Unit */}
@@ -1294,49 +1421,96 @@ export default function PortfolioManager({
                 </div>
               </div>
 
+              {/* Optional APY / Yield (Binance Flexible Earn, Staking, Reksadana, Deposito) */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">
+                  {isId ? 'APY / Imbal Hasil (% per Tahun) — Opsional' : 'APY / Yield (% per Year) — Optional'}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="1000"
+                    inputMode="decimal"
+                    placeholder={formClass === 'kripto' ? '8.0 (Binance Flexible Earn USDT)' : '0.0'}
+                    value={formApy}
+                    onChange={(e) => setFormApy(e.target.value)}
+                    className="flex-1 brutal-input p-2.5 text-xs font-bold bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-none"
+                  />
+                  <span className="text-xs font-black text-black dark:text-white border-2 border-black dark:border-neutral-700 bg-[#FAF9F5] dark:bg-neutral-800 px-3 py-2.5 rounded-none">
+                    % / {isId ? 'thn' : 'yr'}
+                  </span>
+                </div>
+                <span className="text-[9px] font-bold text-neutral-500 dark:text-neutral-400 block mt-1">
+                  {isId
+                    ? 'Isi untuk aset Earn/Staking: Norden hitung estimasi bunga pasif harian & tahunan.'
+                    : 'Fill for Earn/Staking assets: Norden estimates daily & yearly passive income.'}
+                </span>
+              </div>
+
               {/* Real-time Dynamic Calculation Preview */}
               {(() => {
                 const previewQty = parseFloat(formQuantity) || 0;
                 const previewBuy = parseRupiahInput(formBuyPrice) || 0;
                 const previewCur = parseRupiahInput(formCurrentPrice) || 0;
+                const previewApy = formApy.trim() ? parseFloat(formApy.replace(',', '.')) || 0 : 0;
                 const previewTotalVal = previewQty * previewCur;
                 const previewTotalCost = previewQty * previewBuy;
                 const previewProfit = previewTotalVal - previewTotalCost;
                 const previewPct = previewTotalCost > 0 ? (previewProfit / previewTotalCost) * 100 : 0;
+                const previewAnnualYield = previewApy > 0 ? previewTotalVal * (previewApy / 100) : 0;
+                const previewDailyYield = previewAnnualYield / 365;
 
                 if (previewQty <= 0 || previewCur <= 0) return null;
 
                 return (
-                  <div className="p-2.5 bg-neutral-100 dark:bg-neutral-800/90 border-2 border-black dark:border-neutral-700 rounded-none flex items-center justify-between text-xs shadow-[2px_2px_0px_0px_#000]">
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-neutral-500 block">
-                        {isId ? 'Total Nilai Pasar' : 'Total Market Value'}
-                      </span>
-                      <span className="font-black text-sm text-black dark:text-white font-mono">
-                        {formatRupiah(previewTotalVal)}
-                      </span>
-                      <span className="text-[9px] font-bold text-neutral-500 block">
-                        {formQuantity} {formUnit} × {formatRupiah(previewCur)}
-                      </span>
-                    </div>
-                    {previewTotalCost > 0 && (
-                      <div className="text-right">
+                  <div className="p-2.5 bg-neutral-100 dark:bg-neutral-800/90 border-2 border-black dark:border-neutral-700 rounded-none text-xs shadow-[2px_2px_0px_0px_#000] space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
                         <span className="text-[9px] font-black uppercase text-neutral-500 block">
-                          {isId ? 'Estimasi Untung/Rugi' : 'Estimated P/L'}
+                          {isId ? 'Total Nilai Pasar' : 'Total Market Value'}
                         </span>
-                        <span
-                          className={`font-black text-xs font-mono ${
-                            previewProfit >= 0
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-red-600 dark:text-red-400'
-                          }`}
-                        >
-                          {previewProfit >= 0 ? '+' : ''}
-                          {formatRupiah(previewProfit)} ({previewProfit >= 0 ? '+' : ''}
-                          {previewPct.toFixed(1)}%)
+                        <span className="font-black text-sm text-black dark:text-white font-mono">
+                          {formatRupiah(previewTotalVal)}
                         </span>
                         <span className="text-[9px] font-bold text-neutral-500 block">
-                          {isId ? 'Modal' : 'Cost'}: {formatRupiah(previewTotalCost)}
+                          {formQuantity} {formUnit} × {formatRupiah(previewCur)}
+                        </span>
+                      </div>
+                      {previewTotalCost > 0 && (
+                        <div className="text-right">
+                          <span className="text-[9px] font-black uppercase text-neutral-500 block">
+                            {isId ? 'Estimasi Untung/Rugi' : 'Estimated P/L'}
+                          </span>
+                          <span
+                            className={`font-black text-xs font-mono ${
+                              previewProfit >= 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-red-600 dark:text-red-400'
+                            }`}
+                          >
+                            {previewProfit >= 0 ? '+' : ''}
+                            {formatRupiah(previewProfit)} ({previewProfit >= 0 ? '+' : ''}
+                            {previewPct.toFixed(1)}%)
+                          </span>
+                          <span className="text-[9px] font-bold text-neutral-500 block">
+                            {isId ? 'Modal' : 'Cost'}: {formatRupiah(previewTotalCost)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {previewAnnualYield > 0 && (
+                      <div className="pt-1.5 border-t border-black/20 dark:border-neutral-700 flex items-center justify-between gap-2">
+                        <span className="text-[9px] font-black uppercase text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                          <Zap className="w-3 h-3 stroke-[3px]" />
+                          {isId ? 'Est. Bunga Pasif' : 'Est. Passive Yield'} ({previewApy}% APY)
+                        </span>
+                        <span className="text-[10px] font-black font-mono text-emerald-700 dark:text-emerald-400 text-right">
+                          +{formatRupiah(previewDailyYield)}/{isId ? 'hari' : 'day'}
+                          <span className="text-[9px] text-neutral-500 dark:text-neutral-400 block">
+                            ~{formatRupiah(previewAnnualYield)}/{isId ? 'tahun' : 'year'}
+                          </span>
                         </span>
                       </div>
                     )}
