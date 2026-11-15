@@ -8,6 +8,11 @@ import {
   parseMultipleTransactions,
 } from '../lib/parser';
 import { parseQrisPayload } from '../lib/qrisParser';
+import {
+  detectMissingExplicitWallet,
+  resolveTransferWalletsFromInput,
+  stripWalletAliasesFromText,
+} from '../lib/smart-input/parser';
 
 describe('Transaction Natural Language Parser', () => {
   it('parses thousand suffixes (k, rb, ribu)', () => {
@@ -279,5 +284,49 @@ describe('Transaction Natural Language Parser', () => {
 
     const tx3 = parseTransaction('zakat maal 2jt bsi');
     assert.ok(tx3.tags?.includes('zakat'));
+  });
+
+  it('correctly resolves transfer between prefix/similar wallets without false missing wallet error', () => {
+    const userWallets = [
+      { id: 'w1', name: 'BNI', archivedAt: null },
+      { id: 'w2', name: 'BNI TABUNGAN', archivedAt: null },
+    ];
+    const input = 'pindahin dari bni 200.000 ke bni tabungan';
+
+    // 1. Missing wallet check must not falsely flag 'Tabungan' as missing
+    const missing = detectMissingExplicitWallet(input, userWallets);
+    assert.equal(missing, null);
+
+    // 2. Transfer wallets resolution maps from BNI to BNI TABUNGAN
+    const transfer = resolveTransferWalletsFromInput(input, userWallets);
+    assert.ok(transfer);
+    assert.equal(transfer.from.wallet.name, 'BNI');
+    assert.equal(transfer.to.wallet.name, 'BNI TABUNGAN');
+
+    // 3. Flags actual missing wallets when user does not have them
+    const missingInput = 'pindahin dari bni 200.000 ke bca tabungan';
+    const actualMissing = detectMissingExplicitWallet(missingInput, userWallets);
+    assert.ok(actualMissing);
+    assert.equal(actualMissing.displayName, 'BCA');
+
+    // 4. Default transfer note cleanup does not truncate to "Transfer ke"
+    const parsed = parseTransaction(input);
+    const cleanedNote = stripWalletAliasesFromText(parsed.note, userWallets);
+    const isDefaultTransferNote =
+      !cleanedNote || cleanedNote === '-' || /^transfer(\s+ke)?$/i.test(cleanedNote.trim());
+    const finalNote = isDefaultTransferNote
+      ? `Transfer ke ${transfer.to.wallet.name}`
+      : cleanedNote;
+    assert.equal(finalNote, 'Transfer ke BNI TABUNGAN');
+
+    // 5. User-supplied note is preserved
+    const customInput = 'pindahin dari bni 200.000 ke bni tabungan buat bayar kos';
+    const customParsed = parseTransaction(customInput);
+    const customCleaned = stripWalletAliasesFromText(customParsed.note, userWallets);
+    const customFinal =
+      !customCleaned || customCleaned === '-' || /^transfer(\s+ke)?$/i.test(customCleaned.trim())
+        ? `Transfer ke ${transfer.to.wallet.name}`
+        : customCleaned;
+    assert.equal(customFinal, 'buat bayar kos');
   });
 });

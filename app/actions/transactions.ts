@@ -9,9 +9,7 @@ import type { TransactionType } from '../../types';
 import { assertNonEmpty, assertPositiveInt, assertValidDate } from '../../lib/validators';
 import { Prisma, type Balance } from '@prisma/client';
 import {
-  detectKnownWalletAliasesFromInput,
-  detectWalletsFromInput,
-  normalizeWalletName,
+  detectMissingExplicitWallet,
   resolveTransferWalletsFromInput,
   resolveWalletForTransaction,
   stripWalletAliasesFromText,
@@ -138,9 +136,7 @@ function revalidateDashboard() {
 }
 
 function assertNoMissingExplicitWallet(input: string, wallets: Balance[]) {
-  const existingMatches = detectWalletsFromInput(input, wallets);
-  const existingCanonicals = new Set(existingMatches.map((match) => normalizeWalletName(match.wallet.name)));
-  const missing = detectKnownWalletAliasesFromInput(input).find((match) => !existingCanonicals.has(match.canonical));
+  const missing = detectMissingExplicitWallet(input, wallets);
 
   if (missing) {
     throw new Error(`Wallet ${missing.displayName} belum ditemukan. Pilih wallet untuk transaksi ini.`);
@@ -274,19 +270,22 @@ export async function processUserInput(userId: string, input: string) {
           throw new Error('Dompet asal dan tujuan tidak boleh sama.');
         }
 
-        const categoryId = await resolveCategory(userId, 'Transfer', 'transfer');
+        const isDefaultTransferNote =
+          !cleanedNote || cleanedNote === '-' || /^transfer(\s+ke)?$/i.test(cleanedNote.trim());
+        const transferNote = isDefaultTransferNote
+          ? `Transfer ke ${toWalletMatch.wallet.name}`
+          : cleanedNote;
+        result.note = transferNote;
+
         const newTx = await prisma.$transaction(async (tx) => {
           const created = await tx.transaction.create({
             data: {
               userId,
-              categoryId,
               walletId: fromWalletMatch.wallet.id,
               transferToWalletId: toWalletMatch.wallet.id,
               type: 'transfer',
               amount: result.amount,
-              note: cleanedNote && cleanedNote !== '-'
-                ? cleanedNote
-                : `Transfer ke ${toWalletMatch.wallet.name}`,
+              note: transferNote,
               rawInput: result.rawInput,
               tags: normalizeTags(result.tags),
               transactionDate: txDate,

@@ -1,7 +1,7 @@
 import type { Balance } from '../../types';
 import { CANONICAL_ALIASES, CANONICAL_WALLET_DISPLAY } from '../constants';
 
-type WalletLike = Pick<Balance, 'id' | 'name' | 'archivedAt'>;
+export type WalletLike = Pick<Balance, 'id' | 'name'> & Partial<Pick<Balance, 'archivedAt'>>;
 
 export type WalletMatch = {
   wallet: WalletLike;
@@ -177,6 +177,29 @@ export function detectKnownWalletAliasesFromInput(input: string) {
   }
 
   return matches.sort((a, b) => a.index - b.index || b.alias.length - a.alias.length);
+}
+
+export function detectMissingExplicitWallet(input: string, wallets: WalletLike[]) {
+  const existingMatches = detectWalletsFromInput(input, wallets);
+  const knownAliases = detectKnownWalletAliasesFromInput(input);
+
+  return (
+    knownAliases.find((known) => {
+      const knownStart = known.index;
+      const knownEnd = known.index + known.alias.length;
+
+      const isCoveredByExistingMatch = existingMatches.some((existing) => {
+        const existingStart = existing.index;
+        const existingEnd = existing.index + existing.alias.length;
+        return Math.max(knownStart, existingStart) < Math.min(knownEnd, existingEnd);
+      });
+
+      if (isCoveredByExistingMatch) return false;
+
+      const existingCanonicals = new Set(existingMatches.map((match) => normalizeWalletName(match.wallet.name)));
+      return !existingCanonicals.has(known.canonical);
+    }) || null
+  );
 }
 
 export function validateWalletMatch(walletName: string | null | undefined, wallets: WalletLike[]) {
